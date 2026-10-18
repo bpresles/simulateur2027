@@ -60,6 +60,7 @@ const pollsSchema: z.ZodType<PollsData> = z.object({
   polls: z.array(
     z.object({
       id: z.string(),
+      origin: z.enum(['manuel', 'mieuxvoter', '2027etmoi']).optional(),
       institute: z.string(),
       sponsor: z.string(),
       fieldwork,
@@ -110,7 +111,7 @@ const referenceSchema: z.ZodType<Reference2022> = z.object({
       scores,
     }),
   ),
-  autumnPolls: z.object({
+  campaignPolls: z.object({
     description: z.string(),
     windowDays: z.number().int().positive(),
     require: z.array(z.string()),
@@ -206,16 +207,16 @@ export function validateData(data: SimulationData): string[] {
       if (!ref2022Ids.has(id)) errors.push(`2022 ${poll.institute} : candidat inconnu « ${id} »`)
     }
   }
-  const autumn = reference2022.autumnPolls
-  const known2021 = new Set([...ref2022Ids, ...autumn.otherCandidates.map((c) => c.id)])
-  for (const id of [...autumn.require, ...autumn.exclude]) {
-    if (!known2021.has(id)) errors.push(`Automne 2021 : candidat inconnu « ${id} » dans le filtre`)
+  const campaign = reference2022.campaignPolls
+  const known2021 = new Set([...ref2022Ids, ...campaign.otherCandidates.map((c) => c.id)])
+  for (const id of [...campaign.require, ...campaign.exclude]) {
+    if (!known2021.has(id)) errors.push(`Campagne 2022 : candidat inconnu « ${id} » dans le filtre`)
   }
-  for (const poll of autumn.polls) {
-    if (poll.fieldwork.start > poll.fieldwork.end) errors.push(`Automne 2021 ${poll.institute} : dates inversées`)
+  for (const poll of campaign.polls) {
+    if (poll.fieldwork.start > poll.fieldwork.end) errors.push(`Campagne 2022 ${poll.institute} : dates inversées`)
     for (const h of poll.hypotheses) {
       for (const id of Object.keys(h.scores)) {
-        if (!known2021.has(id)) errors.push(`Automne 2021 ${poll.institute}/${h.id} : candidat inconnu « ${id} »`)
+        if (!known2021.has(id)) errors.push(`Campagne 2022 ${poll.institute}/${h.id} : candidat inconnu « ${id} »`)
       }
     }
   }

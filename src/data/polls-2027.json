@@ -3,7 +3,7 @@
   "electionDate": "2027-04-18",
   "windowDays": 21,
   "collection": {
-    "description": "Scores transcrits depuis le tableau des sondages de premier tour de Wikipedia, puis recoupés quand c'était possible avec la publication de l'institut ou du média commanditaire (voir le champ « vérification » de chaque sondage).",
+    "description": "Sondages synchronisés chaque jour depuis deux compilations des notices officielles déposées à la Commission des sondages (2027etmoi, prioritaire car chaque chiffre y est vérifié sur la notice, puis Mieux Voter). Les sondages pas encore présents dans ces flux sont saisis à la main d'après Wikipedia et la publication de l'institut, puis remplacés automatiquement dès qu'ils y apparaissent.",
     "sources": [
       {
         "label": "Wikipedia – Opinion polling for the 2027 French presidential election",
@@ -16,6 +16,14 @@
       {
         "label": "Commission des sondages – notices",
         "url": "https://www.commission-des-sondages.fr/notices/"
+      },
+      {
+        "label": "2027etmoi – sondages d’après les notices officielles (data.gouv.fr, Licence Ouverte 2.0)",
+        "url": "https://www.data.gouv.fr/datasets/sondages-dintentions-de-vote-au-premier-tour-presidentielle-2027-notices-officielles"
+      },
+      {
+        "label": "Mieux Voter – presidentielle2027 (GitHub, licence MIT)",
+        "url": "https://github.com/MieuxVoter/presidentielle2027"
       }
     ]
   },
@@ -190,6 +198,78 @@
     {
       "id": "lisnard",
       "name": "David Lisnard"
+    },
+    {
+      "id": "poutou",
+      "name": "Philippe Poutou"
+    },
+    {
+      "id": "faure",
+      "name": "Olivier Faure"
+    },
+    {
+      "id": "wauquiez",
+      "name": "Laurent Wauquiez"
+    },
+    {
+      "id": "rousseau",
+      "name": "Sandrine Rousseau"
+    },
+    {
+      "id": "barnier",
+      "name": "Michel Barnier"
+    },
+    {
+      "id": "lassalle",
+      "name": "Jean Lassalle"
+    },
+    {
+      "id": "bardella",
+      "name": "Jordan Bardella"
+    },
+    {
+      "id": "darmanin",
+      "name": "Gérald Darmanin"
+    },
+    {
+      "id": "bayrou",
+      "name": "François Bayrou"
+    },
+    {
+      "id": "knafo",
+      "name": "Sarah Knafo"
+    },
+    {
+      "id": "de-villiers",
+      "name": "Philippe de Villiers"
+    },
+    {
+      "id": "bertrand",
+      "name": "Xavier Bertrand"
+    },
+    {
+      "id": "lecornu",
+      "name": "Sébastien Lecornu"
+    },
+    {
+      "id": "le-maire",
+      "name": "Bruno Le Maire"
+    },
+    {
+      "id": "bonnal",
+      "name": "Sébastien Bonnal"
+    },
+    {
+      "id": "royal",
+      "name": "Ségolène Royal"
+    },
+    {
+      "id": "guedj",
+      "name": "Jérôme Guedj"
+    },
+    {
+      "id": "maurel",
+      "name": "Emmanuel Maurel"
     }
   ],
   "hypothesisSets": [
@@ -505,100 +585,10 @@
       ]
     },
     {
-      "id": "opinionway-20261014",
-      "institute": "OpinionWay",
-      "sponsor": "Les Echos / Radio Classique ; CNews / Europe 1",
-      "fieldwork": {
-        "start": "2026-10-13",
-        "end": "2026-10-14"
-      },
-      "sampleSize": 1043,
-      "sources": [
-        {
-          "label": "OpinionWay pour Les Echos et Radio Classique – Présitrack vague 3 (PDF)",
-          "url": "https://f.dviz.factoviz.com/UserFiles/0/9/2/2027/OpinionWay%20pour%20Les%20Echos%20et%20Radio%20Classique%20-%20Barom%C3%A8tre%20Pr%C3%A9sitrack%202027%20Vague%203%20-%20Octobre%202026.pdf"
-        },
-        {
-          "label": "Europe 1 – sondage OpinionWay",
-          "url": "https://www.europe1.fr/politique/sondage-presidentielle-2027-marine-le-pen-largement-en-tete-au-1er-tour-et-gagnante-dans-tous-les-scenarios-de-2nd-tour-1152020"
-        }
-      ],
-      "note": "Les deux publications ont le même terrain et le même échantillon : elles sont traitées comme un seul sondage. « < 0,5 % » est codé 0,25. Chiffres repris de Wikipedia.",
-      "hypotheses": [
-        {
-          "id": "Echos-H1",
-          "label": "Philippe et Attal",
-          "scores": {
-            "arthaud": 0.5,
-            "melenchon": 14,
-            "roussel": 3,
-            "tondelier": 3,
-            "glucksmann": 13,
-            "attal": 7,
-            "philippe": 12,
-            "retailleau": 7,
-            "dupont-aignan": 2,
-            "lepen": 35,
-            "zemmour": 4
-          }
-        },
-        {
-          "id": "Echos-H2",
-          "label": "Attal",
-          "scores": {
-            "arthaud": 1,
-            "melenchon": 15,
-            "roussel": 2,
-            "tondelier": 3,
-            "glucksmann": 16,
-            "attal": 11,
-            "retailleau": 9,
-            "dupont-aignan": 2,
-            "lepen": 37,
-            "zemmour": 4
-          }
-        },
-        {
-          "id": "Echos-H3",
-          "label": "Philippe",
-          "scores": {
-            "arthaud": 1,
-            "melenchon": 15,
-            "roussel": 2,
-            "tondelier": 3,
-            "glucksmann": 15,
-            "philippe": 15,
-            "retailleau": 8,
-            "dupont-aignan": 2,
-            "lepen": 35,
-            "zemmour": 4
-          }
-        },
-        {
-          "id": "CNews-H1",
-          "label": "Philippe, Attal, Bouamrane, Lisnard",
-          "scores": {
-            "arthaud": 1,
-            "melenchon": 15,
-            "roussel": 1,
-            "tondelier": 2,
-            "bouamrane": 0.25,
-            "glucksmann": 13,
-            "attal": 5,
-            "philippe": 12,
-            "lisnard": 4,
-            "retailleau": 6,
-            "dupont-aignan": 1,
-            "lepen": 35,
-            "zemmour": 5
-          }
-        }
-      ]
-    },
-    {
       "id": "ifop-20261014",
+      "origin": "2027etmoi",
       "institute": "Ifop-Fiducial",
-      "sponsor": "LCI / Sud Radio",
+      "sponsor": "LCI et Sud Radio (le climat politique après la primaire du PS et de Place publique)",
       "fieldwork": {
         "start": "2026-10-12",
         "end": "2026-10-14"
@@ -606,16 +596,63 @@
       "sampleSize": 1390,
       "sources": [
         {
-          "label": "Sud Radio – sondage Ifop",
-          "url": "https://www.sudradio.fr/ifop/exclu-presidentielle-2027-glucksmann-grignote-le-pen-reste-intouchable"
+          "label": "Commission des sondages – notice Ifop-Fiducial pour LCI et Sud Radio",
+          "url": "https://www.commission-des-sondages.fr/notices/files/notices/2026/octobre/10314-pres-climat-politique-post-primaire-ps-pp-ifop-lci-14-octobre.pdf"
         }
       ],
-      "verified": "Scores principaux recoupés avec l'article Sud Radio.",
-      "note": "1 390 inscrits, extraits d'un échantillon de 1 525 personnes.",
+      "verified": "Chiffres recopiés de la notice officielle (Commission des sondages), via 2027etmoi.",
       "hypotheses": [
         {
           "id": "H1",
-          "label": "Candidatures multiples",
+          "label": "Hypothèse Philippe et Attal candidats (Arthaud « - »)",
+          "scores": {
+            "melenchon": 16,
+            "roussel": 2.5,
+            "tondelier": 2,
+            "glucksmann": 14,
+            "attal": 6,
+            "philippe": 14,
+            "retailleau": 6.5,
+            "dupont-aignan": 2,
+            "lepen": 34,
+            "zemmour": 3
+          }
+        },
+        {
+          "id": "H2",
+          "label": "Hypothèse Philippe candidat du bloc central",
+          "scores": {
+            "arthaud": 0.5,
+            "melenchon": 16,
+            "roussel": 3,
+            "tondelier": 2.5,
+            "glucksmann": 13.5,
+            "philippe": 18,
+            "retailleau": 6.5,
+            "dupont-aignan": 2,
+            "lepen": 35,
+            "zemmour": 3
+          }
+        },
+        {
+          "id": "H3",
+          "label": "Hypothèse Attal candidat du bloc central",
+          "scores": {
+            "arthaud": 0.5,
+            "melenchon": 17,
+            "roussel": 2.5,
+            "tondelier": 2,
+            "glucksmann": 16,
+            "attal": 13,
+            "retailleau": 8,
+            "dupont-aignan": 2,
+            "lepen": 36,
+            "zemmour": 3
+          }
+        },
+        {
+          "id": "H4",
+          "label": "Hypothèse avec Ruffin, Villepin et Lisnard (Arthaud « - »)",
           "scores": {
             "melenchon": 16,
             "roussel": 2,
@@ -631,61 +668,106 @@
             "lepen": 32,
             "zemmour": 3
           }
+        }
+      ]
+    },
+    {
+      "id": "opinionway-20261014",
+      "origin": "2027etmoi",
+      "institute": "OpinionWay",
+      "sponsor": "Les Echos et Radio Classique (Présitrack, vague 3) ; CNews",
+      "fieldwork": {
+        "start": "2026-10-13",
+        "end": "2026-10-14"
+      },
+      "sampleSize": 978,
+      "sources": [
+        {
+          "label": "Commission des sondages – notice OpinionWay pour Les Echos et Radio Classique (Présitrack, vague 3)",
+          "url": "https://www.commission-des-sondages.fr/notices/files/notices/2026/octobre/10318-pres-presitrack-v3-opinionway-15-octobre.pdf"
+        },
+        {
+          "label": "Commission des sondages – notice OpinionWay pour CNews",
+          "url": "https://www.commission-des-sondages.fr/notices/files/notices/2026/octobre/10319-pres-iv-opinionway-cnews-15-octobre.pdf"
+        }
+      ],
+      "verified": "Chiffres recopiés de la notice officielle (Commission des sondages), via 2027etmoi.",
+      "hypotheses": [
+        {
+          "id": "H1",
+          "label": "Hypothèse 1 : Attal et Philippe candidats du centre (Arthaud « <1 % », noté 0,5 ; colonne « Publié »)",
+          "scores": {
+            "arthaud": 0.5,
+            "melenchon": 14,
+            "roussel": 3,
+            "tondelier": 3,
+            "glucksmann": 13,
+            "attal": 7,
+            "philippe": 12,
+            "retailleau": 7,
+            "dupont-aignan": 2,
+            "zemmour": 4,
+            "lepen": 35
+          }
         },
         {
           "id": "H2",
-          "label": "Attal",
+          "label": "Hypothèse 2 : Attal candidat du centre",
           "scores": {
-            "arthaud": 0.5,
-            "melenchon": 17,
-            "roussel": 2.5,
-            "tondelier": 2,
+            "arthaud": 1,
+            "melenchon": 15,
+            "roussel": 2,
+            "tondelier": 3,
             "glucksmann": 16,
-            "attal": 13,
-            "retailleau": 8,
+            "attal": 11,
+            "retailleau": 9,
             "dupont-aignan": 2,
-            "lepen": 36,
-            "zemmour": 3
+            "zemmour": 4,
+            "lepen": 37
           }
         },
         {
           "id": "H3",
-          "label": "Philippe",
+          "label": "Hypothèse 3 : Philippe candidat du centre",
           "scores": {
-            "arthaud": 0.5,
-            "melenchon": 16,
-            "roussel": 3,
-            "tondelier": 2.5,
-            "glucksmann": 13.5,
-            "philippe": 18,
-            "retailleau": 6.5,
+            "arthaud": 1,
+            "melenchon": 15,
+            "roussel": 2,
+            "tondelier": 3,
+            "glucksmann": 15,
+            "philippe": 15,
+            "retailleau": 8,
             "dupont-aignan": 2,
-            "lepen": 35,
-            "zemmour": 3
+            "zemmour": 4,
+            "lepen": 35
           }
         },
         {
           "id": "H4",
-          "label": "Philippe et Attal",
+          "label": "Hypothèse unique avec Attal, Philippe, Lisnard et Bouamrane (colonne « Publié » reconstituée, tableau mal aligné dans la notice ; Tondelier « <1 % », noté 0,5)",
           "scores": {
-            "melenchon": 16,
-            "roussel": 2.5,
-            "tondelier": 2,
-            "glucksmann": 14,
-            "attal": 6,
-            "philippe": 14,
-            "retailleau": 6.5,
+            "arthaud": 1,
+            "melenchon": 15,
+            "roussel": 1,
+            "tondelier": 0.5,
+            "glucksmann": 13,
+            "bouamrane": 1,
+            "attal": 5,
+            "philippe": 12,
+            "lisnard": 4,
+            "retailleau": 6,
             "dupont-aignan": 2,
-            "lepen": 34,
-            "zemmour": 3
+            "zemmour": 5,
+            "lepen": 35
           }
         }
       ]
     },
     {
       "id": "harris-20261008",
+      "origin": "2027etmoi",
       "institute": "Harris Interactive (Toluna)",
-      "sponsor": "M6 / RTL",
+      "sponsor": "M6 et RTL",
       "fieldwork": {
         "start": "2026-10-05",
         "end": "2026-10-08"
@@ -693,15 +775,15 @@
       "sampleSize": 2004,
       "sources": [
         {
-          "label": "Toluna Harris Interactive – baromètre vague 7 (PDF)",
-          "url": "https://tolunacorporate.com/wp-content/uploads/2026/10/Rapport-Toluna-Barometre-Presidentielle-2027-Vague-7-M6-RTL-12-octobre-2026.pdf"
+          "label": "Commission des sondages – notice Toluna Harris Interactive pour M6 et RTL",
+          "url": "https://www.commission-des-sondages.fr/notices/files/notices/2026/octobre/10305-pres-iv-toluna-harris-interactive-12-octobre.pdf"
         }
       ],
-      "note": "Chiffres repris de Wikipedia (rapport PDF non lisible automatiquement).",
+      "verified": "Chiffres recopiés de la notice officielle (Commission des sondages), via 2027etmoi.",
       "hypotheses": [
         {
           "id": "H1",
-          "label": "Philippe et Attal",
+          "label": "Hypothèse Glucksmann, Attal et Philippe",
           "scores": {
             "arthaud": 1,
             "melenchon": 18,
@@ -718,7 +800,7 @@
         },
         {
           "id": "H2",
-          "label": "Philippe",
+          "label": "Hypothèse Glucksmann et Philippe",
           "scores": {
             "arthaud": 1,
             "melenchon": 18,
@@ -734,7 +816,7 @@
         },
         {
           "id": "H3",
-          "label": "Attal",
+          "label": "Hypothèse Glucksmann et Attal",
           "scores": {
             "arthaud": 1,
             "melenchon": 18,
@@ -750,7 +832,7 @@
         },
         {
           "id": "H4",
-          "label": "Hollande, Philippe",
+          "label": "Hypothèse Hollande et Philippe",
           "scores": {
             "arthaud": 1,
             "melenchon": 18,
@@ -766,7 +848,7 @@
         },
         {
           "id": "H5",
-          "label": "Hollande, Attal",
+          "label": "Hypothèse Hollande et Attal",
           "scores": {
             "arthaud": 1,
             "melenchon": 19,
@@ -784,8 +866,9 @@
     },
     {
       "id": "odoxa-20261007",
+      "origin": "mieuxvoter",
       "institute": "Odoxa",
-      "sponsor": "Presse régionale, Public Sénat, Le Nouvel Obs, Backbone",
+      "sponsor": "Backbone, Public Sénat, La Presse Régionale, Le Nouvel Obs",
       "fieldwork": {
         "start": "2026-09-24",
         "end": "2026-10-07"
@@ -793,23 +876,19 @@
       "sampleSize": 12005,
       "sources": [
         {
-          "label": "Odoxa – « Mélenchon est passé devant Philippe au premier tour »",
-          "url": "https://www.odoxa.fr/sondage/melenchon-est-passe-devant-philippe-au-premier-tour-marine-le-pen-est-plus-que-jamais-la-grande-favorite-pour-2027-a-la-fois-au-premier-et-au-second-tour/"
-        },
-        {
-          "label": "Public Sénat – présentation du sondage",
-          "url": "https://www.publicsenat.fr/actualites/politique/sondage-presidentielle-2027-jean-luc-melenchon-passe-devant-edouard-philippe-au-premier-tour-le-centre-cherche-son-cap"
+          "label": "Mieux Voter – 20260924_1007_od",
+          "url": "https://github.com/MieuxVoter/presidentielle2027"
         }
       ],
-      "verified": "Scores principaux recoupés avec la page Odoxa.",
+      "verified": "Chiffres compilés par Mieux Voter d’après la notice officielle (Commission des sondages).",
       "hypotheses": [
         {
-          "id": "H1",
-          "label": "Philippe",
+          "id": "A",
+          "label": "HI Oct Glucksmann Philippe Retailleau MLP avec Dupont-Aignan",
           "scores": {
             "arthaud": 0.5,
-            "melenchon": 18,
             "roussel": 2,
+            "melenchon": 18,
             "tondelier": 3,
             "glucksmann": 9.5,
             "philippe": 17,
@@ -820,12 +899,12 @@
           }
         },
         {
-          "id": "H2",
-          "label": "Attal",
+          "id": "B",
+          "label": "HI Oct Glucksmann Attal Retailleau MLP avec Dupont-Aignan",
           "scores": {
             "arthaud": 1,
-            "melenchon": 18.5,
             "roussel": 2,
+            "melenchon": 18.5,
             "tondelier": 3.5,
             "glucksmann": 10.5,
             "attal": 11,
@@ -839,8 +918,9 @@
     },
     {
       "id": "ifop-20260929",
+      "origin": "2027etmoi",
       "institute": "Ifop-Fiducial",
-      "sponsor": "Le Figaro",
+      "sponsor": "LCI, Le Figaro et Sud Radio (baromètre, vague 6)",
       "fieldwork": {
         "start": "2026-09-25",
         "end": "2026-09-29"
@@ -848,15 +928,15 @@
       "sampleSize": 1393,
       "sources": [
         {
-          "label": "Commission des sondages – notice Ifop / Le Figaro (PDF)",
+          "label": "Commission des sondages – notice Ifop baromètre de l'élection présidentielle vague 6",
           "url": "https://www.commission-des-sondages.fr/notices/files/notices/2026/septembre/10284-pres-barometre-election-presidentielle-v6-ifop-le-figaro-30-septembre.pdf"
         }
       ],
-      "note": "Seules les hypothèses avec Glucksmann sont reprises (7 autres hypothèses testaient d'autres candidats PS). Remplacé par la vague Ifop du 12-14/10/2026.",
+      "verified": "Chiffres recopiés de la notice officielle (Commission des sondages), via 2027etmoi.",
       "hypotheses": [
         {
           "id": "H1",
-          "label": "Philippe et Attal",
+          "label": "Hypothèse Philippe et Attal candidats, Glucksmann candidat PS-Place publique",
           "scores": {
             "arthaud": 0.5,
             "melenchon": 15,
@@ -873,7 +953,7 @@
         },
         {
           "id": "H2",
-          "label": "Philippe",
+          "label": "Hypothèse Philippe candidat du bloc central, Glucksmann candidat PS-Place publique",
           "scores": {
             "arthaud": 0.5,
             "melenchon": 16,
@@ -889,7 +969,7 @@
         },
         {
           "id": "H3",
-          "label": "Attal",
+          "label": "Hypothèse Attal candidat du bloc central, Glucksmann candidat PS-Place publique",
           "scores": {
             "arthaud": 1,
             "melenchon": 15,
@@ -902,11 +982,353 @@
             "lepen": 34,
             "zemmour": 3.5
           }
+        },
+        {
+          "id": "H4",
+          "label": "Hypothèse Philippe candidat du bloc central, Faure candidat PS-Place publique",
+          "scores": {
+            "arthaud": 1,
+            "melenchon": 16,
+            "roussel": 3.5,
+            "tondelier": 5,
+            "faure": 3,
+            "philippe": 23,
+            "retailleau": 8,
+            "dupont-aignan": 1.5,
+            "lepen": 35,
+            "zemmour": 4
+          }
+        },
+        {
+          "id": "H5",
+          "label": "Hypothèse Attal candidat du bloc central, Faure candidat PS-Place publique",
+          "scores": {
+            "arthaud": 1,
+            "melenchon": 17,
+            "roussel": 3,
+            "tondelier": 5.5,
+            "faure": 4,
+            "attal": 17,
+            "retailleau": 11,
+            "dupont-aignan": 1,
+            "lepen": 36,
+            "zemmour": 4.5
+          }
+        },
+        {
+          "id": "H6",
+          "label": "Hypothèse Philippe candidat du bloc central, Royal candidate PS-Place publique",
+          "scores": {
+            "arthaud": 0.5,
+            "melenchon": 15,
+            "roussel": 3,
+            "tondelier": 6,
+            "royal": 3,
+            "philippe": 24,
+            "retailleau": 8,
+            "dupont-aignan": 1.5,
+            "lepen": 35,
+            "zemmour": 4
+          }
+        },
+        {
+          "id": "H7",
+          "label": "Hypothèse Philippe candidat du bloc central, Guedj candidat PS-Place publique",
+          "scores": {
+            "arthaud": 1,
+            "melenchon": 17,
+            "roussel": 3.5,
+            "tondelier": 5.5,
+            "guedj": 3,
+            "philippe": 23,
+            "retailleau": 8,
+            "dupont-aignan": 1,
+            "lepen": 35,
+            "zemmour": 3
+          }
+        },
+        {
+          "id": "H8",
+          "label": "Hypothèse Philippe candidat du bloc central, Maurel candidat PS-Place publique",
+          "scores": {
+            "arthaud": 1,
+            "melenchon": 17,
+            "roussel": 3.5,
+            "tondelier": 6,
+            "maurel": 1,
+            "philippe": 23,
+            "retailleau": 9,
+            "dupont-aignan": 1.5,
+            "lepen": 35,
+            "zemmour": 3
+          }
+        },
+        {
+          "id": "H9",
+          "label": "Hypothèse Philippe candidat du bloc central, Hollande candidat PS-Place publique",
+          "scores": {
+            "arthaud": 0.5,
+            "melenchon": 16,
+            "roussel": 2.5,
+            "tondelier": 5,
+            "hollande": 8,
+            "philippe": 22,
+            "retailleau": 7,
+            "dupont-aignan": 1,
+            "lepen": 34,
+            "zemmour": 4
+          }
+        },
+        {
+          "id": "H10",
+          "label": "Hypothèse Ruffin, Villepin et Lisnard candidats",
+          "scores": {
+            "arthaud": 0.5,
+            "melenchon": 14,
+            "roussel": 2,
+            "ruffin": 3,
+            "tondelier": 3,
+            "glucksmann": 9,
+            "attal": 7,
+            "philippe": 15,
+            "villepin": 2,
+            "lisnard": 3.5,
+            "retailleau": 5,
+            "dupont-aignan": 1,
+            "lepen": 31,
+            "zemmour": 4
+          }
+        }
+      ]
+    },
+    {
+      "id": "harris-interactive-toluna-20260924",
+      "origin": "mieuxvoter",
+      "institute": "Harris Interactive (Toluna)",
+      "sponsor": "M6, RTL",
+      "fieldwork": {
+        "start": "2026-09-22",
+        "end": "2026-09-24"
+      },
+      "sampleSize": 2334,
+      "sources": [
+        {
+          "label": "Mieux Voter – 20260922_0924_hi",
+          "url": "https://github.com/MieuxVoter/presidentielle2027"
+        }
+      ],
+      "verified": "Chiffres compilés par Mieux Voter d’après la notice officielle (Commission des sondages).",
+      "hypotheses": [
+        {
+          "id": "A",
+          "label": "Ipsos Juin 2026 Glucksmann Attal+Philippe Retailleau MLP",
+          "scores": {
+            "arthaud": 1,
+            "melenchon": 17,
+            "roussel": 2,
+            "tondelier": 3,
+            "glucksmann": 10,
+            "attal": 5,
+            "philippe": 13,
+            "retailleau": 7,
+            "dupont-aignan": 2,
+            "lepen": 35,
+            "zemmour": 5
+          }
+        },
+        {
+          "id": "B",
+          "label": "HI Oct Glucksmann Philippe Retailleau MLP avec Dupont-Aignan",
+          "scores": {
+            "arthaud": 1,
+            "melenchon": 18,
+            "roussel": 2,
+            "tondelier": 3,
+            "glucksmann": 10,
+            "philippe": 16,
+            "retailleau": 8,
+            "dupont-aignan": 2,
+            "lepen": 35,
+            "zemmour": 5
+          }
+        },
+        {
+          "id": "C",
+          "label": "HI Oct Glucksmann Attal Retailleau MLP avec Dupont-Aignan",
+          "scores": {
+            "arthaud": 1,
+            "melenchon": 17,
+            "roussel": 2,
+            "tondelier": 3,
+            "glucksmann": 11,
+            "attal": 12,
+            "retailleau": 10,
+            "dupont-aignan": 2,
+            "lepen": 36,
+            "zemmour": 6
+          }
+        },
+        {
+          "id": "D",
+          "label": "Harris juillet Hollande Philippe avec Tondelier",
+          "scores": {
+            "arthaud": 1,
+            "melenchon": 18,
+            "roussel": 3,
+            "tondelier": 4,
+            "hollande": 7,
+            "philippe": 16,
+            "retailleau": 9,
+            "dupont-aignan": 2,
+            "lepen": 35,
+            "zemmour": 5
+          }
+        },
+        {
+          "id": "E",
+          "label": "Harris juillet Hollande Attal avec Tondelier",
+          "scores": {
+            "arthaud": 1,
+            "melenchon": 17,
+            "roussel": 3,
+            "tondelier": 5,
+            "hollande": 8,
+            "attal": 13,
+            "retailleau": 10,
+            "dupont-aignan": 2,
+            "lepen": 36,
+            "zemmour": 5
+          }
+        }
+      ]
+    },
+    {
+      "id": "yougov-20260921",
+      "origin": "2027etmoi",
+      "institute": "YouGov",
+      "sponsor": "Le HuffPost",
+      "fieldwork": {
+        "start": "2026-09-17",
+        "end": "2026-09-21"
+      },
+      "sampleSize": 1008,
+      "sources": [
+        {
+          "label": "Commission des sondages – notice YouGov pour Le HuffPost",
+          "url": "https://www.commission-des-sondages.fr/notices/files/notices/2026/septembre/10270-pres-iv-yougov-huffpost-23-septembre.pdf"
+        }
+      ],
+      "verified": "Chiffres recopiés de la notice officielle (Commission des sondages), via 2027etmoi.",
+      "hypotheses": [
+        {
+          "id": "H1",
+          "label": "Hypothèse 1 : Attal, Philippe et Glucksmann (chiffres pondérés de la notice, au point)",
+          "scores": {
+            "arthaud": 1,
+            "melenchon": 17,
+            "roussel": 2,
+            "tondelier": 3,
+            "glucksmann": 8,
+            "attal": 9,
+            "philippe": 12,
+            "retailleau": 8,
+            "dupont-aignan": 2,
+            "lepen": 34,
+            "zemmour": 6
+          }
+        },
+        {
+          "id": "H2",
+          "label": "Hypothèse 2 : Bruno Le Maire pour Renaissance (chiffres pondérés de la notice, au point)",
+          "scores": {
+            "arthaud": 1,
+            "melenchon": 17,
+            "roussel": 2,
+            "tondelier": 3,
+            "glucksmann": 9,
+            "le-maire": 3,
+            "philippe": 13,
+            "retailleau": 8,
+            "dupont-aignan": 2,
+            "lepen": 35,
+            "zemmour": 6
+          }
+        },
+        {
+          "id": "H3",
+          "label": "Hypothèse 2 bis : Gabriel Attal sans Édouard Philippe (chiffres pondérés de la notice, au point)",
+          "scores": {
+            "arthaud": 1,
+            "melenchon": 17,
+            "roussel": 3,
+            "tondelier": 3,
+            "glucksmann": 9,
+            "attal": 14,
+            "retailleau": 10,
+            "dupont-aignan": 2,
+            "lepen": 35,
+            "zemmour": 5
+          }
+        },
+        {
+          "id": "H4",
+          "label": "Hypothèse 3 : Édouard Philippe sans Attal ni Glucksmann (chiffres pondérés de la notice, au point)",
+          "scores": {
+            "arthaud": 1,
+            "melenchon": 18,
+            "roussel": 3,
+            "tondelier": 7,
+            "philippe": 17,
+            "retailleau": 8,
+            "dupont-aignan": 2,
+            "lepen": 37,
+            "zemmour": 5
+          }
+        },
+        {
+          "id": "H5",
+          "label": "Hypothèse 4 : Olivier Faure candidat socialiste (chiffres pondérés de la notice, au point)",
+          "scores": {
+            "arthaud": 1,
+            "melenchon": 16,
+            "roussel": 2,
+            "tondelier": 4,
+            "faure": 5,
+            "attal": 9,
+            "philippe": 12,
+            "retailleau": 8,
+            "dupont-aignan": 2,
+            "lepen": 35,
+            "zemmour": 6
+          }
+        },
+        {
+          "id": "H6",
+          "label": "Hypothèse 5 : liste élargie (Hollande, Lisnard, Villepin, Ruffin, Bertrand) (chiffres pondérés de la notice, au point)",
+          "scores": {
+            "arthaud": 1,
+            "melenchon": 15,
+            "roussel": 1,
+            "tondelier": 2,
+            "glucksmann": 5,
+            "hollande": 4,
+            "ruffin": 2,
+            "attal": 8,
+            "philippe": 10,
+            "villepin": 2,
+            "lisnard": 2,
+            "bertrand": 1,
+            "retailleau": 7,
+            "dupont-aignan": 2,
+            "lepen": 33,
+            "zemmour": 5
+          }
         }
       ]
     },
     {
       "id": "cluster17-20260916",
+      "origin": "2027etmoi",
       "institute": "Cluster17",
       "sponsor": "Politico",
       "fieldwork": {
@@ -916,58 +1338,1714 @@
       "sampleSize": 1943,
       "sources": [
         {
-          "label": "Cluster17 – « Le Pen largement en tête, Mélenchon et Philippe au coude-à-coude »",
-          "url": "https://cluster17.com/presidentielle-2027-le-pen-largement-en-tete-melenchon-et-philippe-au-coude-a-coude/"
+          "label": "Commission des sondages – notice Cluster17 pour Politico",
+          "url": "https://www.commission-des-sondages.fr/notices/files/notices/2026/septembre/10273-pres-iv-cluster17-politico-24-septembre.pdf"
         }
       ],
-      "note": "Dernier sondage Cluster17 disponible : hors de la fenêtre de 21 jours, donc non retenu.",
+      "verified": "Chiffres recopiés de la notice officielle (Commission des sondages), via 2027etmoi.",
       "hypotheses": [
         {
           "id": "H1",
-          "label": "Philippe",
+          "label": "Hypothèse 1 : Philippe et Glucksmann (chiffres redressés de la notice, à la décimale)",
           "scores": {
-            "arthaud": 0.5,
-            "melenchon": 19,
-            "roussel": 2,
-            "tondelier": 2.5,
-            "glucksmann": 12,
-            "philippe": 19,
-            "retailleau": 7.5,
-            "dupont-aignan": 3,
-            "lepen": 31,
+            "arthaud": 0.4,
+            "melenchon": 19.1,
+            "roussel": 2.2,
+            "tondelier": 2.6,
+            "glucksmann": 11.8,
+            "philippe": 18.8,
+            "retailleau": 7.6,
+            "dupont-aignan": 3.2,
+            "lepen": 30.8,
             "zemmour": 3.5
           }
         },
         {
           "id": "H2",
-          "label": "Attal",
+          "label": "Hypothèse 2 : Attal et Glucksmann (chiffres redressés de la notice, à la décimale)",
+          "scores": {
+            "arthaud": 0.4,
+            "melenchon": 19.8,
+            "roussel": 2.5,
+            "tondelier": 2.6,
+            "glucksmann": 14,
+            "attal": 13.4,
+            "retailleau": 9.5,
+            "dupont-aignan": 3.2,
+            "lepen": 31,
+            "zemmour": 3.6
+          }
+        },
+        {
+          "id": "H3",
+          "label": "Hypothèse 3 : Hollande, Philippe et Lisnard, sans Zemmour (chiffres redressés de la notice, à la décimale)",
+          "scores": {
+            "arthaud": 0.7,
+            "melenchon": 19.6,
+            "roussel": 2.9,
+            "tondelier": 3,
+            "hollande": 7.4,
+            "philippe": 19.4,
+            "retailleau": 7.6,
+            "lisnard": 5.2,
+            "dupont-aignan": 4,
+            "lepen": 30.2
+          }
+        }
+      ]
+    },
+    {
+      "id": "ifop-fiducial-20260911",
+      "origin": "mieuxvoter",
+      "institute": "Ifop-Fiducial",
+      "sponsor": "Parti du vote blanc",
+      "fieldwork": {
+        "start": "2026-09-09",
+        "end": "2026-09-11"
+      },
+      "sampleSize": 1548,
+      "sources": [
+        {
+          "label": "Mieux Voter – 20260909_0911_if",
+          "url": "https://github.com/MieuxVoter/presidentielle2027"
+        }
+      ],
+      "verified": "Chiffres compilés par Mieux Voter d’après la notice officielle (Commission des sondages).",
+      "hypotheses": [
+        {
+          "id": "A",
+          "label": "Ipsos Juin 2026 Glucksmann Attal+Philippe Retailleau MLP",
           "scores": {
             "arthaud": 0.5,
-            "melenchon": 20,
-            "roussel": 2.5,
-            "tondelier": 2.5,
-            "glucksmann": 14,
-            "attal": 13.5,
-            "retailleau": 9.5,
+            "melenchon": 17,
+            "roussel": 2,
+            "tondelier": 3,
+            "glucksmann": 9,
+            "attal": 7,
+            "philippe": 14,
+            "retailleau": 6.5,
+            "dupont-aignan": 2,
+            "lepen": 35,
+            "zemmour": 4
+          }
+        }
+      ]
+    },
+    {
+      "id": "harris-interactive-toluna-20260910",
+      "origin": "2027etmoi",
+      "institute": "Harris Interactive (Toluna)",
+      "sponsor": "M6 et RTL",
+      "fieldwork": {
+        "start": "2026-09-08",
+        "end": "2026-09-10"
+      },
+      "sampleSize": 2052,
+      "sources": [
+        {
+          "label": "Commission des sondages – notice Toluna Harris Interactive pour M6 et RTL",
+          "url": "https://www.commission-des-sondages.fr/notices/files/notices/2026/septembre/10263-pres-iv-toluna-harris-interactive-rtl-14-septembre.pdf"
+        }
+      ],
+      "verified": "Chiffres recopiés de la notice officielle (Commission des sondages), via 2027etmoi.",
+      "hypotheses": [
+        {
+          "id": "H1",
+          "label": "Hypothèse Glucksmann, Attal et Philippe",
+          "scores": {
+            "arthaud": 1,
+            "melenchon": 16,
+            "roussel": 2,
+            "tondelier": 3,
+            "glucksmann": 9,
+            "attal": 8,
+            "philippe": 14,
+            "retailleau": 7,
+            "dupont-aignan": 2,
+            "lepen": 33,
+            "zemmour": 5
+          }
+        },
+        {
+          "id": "H2",
+          "label": "Hypothèse Glucksmann et Philippe",
+          "scores": {
+            "arthaud": 1,
+            "melenchon": 17,
+            "roussel": 3,
+            "tondelier": 3,
+            "glucksmann": 10,
+            "philippe": 17,
+            "retailleau": 7,
             "dupont-aignan": 3,
-            "lepen": 31.5,
+            "lepen": 34,
+            "zemmour": 5
+          }
+        },
+        {
+          "id": "H3",
+          "label": "Hypothèse Glucksmann et Attal",
+          "scores": {
+            "arthaud": 1,
+            "melenchon": 17,
+            "roussel": 2,
+            "tondelier": 3,
+            "glucksmann": 12,
+            "attal": 14,
+            "retailleau": 9,
+            "dupont-aignan": 2,
+            "lepen": 35,
+            "zemmour": 5
+          }
+        },
+        {
+          "id": "H4",
+          "label": "Hypothèse Hollande et Philippe",
+          "scores": {
+            "arthaud": 1,
+            "melenchon": 17,
+            "roussel": 3,
+            "tondelier": 4,
+            "hollande": 7,
+            "philippe": 19,
+            "retailleau": 9,
+            "dupont-aignan": 2,
+            "lepen": 33,
+            "zemmour": 5
+          }
+        },
+        {
+          "id": "H5",
+          "label": "Hypothèse Hollande et Attal",
+          "scores": {
+            "arthaud": 1,
+            "melenchon": 17,
+            "roussel": 3,
+            "tondelier": 4,
+            "hollande": 7,
+            "attal": 15,
+            "retailleau": 10,
+            "dupont-aignan": 2,
+            "lepen": 36,
+            "zemmour": 5
+          }
+        }
+      ]
+    },
+    {
+      "id": "opinionway-20260910",
+      "origin": "2027etmoi",
+      "institute": "OpinionWay",
+      "sponsor": "CNews",
+      "fieldwork": {
+        "start": "2026-09-09",
+        "end": "2026-09-10"
+      },
+      "sampleSize": 1001,
+      "sources": [
+        {
+          "label": "Commission des sondages – notice OpinionWay pour CNews",
+          "url": "https://www.commission-des-sondages.fr/notices/files/notices/2026/septembre/10260-pres-iv-opinionway-cnews-11-septembre.pdf"
+        }
+      ],
+      "verified": "Chiffres recopiés de la notice officielle (Commission des sondages), via 2027etmoi.",
+      "hypotheses": [
+        {
+          "id": "H1",
+          "label": "Hypothèse 1 : François Hollande candidat socialiste",
+          "scores": {
+            "arthaud": 1,
+            "melenchon": 16,
+            "roussel": 3,
+            "tondelier": 3,
+            "hollande": 7,
+            "bouamrane": 1,
+            "attal": 8,
+            "philippe": 16,
+            "retailleau": 7,
+            "lisnard": 2,
+            "dupont-aignan": 2,
+            "zemmour": 2,
+            "lepen": 32
+          }
+        },
+        {
+          "id": "H2",
+          "label": "Hypothèse 2 : Ségolène Royal candidate socialiste",
+          "scores": {
+            "arthaud": 1,
+            "melenchon": 17,
+            "roussel": 4,
+            "tondelier": 3,
+            "royal": 3,
+            "bouamrane": 1,
+            "attal": 8,
+            "philippe": 16,
+            "retailleau": 7,
+            "lisnard": 2,
+            "dupont-aignan": 3,
+            "zemmour": 2,
+            "lepen": 33
+          }
+        },
+        {
+          "id": "H3",
+          "label": "Hypothèse 3 : Raphaël Glucksmann candidat socialiste (Arthaud et Bouamrane « <1 % », notés 0,5)",
+          "scores": {
+            "arthaud": 0.5,
+            "melenchon": 17,
+            "roussel": 2,
+            "tondelier": 3,
+            "glucksmann": 9,
+            "bouamrane": 0.5,
+            "attal": 7,
+            "philippe": 15,
+            "retailleau": 7,
+            "lisnard": 2,
+            "dupont-aignan": 2,
+            "zemmour": 2,
+            "lepen": 34
+          }
+        }
+      ]
+    },
+    {
+      "id": "ipsos-bva-20260909",
+      "origin": "2027etmoi",
+      "institute": "Ipsos BVA",
+      "sponsor": "Le Monde, CEVIPOF, Fondation Jean-Jaurès, Institut Montaigne (Enquête électorale française, vague 3)",
+      "fieldwork": {
+        "start": "2026-09-03",
+        "end": "2026-09-09"
+      },
+      "sampleSize": 13060,
+      "sources": [
+        {
+          "label": "Commission des sondages – notice Ipsos bva Enquête électorale (Le Monde)",
+          "url": "https://www.commission-des-sondages.fr/notices/files/notices/2026/septembre/10262-pres-enquete-electorale-ipsos-bva-le-monde-13-septembre.pdf"
+        }
+      ],
+      "verified": "Chiffres recopiés de la notice officielle (Commission des sondages), via 2027etmoi.",
+      "hypotheses": [
+        {
+          "id": "H1",
+          "label": "Hypothèse Glucksmann, Attal, Philippe",
+          "scores": {
+            "arthaud": 0.5,
+            "melenchon": 15.5,
+            "roussel": 2.5,
+            "tondelier": 4,
+            "glucksmann": 11.5,
+            "attal": 6,
+            "philippe": 14,
+            "retailleau": 7,
+            "dupont-aignan": 2,
+            "lepen": 33,
+            "zemmour": 4
+          }
+        },
+        {
+          "id": "H2",
+          "label": "Hypothèse Glucksmann, Philippe",
+          "scores": {
+            "arthaud": 0.5,
+            "melenchon": 15.5,
+            "roussel": 2.5,
+            "tondelier": 4,
+            "glucksmann": 12.5,
+            "philippe": 17.5,
+            "retailleau": 8,
+            "dupont-aignan": 2,
+            "lepen": 33.5,
+            "zemmour": 4
+          }
+        },
+        {
+          "id": "H3",
+          "label": "Hypothèse Glucksmann, Attal",
+          "scores": {
+            "arthaud": 0.5,
+            "melenchon": 15.5,
+            "roussel": 2.5,
+            "tondelier": 4.5,
+            "glucksmann": 13.5,
+            "attal": 13,
+            "retailleau": 10,
+            "dupont-aignan": 2,
+            "lepen": 34,
+            "zemmour": 4.5
+          }
+        },
+        {
+          "id": "H4",
+          "label": "Hypothèse Faure, Attal, Philippe",
+          "scores": {
+            "arthaud": 0.5,
+            "melenchon": 16.5,
+            "roussel": 3,
+            "tondelier": 5,
+            "faure": 4.5,
+            "attal": 7.5,
+            "philippe": 16,
+            "retailleau": 7,
+            "dupont-aignan": 2,
+            "lepen": 34,
+            "zemmour": 4
+          }
+        },
+        {
+          "id": "H5",
+          "label": "Hypothèse Faure, Philippe",
+          "scores": {
+            "arthaud": 0.5,
+            "melenchon": 16.5,
+            "roussel": 3.5,
+            "tondelier": 5.5,
+            "faure": 5,
+            "philippe": 21,
+            "retailleau": 7.5,
+            "dupont-aignan": 2,
+            "lepen": 34.5,
+            "zemmour": 4
+          }
+        },
+        {
+          "id": "H6",
+          "label": "Hypothèse Faure, Attal",
+          "scores": {
+            "arthaud": 0.5,
+            "melenchon": 17,
+            "roussel": 3.5,
+            "tondelier": 5.5,
+            "faure": 5.5,
+            "attal": 15.5,
+            "retailleau": 10.5,
+            "dupont-aignan": 2.5,
+            "lepen": 35,
+            "zemmour": 4.5
+          }
+        }
+      ]
+    },
+    {
+      "id": "opinionway-20260909",
+      "origin": "2027etmoi",
+      "institute": "OpinionWay",
+      "sponsor": "Les Echos et Radio Classique (Présitrack, vague 2)",
+      "fieldwork": {
+        "start": "2026-09-08",
+        "end": "2026-09-09"
+      },
+      "sampleSize": 1001,
+      "sources": [
+        {
+          "label": "Commission des sondages – notice OpinionWay Présitrack pour Les Echos",
+          "url": "https://www.commission-des-sondages.fr/notices/files/notices/2026/septembre/10259-pres-presitrack-v2-opinionway-les-echos-10-septembre.pdf"
+        }
+      ],
+      "verified": "Chiffres recopiés de la notice officielle (Commission des sondages), via 2027etmoi.",
+      "hypotheses": [
+        {
+          "id": "H1",
+          "label": "Hypothèse 1 : Attal et Philippe candidats du centre (Arthaud « <1 % », noté 0,5 ; lignes Le Pen/Zemmour inversées dans la notice, corrigées)",
+          "scores": {
+            "arthaud": 0.5,
+            "melenchon": 15,
+            "roussel": 2,
+            "tondelier": 3,
+            "glucksmann": 9,
+            "attal": 8,
+            "philippe": 15,
+            "retailleau": 8,
+            "dupont-aignan": 2,
+            "lepen": 34,
+            "zemmour": 4
+          }
+        },
+        {
+          "id": "H2",
+          "label": "Hypothèse 2 : Attal candidat du centre",
+          "scores": {
+            "arthaud": 1,
+            "melenchon": 15,
+            "roussel": 2,
+            "tondelier": 4,
+            "glucksmann": 12,
+            "attal": 14,
+            "retailleau": 12,
+            "dupont-aignan": 2,
+            "zemmour": 4,
+            "lepen": 34
+          }
+        },
+        {
+          "id": "H3",
+          "label": "Hypothèse 3 : Philippe candidat du centre",
+          "scores": {
+            "arthaud": 1,
+            "melenchon": 15,
+            "roussel": 1,
+            "tondelier": 3,
+            "glucksmann": 10,
+            "philippe": 19,
+            "retailleau": 10,
+            "dupont-aignan": 3,
+            "zemmour": 4,
+            "lepen": 34
+          }
+        }
+      ]
+    },
+    {
+      "id": "opinionway-20260904",
+      "origin": "2027etmoi",
+      "institute": "OpinionWay",
+      "sponsor": "Sébastien Bonnal (candidat déclaré ; diffusion sur Facebook)",
+      "fieldwork": {
+        "start": "2026-09-02",
+        "end": "2026-09-04"
+      },
+      "sampleSize": 1034,
+      "sources": [
+        {
+          "label": "Commission des sondages – notice OpinionWay pour Sébastien Bonnal",
+          "url": "https://www.commission-des-sondages.fr/notices/files/notices/2026/septembre/10264-pres-opinionway-facebook-15-septembre.pdf"
+        }
+      ],
+      "verified": "Chiffres recopiés de la notice officielle (Commission des sondages), via 2027etmoi.",
+      "hypotheses": [
+        {
+          "id": "H1",
+          "label": "Hypothèse unique avec Sébastien Bonnal (Bonnal « <1 % », noté 0,5)",
+          "scores": {
+            "arthaud": 1,
+            "melenchon": 16,
+            "roussel": 2,
+            "tondelier": 3,
+            "glucksmann": 12,
+            "attal": 7,
+            "bonnal": 0.5,
+            "philippe": 15,
+            "retailleau": 7,
+            "zemmour": 3,
+            "lepen": 34
+          }
+        }
+      ]
+    },
+    {
+      "id": "opinionway-20260903",
+      "origin": "2027etmoi",
+      "institute": "OpinionWay",
+      "sponsor": "Le JDD",
+      "fieldwork": {
+        "start": "2026-09-02",
+        "end": "2026-09-03"
+      },
+      "sampleSize": 1003,
+      "sources": [
+        {
+          "label": "Commission des sondages – notice OpinionWay pour le JDD",
+          "url": "https://www.commission-des-sondages.fr/notices/files/notices/2026/septembre/10252-pres-iv-opinionway-jdd-7-septembre.pdf"
+        }
+      ],
+      "verified": "Chiffres recopiés de la notice officielle (Commission des sondages), via 2027etmoi.",
+      "hypotheses": [
+        {
+          "id": "H1",
+          "label": "Hypothèse 1 : Attal candidat du centre",
+          "scores": {
+            "arthaud": 1,
+            "melenchon": 17,
+            "roussel": 3,
+            "tondelier": 4,
+            "glucksmann": 13,
+            "attal": 13,
+            "retailleau": 11,
+            "zemmour": 3,
+            "lepen": 35
+          }
+        },
+        {
+          "id": "H2",
+          "label": "Hypothèse 2 : Philippe candidat du centre",
+          "scores": {
+            "arthaud": 1,
+            "melenchon": 16,
+            "roussel": 3,
+            "tondelier": 4,
+            "glucksmann": 12,
+            "philippe": 20,
+            "retailleau": 8,
+            "zemmour": 3,
+            "lepen": 33
+          }
+        },
+        {
+          "id": "H3",
+          "label": "Hypothèse 3 : Attal et Philippe candidats",
+          "scores": {
+            "arthaud": 1,
+            "melenchon": 17,
+            "roussel": 2,
+            "tondelier": 3,
+            "glucksmann": 11,
+            "attal": 7,
+            "philippe": 15,
+            "retailleau": 7,
+            "zemmour": 3,
+            "lepen": 34
+          }
+        }
+      ]
+    },
+    {
+      "id": "ipsos-bva-20260902",
+      "origin": "2027etmoi",
+      "institute": "Ipsos BVA",
+      "sponsor": "Le Parisien",
+      "fieldwork": {
+        "start": "2026-08-31",
+        "end": "2026-09-02"
+      },
+      "sampleSize": 1500,
+      "sources": [
+        {
+          "label": "Commission des sondages – notice Ipsos bva pour Le Parisien",
+          "url": "https://www.commission-des-sondages.fr/notices/files/notices/2026/septembre/10250-pres-iv-ipsos-bva-le-parisien-5-septembre.pdf"
+        }
+      ],
+      "verified": "Chiffres recopiés de la notice officielle (Commission des sondages), via 2027etmoi.",
+      "hypotheses": [
+        {
+          "id": "H1",
+          "label": "Hypothèse Glucksmann, Attal, Philippe",
+          "scores": {
+            "arthaud": 0.5,
+            "melenchon": 15,
+            "roussel": 2.5,
+            "tondelier": 3.5,
+            "glucksmann": 11.5,
+            "attal": 7.5,
+            "philippe": 14.5,
+            "retailleau": 6,
+            "dupont-aignan": 2,
+            "lepen": 34,
+            "zemmour": 3
+          }
+        },
+        {
+          "id": "H2",
+          "label": "Hypothèse Glucksmann, Philippe",
+          "scores": {
+            "arthaud": 0.5,
+            "melenchon": 15,
+            "roussel": 2.5,
+            "tondelier": 4,
+            "glucksmann": 12,
+            "philippe": 19,
+            "retailleau": 7.5,
+            "dupont-aignan": 2,
+            "lepen": 34.5,
+            "zemmour": 3
+          }
+        },
+        {
+          "id": "H3",
+          "label": "Hypothèse Glucksmann, Attal",
+          "scores": {
+            "arthaud": 0.5,
+            "melenchon": 15,
+            "roussel": 2.5,
+            "tondelier": 4,
+            "glucksmann": 14,
+            "attal": 14,
+            "retailleau": 9.5,
+            "dupont-aignan": 2.5,
+            "lepen": 35,
+            "zemmour": 3
+          }
+        },
+        {
+          "id": "H4",
+          "label": "Hypothèse Faure, Attal, Philippe",
+          "scores": {
+            "arthaud": 1,
+            "melenchon": 16,
+            "roussel": 3,
+            "tondelier": 5,
+            "faure": 4.5,
+            "attal": 8.5,
+            "philippe": 16.5,
+            "retailleau": 6,
+            "dupont-aignan": 2,
+            "lepen": 34.5,
+            "zemmour": 3
+          }
+        },
+        {
+          "id": "H5",
+          "label": "Hypothèse Faure, Philippe",
+          "scores": {
+            "arthaud": 1,
+            "melenchon": 16.5,
+            "roussel": 3.5,
+            "tondelier": 5,
+            "faure": 4.5,
+            "philippe": 22.5,
+            "retailleau": 7.5,
+            "dupont-aignan": 2,
+            "lepen": 34.5,
+            "zemmour": 3
+          }
+        },
+        {
+          "id": "H6",
+          "label": "Hypothèse Faure, Attal",
+          "scores": {
+            "arthaud": 1,
+            "melenchon": 17,
+            "roussel": 3.5,
+            "tondelier": 5.5,
+            "faure": 5.5,
+            "attal": 15.5,
+            "retailleau": 10,
+            "dupont-aignan": 2.5,
+            "lepen": 36,
+            "zemmour": 3.5
+          }
+        }
+      ]
+    },
+    {
+      "id": "cluster17-20260901",
+      "origin": "2027etmoi",
+      "institute": "Cluster17",
+      "sponsor": "Le Point",
+      "fieldwork": {
+        "start": "2026-08-31",
+        "end": "2026-09-01"
+      },
+      "sampleSize": 1711,
+      "sources": [
+        {
+          "label": "Commission des sondages – notice Cluster17 pour Le Point",
+          "url": "https://www.commission-des-sondages.fr/notices/files/notices/2026/septembre/10251-pres-iv-cluster-17-le-point-5-septembre.pdf"
+        }
+      ],
+      "verified": "Chiffres recopiés de la notice officielle (Commission des sondages), via 2027etmoi.",
+      "hypotheses": [
+        {
+          "id": "H1",
+          "label": "Hypothèse 1 : Philippe et Villepin (chiffres redressés de la notice, à la décimale)",
+          "scores": {
+            "arthaud": 0.9,
+            "melenchon": 17.9,
+            "roussel": 2.1,
+            "tondelier": 2.2,
+            "glucksmann": 11.6,
+            "philippe": 18.2,
+            "villepin": 3.2,
+            "retailleau": 7.5,
+            "dupont-aignan": 2.9,
+            "lepen": 30,
+            "zemmour": 3.5
+          }
+        },
+        {
+          "id": "H2",
+          "label": "Hypothèse 2 : Attal et Villepin (chiffres redressés de la notice, à la décimale)",
+          "scores": {
+            "arthaud": 0.9,
+            "melenchon": 18.2,
+            "roussel": 2.1,
+            "tondelier": 2.5,
+            "glucksmann": 11.5,
+            "attal": 13.5,
+            "villepin": 4,
+            "retailleau": 8.9,
+            "dupont-aignan": 2.8,
+            "lepen": 31.6,
+            "zemmour": 4
+          }
+        },
+        {
+          "id": "H3",
+          "label": "Hypothèse 3 : Philippe, Villepin, Ruffin et Lisnard, sans Tondelier (chiffres redressés de la notice, à la décimale)",
+          "scores": {
+            "arthaud": 0.8,
+            "melenchon": 16.9,
+            "roussel": 1.9,
+            "ruffin": 3.9,
+            "glucksmann": 10.8,
+            "philippe": 16.8,
+            "villepin": 3.5,
+            "retailleau": 6.5,
+            "lisnard": 4.2,
+            "dupont-aignan": 2.2,
+            "lepen": 29.2,
+            "zemmour": 3.3
+          }
+        }
+      ]
+    },
+    {
+      "id": "elabe-20260828",
+      "origin": "2027etmoi",
+      "institute": "Elabe",
+      "sponsor": "BFMTV et La Tribune Dimanche",
+      "fieldwork": {
+        "start": "2026-08-26",
+        "end": "2026-08-28"
+      },
+      "sampleSize": 1501,
+      "sources": [
+        {
+          "label": "Commission des sondages – notice Elabe",
+          "url": "https://www.commission-des-sondages.fr/notices/files/notices/2026/aout/10245-pres-iv-elabe-29-aout.pdf"
+        }
+      ],
+      "verified": "Chiffres recopiés de la notice officielle (Commission des sondages), via 2027etmoi.",
+      "hypotheses": [
+        {
+          "id": "H1",
+          "label": "Configuration Q3 : Glucksmann, Philippe, Villepin",
+          "scores": {
+            "arthaud": 1.5,
+            "roussel": 3,
+            "melenchon": 14,
+            "tondelier": 3.5,
+            "glucksmann": 11.5,
+            "philippe": 17,
+            "villepin": 2,
+            "retailleau": 6.5,
+            "dupont-aignan": 3,
+            "lepen": 34,
+            "zemmour": 4
+          }
+        },
+        {
+          "id": "H2",
+          "label": "Configuration Q4 : Glucksmann, Attal, Villepin",
+          "scores": {
+            "arthaud": 1.5,
+            "roussel": 3,
+            "melenchon": 14,
+            "tondelier": 3,
+            "glucksmann": 14,
+            "attal": 12,
+            "villepin": 2.5,
+            "retailleau": 9.5,
+            "dupont-aignan": 2,
+            "lepen": 34.5,
+            "zemmour": 4
+          }
+        },
+        {
+          "id": "H3",
+          "label": "Configuration Q5 : Hollande, Philippe, Lisnard",
+          "scores": {
+            "arthaud": 2,
+            "roussel": 3.5,
+            "melenchon": 14,
+            "tondelier": 4,
+            "hollande": 7.5,
+            "philippe": 19.5,
+            "retailleau": 6,
+            "lisnard": 3,
+            "dupont-aignan": 2.5,
+            "lepen": 34,
+            "zemmour": 4
+          }
+        },
+        {
+          "id": "H4",
+          "label": "Configuration Q6 : Ruffin, Hollande, Attal, Lisnard",
+          "scores": {
+            "arthaud": 1.5,
+            "roussel": 4,
+            "melenchon": 14,
+            "ruffin": 6,
+            "hollande": 8,
+            "attal": 12.5,
+            "retailleau": 9,
+            "lisnard": 3.5,
+            "dupont-aignan": 2.5,
+            "lepen": 34.5,
+            "zemmour": 4.5
+          }
+        },
+        {
+          "id": "H5",
+          "label": "Configuration Q7 : Faure, Philippe, Villepin",
+          "scores": {
+            "arthaud": 1.5,
+            "roussel": 4.5,
+            "melenchon": 14.5,
+            "tondelier": 4,
+            "faure": 3.5,
+            "philippe": 20.5,
+            "villepin": 2.5,
+            "retailleau": 7,
+            "dupont-aignan": 2.5,
+            "lepen": 35.5,
+            "zemmour": 4
+          }
+        },
+        {
+          "id": "H6",
+          "label": "Configuration Q8 : Glucksmann, Attal, Philippe (sans Tondelier)",
+          "scores": {
+            "arthaud": 1.5,
+            "roussel": 3,
+            "melenchon": 14.5,
+            "glucksmann": 12.5,
+            "attal": 6.5,
+            "philippe": 14.5,
+            "retailleau": 7,
+            "dupont-aignan": 2.5,
+            "lepen": 34,
+            "zemmour": 4
+          }
+        }
+      ]
+    },
+    {
+      "id": "ifop-fiducial-20260825",
+      "origin": "2027etmoi",
+      "institute": "Ifop-Fiducial",
+      "sponsor": "LCI, Le Figaro et Sud Radio (baromètre, vague 5)",
+      "fieldwork": {
+        "start": "2026-08-24",
+        "end": "2026-08-25"
+      },
+      "sampleSize": 1598,
+      "sources": [
+        {
+          "label": "Commission des sondages – notice Ifop baromètre de l'élection présidentielle vague 5",
+          "url": "https://www.commission-des-sondages.fr/notices/files/notices/2026/aout/10242-pres-barometre-election-pres-iv-v5-ifop-26-aout.pdf"
+        }
+      ],
+      "verified": "Chiffres recopiés de la notice officielle (Commission des sondages), via 2027etmoi.",
+      "hypotheses": [
+        {
+          "id": "H1",
+          "label": "Hypothèse Philippe et Attal candidats",
+          "scores": {
+            "arthaud": 0.5,
+            "melenchon": 16,
+            "roussel": 3,
+            "tondelier": 3,
+            "glucksmann": 11,
+            "attal": 8,
+            "philippe": 14.5,
+            "retailleau": 6,
+            "dupont-aignan": 1.5,
+            "lepen": 33,
+            "zemmour": 3.5
+          }
+        },
+        {
+          "id": "H2",
+          "label": "Hypothèse Philippe candidat du bloc central",
+          "scores": {
+            "arthaud": 1,
+            "melenchon": 17,
+            "roussel": 3,
+            "tondelier": 3,
+            "glucksmann": 12,
+            "philippe": 18,
+            "retailleau": 8,
+            "dupont-aignan": 1.5,
+            "lepen": 33,
             "zemmour": 3.5
           }
         },
         {
           "id": "H3",
-          "label": "Hollande, Philippe, Lisnard",
+          "label": "Hypothèse Attal candidat du bloc central",
           "scores": {
-            "arthaud": 1,
-            "melenchon": 19.5,
+            "arthaud": 0.5,
+            "melenchon": 17,
             "roussel": 3,
             "tondelier": 3,
-            "hollande": 7.5,
-            "philippe": 19.5,
-            "lisnard": 5,
-            "retailleau": 7.5,
+            "glucksmann": 15,
+            "attal": 14,
+            "retailleau": 9,
+            "dupont-aignan": 1.5,
+            "lepen": 34,
+            "zemmour": 3
+          }
+        },
+        {
+          "id": "H4",
+          "label": "Hypothèse Philippe (bloc central) et Glucksmann candidat unique de la gauche non LFI",
+          "scores": {
+            "arthaud": 1,
+            "melenchon": 18,
+            "glucksmann": 15,
+            "philippe": 19,
+            "retailleau": 8,
+            "dupont-aignan": 2.5,
+            "lepen": 33,
+            "zemmour": 3.5
+          }
+        },
+        {
+          "id": "H5",
+          "label": "Hypothèse Attal (bloc central) et Glucksmann candidat unique de la gauche non LFI",
+          "scores": {
+            "arthaud": 1.5,
+            "melenchon": 18.5,
+            "glucksmann": 17,
+            "attal": 15,
+            "retailleau": 9,
+            "dupont-aignan": 2,
+            "lepen": 34,
+            "zemmour": 3
+          }
+        },
+        {
+          "id": "H6",
+          "label": "Hypothèse Philippe (bloc central) et Hollande candidat unique de la gauche non LFI",
+          "scores": {
+            "arthaud": 1.5,
+            "melenchon": 19,
+            "hollande": 12,
+            "philippe": 21,
+            "retailleau": 8,
+            "dupont-aignan": 2,
+            "lepen": 34,
+            "zemmour": 2.5
+          }
+        },
+        {
+          "id": "H7",
+          "label": "Hypothèse Le Maire candidat du bloc central",
+          "scores": {
+            "arthaud": 1,
+            "melenchon": 17,
+            "roussel": 3,
+            "tondelier": 3,
+            "glucksmann": 18,
+            "le-maire": 6,
+            "retailleau": 12,
+            "dupont-aignan": 2,
+            "lepen": 35,
+            "zemmour": 3
+          }
+        }
+      ]
+    },
+    {
+      "id": "harris-interactive-toluna-20260819",
+      "origin": "2027etmoi",
+      "institute": "Harris Interactive (Toluna)",
+      "sponsor": "M6 et RTL",
+      "fieldwork": {
+        "start": "2026-08-18",
+        "end": "2026-08-19"
+      },
+      "sampleSize": 1764,
+      "sources": [
+        {
+          "label": "Commission des sondages – notice Toluna Harris Interactive pour M6 et RTL",
+          "url": "https://www.commission-des-sondages.fr/notices/files/notices/2026/aout/10239-pres-toluna-harris-interactive-rtl-24-aout.pdf"
+        }
+      ],
+      "verified": "Chiffres recopiés de la notice officielle (Commission des sondages), via 2027etmoi.",
+      "hypotheses": [
+        {
+          "id": "H1",
+          "label": "Hypothèse Glucksmann, Attal et Philippe",
+          "scores": {
+            "arthaud": 1,
+            "melenchon": 16,
+            "roussel": 2,
+            "tondelier": 3,
+            "glucksmann": 10,
+            "attal": 8,
+            "philippe": 14,
+            "retailleau": 6,
+            "dupont-aignan": 2,
+            "lepen": 35,
+            "zemmour": 3
+          }
+        },
+        {
+          "id": "H2",
+          "label": "Hypothèse Glucksmann et Philippe",
+          "scores": {
+            "arthaud": 1,
+            "melenchon": 17,
+            "roussel": 3,
+            "tondelier": 3,
+            "glucksmann": 10,
+            "philippe": 17,
+            "retailleau": 7,
+            "dupont-aignan": 3,
+            "lepen": 35,
+            "zemmour": 4
+          }
+        },
+        {
+          "id": "H3",
+          "label": "Hypothèse Glucksmann et Attal",
+          "scores": {
+            "arthaud": 1,
+            "melenchon": 17,
+            "roussel": 2,
+            "tondelier": 3,
+            "glucksmann": 11,
+            "attal": 15,
+            "retailleau": 9,
+            "dupont-aignan": 2,
+            "lepen": 37,
+            "zemmour": 3
+          }
+        },
+        {
+          "id": "H4",
+          "label": "Hypothèse Hollande et Philippe",
+          "scores": {
+            "arthaud": 1,
+            "melenchon": 17,
+            "roussel": 3,
+            "tondelier": 4,
+            "hollande": 8,
+            "philippe": 19,
+            "retailleau": 7,
+            "dupont-aignan": 2,
+            "lepen": 35,
+            "zemmour": 4
+          }
+        },
+        {
+          "id": "H5",
+          "label": "Hypothèse Hollande et Attal",
+          "scores": {
+            "arthaud": 1,
+            "melenchon": 17,
+            "roussel": 3,
+            "tondelier": 4,
+            "hollande": 8,
+            "attal": 14,
+            "retailleau": 9,
+            "dupont-aignan": 2,
+            "lepen": 38,
+            "zemmour": 4
+          }
+        }
+      ]
+    },
+    {
+      "id": "cluster17-20260724",
+      "origin": "mieuxvoter",
+      "institute": "Cluster17",
+      "sponsor": "Le Grand Continent",
+      "fieldwork": {
+        "start": "2026-07-22",
+        "end": "2026-07-24"
+      },
+      "sampleSize": 1506,
+      "sources": [
+        {
+          "label": "Mieux Voter – 20260722_0724_cl",
+          "url": "https://github.com/MieuxVoter/presidentielle2027"
+        }
+      ],
+      "verified": "Chiffres compilés par Mieux Voter d’après la notice officielle (Commission des sondages).",
+      "hypotheses": [
+        {
+          "id": "A",
+          "label": "Ifop Philippe Retailleau DdV MLP",
+          "scores": {
+            "arthaud": 0.9,
+            "melenchon": 18.2,
+            "roussel": 2,
+            "glucksmann": 10.2,
+            "tondelier": 2.8,
+            "philippe": 18.1,
+            "retailleau": 7.8,
+            "villepin": 2.9,
+            "dupont-aignan": 3.2,
+            "lepen": 30.1,
+            "zemmour": 3.8
+          }
+        },
+        {
+          "id": "B",
+          "label": "Ifop Attal Retailleau DdV MLP",
+          "scores": {
+            "arthaud": 1,
+            "melenchon": 18.3,
+            "roussel": 1.8,
+            "glucksmann": 10.3,
+            "tondelier": 3.1,
+            "attal": 13.8,
+            "retailleau": 9.7,
+            "villepin": 3.9,
             "dupont-aignan": 4,
-            "lepen": 30
+            "lepen": 29.9,
+            "zemmour": 4.2
+          }
+        }
+      ]
+    },
+    {
+      "id": "elabe-20260710",
+      "origin": "mieuxvoter",
+      "institute": "Elabe",
+      "sponsor": "BFMTV, La Tribune Dimanche",
+      "fieldwork": {
+        "start": "2026-07-09",
+        "end": "2026-07-10"
+      },
+      "sampleSize": 1503,
+      "sources": [
+        {
+          "label": "Mieux Voter – 20260709_0710_el",
+          "url": "https://github.com/MieuxVoter/presidentielle2027"
+        }
+      ],
+      "verified": "Chiffres compilés par Mieux Voter d’après la notice officielle (Commission des sondages).",
+      "hypotheses": [
+        {
+          "id": "A",
+          "label": "Ifop Philippe Retailleau DdV MLP",
+          "scores": {
+            "arthaud": 1,
+            "roussel": 2.5,
+            "melenchon": 16,
+            "tondelier": 3.5,
+            "glucksmann": 10.5,
+            "philippe": 16.5,
+            "villepin": 2.5,
+            "retailleau": 8,
+            "dupont-aignan": 1.5,
+            "lepen": 35,
+            "zemmour": 3
+          }
+        },
+        {
+          "id": "B",
+          "label": "Ifop Attal Retailleau DdV MLP",
+          "scores": {
+            "arthaud": 1.5,
+            "roussel": 2.5,
+            "melenchon": 14.5,
+            "tondelier": 3.5,
+            "glucksmann": 11,
+            "attal": 13.5,
+            "villepin": 3.5,
+            "retailleau": 11,
+            "dupont-aignan": 1.5,
+            "lepen": 34,
+            "zemmour": 3.5
+          }
+        },
+        {
+          "id": "C",
+          "label": "Elabe juillet Ruffin Hollande Philippe",
+          "scores": {
+            "arthaud": 1.5,
+            "roussel": 2,
+            "melenchon": 14.5,
+            "ruffin": 6,
+            "hollande": 9,
+            "philippe": 19,
+            "retailleau": 9,
+            "dupont-aignan": 1.5,
+            "lepen": 35,
+            "zemmour": 2.5
+          }
+        },
+        {
+          "id": "D",
+          "label": "Elabe juillet Ruffin Hollande Attal",
+          "scores": {
+            "arthaud": 1.5,
+            "roussel": 2.5,
+            "melenchon": 15,
+            "ruffin": 6,
+            "hollande": 8,
+            "attal": 15.5,
+            "retailleau": 11,
+            "dupont-aignan": 1.5,
+            "lepen": 35.5,
+            "zemmour": 3.5
+          }
+        },
+        {
+          "id": "E",
+          "label": "Ipsos Juin 2026 Glucksmann Attal+Philippe Retailleau MLP",
+          "scores": {
+            "arthaud": 1,
+            "roussel": 2.5,
+            "melenchon": 14.5,
+            "tondelier": 4,
+            "glucksmann": 8.5,
+            "attal": 7.5,
+            "philippe": 14,
+            "retailleau": 8.5,
+            "dupont-aignan": 1.5,
+            "lepen": 35,
+            "zemmour": 3
+          }
+        },
+        {
+          "id": "F",
+          "label": "Hollande Philippe DdV Retailleau MLP",
+          "scores": {
+            "arthaud": 2,
+            "roussel": 3,
+            "melenchon": 15,
+            "tondelier": 4,
+            "hollande": 8,
+            "philippe": 18,
+            "villepin": 3,
+            "retailleau": 8,
+            "dupont-aignan": 1.5,
+            "lepen": 34.5,
+            "zemmour": 3
+          }
+        }
+      ]
+    },
+    {
+      "id": "verian-20260710",
+      "origin": "mieuxvoter",
+      "institute": "Verian",
+      "sponsor": "L'Hémicycle",
+      "fieldwork": {
+        "start": "2026-07-08",
+        "end": "2026-07-10"
+      },
+      "sampleSize": 1047,
+      "sources": [
+        {
+          "label": "Mieux Voter – 20260708_0710_ve",
+          "url": "https://github.com/MieuxVoter/presidentielle2027"
+        }
+      ],
+      "verified": "Chiffres compilés par Mieux Voter d’après la notice officielle (Commission des sondages).",
+      "hypotheses": [
+        {
+          "id": "A",
+          "label": "Verian juillet sans Arthaud Tondelier Dupont-Aignan",
+          "scores": {
+            "roussel": 2,
+            "melenchon": 15,
+            "glucksmann": 11,
+            "attal": 8,
+            "philippe": 17,
+            "retailleau": 7,
+            "lepen": 37,
+            "zemmour": 3
+          }
+        }
+      ]
+    },
+    {
+      "id": "cluster17-20260709",
+      "origin": "mieuxvoter",
+      "institute": "Cluster17",
+      "sponsor": "Le Point",
+      "fieldwork": {
+        "start": "2026-07-08",
+        "end": "2026-07-09"
+      },
+      "sampleSize": 1837,
+      "sources": [
+        {
+          "label": "Mieux Voter – 20260708_0709_cl",
+          "url": "https://github.com/MieuxVoter/presidentielle2027"
+        }
+      ],
+      "verified": "Chiffres compilés par Mieux Voter d’après la notice officielle (Commission des sondages).",
+      "hypotheses": [
+        {
+          "id": "A",
+          "label": "Cluster17 juillet souhait de victoire (barometre personnalites)",
+          "scores": {
+            "retailleau": 6.3,
+            "lisnard": 4.1,
+            "villepin": 4.3,
+            "philippe": 13.6,
+            "zemmour": 2.2,
+            "hollande": 2.4,
+            "ruffin": 4,
+            "attal": 6.3,
+            "melenchon": 17,
+            "lepen": 29.6,
+            "tondelier": 1.6,
+            "faure": 0.9,
+            "glucksmann": 7.7
+          }
+        }
+      ]
+    },
+    {
+      "id": "opinionway-20260709",
+      "origin": "mieuxvoter",
+      "institute": "OpinionWay",
+      "sponsor": "Les Echos, Radio Classique",
+      "fieldwork": {
+        "start": "2026-07-08",
+        "end": "2026-07-09"
+      },
+      "sampleSize": 1042,
+      "sources": [
+        {
+          "label": "Mieux Voter – 20260708_0709_ow",
+          "url": "https://github.com/MieuxVoter/presidentielle2027"
+        }
+      ],
+      "verified": "Chiffres compilés par Mieux Voter d’après la notice officielle (Commission des sondages).",
+      "hypotheses": [
+        {
+          "id": "A",
+          "label": "OpinionWay juillet Attal+Philippe sans Dupont-Aignan",
+          "scores": {
+            "arthaud": 0.5,
+            "melenchon": 13,
+            "roussel": 2,
+            "tondelier": 5,
+            "glucksmann": 9,
+            "attal": 7,
+            "philippe": 18,
+            "retailleau": 8,
+            "lepen": 35,
+            "zemmour": 3
+          }
+        },
+        {
+          "id": "B",
+          "label": "HI Glucksmann Attal Retailleau MLP",
+          "scores": {
+            "arthaud": 1,
+            "melenchon": 15,
+            "roussel": 2,
+            "tondelier": 5,
+            "glucksmann": 10,
+            "attal": 16,
+            "retailleau": 12,
+            "lepen": 36,
+            "zemmour": 3
+          }
+        },
+        {
+          "id": "C",
+          "label": "HI Glucksmann Philippe Retailleau MLP",
+          "scores": {
+            "arthaud": 1,
+            "melenchon": 15,
+            "roussel": 2,
+            "tondelier": 4,
+            "glucksmann": 9,
+            "philippe": 22,
+            "retailleau": 9,
+            "lepen": 34,
+            "zemmour": 4
+          }
+        }
+      ]
+    },
+    {
+      "id": "harris-interactive-toluna-20260708",
+      "origin": "mieuxvoter",
+      "institute": "Harris Interactive (Toluna)",
+      "sponsor": "M6, RTL",
+      "fieldwork": {
+        "start": "2026-07-07",
+        "end": "2026-07-08"
+      },
+      "sampleSize": 1837,
+      "sources": [
+        {
+          "label": "Mieux Voter – 20260707_0708_hi",
+          "url": "https://github.com/MieuxVoter/presidentielle2027"
+        }
+      ],
+      "verified": "Chiffres compilés par Mieux Voter d’après la notice officielle (Commission des sondages).",
+      "hypotheses": [
+        {
+          "id": "A",
+          "label": "Ipsos Juin 2026 Glucksmann Attal+Philippe Retailleau MLP",
+          "scores": {
+            "arthaud": 1,
+            "melenchon": 16,
+            "roussel": 2,
+            "tondelier": 2,
+            "glucksmann": 10,
+            "attal": 8,
+            "philippe": 14,
+            "retailleau": 7,
+            "dupont-aignan": 1,
+            "lepen": 35,
+            "zemmour": 4
+          }
+        },
+        {
+          "id": "B",
+          "label": "HI Oct Glucksmann Philippe Retailleau MLP avec Dupont-Aignan",
+          "scores": {
+            "arthaud": 1,
+            "melenchon": 16,
+            "roussel": 2,
+            "tondelier": 3,
+            "glucksmann": 11,
+            "philippe": 20,
+            "retailleau": 8,
+            "dupont-aignan": 1,
+            "lepen": 34,
+            "zemmour": 4
+          }
+        },
+        {
+          "id": "C",
+          "label": "HI Oct Glucksmann Attal Retailleau MLP avec Dupont-Aignan",
+          "scores": {
+            "arthaud": 1,
+            "melenchon": 16,
+            "roussel": 3,
+            "tondelier": 3,
+            "glucksmann": 11,
+            "attal": 16,
+            "retailleau": 9,
+            "dupont-aignan": 1,
+            "lepen": 36,
+            "zemmour": 4
+          }
+        },
+        {
+          "id": "D",
+          "label": "Harris juillet Hollande Philippe avec Tondelier",
+          "scores": {
+            "arthaud": 1,
+            "melenchon": 16,
+            "roussel": 3,
+            "tondelier": 4,
+            "hollande": 8,
+            "philippe": 20,
+            "retailleau": 8,
+            "dupont-aignan": 1,
+            "lepen": 35,
+            "zemmour": 4
+          }
+        },
+        {
+          "id": "E",
+          "label": "Harris juillet Hollande Attal avec Tondelier",
+          "scores": {
+            "arthaud": 1,
+            "melenchon": 16,
+            "roussel": 3,
+            "tondelier": 5,
+            "hollande": 8,
+            "attal": 16,
+            "retailleau": 8,
+            "dupont-aignan": 2,
+            "lepen": 36,
+            "zemmour": 5
+          }
+        }
+      ]
+    },
+    {
+      "id": "ifop-fiducial-20260708",
+      "origin": "mieuxvoter",
+      "institute": "Ifop-Fiducial",
+      "sponsor": "LCI, Le Figaro",
+      "fieldwork": {
+        "start": "2026-07-07",
+        "end": "2026-07-08"
+      },
+      "sampleSize": 1075,
+      "sources": [
+        {
+          "label": "Mieux Voter – 20260707_0708_if",
+          "url": "https://github.com/MieuxVoter/presidentielle2027"
+        }
+      ],
+      "verified": "Chiffres compilés par Mieux Voter d’après la notice officielle (Commission des sondages).",
+      "hypotheses": [
+        {
+          "id": "A",
+          "label": "HI Oct Glucksmann Philippe Retailleau MLP avec Dupont-Aignan",
+          "scores": {
+            "arthaud": 0.5,
+            "melenchon": 15,
+            "roussel": 3,
+            "glucksmann": 9,
+            "tondelier": 3.5,
+            "philippe": 19,
+            "retailleau": 8,
+            "dupont-aignan": 2,
+            "lepen": 36,
+            "zemmour": 4
+          }
+        },
+        {
+          "id": "B",
+          "label": "HI Oct Glucksmann Attal Retailleau MLP avec Dupont-Aignan",
+          "scores": {
+            "arthaud": 0.5,
+            "melenchon": 15,
+            "roussel": 2,
+            "glucksmann": 12,
+            "tondelier": 4,
+            "attal": 15,
+            "retailleau": 10,
+            "dupont-aignan": 2,
+            "lepen": 36,
+            "zemmour": 3.5
+          }
+        }
+      ]
+    },
+    {
+      "id": "ifop-fiducial-20260624",
+      "origin": "mieuxvoter",
+      "institute": "Ifop-Fiducial",
+      "sponsor": "LCI, Le Figaro, Sud Radio",
+      "fieldwork": {
+        "start": "2026-06-22",
+        "end": "2026-06-24"
+      },
+      "sampleSize": 1539,
+      "sources": [
+        {
+          "label": "Mieux Voter – 20260622_2406_if",
+          "url": "https://github.com/MieuxVoter/presidentielle2027"
+        }
+      ],
+      "verified": "Chiffres compilés par Mieux Voter d’après la notice officielle (Commission des sondages).",
+      "hypotheses": [
+        {
+          "id": "A",
+          "label": "HI Mai 2026 Glucksmann Attal+Philippe Retailleau Bardella",
+          "scores": {
+            "arthaud": 0.5,
+            "melenchon": 13,
+            "roussel": 3,
+            "glucksmann": 9,
+            "tondelier": 2.5,
+            "attal": 8,
+            "philippe": 14,
+            "retailleau": 8,
+            "dupont-aignan": 2,
+            "bardella": 36,
+            "zemmour": 4
+          }
+        },
+        {
+          "id": "B",
+          "label": "HI Oct Glucksmann Philippe Retailleau Bardella avec Dupont-Aignan",
+          "scores": {
+            "arthaud": 0.5,
+            "melenchon": 13,
+            "roussel": 3,
+            "glucksmann": 10,
+            "tondelier": 3.5,
+            "philippe": 19,
+            "retailleau": 9,
+            "dupont-aignan": 2,
+            "bardella": 36,
+            "zemmour": 4
+          }
+        },
+        {
+          "id": "C",
+          "label": "HI Oct Glucksmann Attal Retailleau Bardella avec Dupont-Aignan",
+          "scores": {
+            "arthaud": 0.5,
+            "melenchon": 13,
+            "roussel": 2.5,
+            "glucksmann": 11,
+            "tondelier": 3.5,
+            "attal": 15,
+            "retailleau": 11,
+            "dupont-aignan": 2,
+            "bardella": 37,
+            "zemmour": 4.5
+          }
+        },
+        {
+          "id": "D",
+          "label": "HI Oct Glucksmann Philippe Retailleau MLP avec Dupont-Aignan",
+          "scores": {
+            "arthaud": 1,
+            "melenchon": 12,
+            "roussel": 3,
+            "glucksmann": 9,
+            "tondelier": 4,
+            "philippe": 20,
+            "retailleau": 11,
+            "dupont-aignan": 2,
+            "lepen": 32,
+            "zemmour": 6
+          }
+        },
+        {
+          "id": "E",
+          "label": "HI Oct Glucksmann Attal Retailleau MLP avec Dupont-Aignan",
+          "scores": {
+            "arthaud": 1,
+            "melenchon": 13,
+            "roussel": 3,
+            "glucksmann": 11,
+            "tondelier": 3,
+            "attal": 15,
+            "retailleau": 14,
+            "dupont-aignan": 3,
+            "lepen": 32,
+            "zemmour": 5
+          }
+        },
+        {
+          "id": "F",
+          "label": "Ifop Mai 2026 Hollande gauche unie Philippe Retailleau Bardella",
+          "scores": {
+            "arthaud": 1.5,
+            "melenchon": 15,
+            "hollande": 9,
+            "philippe": 21,
+            "retailleau": 10,
+            "dupont-aignan": 3,
+            "bardella": 37,
+            "zemmour": 3.5
+          }
+        },
+        {
+          "id": "G",
+          "label": "Glucksmann unique gauche non-LFI Philippe Retailleau Bardella",
+          "scores": {
+            "arthaud": 1.5,
+            "melenchon": 14,
+            "glucksmann": 11,
+            "philippe": 20,
+            "retailleau": 11,
+            "dupont-aignan": 2.5,
+            "bardella": 36,
+            "zemmour": 4
+          }
+        },
+        {
+          "id": "H",
+          "label": "Ifop Juin 2026 Lisnard Philippe Retailleau Bardella",
+          "scores": {
+            "arthaud": 1,
+            "melenchon": 13,
+            "roussel": 2.5,
+            "glucksmann": 8,
+            "tondelier": 3.5,
+            "philippe": 19,
+            "lisnard": 2,
+            "retailleau": 9,
+            "dupont-aignan": 2.5,
+            "bardella": 35,
+            "zemmour": 4.5
           }
         }
       ]
@@ -976,13 +3054,13 @@
   "secondRoundPolls": [
     {
       "institute": "Harris Interactive (Toluna)",
-      "sponsor": "M6 / RTL",
+      "sponsor": "M6, RTL",
       "fieldwork": {
         "start": "2026-10-05",
         "end": "2026-10-08"
       },
-      "sampleSize": 2004,
-      "url": "https://tolunacorporate.com/wp-content/uploads/2026/10/Rapport-Toluna-Barometre-Presidentielle-2027-Vague-7-M6-RTL-12-octobre-2026.pdf",
+      "sampleSize": 2348,
+      "url": "https://github.com/MieuxVoter/presidentielle2027",
       "scores": {
         "philippe": 44,
         "lepen": 56
@@ -990,13 +3068,13 @@
     },
     {
       "institute": "Harris Interactive (Toluna)",
-      "sponsor": "M6 / RTL",
+      "sponsor": "M6, RTL",
       "fieldwork": {
         "start": "2026-10-05",
         "end": "2026-10-08"
       },
-      "sampleSize": 2004,
-      "url": "https://tolunacorporate.com/wp-content/uploads/2026/10/Rapport-Toluna-Barometre-Presidentielle-2027-Vague-7-M6-RTL-12-octobre-2026.pdf",
+      "sampleSize": 2348,
+      "url": "https://github.com/MieuxVoter/presidentielle2027",
       "scores": {
         "melenchon": 33,
         "lepen": 67
@@ -1004,13 +3082,13 @@
     },
     {
       "institute": "Odoxa",
-      "sponsor": "Presse régionale, Public Sénat, Le Nouvel Obs, Backbone",
+      "sponsor": "Backbone, Public Sénat, La Presse Régionale, Le Nouvel Obs",
       "fieldwork": {
         "start": "2026-09-24",
         "end": "2026-10-07"
       },
       "sampleSize": 12005,
-      "url": "https://www.odoxa.fr/sondage/melenchon-est-passe-devant-philippe-au-premier-tour-marine-le-pen-est-plus-que-jamais-la-grande-favorite-pour-2027-a-la-fois-au-premier-et-au-second-tour/",
+      "url": "https://github.com/MieuxVoter/presidentielle2027",
       "scores": {
         "philippe": 47,
         "lepen": 53
@@ -1018,13 +3096,13 @@
     },
     {
       "institute": "Odoxa",
-      "sponsor": "Presse régionale, Public Sénat, Le Nouvel Obs, Backbone",
+      "sponsor": "Backbone, Public Sénat, La Presse Régionale, Le Nouvel Obs",
       "fieldwork": {
         "start": "2026-09-24",
         "end": "2026-10-07"
       },
       "sampleSize": 12005,
-      "url": "https://www.odoxa.fr/sondage/melenchon-est-passe-devant-philippe-au-premier-tour-marine-le-pen-est-plus-que-jamais-la-grande-favorite-pour-2027-a-la-fois-au-premier-et-au-second-tour/",
+      "url": "https://github.com/MieuxVoter/presidentielle2027",
       "scores": {
         "melenchon": 32,
         "lepen": 68
@@ -1032,30 +3110,604 @@
     },
     {
       "institute": "Harris Interactive (Toluna)",
-      "sponsor": "M6 / RTL",
+      "sponsor": "M6, RTL",
+      "fieldwork": {
+        "start": "2026-09-22",
+        "end": "2026-09-24"
+      },
+      "sampleSize": 2334,
+      "url": "https://github.com/MieuxVoter/presidentielle2027",
+      "scores": {
+        "melenchon": 31,
+        "lepen": 69
+      }
+    },
+    {
+      "institute": "Harris Interactive (Toluna)",
+      "sponsor": "M6, RTL",
+      "fieldwork": {
+        "start": "2026-09-22",
+        "end": "2026-09-24"
+      },
+      "sampleSize": 2334,
+      "url": "https://github.com/MieuxVoter/presidentielle2027",
+      "scores": {
+        "philippe": 43,
+        "lepen": 57
+      }
+    },
+    {
+      "institute": "YouGov",
+      "sponsor": "Le HuffPost",
+      "fieldwork": {
+        "start": "2026-09-17",
+        "end": "2026-09-21"
+      },
+      "sampleSize": 1103,
+      "url": "https://github.com/MieuxVoter/presidentielle2027",
+      "scores": {
+        "philippe": 45,
+        "lepen": 55
+      }
+    },
+    {
+      "institute": "YouGov",
+      "sponsor": "Le HuffPost",
+      "fieldwork": {
+        "start": "2026-09-17",
+        "end": "2026-09-21"
+      },
+      "sampleSize": 1103,
+      "url": "https://github.com/MieuxVoter/presidentielle2027",
+      "scores": {
+        "lepen": 59,
+        "glucksmann": 41
+      }
+    },
+    {
+      "institute": "YouGov",
+      "sponsor": "Le HuffPost",
+      "fieldwork": {
+        "start": "2026-09-17",
+        "end": "2026-09-21"
+      },
+      "sampleSize": 1103,
+      "url": "https://github.com/MieuxVoter/presidentielle2027",
+      "scores": {
+        "melenchon": 36,
+        "lepen": 64
+      }
+    },
+    {
+      "institute": "YouGov",
+      "sponsor": "Le HuffPost",
+      "fieldwork": {
+        "start": "2026-09-17",
+        "end": "2026-09-21"
+      },
+      "sampleSize": 1103,
+      "url": "https://github.com/MieuxVoter/presidentielle2027",
+      "scores": {
+        "attal": 43,
+        "lepen": 57
+      }
+    },
+    {
+      "institute": "YouGov",
+      "sponsor": "Le HuffPost",
+      "fieldwork": {
+        "start": "2026-09-17",
+        "end": "2026-09-21"
+      },
+      "sampleSize": 1103,
+      "url": "https://github.com/MieuxVoter/presidentielle2027",
+      "scores": {
+        "philippe": 61,
+        "melenchon": 39
+      }
+    },
+    {
+      "institute": "Harris Interactive (Toluna)",
+      "sponsor": "M6, RTL",
       "fieldwork": {
         "start": "2026-09-08",
         "end": "2026-09-10"
       },
-      "sampleSize": 2052,
-      "url": "https://tolunacorporate.com/wp-content/uploads/2026/09/Rapport-Toluna-Barometre-Presidentielle-2027-Vague-5-M6-RTL-14-septembre-2026.pdf",
+      "sampleSize": 2358,
+      "url": "https://github.com/MieuxVoter/presidentielle2027",
       "scores": {
         "attal": 44,
         "lepen": 56
       }
     },
     {
+      "institute": "Harris Interactive (Toluna)",
+      "sponsor": "M6, RTL",
+      "fieldwork": {
+        "start": "2026-09-08",
+        "end": "2026-09-10"
+      },
+      "sampleSize": 2358,
+      "url": "https://github.com/MieuxVoter/presidentielle2027",
+      "scores": {
+        "melenchon": 33,
+        "lepen": 67
+      }
+    },
+    {
+      "institute": "Harris Interactive (Toluna)",
+      "sponsor": "M6, RTL",
+      "fieldwork": {
+        "start": "2026-09-08",
+        "end": "2026-09-10"
+      },
+      "sampleSize": 2358,
+      "url": "https://github.com/MieuxVoter/presidentielle2027",
+      "scores": {
+        "philippe": 45,
+        "lepen": 55
+      }
+    },
+    {
+      "institute": "OpinionWay",
+      "sponsor": "CNews",
+      "fieldwork": {
+        "start": "2026-09-09",
+        "end": "2026-09-10"
+      },
+      "sampleSize": 1001,
+      "url": "https://github.com/MieuxVoter/presidentielle2027",
+      "scores": {
+        "melenchon": 33,
+        "lepen": 67
+      }
+    },
+    {
+      "institute": "OpinionWay",
+      "sponsor": "CNews",
+      "fieldwork": {
+        "start": "2026-09-09",
+        "end": "2026-09-10"
+      },
+      "sampleSize": 1001,
+      "url": "https://github.com/MieuxVoter/presidentielle2027",
+      "scores": {
+        "philippe": 45,
+        "lepen": 55
+      }
+    },
+    {
+      "institute": "OpinionWay",
+      "sponsor": "JDD",
+      "fieldwork": {
+        "start": "2026-09-02",
+        "end": "2026-09-03"
+      },
+      "sampleSize": 1003,
+      "url": "https://github.com/MieuxVoter/presidentielle2027",
+      "scores": {
+        "attal": 45,
+        "lepen": 55
+      }
+    },
+    {
+      "institute": "OpinionWay",
+      "sponsor": "JDD",
+      "fieldwork": {
+        "start": "2026-09-02",
+        "end": "2026-09-03"
+      },
+      "sampleSize": 1003,
+      "url": "https://github.com/MieuxVoter/presidentielle2027",
+      "scores": {
+        "philippe": 48,
+        "lepen": 52
+      }
+    },
+    {
+      "institute": "OpinionWay",
+      "sponsor": "JDD",
+      "fieldwork": {
+        "start": "2026-09-02",
+        "end": "2026-09-03"
+      },
+      "sampleSize": 1003,
+      "url": "https://github.com/MieuxVoter/presidentielle2027",
+      "scores": {
+        "melenchon": 34,
+        "lepen": 66
+      }
+    },
+    {
       "institute": "Elabe",
-      "sponsor": "BFMTV / La Tribune Dimanche",
+      "sponsor": "BFMTV, La Tribune Dimanche",
       "fieldwork": {
         "start": "2026-08-26",
         "end": "2026-08-28"
       },
       "sampleSize": 1501,
-      "url": "https://elabe.fr/presidentielle-2027-aout/",
+      "url": "https://github.com/MieuxVoter/presidentielle2027",
       "scores": {
         "glucksmann": 43,
         "lepen": 57
+      }
+    },
+    {
+      "institute": "Elabe",
+      "sponsor": "BFMTV, La Tribune Dimanche",
+      "fieldwork": {
+        "start": "2026-08-26",
+        "end": "2026-08-28"
+      },
+      "sampleSize": 1501,
+      "url": "https://github.com/MieuxVoter/presidentielle2027",
+      "scores": {
+        "melenchon": 30.5,
+        "lepen": 69.5
+      }
+    },
+    {
+      "institute": "Elabe",
+      "sponsor": "BFMTV, La Tribune Dimanche",
+      "fieldwork": {
+        "start": "2026-08-26",
+        "end": "2026-08-28"
+      },
+      "sampleSize": 1501,
+      "url": "https://github.com/MieuxVoter/presidentielle2027",
+      "scores": {
+        "attal": 43,
+        "lepen": 57
+      }
+    },
+    {
+      "institute": "Elabe",
+      "sponsor": "BFMTV, La Tribune Dimanche",
+      "fieldwork": {
+        "start": "2026-08-26",
+        "end": "2026-08-28"
+      },
+      "sampleSize": 1501,
+      "url": "https://github.com/MieuxVoter/presidentielle2027",
+      "scores": {
+        "philippe": 47.5,
+        "lepen": 52.5
+      }
+    },
+    {
+      "institute": "Ifop-Fiducial",
+      "sponsor": "LCI, Le Figaro, Sud Radio",
+      "fieldwork": {
+        "start": "2026-08-24",
+        "end": "2026-08-25"
+      },
+      "sampleSize": 1800,
+      "url": "https://github.com/MieuxVoter/presidentielle2027",
+      "scores": {
+        "philippe": 48,
+        "lepen": 52
+      }
+    },
+    {
+      "institute": "Ifop-Fiducial",
+      "sponsor": "LCI, Le Figaro, Sud Radio",
+      "fieldwork": {
+        "start": "2026-08-24",
+        "end": "2026-08-25"
+      },
+      "sampleSize": 1800,
+      "url": "https://github.com/MieuxVoter/presidentielle2027",
+      "scores": {
+        "attal": 46,
+        "lepen": 54
+      }
+    },
+    {
+      "institute": "Ifop-Fiducial",
+      "sponsor": "LCI, Le Figaro, Sud Radio",
+      "fieldwork": {
+        "start": "2026-08-24",
+        "end": "2026-08-25"
+      },
+      "sampleSize": 1800,
+      "url": "https://github.com/MieuxVoter/presidentielle2027",
+      "scores": {
+        "melenchon": 33,
+        "lepen": 67
+      }
+    },
+    {
+      "institute": "Ifop-Fiducial",
+      "sponsor": "LCI, Le Figaro, Sud Radio",
+      "fieldwork": {
+        "start": "2026-08-24",
+        "end": "2026-08-25"
+      },
+      "sampleSize": 1800,
+      "url": "https://github.com/MieuxVoter/presidentielle2027",
+      "scores": {
+        "glucksmann": 45,
+        "lepen": 55
+      }
+    },
+    {
+      "institute": "Ifop-Fiducial",
+      "sponsor": "LCI, Le Figaro, Sud Radio",
+      "fieldwork": {
+        "start": "2026-08-24",
+        "end": "2026-08-25"
+      },
+      "sampleSize": 1800,
+      "url": "https://github.com/MieuxVoter/presidentielle2027",
+      "scores": {
+        "retailleau": 42,
+        "lepen": 58
+      }
+    },
+    {
+      "institute": "Harris Interactive (Toluna)",
+      "sponsor": "M6, RTL",
+      "fieldwork": {
+        "start": "2026-08-18",
+        "end": "2026-08-19"
+      },
+      "sampleSize": 2114,
+      "url": "https://github.com/MieuxVoter/presidentielle2027",
+      "scores": {
+        "melenchon": 32,
+        "lepen": 68
+      }
+    },
+    {
+      "institute": "Harris Interactive (Toluna)",
+      "sponsor": "M6, RTL",
+      "fieldwork": {
+        "start": "2026-08-18",
+        "end": "2026-08-19"
+      },
+      "sampleSize": 2114,
+      "url": "https://github.com/MieuxVoter/presidentielle2027",
+      "scores": {
+        "attal": 43,
+        "lepen": 57
+      }
+    },
+    {
+      "institute": "Harris Interactive (Toluna)",
+      "sponsor": "M6, RTL",
+      "fieldwork": {
+        "start": "2026-08-18",
+        "end": "2026-08-19"
+      },
+      "sampleSize": 2114,
+      "url": "https://github.com/MieuxVoter/presidentielle2027",
+      "scores": {
+        "philippe": 45,
+        "lepen": 55
+      }
+    },
+    {
+      "institute": "Cluster17",
+      "sponsor": "Le Grand Continent",
+      "fieldwork": {
+        "start": "2026-07-22",
+        "end": "2026-07-24"
+      },
+      "sampleSize": 1506,
+      "url": "https://github.com/MieuxVoter/presidentielle2027",
+      "scores": {
+        "melenchon": 39.2,
+        "lepen": 60.8
+      }
+    },
+    {
+      "institute": "Cluster17",
+      "sponsor": "Le Grand Continent",
+      "fieldwork": {
+        "start": "2026-07-22",
+        "end": "2026-07-24"
+      },
+      "sampleSize": 1506,
+      "url": "https://github.com/MieuxVoter/presidentielle2027",
+      "scores": {
+        "glucksmann": 44.1,
+        "lepen": 55.9
+      }
+    },
+    {
+      "institute": "Cluster17",
+      "sponsor": "Le Grand Continent",
+      "fieldwork": {
+        "start": "2026-07-22",
+        "end": "2026-07-24"
+      },
+      "sampleSize": 1506,
+      "url": "https://github.com/MieuxVoter/presidentielle2027",
+      "scores": {
+        "philippe": 48.2,
+        "lepen": 51.8
+      }
+    },
+    {
+      "institute": "Cluster17",
+      "sponsor": "Le Grand Continent",
+      "fieldwork": {
+        "start": "2026-07-22",
+        "end": "2026-07-24"
+      },
+      "sampleSize": 1506,
+      "url": "https://github.com/MieuxVoter/presidentielle2027",
+      "scores": {
+        "attal": 43.8,
+        "lepen": 56.2
+      }
+    },
+    {
+      "institute": "Cluster17",
+      "sponsor": "Le Grand Continent",
+      "fieldwork": {
+        "start": "2026-07-22",
+        "end": "2026-07-24"
+      },
+      "sampleSize": 1506,
+      "url": "https://github.com/MieuxVoter/presidentielle2027",
+      "scores": {
+        "retailleau": 42.9,
+        "lepen": 57.1
+      }
+    },
+    {
+      "institute": "Elabe",
+      "sponsor": "BFMTV, La Tribune Dimanche",
+      "fieldwork": {
+        "start": "2026-07-09",
+        "end": "2026-07-10"
+      },
+      "sampleSize": 1503,
+      "url": "https://github.com/MieuxVoter/presidentielle2027",
+      "scores": {
+        "melenchon": 32.5,
+        "lepen": 67.5
+      }
+    },
+    {
+      "institute": "Elabe",
+      "sponsor": "BFMTV, La Tribune Dimanche",
+      "fieldwork": {
+        "start": "2026-07-09",
+        "end": "2026-07-10"
+      },
+      "sampleSize": 1503,
+      "url": "https://github.com/MieuxVoter/presidentielle2027",
+      "scores": {
+        "glucksmann": 41.5,
+        "lepen": 58.5
+      }
+    },
+    {
+      "institute": "Elabe",
+      "sponsor": "BFMTV, La Tribune Dimanche",
+      "fieldwork": {
+        "start": "2026-07-09",
+        "end": "2026-07-10"
+      },
+      "sampleSize": 1503,
+      "url": "https://github.com/MieuxVoter/presidentielle2027",
+      "scores": {
+        "attal": 46,
+        "lepen": 54
+      }
+    },
+    {
+      "institute": "Elabe",
+      "sponsor": "BFMTV, La Tribune Dimanche",
+      "fieldwork": {
+        "start": "2026-07-09",
+        "end": "2026-07-10"
+      },
+      "sampleSize": 1503,
+      "url": "https://github.com/MieuxVoter/presidentielle2027",
+      "scores": {
+        "philippe": 48,
+        "lepen": 52
+      }
+    },
+    {
+      "institute": "Elabe",
+      "sponsor": "BFMTV, La Tribune Dimanche",
+      "fieldwork": {
+        "start": "2026-07-09",
+        "end": "2026-07-10"
+      },
+      "sampleSize": 1503,
+      "url": "https://github.com/MieuxVoter/presidentielle2027",
+      "scores": {
+        "retailleau": 44,
+        "lepen": 56
+      }
+    },
+    {
+      "institute": "Harris Interactive (Toluna)",
+      "sponsor": "M6, RTL",
+      "fieldwork": {
+        "start": "2026-07-07",
+        "end": "2026-07-08"
+      },
+      "sampleSize": 1837,
+      "url": "https://github.com/MieuxVoter/presidentielle2027",
+      "scores": {
+        "melenchon": 33,
+        "lepen": 67
+      }
+    },
+    {
+      "institute": "Harris Interactive (Toluna)",
+      "sponsor": "M6, RTL",
+      "fieldwork": {
+        "start": "2026-07-07",
+        "end": "2026-07-08"
+      },
+      "sampleSize": 1837,
+      "url": "https://github.com/MieuxVoter/presidentielle2027",
+      "scores": {
+        "attal": 45,
+        "lepen": 55
+      }
+    },
+    {
+      "institute": "Harris Interactive (Toluna)",
+      "sponsor": "M6, RTL",
+      "fieldwork": {
+        "start": "2026-07-07",
+        "end": "2026-07-08"
+      },
+      "sampleSize": 1837,
+      "url": "https://github.com/MieuxVoter/presidentielle2027",
+      "scores": {
+        "philippe": 49,
+        "lepen": 51
+      }
+    },
+    {
+      "institute": "Ifop-Fiducial",
+      "sponsor": "LCI, Le Figaro",
+      "fieldwork": {
+        "start": "2026-07-07",
+        "end": "2026-07-08"
+      },
+      "sampleSize": 1075,
+      "url": "https://github.com/MieuxVoter/presidentielle2027",
+      "scores": {
+        "philippe": 46,
+        "lepen": 54
+      }
+    },
+    {
+      "institute": "Ifop-Fiducial",
+      "sponsor": "LCI, Le Figaro",
+      "fieldwork": {
+        "start": "2026-07-07",
+        "end": "2026-07-08"
+      },
+      "sampleSize": 1075,
+      "url": "https://github.com/MieuxVoter/presidentielle2027",
+      "scores": {
+        "attal": 45,
+        "lepen": 55
+      }
+    },
+    {
+      "institute": "Ifop-Fiducial",
+      "sponsor": "LCI, Le Figaro",
+      "fieldwork": {
+        "start": "2026-07-07",
+        "end": "2026-07-08"
+      },
+      "sampleSize": 1075,
+      "url": "https://github.com/MieuxVoter/presidentielle2027",
+      "scores": {
+        "melenchon": 30,
+        "lepen": 70
       }
     }
   ]

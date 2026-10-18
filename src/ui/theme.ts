@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from 'react'
 
 export type ThemePreference = 'system' | 'light' | 'dark'
 
-const KEY = 'dynamicpoll:theme'
+const KEY = 'simulateur2027:theme'
 const media = () => window.matchMedia('(prefers-color-scheme: dark)')
 
 function readPreference(): ThemePreference {

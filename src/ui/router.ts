@@ -12,7 +12,7 @@ export function routeFromPath(pathname: string): Route {
   return pathname.replace(/\/+$/, '') === PATHS.methodologie ? 'methodologie' : 'simulateur'
 }
 
-const NAVIGATE_EVENT = 'dynamicpoll:navigate'
+const NAVIGATE_EVENT = 'simulateur2027:navigate'
 
 export function navigate(route: Route, hash?: string) {
   const url = `${PATHS[route]}${hash ? `#${hash}` : ''}`

@@ -1,4 +1,4 @@
-import { simulationData } from '../data/schema'
+import { frozenData as simulationData } from '../test/frozenData'
 import { alliancesConflict, applyAlliances, resolveActiveAlliances } from './alliances'
 import type { Alliance } from './types'
 

@@ -1,19 +1,19 @@
 import type { Reference2022Stats } from './corrections'
 import { addDays, averageHypothesisPolls, daysBetween } from './pollAverage'
-import type { AutumnPoll, PollUsage, PollsData, Reference2022 } from './types'
+import type { CampaignPoll, PollUsage, PollsData, Reference2022 } from './types'
 
 export interface ProgressionStats {
   /** Distance au scrutin de la base 2027, reportée sur 2022 (en jours). */
   daysBefore: number
   /** Date équivalente avant le scrutin de 2022. */
   asOf: string
-  usage: PollUsage<AutumnPoll>[]
+  usage: PollUsage<CampaignPoll>[]
   institutesUsed: number
   /** Moyenne des sondages à cette date, normalisée à 100. */
-  autumnAverage: Record<string, number>
+  earlyAverage: Record<string, number>
   /** Moyenne des derniers sondages avant le vote (celle de la correction 2022). */
   finalAverage: Record<string, number>
-  /** derniers sondages ÷ sondages d'automne, par candidat de 2022. */
+  /** derniers sondages ÷ sondages à la même distance du scrutin, par candidat de 2022. */
   ratio: Record<string, number>
 }
 
@@ -28,9 +28,15 @@ export function computeProgression2022(
 ): ProgressionStats {
   const daysBefore = daysBetween(polls.asOf, polls.electionDate)
   const asOf = addDays(ref.electionDate, -daysBefore)
-  const autumn = ref.autumnPolls
+  const campaign = ref.campaignPolls
   const keep = new Set(ref.candidates.map((c) => c.id))
-  const { usage, average, institutesUsed } = averageHypothesisPolls(autumn.polls, asOf, autumn.windowDays, autumn, keep)
+  const { usage, average, institutesUsed } = averageHypothesisPolls(
+    campaign.polls,
+    asOf,
+    campaign.windowDays,
+    campaign,
+    keep,
+  )
   const ratio = Object.fromEntries(
     ref.candidates.flatMap((c) => {
       const from = average[c.id]
@@ -38,5 +44,5 @@ export function computeProgression2022(
       return from && to !== undefined ? [[c.id, to / from]] : []
     }),
   )
-  return { daysBefore, asOf, usage, institutesUsed, autumnAverage: average, finalAverage: stats.pollAverage, ratio }
+  return { daysBefore, asOf, usage, institutesUsed, earlyAverage: average, finalAverage: stats.pollAverage, ratio }
 }

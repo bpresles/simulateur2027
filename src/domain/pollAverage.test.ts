@@ -1,4 +1,4 @@
-import { simulationData } from '../data/schema'
+import { frozenData as simulationData } from '../test/frozenData'
 import { averagePolls, hypothesisMatches, latestPerInstitute, meanByKey, normalize } from './pollAverage'
 
 const sum = (r: Record<string, number>) => Object.values(r).reduce((s, v) => s + v, 0)

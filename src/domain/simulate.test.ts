@@ -1,4 +1,4 @@
-import { simulationData } from '../data/schema'
+import { frozenData as simulationData } from '../test/frozenData'
 import { secondRoundDropout2022 } from './secondRound'
 import { defaultSettings, simulate } from './simulate'
 
