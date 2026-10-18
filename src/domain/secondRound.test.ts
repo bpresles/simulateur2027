@@ -1,4 +1,4 @@
-import { simulationData } from '../data/schema'
+import { frozenData as simulationData } from '../test/frozenData'
 import { computeSecondRound, secondRoundDropout2022 } from './secondRound'
 import { blendProfiles, effectiveProfiles, fallbackSplit, resolveDuel } from './transfers'
 import type { Candidate, Entrant } from './types'

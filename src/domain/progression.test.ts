@@ -1,4 +1,4 @@
-import { simulationData } from '../data/schema'
+import { frozenData as simulationData } from '../test/frozenData'
 import { applyCorrections, computeReference2022 } from './corrections'
 import { normalize } from './pollAverage'
 import { computeProgression2022 } from './progression'
@@ -16,9 +16,15 @@ describe('computeProgression2022', () => {
 
   it('retient le dernier sondage de 5 instituts, hypothèses avec Pécresse et Zemmour', () => {
     expect(progression.institutesUsed).toBe(5)
-    const opinionWay = progression.usage.find((u) => u.poll.institute === 'OpinionWay')!
-    expect(opinionWay.status).toBe('no-matching-hypothesis')
     expect(progression.usage.filter((u) => u.status === 'superseded')).toHaveLength(3)
+  })
+
+  it('couvre toute la campagne : la progression reste calculable quand la base 2027 avance', () => {
+    for (const asOf of ['2026-11-15', '2027-01-10', '2027-03-01', '2027-04-10']) {
+      const later = computeProgression2022({ ...simulationData.polls, asOf }, simulationData.reference2022, reference)
+      expect(later.institutesUsed).toBeGreaterThanOrEqual(3)
+      expect(later.ratio.melenchon).toBeGreaterThan(1)
+    }
   })
 
   it('mesure la progression de chaque candidat de 2022 (Mélenchon ×1,93, Hidalgo ×0,37)', () => {

@@ -28,7 +28,7 @@ interface SettingsActions {
 
 export type SettingsStore = Settings & SettingsActions
 
-const STORAGE_KEY = 'dynamicpoll:settings'
+const STORAGE_KEY = 'simulateur2027:settings'
 const STORAGE_VERSION = 4
 
 export const useSettings = create<SettingsStore>()(

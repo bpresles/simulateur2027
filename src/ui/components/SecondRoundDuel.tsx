@@ -8,8 +8,10 @@ import { Link } from '../Link'
 import { AnimatedNumber } from './AnimatedNumber'
 
 const spring = { type: 'spring', stiffness: 120, damping: 22 } as const
-const yougovPoll = simulationData.polls.polls.find((p) => p.id === 'yougov-20261015')!
-const YOUGOV = { url: yougovPoll.sources[0]!.url, fieldwork: yougovPoll.fieldwork }
+/** Repères affichés : les plus récents. */
+const MAX_DIRECT_POLLS = 4
+// Exemple chiffré de la part de répondants sans choix au 2nd tour (rapport YouGov du 16/10/2026).
+const yougovPoll = simulationData.polls.polls.find((p) => p.id === 'yougov-20261015')
 const pct1 = (v: number) => pct(v)
 
 export function SecondRoundDuel({ result }: { result: SimulationResult }) {
@@ -132,7 +134,7 @@ function MethodLine({ result }: { result: SimulationResult }) {
         <div>
           <p className="text-sm font-medium text-ink">Repère : sondages de 2nd tour publiés pour ce duel</p>
           <ul className="mt-2 space-y-1.5">
-            {directPolls.map((p) => (
+            {directPolls.slice(0, MAX_DIRECT_POLLS).map((p) => (
               <li key={`${p.institute}-${p.fieldwork.end}`} className="grid grid-cols-[1fr_auto] items-center gap-3 text-sm">
                 <span className="text-ink-2">
                   {p.institute} ({fieldwork(p.fieldwork)})
@@ -143,15 +145,27 @@ function MethodLine({ result }: { result: SimulationResult }) {
               </li>
             ))}
           </ul>
+          {directPolls.length > MAX_DIRECT_POLLS && (
+            <p className="mt-1 text-xs text-ink-3">
+              Les {MAX_DIRECT_POLLS} plus récents sur {directPolls.length} sondages publiés pour ce duel.
+            </p>
+          )}
           <p className="mt-2 text-sm text-ink-3">
             {withAlliance && 'Ces sondages testent les candidats sans alliance. '}
             L’écart avec la simulation s’explique par la part élevée de personnes interrogées qui n’expriment
             aucun choix entre les deux candidats : elles sont écartées des pourcentages publiés, qui ne portent
-            que sur les « votants décidés ». Dans le{' '}
-            <a href={YOUGOV.url} className="link" target="_blank" rel="noreferrer">
-              sondage YouGov du {fieldwork(YOUGOV.fieldwork)}
-            </a>
-            , c’est plus de 40 % des personnes interrogées (45 % pour Mélenchon – Le Pen). En 2022, seuls{' '}
+            que sur les « votants décidés ».
+            {yougovPoll && (
+              <>
+                {' '}
+                Dans le{' '}
+                <a href={yougovPoll.sources[0]!.url} className="link" target="_blank" rel="noreferrer">
+                  sondage YouGov du {fieldwork(yougovPoll.fieldwork)}
+                </a>
+                , c’est plus de 40 % des personnes interrogées (45 % pour Mélenchon – Le Pen).
+              </>
+            )}{' '}
+            En 2022, seuls{' '}
             {pct(secondRoundDropout2022(simulationData.reference2022), 2)} des électeurs qui s’étaient exprimés
             au 1er tour ne se sont pas exprimés au 2nd (abstention, vote blanc ou nul).
           </p>

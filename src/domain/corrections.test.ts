@@ -1,4 +1,4 @@
-import { simulationData } from '../data/schema'
+import { frozenData as simulationData } from '../test/frozenData'
 import { applyCorrections, computeReference2022, defaultCorrection } from './corrections'
 import type { Candidate } from './types'
 

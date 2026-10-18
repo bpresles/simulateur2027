@@ -53,8 +53,12 @@ export interface Hypothesis {
   scores: Record<CandidateId, number>
 }
 
+/** Provenance d'un sondage : saisie manuelle ou flux synchronisé automatiquement. */
+export type PollOrigin = 'manuel' | 'mieuxvoter' | '2027etmoi'
+
 export interface Poll {
   id: string
+  origin?: PollOrigin
   institute: string
   sponsor: string
   fieldwork: Fieldwork
@@ -121,8 +125,8 @@ export interface Reference2022Poll {
   scores: Record<string, number>
 }
 
-/** Sondage de l'automne 2021, avec toutes ses hypothèses (plusieurs candidats LR testés). */
-export interface AutumnPoll {
+/** Sondage de la campagne 2021-2022, avec toutes ses hypothèses (plusieurs candidats LR testés). */
+export interface CampaignPoll {
   institute: string
   fieldwork: Fieldwork
   sampleSize: number
@@ -150,14 +154,14 @@ export interface Reference2022 {
   candidates: Reference2022Candidate[]
   polls: Reference2022Poll[]
   /** Sondages réalisés à la même distance du scrutin que la base 2027, pour mesurer la progression. */
-  autumnPolls: {
+  campaignPolls: {
     description: string
     windowDays: number
     require: string[]
     exclude: string[]
     otherCandidates: OtherCandidate[]
     source: SourceLink
-    polls: AutumnPoll[]
+    polls: CampaignPoll[]
   }
 }
 
@@ -252,7 +256,7 @@ export interface FirstRoundRow {
   candidateId: CandidateId
   /** Moyenne brute des sondages (normalisée à 100). */
   base: number
-  /** Progression de la référence 2022 entre l'automne 2021 et les derniers sondages. */
+  /** Progression de la référence 2022 entre la même distance du scrutin et les derniers sondages. */
   progressionRatio: number | null
   /** Derniers sondages projetés (= base si la progression est désactivée), normalisés à 100. */
   projected: number

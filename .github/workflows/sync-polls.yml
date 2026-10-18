@@ -1,0 +1,55 @@
+name: Synchronisation des sondages
+
+on:
+  schedule:
+    # Tous les jours à 06:17 UTC (08:17 à Paris en heure d'été).
+    - cron: '17 6 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: sync-polls
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      # Facultatif : URL d'un « Deploy Hook » Vercel, si le dépôt n'est pas relié à Vercel par Git.
+      VERCEL_DEPLOY_HOOK_URL: ${{ secrets.VERCEL_DEPLOY_HOOK_URL }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.4.3
+
+      - name: Installer les dépendances
+        run: bun install --frozen-lockfile
+
+      - name: Synchroniser les sondages
+        id: sync
+        run: bun run sync-polls
+
+      - name: Vérifier les données (tests et build)
+        if: steps.sync.outputs.changed == 'true'
+        run: |
+          bun run test
+          bun run build
+
+      # Le push sur la branche principale déclenche le déploiement de production par l'intégration Git de Vercel.
+      - name: Publier les nouvelles données
+        if: steps.sync.outputs.changed == 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/data/polls-2027.json
+          git commit -m "Données : synchronisation des sondages du $(date -u +%d/%m/%Y)"
+          git push
+
+      - name: Redéployer sur Vercel (Deploy Hook)
+        if: steps.sync.outputs.changed == 'true' && env.VERCEL_DEPLOY_HOOK_URL != ''
+        run: curl -fsS -X POST "$VERCEL_DEPLOY_HOOK_URL"

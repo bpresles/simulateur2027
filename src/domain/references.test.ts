@@ -1,4 +1,4 @@
-import { simulationData } from '../data/schema'
+import { frozenData as simulationData } from '../test/frozenData'
 import { computeReference2022 } from './corrections'
 import { blendedRatio, referenceParts } from './references'
 import { defaultSettings, simulate } from './simulate'
