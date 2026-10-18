@@ -1,0 +1,1237 @@
+{
+  "electionDate": "2022-04-10",
+  "windowDays": 7,
+  "description": "Dernier sondage publié par chaque institut avant le 1er tour du 10/04/2022 (terrain achevé dans les 7 jours précédant le scrutin), comparé au résultat officiel.",
+  "resultsSource": {
+    "label": "Conseil constitutionnel – Décision n° 2022-195 PDR du 13/04/2022 (résultats du 1er tour)",
+    "url": "https://www.conseil-constitutionnel.fr/decision/2022/2022195PDR.htm"
+  },
+  "pollsSource": {
+    "label": "Wikipedia – Opinion polling for the 2022 French presidential election",
+    "url": "https://en.wikipedia.org/wiki/Opinion_polling_for_the_2022_French_presidential_election"
+  },
+  "expressed": 35132947,
+  "candidates": [
+    {
+      "id": "arthaud",
+      "name": "Nathalie Arthaud",
+      "votes": 197094
+    },
+    {
+      "id": "poutou",
+      "name": "Philippe Poutou",
+      "votes": 268904
+    },
+    {
+      "id": "roussel",
+      "name": "Fabien Roussel",
+      "votes": 802422
+    },
+    {
+      "id": "melenchon",
+      "name": "Jean-Luc Mélenchon",
+      "votes": 7712520
+    },
+    {
+      "id": "hidalgo",
+      "name": "Anne Hidalgo",
+      "votes": 616478
+    },
+    {
+      "id": "jadot",
+      "name": "Yannick Jadot",
+      "votes": 1627853
+    },
+    {
+      "id": "macron",
+      "name": "Emmanuel Macron",
+      "votes": 9783058
+    },
+    {
+      "id": "pecresse",
+      "name": "Valérie Pécresse",
+      "votes": 1679001
+    },
+    {
+      "id": "lassalle",
+      "name": "Jean Lassalle",
+      "votes": 1101387
+    },
+    {
+      "id": "dupont-aignan",
+      "name": "Nicolas Dupont-Aignan",
+      "votes": 725176
+    },
+    {
+      "id": "lepen",
+      "name": "Marine Le Pen",
+      "votes": 8133828
+    },
+    {
+      "id": "zemmour",
+      "name": "Éric Zemmour",
+      "votes": 2485226
+    }
+  ],
+  "polls": [
+    {
+      "institute": "Ipsos",
+      "sponsor": "Le Monde",
+      "fieldwork": {
+        "start": "2022-04-08",
+        "end": "2022-04-08"
+      },
+      "sampleSize": 10425,
+      "url": "https://www.ipsos.com/sites/default/files/ct/news/documents/2022-04/Rapport%20Ipsos_LEMONDE%20_Intention%20de%20vote%20pre%CC%81sidentielle%201er%20tour%202022.pdf",
+      "scores": {
+        "arthaud": 0.5,
+        "poutou": 1,
+        "roussel": 3,
+        "melenchon": 17.5,
+        "hidalgo": 2,
+        "jadot": 5,
+        "macron": 26.5,
+        "pecresse": 8.5,
+        "lassalle": 2,
+        "dupont-aignan": 2.5,
+        "lepen": 22.5,
+        "zemmour": 9
+      }
+    },
+    {
+      "institute": "Harris Interactive",
+      "sponsor": "Challenges",
+      "fieldwork": {
+        "start": "2022-04-07",
+        "end": "2022-04-08"
+      },
+      "sampleSize": 1889,
+      "url": "https://www.commission-des-sondages.fr/notices/files/notices/2022/avril/9561-harris-interactive-challenges-v41.pdf",
+      "scores": {
+        "arthaud": 0.5,
+        "poutou": 1,
+        "roussel": 2.5,
+        "melenchon": 18,
+        "hidalgo": 2,
+        "jadot": 4.5,
+        "macron": 27,
+        "pecresse": 8,
+        "lassalle": 2,
+        "dupont-aignan": 2,
+        "lepen": 24,
+        "zemmour": 8.5
+      }
+    },
+    {
+      "institute": "Elabe",
+      "fieldwork": {
+        "start": "2022-04-07",
+        "end": "2022-04-08"
+      },
+      "sampleSize": 1691,
+      "url": "https://elabe.fr/wp-content/uploads/2022/04/les-francais-et-lelection-presidentielle-2022-1.pdf",
+      "scores": {
+        "arthaud": 0.5,
+        "poutou": 1,
+        "roussel": 2.5,
+        "melenchon": 17.5,
+        "hidalgo": 2,
+        "jadot": 4,
+        "macron": 26,
+        "pecresse": 8,
+        "lassalle": 2.5,
+        "dupont-aignan": 2.5,
+        "lepen": 25,
+        "zemmour": 8.5
+      }
+    },
+    {
+      "institute": "Cluster17",
+      "fieldwork": {
+        "start": "2022-04-06",
+        "end": "2022-04-08"
+      },
+      "sampleSize": 3097,
+      "url": "https://cluster17.com/wp-content/uploads/2022/04/20220408_Cluster17_Rolling_hebdomadaire_Notice_technique_Publique.pdf",
+      "scores": {
+        "arthaud": 0.5,
+        "poutou": 1,
+        "roussel": 2.5,
+        "melenchon": 18,
+        "hidalgo": 2,
+        "jadot": 4,
+        "macron": 26,
+        "pecresse": 9,
+        "lassalle": 3,
+        "dupont-aignan": 3,
+        "lepen": 21,
+        "zemmour": 9.5
+      }
+    },
+    {
+      "institute": "OpinionWay",
+      "sponsor": "Kéa Partners",
+      "fieldwork": {
+        "start": "2022-04-05",
+        "end": "2022-04-08"
+      },
+      "sampleSize": 2041,
+      "url": "https://www.opinion-way.com/fr/barometre-opinionway-kea-partners-election-presidentielle-2022",
+      "scores": {
+        "arthaud": 1,
+        "poutou": 1,
+        "roussel": 3,
+        "melenchon": 17,
+        "hidalgo": 2,
+        "jadot": 5,
+        "macron": 26,
+        "pecresse": 9,
+        "lassalle": 3,
+        "dupont-aignan": 2,
+        "lepen": 22,
+        "zemmour": 9
+      }
+    },
+    {
+      "institute": "Ifop-Fiducial",
+      "fieldwork": {
+        "start": "2022-04-05",
+        "end": "2022-04-08"
+      },
+      "sampleSize": 3016,
+      "url": "https://www.ifop.com/wp-content/uploads/2022/04/ROL22_2022.04.08.pdf",
+      "scores": {
+        "arthaud": 0.5,
+        "poutou": 1,
+        "roussel": 2.5,
+        "melenchon": 17,
+        "hidalgo": 2,
+        "jadot": 5,
+        "macron": 26,
+        "pecresse": 9,
+        "lassalle": 2.5,
+        "dupont-aignan": 1.5,
+        "lepen": 24,
+        "zemmour": 9
+      }
+    },
+    {
+      "institute": "BVA",
+      "sponsor": "Orange / RTL",
+      "fieldwork": {
+        "start": "2022-04-06",
+        "end": "2022-04-07"
+      },
+      "sampleSize": 1010,
+      "url": "https://www.commission-des-sondages.fr/notices/files/notices/2022/avril/9559-bva-orange-rtl-presidentielle-2022-vague-13-le-8-avril.pdf",
+      "scores": {
+        "arthaud": 0.5,
+        "poutou": 1,
+        "roussel": 2.5,
+        "melenchon": 17.5,
+        "hidalgo": 2.5,
+        "jadot": 4.5,
+        "macron": 26,
+        "pecresse": 8.5,
+        "lassalle": 2.5,
+        "dupont-aignan": 2,
+        "lepen": 23,
+        "zemmour": 9.5
+      }
+    },
+    {
+      "institute": "YouGov",
+      "fieldwork": {
+        "start": "2022-04-04",
+        "end": "2022-04-07"
+      },
+      "sampleSize": 1783,
+      "url": "https://docs.cdn.yougov.com/fjg18u456t/France_Vote_Intention_07-Apr-2022_website_v2.pdf",
+      "scores": {
+        "arthaud": 1,
+        "poutou": 1,
+        "roussel": 2,
+        "melenchon": 16,
+        "hidalgo": 1,
+        "jadot": 5,
+        "macron": 26,
+        "pecresse": 6,
+        "lassalle": 3,
+        "dupont-aignan": 2,
+        "lepen": 23,
+        "zemmour": 13
+      }
+    },
+    {
+      "institute": "Odoxa",
+      "fieldwork": {
+        "start": "2022-04-05",
+        "end": "2022-04-06"
+      },
+      "sampleSize": 1897,
+      "url": "https://www.odoxa.fr/sondage/intentions-de-vote-la-dynamique-marine-le-pen-se-confirme/",
+      "scores": {
+        "arthaud": 1,
+        "poutou": 1,
+        "roussel": 3,
+        "melenchon": 16,
+        "hidalgo": 2,
+        "jadot": 5,
+        "macron": 28,
+        "pecresse": 7,
+        "lassalle": 3,
+        "dupont-aignan": 2,
+        "lepen": 24,
+        "zemmour": 8
+      }
+    },
+    {
+      "institute": "AtlasIntel",
+      "fieldwork": {
+        "start": "2022-04-04",
+        "end": "2022-04-06"
+      },
+      "sampleSize": 1946,
+      "url": "https://cdn.atlasintel.org/cd03767f-0b01-4810-b2b8-7ad965f7942d.pdf",
+      "scores": {
+        "arthaud": 0.6,
+        "poutou": 0.4,
+        "roussel": 2.2,
+        "melenchon": 18.6,
+        "hidalgo": 2.3,
+        "jadot": 5,
+        "macron": 27.8,
+        "pecresse": 5.3,
+        "lassalle": 1.3,
+        "dupont-aignan": 2.9,
+        "lepen": 21.3,
+        "zemmour": 12
+      }
+    },
+    {
+      "institute": "Kantar Public",
+      "fieldwork": {
+        "start": "2022-04-04",
+        "end": "2022-04-05"
+      },
+      "sampleSize": 1394,
+      "url": "https://web.archive.org/web/20220405175510/https://kantarpublic.com/fr/inspiration/election-presidentielle-2022/presidentielle-2022-le-potentiel-et-le-rapport-de-force-electoral-5-avril-2022",
+      "scores": {
+        "arthaud": 0.5,
+        "poutou": 1,
+        "roussel": 3,
+        "melenchon": 16,
+        "hidalgo": 2.5,
+        "jadot": 5,
+        "macron": 25,
+        "pecresse": 8,
+        "lassalle": 3,
+        "dupont-aignan": 2,
+        "lepen": 23,
+        "zemmour": 11
+      }
+    }
+  ],
+  "secondRound": {
+    "registered": 48752339,
+    "voters": 35096478,
+    "blank": 2233904,
+    "invalid": 805249,
+    "expressed": 32057325,
+    "source": {
+      "label": "Conseil constitutionnel – Décision n° 2022-197 PDR du 27/04/2022 (résultats du 2nd tour)",
+      "url": "https://www.conseil-constitutionnel.fr/decision/2022/2022197PDR.htm"
+    }
+  },
+  "autumnPolls": {
+    "description": "Sondages de 1er tour réalisés à la même distance du scrutin que la base 2027 : dernier sondage de chaque institut dont le terrain s'achève dans la fenêtre. Seules les hypothèses avec Valérie Pécresse (candidate LR finalement désignée le 04/12/2021) et Éric Zemmour sont retenues ; les candidats sans équivalent dans la liste de 2022 (Montebourg, Philippot…) sont retirés et l'hypothèse est ramenée à 100 %.",
+    "windowDays": 21,
+    "require": [
+      "melenchon",
+      "hidalgo",
+      "jadot",
+      "macron",
+      "pecresse",
+      "lepen",
+      "zemmour"
+    ],
+    "exclude": [
+      "bertrand",
+      "barnier",
+      "ciotti",
+      "juvin",
+      "payre"
+    ],
+    "otherCandidates": [
+      {
+        "id": "montebourg",
+        "name": "Arnaud Montebourg"
+      },
+      {
+        "id": "lagarde",
+        "name": "Jean-Christophe Lagarde"
+      },
+      {
+        "id": "barnier",
+        "name": "Michel Barnier"
+      },
+      {
+        "id": "bertrand",
+        "name": "Xavier Bertrand"
+      },
+      {
+        "id": "ciotti",
+        "name": "Éric Ciotti"
+      },
+      {
+        "id": "juvin",
+        "name": "Philippe Juvin"
+      },
+      {
+        "id": "payre",
+        "name": "Denis Payre"
+      },
+      {
+        "id": "poisson",
+        "name": "Jean-Frédéric Poisson"
+      },
+      {
+        "id": "philippot",
+        "name": "Florian Philippot"
+      },
+      {
+        "id": "asselineau",
+        "name": "François Asselineau"
+      }
+    ],
+    "source": {
+      "label": "Wikipedia – Opinion polling for the 2022 French presidential election (septembre-novembre 2021)",
+      "url": "https://en.wikipedia.org/wiki/Opinion_polling_for_the_2022_French_presidential_election"
+    },
+    "polls": [
+      {
+        "institute": "Ifop",
+        "fieldwork": {
+          "start": "2021-10-05",
+          "end": "2021-10-06"
+        },
+        "sampleSize": 921,
+        "url": "https://www.ifop.com/wp-content/uploads/2021/10/118499-Rapport.pdf",
+        "hypotheses": [
+          {
+            "id": "H1",
+            "scores": {
+              "arthaud": 0.5,
+              "poutou": 0.5,
+              "roussel": 2.0,
+              "melenchon": 7.0,
+              "montebourg": 2.0,
+              "hidalgo": 6.0,
+              "jadot": 8.0,
+              "macron": 25.0,
+              "bertrand": 16.0,
+              "lassalle": 1.0,
+              "dupont-aignan": 2.0,
+              "lepen": 16.0,
+              "zemmour": 14.0
+            }
+          },
+          {
+            "id": "H2",
+            "scores": {
+              "arthaud": 0.5,
+              "poutou": 0.5,
+              "roussel": 1.5,
+              "melenchon": 8.0,
+              "montebourg": 2.5,
+              "hidalgo": 6.0,
+              "jadot": 8.0,
+              "macron": 26.0,
+              "pecresse": 11.0,
+              "lassalle": 1.0,
+              "dupont-aignan": 4.0,
+              "lepen": 18.0,
+              "zemmour": 14.0
+            }
+          }
+        ]
+      },
+      {
+        "institute": "Elabe",
+        "fieldwork": {
+          "start": "2021-10-05",
+          "end": "2021-10-06"
+        },
+        "sampleSize": 1309,
+        "url": "https://elabe.fr/wp-content/uploads/2021/09/presidentielle-2022-et-eric-zemmour.pdf",
+        "hypotheses": [
+          {
+            "id": "H1",
+            "scores": {
+              "arthaud": 1.0,
+              "poutou": 1.0,
+              "roussel": 2.0,
+              "melenchon": 7.0,
+              "montebourg": 1.0,
+              "hidalgo": 5.0,
+              "jadot": 9.0,
+              "macron": 25.0,
+              "lagarde": 1.0,
+              "bertrand": 13.0,
+              "poisson": 0.25,
+              "lassalle": 1.0,
+              "dupont-aignan": 4.0,
+              "lepen": 16.0,
+              "philippot": 1.0,
+              "zemmour": 13.0,
+              "asselineau": 1.0
+            }
+          },
+          {
+            "id": "H2",
+            "scores": {
+              "arthaud": 1.0,
+              "poutou": 1.0,
+              "roussel": 2.0,
+              "melenchon": 8.0,
+              "montebourg": 2.0,
+              "hidalgo": 5.0,
+              "jadot": 9.0,
+              "macron": 27.0,
+              "lagarde": 0.25,
+              "pecresse": 8.0,
+              "poisson": 0.25,
+              "lassalle": 1.0,
+              "dupont-aignan": 4.0,
+              "lepen": 17.0,
+              "philippot": 1.0,
+              "zemmour": 14.0,
+              "asselineau": 1.0
+            }
+          },
+          {
+            "id": "H3",
+            "scores": {
+              "arthaud": 1.0,
+              "poutou": 1.0,
+              "roussel": 2.0,
+              "melenchon": 8.0,
+              "montebourg": 2.0,
+              "hidalgo": 5.0,
+              "jadot": 9.0,
+              "macron": 28.0,
+              "lagarde": 0.25,
+              "barnier": 5.0,
+              "poisson": 0.25,
+              "lassalle": 1.0,
+              "dupont-aignan": 4.0,
+              "lepen": 18.0,
+              "philippot": 1.0,
+              "zemmour": 14.0,
+              "asselineau": 1.0
+            }
+          },
+          {
+            "id": "H4",
+            "scores": {
+              "arthaud": 1.0,
+              "poutou": 1.0,
+              "roussel": 2.0,
+              "melenchon": 8.0,
+              "montebourg": 2.0,
+              "hidalgo": 5.0,
+              "jadot": 10.0,
+              "macron": 25.0,
+              "lagarde": 1.0,
+              "bertrand": 14.0,
+              "poisson": 0.25,
+              "lassalle": 2.0,
+              "dupont-aignan": 4.0,
+              "lepen": 23.0,
+              "philippot": 1.0,
+              "asselineau": 1.0
+            }
+          },
+          {
+            "id": "H5",
+            "scores": {
+              "arthaud": 1.0,
+              "poutou": 1.0,
+              "roussel": 2.0,
+              "melenchon": 8.0,
+              "montebourg": 1.0,
+              "hidalgo": 4.0,
+              "jadot": 10.0,
+              "macron": 27.0,
+              "lagarde": 1.0,
+              "pecresse": 11.0,
+              "poisson": 1.0,
+              "lassalle": 2.0,
+              "dupont-aignan": 5.0,
+              "lepen": 24.0,
+              "philippot": 1.0,
+              "asselineau": 1.0
+            }
+          },
+          {
+            "id": "H6",
+            "scores": {
+              "arthaud": 1.0,
+              "poutou": 1.0,
+              "roussel": 2.0,
+              "melenchon": 8.0,
+              "montebourg": 2.0,
+              "hidalgo": 5.0,
+              "jadot": 11.0,
+              "macron": 29.0,
+              "lagarde": 0.25,
+              "barnier": 8.0,
+              "poisson": 0.25,
+              "lassalle": 2.0,
+              "dupont-aignan": 4.0,
+              "lepen": 25.0,
+              "philippot": 1.0,
+              "asselineau": 1.0
+            }
+          }
+        ]
+      },
+      {
+        "institute": "Harris Interactive",
+        "fieldwork": {
+          "start": "2021-10-01",
+          "end": "2021-10-04"
+        },
+        "sampleSize": 1310,
+        "url": "https://harris-interactive.fr/wp-content/uploads/sites/6/2021/10/Rapport-Harris-Vague-16-Intentions-de-vote-Presidentielle-2022-Challenges.pdf",
+        "hypotheses": [
+          {
+            "id": "H1",
+            "scores": {
+              "arthaud": 1.0,
+              "poutou": 1.0,
+              "roussel": 2.0,
+              "melenchon": 11.0,
+              "montebourg": 2.0,
+              "hidalgo": 6.0,
+              "jadot": 6.0,
+              "macron": 24.0,
+              "lagarde": 0.25,
+              "bertrand": 13.0,
+              "poisson": 0.25,
+              "lassalle": 0.25,
+              "dupont-aignan": 2.0,
+              "lepen": 15.0,
+              "philippot": 0.25,
+              "zemmour": 17.0,
+              "asselineau": 0.25
+            }
+          },
+          {
+            "id": "H2",
+            "scores": {
+              "arthaud": 1.0,
+              "poutou": 1.0,
+              "roussel": 2.0,
+              "melenchon": 11.0,
+              "montebourg": 2.0,
+              "hidalgo": 6.0,
+              "jadot": 7.0,
+              "macron": 25.0,
+              "lagarde": 0.25,
+              "pecresse": 11.0,
+              "poisson": 0.25,
+              "lassalle": 0.25,
+              "dupont-aignan": 2.0,
+              "lepen": 15.0,
+              "philippot": 0.25,
+              "zemmour": 17.0,
+              "asselineau": 0.25
+            }
+          },
+          {
+            "id": "H3",
+            "scores": {
+              "arthaud": 1.0,
+              "poutou": 1.0,
+              "roussel": 2.0,
+              "melenchon": 11.0,
+              "montebourg": 2.0,
+              "hidalgo": 6.0,
+              "jadot": 7.0,
+              "macron": 27.0,
+              "lagarde": 0.25,
+              "barnier": 7.0,
+              "poisson": 0.25,
+              "lassalle": 0.25,
+              "dupont-aignan": 2.0,
+              "lepen": 16.0,
+              "philippot": 0.25,
+              "zemmour": 18.0,
+              "asselineau": 0.25
+            }
+          }
+        ]
+      },
+      {
+        "institute": "Ifop",
+        "fieldwork": {
+          "start": "2021-09-29",
+          "end": "2021-10-01"
+        },
+        "sampleSize": 1351,
+        "url": "https://www.commission-des-sondages.fr/notices/files/notices/2021/octobre/9216-p-ifop-le-figaro-v4.pdf",
+        "hypotheses": [
+          {
+            "id": "H1",
+            "scores": {
+              "arthaud": 0.5,
+              "poutou": 1.0,
+              "roussel": 2.0,
+              "melenchon": 7.0,
+              "montebourg": 3.5,
+              "hidalgo": 5.5,
+              "jadot": 8.0,
+              "macron": 24.0,
+              "bertrand": 15.0,
+              "lassalle": 1.0,
+              "dupont-aignan": 2.5,
+              "lepen": 18.0,
+              "zemmour": 12.0
+            }
+          },
+          {
+            "id": "H2",
+            "scores": {
+              "arthaud": 0.5,
+              "poutou": 1.0,
+              "roussel": 2.0,
+              "melenchon": 7.0,
+              "montebourg": 3.0,
+              "hidalgo": 6.0,
+              "jadot": 8.0,
+              "macron": 26.0,
+              "pecresse": 11.0,
+              "lassalle": 1.0,
+              "dupont-aignan": 2.5,
+              "lepen": 19.0,
+              "zemmour": 13.0
+            }
+          },
+          {
+            "id": "H3",
+            "scores": {
+              "arthaud": 0.5,
+              "poutou": 1.0,
+              "roussel": 1.5,
+              "melenchon": 7.0,
+              "montebourg": 3.0,
+              "hidalgo": 6.0,
+              "jadot": 8.5,
+              "macron": 26.0,
+              "barnier": 9.5,
+              "lassalle": 1.0,
+              "dupont-aignan": 2.5,
+              "lepen": 19.5,
+              "zemmour": 14.0
+            }
+          },
+          {
+            "id": "H4",
+            "scores": {
+              "arthaud": 0.5,
+              "poutou": 1.0,
+              "roussel": 2.0,
+              "melenchon": 7.5,
+              "montebourg": 3.5,
+              "hidalgo": 5.5,
+              "jadot": 8.0,
+              "macron": 27.0,
+              "ciotti": 5.0,
+              "lassalle": 1.0,
+              "dupont-aignan": 3.0,
+              "lepen": 21.0,
+              "zemmour": 15.0
+            }
+          },
+          {
+            "id": "H5",
+            "scores": {
+              "arthaud": 0.5,
+              "poutou": 1.0,
+              "roussel": 2.0,
+              "melenchon": 7.5,
+              "montebourg": 4.0,
+              "hidalgo": 6.0,
+              "jadot": 8.5,
+              "macron": 26.0,
+              "bertrand": 18.0,
+              "lassalle": 1.0,
+              "dupont-aignan": 2.5,
+              "lepen": 23.0
+            }
+          },
+          {
+            "id": "H6",
+            "scores": {
+              "arthaud": 0.5,
+              "poutou": 1.0,
+              "roussel": 2.5,
+              "melenchon": 8.0,
+              "montebourg": 4.0,
+              "hidalgo": 6.0,
+              "jadot": 8.5,
+              "macron": 27.0,
+              "pecresse": 13.0,
+              "lassalle": 1.0,
+              "dupont-aignan": 3.5,
+              "lepen": 25.0
+            }
+          },
+          {
+            "id": "H7",
+            "scores": {
+              "arthaud": 0.5,
+              "poutou": 1.0,
+              "roussel": 2.0,
+              "melenchon": 8.0,
+              "montebourg": 3.5,
+              "hidalgo": 6.0,
+              "jadot": 9.0,
+              "macron": 27.0,
+              "barnier": 12.0,
+              "lassalle": 2.0,
+              "dupont-aignan": 4.0,
+              "lepen": 25.0
+            }
+          }
+        ]
+      },
+      {
+        "institute": "Ipsos",
+        "fieldwork": {
+          "start": "2021-09-29",
+          "end": "2021-09-30"
+        },
+        "sampleSize": 1500,
+        "url": "https://www.ipsos.com/sites/default/files/ct/news/documents/2021-10/Ipsos%20-%20Le%20Parisien-France%20Info%20-%20IV%202022%20-%20Oct.%202021.pdf",
+        "hypotheses": [
+          {
+            "id": "H1",
+            "scores": {
+              "arthaud": 1.0,
+              "poutou": 1.0,
+              "roussel": 1.5,
+              "melenchon": 9.0,
+              "montebourg": 1.5,
+              "hidalgo": 5.5,
+              "jadot": 9.0,
+              "macron": 24.0,
+              "bertrand": 14.0,
+              "lassalle": 1.0,
+              "dupont-aignan": 1.5,
+              "lepen": 16.0,
+              "zemmour": 15.0
+            }
+          },
+          {
+            "id": "H2",
+            "scores": {
+              "arthaud": 1.0,
+              "poutou": 1.0,
+              "roussel": 1.5,
+              "melenchon": 9.0,
+              "montebourg": 1.5,
+              "hidalgo": 5.5,
+              "jadot": 9.0,
+              "macron": 25.0,
+              "pecresse": 12.0,
+              "lassalle": 1.0,
+              "dupont-aignan": 1.5,
+              "lepen": 17.0,
+              "zemmour": 15.0
+            }
+          },
+          {
+            "id": "H3",
+            "scores": {
+              "arthaud": 1.0,
+              "poutou": 1.0,
+              "roussel": 1.5,
+              "melenchon": 9.0,
+              "montebourg": 1.5,
+              "hidalgo": 5.5,
+              "jadot": 9.5,
+              "macron": 25.5,
+              "barnier": 11.0,
+              "lassalle": 1.0,
+              "dupont-aignan": 1.5,
+              "lepen": 17.0,
+              "zemmour": 15.0
+            }
+          },
+          {
+            "id": "H4",
+            "scores": {
+              "arthaud": 1.0,
+              "poutou": 1.0,
+              "roussel": 1.5,
+              "melenchon": 8.5,
+              "montebourg": 1.5,
+              "hidalgo": 5.5,
+              "jadot": 9.0,
+              "macron": 25.0,
+              "bertrand": 17.0,
+              "lassalle": 1.0,
+              "dupont-aignan": 4.0,
+              "lepen": 25.0
+            }
+          },
+          {
+            "id": "H5",
+            "scores": {
+              "arthaud": 1.0,
+              "poutou": 1.0,
+              "roussel": 1.5,
+              "melenchon": 8.5,
+              "montebourg": 1.5,
+              "hidalgo": 5.5,
+              "jadot": 9.0,
+              "macron": 26.0,
+              "pecresse": 14.0,
+              "lassalle": 1.0,
+              "dupont-aignan": 5.0,
+              "lepen": 26.0
+            }
+          },
+          {
+            "id": "H6",
+            "scores": {
+              "arthaud": 1.0,
+              "poutou": 1.0,
+              "roussel": 1.5,
+              "melenchon": 8.5,
+              "montebourg": 1.5,
+              "hidalgo": 5.5,
+              "jadot": 9.0,
+              "macron": 27.0,
+              "barnier": 13.0,
+              "lassalle": 1.0,
+              "dupont-aignan": 5.0,
+              "lepen": 26.0
+            }
+          }
+        ]
+      },
+      {
+        "institute": "Harris Interactive",
+        "fieldwork": {
+          "start": "2021-09-24",
+          "end": "2021-09-27"
+        },
+        "sampleSize": 1379,
+        "url": "https://harris-interactive.fr/wp-content/uploads/sites/6/2021/09/Rapport-Harris-Vague-15-Intentions-de-vote-Presidentielle-2022-Challenges.pdf",
+        "hypotheses": [
+          {
+            "id": "H1",
+            "scores": {
+              "arthaud": 1.0,
+              "poutou": 1.0,
+              "roussel": 1.0,
+              "melenchon": 13.0,
+              "montebourg": 2.0,
+              "hidalgo": 7.0,
+              "jadot": 6.0,
+              "macron": 23.0,
+              "lagarde": 0.25,
+              "bertrand": 14.0,
+              "poisson": 0.25,
+              "lassalle": 0.25,
+              "dupont-aignan": 2.0,
+              "lepen": 16.0,
+              "philippot": 1.0,
+              "zemmour": 13.0,
+              "asselineau": 0.25
+            }
+          },
+          {
+            "id": "H2",
+            "scores": {
+              "arthaud": 1.0,
+              "poutou": 1.0,
+              "roussel": 2.0,
+              "melenchon": 13.0,
+              "montebourg": 2.0,
+              "hidalgo": 7.0,
+              "jadot": 6.0,
+              "macron": 24.0,
+              "lagarde": 0.25,
+              "pecresse": 12.0,
+              "poisson": 0.25,
+              "lassalle": 0.25,
+              "dupont-aignan": 2.0,
+              "lepen": 16.0,
+              "philippot": 1.0,
+              "zemmour": 13.0,
+              "asselineau": 0.25
+            }
+          },
+          {
+            "id": "H3",
+            "scores": {
+              "arthaud": 1.0,
+              "poutou": 1.0,
+              "roussel": 2.0,
+              "melenchon": 13.0,
+              "montebourg": 2.0,
+              "hidalgo": 7.0,
+              "jadot": 6.0,
+              "macron": 26.0,
+              "lagarde": 0.25,
+              "barnier": 8.0,
+              "poisson": 0.25,
+              "lassalle": 0.25,
+              "dupont-aignan": 4.0,
+              "lepen": 16.0,
+              "philippot": 1.0,
+              "zemmour": 14.0,
+              "asselineau": 0.25
+            }
+          }
+        ]
+      },
+      {
+        "institute": "OpinionWay",
+        "fieldwork": {
+          "start": "2021-09-22",
+          "end": "2021-09-23"
+        },
+        "sampleSize": 980,
+        "url": "https://www.opinion-way.com/fr/component/edocman/opinionway-pour-les-echos-cnews-et-radio-classique-presitrack-vague-1-septembre-2021/viewdocument/2673.html",
+        "hypotheses": [
+          {
+            "id": "H1",
+            "scores": {
+              "arthaud": 1.0,
+              "poutou": 1.0,
+              "roussel": 4.0,
+              "melenchon": 8.0,
+              "montebourg": 4.0,
+              "hidalgo": 6.0,
+              "jadot": 7.0,
+              "macron": 24.0,
+              "bertrand": 15.0,
+              "dupont-aignan": 2.0,
+              "lepen": 20.0,
+              "zemmour": 10.0
+            }
+          },
+          {
+            "id": "H2",
+            "scores": {
+              "arthaud": 1.0,
+              "poutou": 1.0,
+              "roussel": 4.0,
+              "melenchon": 7.0,
+              "montebourg": 2.0,
+              "hidalgo": 7.0,
+              "jadot": 8.0,
+              "macron": 25.0,
+              "bertrand": 16.0,
+              "dupont-aignan": 5.0,
+              "lepen": 25.0
+            }
+          },
+          {
+            "id": "H3",
+            "scores": {
+              "arthaud": 1.0,
+              "poutou": 1.0,
+              "roussel": 4.0,
+              "melenchon": 7.0,
+              "montebourg": 2.0,
+              "hidalgo": 7.0,
+              "jadot": 8.0,
+              "macron": 26.0,
+              "pecresse": 15.0,
+              "dupont-aignan": 5.0,
+              "lepen": 25.0
+            }
+          },
+          {
+            "id": "H4",
+            "scores": {
+              "arthaud": 1.0,
+              "poutou": 1.0,
+              "roussel": 4.0,
+              "melenchon": 8.0,
+              "montebourg": 4.0,
+              "hidalgo": 7.0,
+              "jadot": 8.0,
+              "macron": 28.0,
+              "barnier": 9.0,
+              "dupont-aignan": 6.0,
+              "lepen": 26.0
+            }
+          }
+        ]
+      },
+      {
+        "institute": "Odoxa",
+        "fieldwork": {
+          "start": "2021-09-22",
+          "end": "2021-09-23"
+        },
+        "sampleSize": 1005,
+        "url": "https://www.odoxa.fr/sondage/intentions-de-vote-a-la-presidentielle-et-match-zemmour-melenchon-dans-lopinion",
+        "hypotheses": [
+          {
+            "id": "H1",
+            "scores": {
+              "arthaud": 1.5,
+              "poutou": 2.0,
+              "roussel": 2.0,
+              "melenchon": 8.0,
+              "montebourg": 4.0,
+              "hidalgo": 4.0,
+              "jadot": 6.0,
+              "macron": 26.0,
+              "bertrand": 14.0,
+              "dupont-aignan": 2.0,
+              "lepen": 20.5,
+              "zemmour": 10.0
+            }
+          },
+          {
+            "id": "H2",
+            "scores": {
+              "arthaud": 2.0,
+              "poutou": 1.5,
+              "roussel": 4.0,
+              "melenchon": 7.5,
+              "montebourg": 4.5,
+              "hidalgo": 4.0,
+              "jadot": 5.0,
+              "macron": 25.0,
+              "pecresse": 13.0,
+              "dupont-aignan": 4.0,
+              "lepen": 21.0,
+              "zemmour": 10.5
+            }
+          },
+          {
+            "id": "H3",
+            "scores": {
+              "arthaud": 2.0,
+              "poutou": 1.0,
+              "roussel": 2.0,
+              "melenchon": 8.0,
+              "montebourg": 4.0,
+              "hidalgo": 5.0,
+              "jadot": 4.0,
+              "macron": 26.0,
+              "bertrand": 15.0,
+              "dupont-aignan": 4.0,
+              "lepen": 21.0,
+              "zemmour": 10.0
+            }
+          },
+          {
+            "id": "H4",
+            "scores": {
+              "arthaud": 2.0,
+              "poutou": 1.0,
+              "roussel": 4.0,
+              "melenchon": 8.0,
+              "montebourg": 4.0,
+              "hidalgo": 5.0,
+              "jadot": 4.0,
+              "macron": 26.0,
+              "pecresse": 12.5,
+              "dupont-aignan": 2.5,
+              "lepen": 21.5,
+              "zemmour": 10.5
+            }
+          }
+        ]
+      },
+      {
+        "institute": "Harris Interactive",
+        "fieldwork": {
+          "start": "2021-09-17",
+          "end": "2021-09-20"
+        },
+        "sampleSize": 1314,
+        "url": "https://harris-interactive.fr/wp-content/uploads/sites/6/2021/09/Rapport_Harris_-_Vague_14_Intentions_de_vote_Presidentielle_2022_Challenges.pdf",
+        "hypotheses": [
+          {
+            "id": "H1",
+            "scores": {
+              "arthaud": 1.0,
+              "poutou": 1.0,
+              "roussel": 4.0,
+              "melenchon": 11.0,
+              "montebourg": 2.0,
+              "hidalgo": 7.0,
+              "jadot": 6.0,
+              "macron": 23.0,
+              "lagarde": 0.25,
+              "bertrand": 14.0,
+              "poisson": 0.25,
+              "lassalle": 0.25,
+              "dupont-aignan": 2.0,
+              "lepen": 18.0,
+              "philippot": 1.0,
+              "zemmour": 11.0,
+              "asselineau": 0.25
+            }
+          },
+          {
+            "id": "H2",
+            "scores": {
+              "arthaud": 1.0,
+              "poutou": 1.0,
+              "roussel": 4.0,
+              "melenchon": 11.0,
+              "montebourg": 4.0,
+              "hidalgo": 8.0,
+              "jadot": 2.0,
+              "macron": 23.0,
+              "lagarde": 0.25,
+              "bertrand": 15.0,
+              "poisson": 0.25,
+              "lassalle": 0.25,
+              "dupont-aignan": 2.0,
+              "lepen": 18.0,
+              "philippot": 1.0,
+              "zemmour": 11.0,
+              "asselineau": 0.25
+            }
+          },
+          {
+            "id": "H3",
+            "scores": {
+              "arthaud": 1.0,
+              "poutou": 1.0,
+              "roussel": 4.0,
+              "melenchon": 11.0,
+              "montebourg": 4.0,
+              "hidalgo": 7.0,
+              "jadot": 6.0,
+              "macron": 23.0,
+              "lagarde": 0.25,
+              "pecresse": 12.0,
+              "poisson": 0.25,
+              "lassalle": 0.25,
+              "dupont-aignan": 2.0,
+              "lepen": 19.0,
+              "philippot": 1.0,
+              "zemmour": 11.0,
+              "asselineau": 0.25
+            }
+          }
+        ]
+      }
+    ]
+  }
+}
