@@ -1,0 +1,179 @@
+@import 'tailwindcss';
+
+@custom-variant dark (&:where([data-theme='dark'], [data-theme='dark'] *));
+
+:root {
+  --paper: #f4f6f9;
+  --surface: #ffffff;
+  --sunken: #e9edf2;
+  --ink: #161b26;
+  --ink-2: #4a5366;
+  --ink-3: #6b7487;
+  --rule: #dce1e8;
+  --ballpoint: #2446c7;
+  --ballpoint-soft: #e6ebfb;
+  --hypo: #9a5400;
+  --hypo-soft: #fbf0e1;
+  --ballot-shadow: 0 1px 0 #d5dae2, 0 10px 24px -14px rgb(22 27 38 / 0.35);
+  color-scheme: light;
+}
+
+:root[data-theme='dark'] {
+  --paper: #12161e;
+  --surface: #1a1f29;
+  --sunken: #0d1016;
+  --ink: #e9ecf2;
+  --ink-2: #b3bacb;
+  --ink-3: #8a93a6;
+  --rule: #2a3140;
+  --ballpoint: #8ea6ff;
+  --ballpoint-soft: #1e2744;
+  --hypo: #f0a64a;
+  --hypo-soft: #2d2213;
+  --ballot-shadow: 0 1px 0 #0b0d12, 0 12px 28px -14px rgb(0 0 0 / 0.7);
+  color-scheme: dark;
+}
+
+@theme inline {
+  --color-paper: var(--paper);
+  --color-surface: var(--surface);
+  --color-sunken: var(--sunken);
+  --color-ink: var(--ink);
+  --color-ink-2: var(--ink-2);
+  --color-ink-3: var(--ink-3);
+  --color-rule: var(--rule);
+  --color-ballpoint: var(--ballpoint);
+  --color-ballpoint-soft: var(--ballpoint-soft);
+  --color-hypo: var(--hypo);
+  --color-hypo-soft: var(--hypo-soft);
+  --font-sans: 'Archivo', ui-sans-serif, system-ui, sans-serif;
+  --font-serif: 'Source Serif 4', ui-serif, Georgia, serif;
+}
+
+@layer base {
+  html {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--font-sans);
+    font-variation-settings: 'wdth' 100;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+  body {
+    background: var(--paper);
+    min-height: 100vh;
+  }
+  :focus-visible {
+    outline: 2px solid var(--ballpoint);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+  ::selection {
+    background: var(--ballpoint-soft);
+  }
+}
+
+@layer components {
+  /* Chiffres de soirée électorale : Archivo condensé, très gras, à chasse fixe. */
+  .figure {
+    font-family: var(--font-sans);
+    font-variation-settings: 'wdth' 68;
+    font-weight: 800;
+    font-variant-numeric: tabular-nums lining-nums;
+    letter-spacing: -0.01em;
+    line-height: 0.9;
+  }
+  .num {
+    font-variant-numeric: tabular-nums lining-nums;
+  }
+  .wide {
+    font-variation-settings: 'wdth' 112;
+  }
+
+  /* Couleur d'un candidat : --c en clair, --c-dark en sombre. */
+  .cand-fill {
+    background-color: var(--c);
+  }
+  [data-theme='dark'] .cand-fill {
+    background-color: var(--c-dark);
+  }
+  .cand-ghost {
+    background-color: color-mix(in oklab, var(--c) 22%, var(--surface));
+  }
+  [data-theme='dark'] .cand-ghost {
+    background-color: color-mix(in oklab, var(--c-dark) 28%, var(--surface));
+  }
+  /* Part ralliée d'une alliance : même couleur que le membre, hachurée. */
+  .cand-hatch {
+    background-image: repeating-linear-gradient(
+      135deg,
+      var(--c) 0 3px,
+      color-mix(in oklab, var(--c) 55%, var(--surface)) 3px 6px
+    );
+  }
+  [data-theme='dark'] .cand-hatch {
+    background-image: repeating-linear-gradient(
+      135deg,
+      var(--c-dark) 0 3px,
+      color-mix(in oklab, var(--c-dark) 50%, var(--surface)) 3px 6px
+    );
+  }
+
+  /* Provenance d'une valeur : sourcée (plein), déduite (pointillé), hypothèse (hachures ambre). */
+  .prov-derive {
+    text-decoration: underline dotted var(--ink-3);
+    text-underline-offset: 3px;
+  }
+  .prov-transpose {
+    text-decoration: underline dashed var(--ballpoint);
+    text-underline-offset: 3px;
+  }
+  .prov-camp {
+    font-style: italic;
+    color: var(--ink-2);
+  }
+  .prov-hypothese {
+    color: var(--hypo);
+    background-image: repeating-linear-gradient(135deg, var(--hypo-soft) 0 4px, transparent 4px 8px);
+    border-radius: 3px;
+  }
+
+  .prose-method {
+    font-family: var(--font-serif);
+    font-size: 1.0625rem;
+    line-height: 1.65;
+    color: var(--ink);
+    max-width: 68ch;
+  }
+  .prose-method p + p {
+    margin-top: 0.85em;
+  }
+  .prose-method a,
+  .link {
+    color: var(--ballpoint);
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 3px;
+  }
+  .prose-method strong {
+    font-weight: 650;
+  }
+  .formula {
+    font-family: var(--font-serif);
+    font-style: italic;
+    background: var(--sunken);
+    border-radius: 6px;
+    padding: 0.6rem 0.9rem;
+    margin: 0.85em 0;
+    display: block;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+  }
+}

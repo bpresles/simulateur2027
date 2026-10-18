@@ -1,0 +1,282 @@
+{
+  "sources": {
+    "franceinfo": {
+      "label": "franceinfo / Ipsos-Talan",
+      "description": "« Législatives 2024 : comment les reports de voix du \"front républicain\" ont joué contre le RN, selon notre sondage », franceinfo, 07/07/2024. Enquête Ipsos-Talan pour Radio France, France Télévisions, France 24-RFI et LCP-Assemblée nationale. Source de référence du simulateur.",
+      "url": "https://www.franceinfo.fr/elections/legislatives/legislatives-2024-comment-les-reports-de-voix-du-front-republicain-ont-joue-contre-le-rn-selon-notre-sondage_6652164.html"
+    },
+    "publicsenat": {
+      "label": "Public Sénat / Ipsos-Talan",
+      "description": "« Législatives 2024 : le \"front républicain\", grand vainqueur des élections », Public Sénat, 07/07/2024. Reprend la même enquête Ipsos-Talan et précise des parts de vote RN et d'abstention absentes de l'article franceinfo.",
+      "url": "https://www.publicsenat.fr/actualites/politique/legislatives-2024-le-front-republicain-grand-vainqueur-des-elections"
+    },
+    "lcp": {
+      "label": "LCP / Ipsos-Talan",
+      "description": "« Législatives 2024 : la France politique en cartes et en infographies à l'issue des élections », LCP-Assemblée nationale, 14/07/2024. Reprend la même enquête Ipsos-Talan.",
+      "url": "https://lcp.fr/actualites/legislatives-2024-la-france-politique-en-cartes-et-en-infographies-a-l-issue-des"
+    },
+    "derive": {
+      "label": "Complété par règle",
+      "description": "Valeur non publiée, déduite des valeurs sourcées selon la règle de complétion (voir la note de la ligne)."
+    },
+    "transpose": {
+      "label": "Taux 2024 d'un autre duel",
+      "description": "Taux mesuré en 2024 pour le même électorat, mais dans un autre type de duel : l'enquête ne publie pas ce report. On reprend le duel le plus proche, indiqué dans la note de la ligne."
+    },
+    "camp": {
+      "label": "Camp RN",
+      "description": "Électorat rattaché au camp du RN, comme l'électorat « RN et alliés » des législatives 2024 : il vote pour le candidat RN selon le taux de fidélité, comme les électeurs du finaliste."
+    },
+    "hypothese": {
+      "label": "Hypothèse",
+      "description": "Valeur sans source : hypothèse de modélisation. Par défaut, seuls le taux de fidélité et le modèle de repli (duel sans le RN) en utilisent."
+    }
+  },
+  "completionRule": "Quand une seule valeur manque et que les deux autres sont sourcées, elle est déduite par soustraction (le total fait 100). Quand seul le report vers le finaliste est connu, le reste est réparti entre RN et blanc/nul/abstention au prorata d'une ligne sourcée du même électorat dans un autre type de duel. Quand l'enquête ne publie aucun report pour un électorat (électeurs du même camp que le finaliste), on reprend son taux mesuré dans le duel le plus proche. Les électeurs de Zemmour et Dupont-Aignan, que l'enquête ne couvre pas, sont rattachés au camp RN.",
+  "defaultFidelity": 1,
+  "profiles": [
+    {
+      "id": "lfi_rn",
+      "label": "Candidat LFI face au RN",
+      "sourceDuel": "Duels « candidat LFI vs RN » au 2nd tour des législatives 2024",
+      "rows": {
+        "gauche": {
+          "finalist": 72,
+          "rn": 3,
+          "abstention": 25,
+          "provenance": {
+            "finalist": "transpose",
+            "rn": "transpose",
+            "abstention": "transpose"
+          },
+          "note": "Report non publié pour les électeurs de gauche dans les duels LFI-RN (ils étaient dans le camp du candidat NFP). On reprend le taux mesuré des électeurs NFP dans les duels Ensemble-RN : 72 % pour le finaliste (franceinfo), 25 % d'abstention (Public Sénat), 3 % RN par soustraction."
+        },
+        "centre": {
+          "finalist": 43,
+          "rn": 19,
+          "abstention": 38,
+          "provenance": {
+            "finalist": "franceinfo",
+            "rn": "publicsenat",
+            "abstention": "lcp"
+          },
+          "note": "Électeurs Ensemble dans les duels LFI-RN : 43 % LFI (franceinfo), 19 % RN (Public Sénat, LCP), 38 % blanc, nul ou abstention (LCP)."
+        },
+        "droite": {
+          "finalist": 26,
+          "rn": 38,
+          "abstention": 36,
+          "provenance": {
+            "finalist": "franceinfo",
+            "rn": "franceinfo",
+            "abstention": "franceinfo"
+          },
+          "note": "Électeurs LR dans les duels LFI-RN : 26 % LFI, 38 % RN, 36 % blanc, nul ou abstention."
+        },
+        "extreme_droite": {
+          "finalist": 0,
+          "rn": 100,
+          "abstention": 0,
+          "camp": "rn",
+          "provenance": {
+            "finalist": "camp",
+            "rn": "camp",
+            "abstention": "camp"
+          },
+          "note": "Électeurs Reconquête et DLF : non couverts par l'enquête. Rattachés au camp RN (électorat « RN et alliés » des législatives 2024) : ils votent RN selon le taux de fidélité."
+        }
+      }
+    },
+    {
+      "id": "ecolo_ps_pcf_rn",
+      "label": "Candidat PS, écologiste ou PCF face au RN",
+      "sourceDuel": "Duels « candidat PS, écologiste ou PCF (NFP hors LFI) vs RN » au 2nd tour des législatives 2024",
+      "rows": {
+        "gauche": {
+          "finalist": 72,
+          "rn": 3,
+          "abstention": 25,
+          "provenance": {
+            "finalist": "transpose",
+            "rn": "transpose",
+            "abstention": "transpose"
+          },
+          "note": "Report non publié pour les électeurs de gauche dans les duels PS/écologiste/PCF-RN (ils étaient dans le camp du candidat NFP). On reprend le taux mesuré des électeurs NFP dans les duels Ensemble-RN : 72 % pour le finaliste (franceinfo), 25 % d'abstention (Public Sénat), 3 % RN par soustraction."
+        },
+        "centre": {
+          "finalist": 54,
+          "rn": 15,
+          "abstention": 31,
+          "provenance": {
+            "finalist": "franceinfo",
+            "rn": "publicsenat",
+            "abstention": "derive"
+          },
+          "note": "Électeurs Ensemble : 54 % pour le candidat de gauche (franceinfo, LCP), 15 % RN (Public Sénat). Blanc, nul ou abstention déduit par soustraction : 100 − 54 − 15 = 31."
+        },
+        "droite": {
+          "finalist": 29,
+          "rn": 34,
+          "abstention": 37,
+          "provenance": {
+            "finalist": "franceinfo",
+            "rn": "franceinfo",
+            "abstention": "franceinfo"
+          },
+          "note": "Électeurs LR et divers droite : 29 % pour le candidat de gauche, 34 % RN, 37 % blanc, nul ou abstention."
+        },
+        "extreme_droite": {
+          "finalist": 0,
+          "rn": 100,
+          "abstention": 0,
+          "camp": "rn",
+          "provenance": {
+            "finalist": "camp",
+            "rn": "camp",
+            "abstention": "camp"
+          },
+          "note": "Électeurs Reconquête et DLF : non couverts par l'enquête. Rattachés au camp RN (électorat « RN et alliés » des législatives 2024) : ils votent RN selon le taux de fidélité."
+        }
+      }
+    },
+    {
+      "id": "ensemble_rn",
+      "label": "Candidat Ensemble face au RN",
+      "sourceDuel": "Duels « candidat Ensemble vs RN » au 2nd tour des législatives 2024",
+      "rows": {
+        "gauche": {
+          "finalist": 72,
+          "rn": 3,
+          "abstention": 25,
+          "provenance": {
+            "finalist": "franceinfo",
+            "rn": "derive",
+            "abstention": "publicsenat"
+          },
+          "note": "Électeurs NFP : 72 % Ensemble (franceinfo), 25 % abstention (Public Sénat). Vote RN déduit par soustraction : 100 − 72 − 25 = 3."
+        },
+        "centre": {
+          "finalist": 79,
+          "rn": 6.85,
+          "abstention": 14.15,
+          "provenance": {
+            "finalist": "transpose",
+            "rn": "transpose",
+            "abstention": "transpose"
+          },
+          "note": "Report non publié pour les électeurs du bloc central dans les duels Ensemble-RN (c'était leur camp). On reprend le taux mesuré des électeurs Ensemble dans les duels LR-RN, le plus proche : 79 % pour le finaliste (franceinfo), le reste réparti au prorata de leur ligne du duel PS/écologiste/PCF-RN."
+        },
+        "droite": {
+          "finalist": 53,
+          "rn": 22.5,
+          "abstention": 24.5,
+          "provenance": {
+            "finalist": "franceinfo",
+            "rn": "derive",
+            "abstention": "derive"
+          },
+          "note": "Électeurs LR et divers droite : 53 % Ensemble (franceinfo). Les 47 % restants sont répartis au prorata de la ligne LR du duel PS/écologiste/PCF-RN (34 % RN, 37 % blanc/abstention) : 22,5 % RN et 24,5 % blanc/abstention."
+        },
+        "extreme_droite": {
+          "finalist": 0,
+          "rn": 100,
+          "abstention": 0,
+          "camp": "rn",
+          "provenance": {
+            "finalist": "camp",
+            "rn": "camp",
+            "abstention": "camp"
+          },
+          "note": "Électeurs Reconquête et DLF : non couverts par l'enquête. Rattachés au camp RN (électorat « RN et alliés » des législatives 2024) : ils votent RN selon le taux de fidélité."
+        }
+      }
+    },
+    {
+      "id": "lr_rn",
+      "label": "Candidat LR face au RN",
+      "sourceDuel": "Duels « candidat LR (ou soutenu par LR) vs RN » au 2nd tour des législatives 2024",
+      "rows": {
+        "gauche": {
+          "finalist": 70,
+          "rn": 3.21,
+          "abstention": 26.79,
+          "provenance": {
+            "finalist": "franceinfo",
+            "rn": "derive",
+            "abstention": "derive"
+          },
+          "note": "Électeurs NFP : 70 % LR (franceinfo). Les 30 % restants sont répartis au prorata de la ligne NFP du duel Ensemble-RN (3 % RN, 25 % abstention)."
+        },
+        "centre": {
+          "finalist": 79,
+          "rn": 6.85,
+          "abstention": 14.15,
+          "provenance": {
+            "finalist": "franceinfo",
+            "rn": "derive",
+            "abstention": "derive"
+          },
+          "note": "Électeurs Ensemble : 79 % LR (franceinfo). Les 21 % restants sont répartis au prorata de la ligne Ensemble du duel PS/écologiste/PCF-RN (15 % RN, 31 % blanc/abstention)."
+        },
+        "droite": {
+          "finalist": 53,
+          "rn": 22.5,
+          "abstention": 24.5,
+          "provenance": {
+            "finalist": "transpose",
+            "rn": "transpose",
+            "abstention": "transpose"
+          },
+          "note": "Report non publié pour les électeurs LR dans les duels LR-RN (c'était leur camp). On reprend le taux mesuré des électeurs LR et divers droite dans les duels Ensemble-RN, le plus proche : 53 % pour le finaliste (franceinfo), le reste réparti au prorata de leur ligne du duel PS/écologiste/PCF-RN."
+        },
+        "extreme_droite": {
+          "finalist": 0,
+          "rn": 100,
+          "abstention": 0,
+          "camp": "rn",
+          "provenance": {
+            "finalist": "camp",
+            "rn": "camp",
+            "abstention": "camp"
+          },
+          "note": "Électeurs Reconquête et DLF : non couverts par l'enquête. Rattachés au camp RN (électorat « RN et alliés » des législatives 2024) : ils votent RN selon le taux de fidélité."
+        }
+      }
+    }
+  ],
+  "fallback": {
+    "description": "Duel sans le RN, ou finaliste sans profil sourcé : aucune donnée des législatives 2024 ne s'applique. Chaque électorat s'abstient selon un taux fixe, et le reste se répartit entre les finalistes au prorata de son affinité avec le bloc de chacun. Toutes ces valeurs sont des hypothèses.",
+    "affinity": {
+      "gauche": {
+        "gauche": 1,
+        "centre": 0.45,
+        "droite": 0.15,
+        "extreme_droite": 0.05
+      },
+      "centre": {
+        "gauche": 0.35,
+        "centre": 1,
+        "droite": 0.6,
+        "extreme_droite": 0.15
+      },
+      "droite": {
+        "gauche": 0.15,
+        "centre": 0.7,
+        "droite": 1,
+        "extreme_droite": 0.45
+      },
+      "extreme_droite": {
+        "gauche": 0.1,
+        "centre": 0.2,
+        "droite": 0.6,
+        "extreme_droite": 1
+      }
+    },
+    "abstention": {
+      "gauche": 25,
+      "centre": 20,
+      "droite": 25,
+      "extreme_droite": 30
+    }
+  }
+}

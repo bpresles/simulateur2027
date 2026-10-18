@@ -1,0 +1,1062 @@
+{
+  "asOf": "2026-10-18",
+  "electionDate": "2027-04-18",
+  "windowDays": 21,
+  "collection": {
+    "description": "Scores transcrits depuis le tableau des sondages de premier tour de Wikipedia, puis recoupés quand c'était possible avec la publication de l'institut ou du média commanditaire (voir le champ « vérification » de chaque sondage).",
+    "sources": [
+      {
+        "label": "Wikipedia – Opinion polling for the 2027 French presidential election",
+        "url": "https://en.wikipedia.org/wiki/Opinion_polling_for_the_2027_French_presidential_election"
+      },
+      {
+        "label": "Wikipedia – Liste de sondages sur l'élection présidentielle française de 2027",
+        "url": "https://fr.wikipedia.org/wiki/Liste_de_sondages_sur_l%27%C3%A9lection_pr%C3%A9sidentielle_fran%C3%A7aise_de_2027"
+      },
+      {
+        "label": "Commission des sondages – notices",
+        "url": "https://www.commission-des-sondages.fr/notices/"
+      }
+    ]
+  },
+  "candidates": [
+    {
+      "id": "arthaud",
+      "name": "Nathalie Arthaud",
+      "shortName": "Arthaud",
+      "party": "LO",
+      "bloc": "gauche",
+      "color": "#8f1d3f",
+      "colorDark": "#b0407a",
+      "duelProfile": null,
+      "ref2022": "arthaud"
+    },
+    {
+      "id": "melenchon",
+      "name": "Jean-Luc Mélenchon",
+      "shortName": "Mélenchon",
+      "party": "LFI",
+      "bloc": "gauche",
+      "color": "#c9254b",
+      "colorDark": "#d8395f",
+      "duelProfile": "lfi_rn",
+      "ref2022": "melenchon"
+    },
+    {
+      "id": "roussel",
+      "name": "Fabien Roussel",
+      "shortName": "Roussel",
+      "party": "PCF",
+      "bloc": "gauche",
+      "color": "#e4572e",
+      "colorDark": "#e0592f",
+      "duelProfile": "ecolo_ps_pcf_rn",
+      "ref2022": "roussel"
+    },
+    {
+      "id": "tondelier",
+      "name": "Marine Tondelier",
+      "shortName": "Tondelier",
+      "party": "Les Écologistes",
+      "bloc": "gauche",
+      "color": "#1f9a72",
+      "colorDark": "#21a37a",
+      "duelProfile": "ecolo_ps_pcf_rn",
+      "ref2022": "jadot",
+      "ref2022Note": "référence Yannick Jadot, candidat écologiste (EELV) en 2022."
+    },
+    {
+      "id": "glucksmann",
+      "name": "Raphaël Glucksmann",
+      "shortName": "Glucksmann",
+      "party": "PS-Place publique",
+      "bloc": "gauche",
+      "color": "#e0569b",
+      "colorDark": "#d9589a",
+      "duelProfile": "ecolo_ps_pcf_rn",
+      "ref2022": [
+        {
+          "id": "hidalgo",
+          "weight": 0.3
+        },
+        {
+          "id": "macron",
+          "weight": 0.7
+        }
+      ],
+      "ref2022Note": "référence pondérée entre Emmanuel Macron, 70 %, et Anne Hidalgo (PS), 30 % par défaut (réglable). Vainqueur de la primaire socialiste du 11/10/2026, il a un électorat plus centriste que celui d'Anne Hidalgo, plus proche de celui d'Emmanuel Macron."
+    },
+    {
+      "id": "attal",
+      "name": "Gabriel Attal",
+      "shortName": "Attal",
+      "party": "Renaissance",
+      "bloc": "centre",
+      "color": "#d98f1f",
+      "colorDark": "#c4862a",
+      "duelProfile": "ensemble_rn",
+      "ref2022": "macron",
+      "ref2022Note": "référence Emmanuel Macron (bloc central, ex-majorité présidentielle)."
+    },
+    {
+      "id": "philippe",
+      "name": "Édouard Philippe",
+      "shortName": "Philippe",
+      "party": "Horizons",
+      "bloc": "centre",
+      "color": "#2492c4",
+      "colorDark": "#2197c9",
+      "duelProfile": "ensemble_rn",
+      "ref2022": "macron",
+      "ref2022Note": "référence Emmanuel Macron (bloc central, ex-majorité présidentielle)."
+    },
+    {
+      "id": "retailleau",
+      "name": "Bruno Retailleau",
+      "shortName": "Retailleau",
+      "party": "LR",
+      "bloc": "droite",
+      "color": "#2f5fb3",
+      "colorDark": "#4a78d0",
+      "duelProfile": "lr_rn",
+      "ref2022": [
+        {
+          "id": "pecresse",
+          "weight": 0.6
+        },
+        {
+          "id": "lepen",
+          "weight": 0.4
+        }
+      ],
+      "ref2022Note": "référence pondérée entre Valérie Pécresse (LR), 60 %, et Marine Le Pen, 40 % par défaut (réglable). Il est idéologiquement plus proche de l'électorat de Marine Le Pen que la candidate LR de 2022 et peut lui prendre des voix."
+    },
+    {
+      "id": "dupont-aignan",
+      "name": "Nicolas Dupont-Aignan",
+      "shortName": "Dupont-Aignan",
+      "party": "DLF",
+      "bloc": "extreme_droite",
+      "color": "#8457b3",
+      "colorDark": "#9068c2",
+      "duelProfile": null,
+      "ref2022": "dupont-aignan"
+    },
+    {
+      "id": "lepen",
+      "name": "Marine Le Pen",
+      "shortName": "Le Pen",
+      "party": "RN",
+      "bloc": "extreme_droite",
+      "color": "#3f4c99",
+      "colorDark": "#6672c9",
+      "duelProfile": null,
+      "ref2022": "lepen",
+      "isRN": true
+    },
+    {
+      "id": "zemmour",
+      "name": "Éric Zemmour",
+      "shortName": "Zemmour",
+      "party": "Reconquête",
+      "bloc": "extreme_droite",
+      "color": "#a0582a",
+      "colorDark": "#b0662f",
+      "duelProfile": null,
+      "ref2022": "zemmour"
+    }
+  ],
+  "otherCandidates": [
+    {
+      "id": "ruffin",
+      "name": "François Ruffin"
+    },
+    {
+      "id": "polony",
+      "name": "Natacha Polony"
+    },
+    {
+      "id": "bouamrane",
+      "name": "Karim Bouamrane"
+    },
+    {
+      "id": "hollande",
+      "name": "François Hollande"
+    },
+    {
+      "id": "villepin",
+      "name": "Dominique de Villepin"
+    },
+    {
+      "id": "lisnard",
+      "name": "David Lisnard"
+    }
+  ],
+  "hypothesisSets": [
+    {
+      "id": "philippe-seul",
+      "label": "Philippe seul",
+      "description": "Édouard Philippe seul candidat du bloc central (sans Gabriel Attal), Raphaël Glucksmann pour le PS.",
+      "default": true,
+      "require": [
+        "melenchon",
+        "glucksmann",
+        "philippe",
+        "lepen"
+      ],
+      "exclude": [
+        "attal",
+        "hollande",
+        "ruffin",
+        "lisnard",
+        "bouamrane"
+      ]
+    },
+    {
+      "id": "philippe-attal",
+      "label": "Philippe + Attal",
+      "description": "Édouard Philippe et Gabriel Attal tous deux candidats, Raphaël Glucksmann pour le PS.",
+      "require": [
+        "melenchon",
+        "glucksmann",
+        "philippe",
+        "attal",
+        "lepen"
+      ],
+      "exclude": [
+        "hollande",
+        "ruffin",
+        "lisnard",
+        "bouamrane"
+      ]
+    }
+  ],
+  "alliances": [
+    {
+      "id": "tondelier-melenchon",
+      "label": "Tondelier rejoint Mélenchon",
+      "members": [
+        "melenchon",
+        "tondelier"
+      ],
+      "leader": "melenchon"
+    },
+    {
+      "id": "roussel-melenchon",
+      "label": "Roussel rejoint Mélenchon",
+      "members": [
+        "melenchon",
+        "roussel"
+      ],
+      "leader": "melenchon"
+    },
+    {
+      "id": "roussel-glucksmann",
+      "label": "Roussel rejoint Glucksmann",
+      "members": [
+        "glucksmann",
+        "roussel"
+      ],
+      "leader": "glucksmann"
+    },
+    {
+      "id": "philippe-glucksmann",
+      "label": "Philippe rejoint Glucksmann",
+      "members": [
+        "glucksmann",
+        "philippe"
+      ],
+      "leader": "glucksmann"
+    },
+    {
+      "id": "glucksmann-philippe",
+      "label": "Glucksmann rejoint Philippe",
+      "members": [
+        "philippe",
+        "glucksmann"
+      ],
+      "leader": "philippe"
+    }
+  ],
+  "polls": [
+    {
+      "id": "elabe-20261016",
+      "institute": "Elabe",
+      "sponsor": "BFMTV",
+      "fieldwork": {
+        "start": "2026-10-14",
+        "end": "2026-10-16"
+      },
+      "sampleSize": 1701,
+      "sources": [
+        {
+          "label": "BFMTV – sondage Elabe",
+          "url": "https://www.bfmtv.com/politique/elections/presidentielle/sondage-bfmtv-presidentielle-2027-edouard-philippe-raphael-glucksmann-et-jean-luc-melenchon-donnes-au-coude-a-coude-derriere-marine-le-pen_AN-202610170298.html"
+        }
+      ],
+      "note": "Chiffres repris de Wikipedia, non revérifiés (page BFMTV inaccessible lors de la collecte). Échantillon total.",
+      "hypotheses": [
+        {
+          "id": "H1",
+          "label": "Philippe, Villepin",
+          "scores": {
+            "arthaud": 1,
+            "melenchon": 15,
+            "roussel": 1.5,
+            "tondelier": 3,
+            "glucksmann": 15.5,
+            "philippe": 16.5,
+            "villepin": 2,
+            "retailleau": 7,
+            "dupont-aignan": 2.5,
+            "lepen": 32.5,
+            "zemmour": 3.5
+          }
+        },
+        {
+          "id": "H2",
+          "label": "Attal, Villepin",
+          "scores": {
+            "arthaud": 1,
+            "melenchon": 16,
+            "roussel": 2,
+            "tondelier": 2.5,
+            "glucksmann": 16.5,
+            "attal": 10.5,
+            "villepin": 3,
+            "retailleau": 9.5,
+            "dupont-aignan": 2,
+            "lepen": 33.5,
+            "zemmour": 3.5
+          }
+        },
+        {
+          "id": "H3",
+          "label": "Philippe, Lisnard",
+          "scores": {
+            "arthaud": 0.5,
+            "melenchon": 15.5,
+            "roussel": 1.5,
+            "tondelier": 2.5,
+            "glucksmann": 15,
+            "philippe": 15.5,
+            "lisnard": 5.5,
+            "retailleau": 6.5,
+            "dupont-aignan": 3,
+            "lepen": 31.5,
+            "zemmour": 3
+          }
+        },
+        {
+          "id": "H4",
+          "label": "Attal, Ruffin, Lisnard",
+          "scores": {
+            "arthaud": 1,
+            "melenchon": 16,
+            "roussel": 1.5,
+            "ruffin": 3,
+            "glucksmann": 16.5,
+            "attal": 9.5,
+            "lisnard": 6.5,
+            "retailleau": 9,
+            "dupont-aignan": 2.5,
+            "lepen": 31,
+            "zemmour": 3.5
+          }
+        },
+        {
+          "id": "H5",
+          "label": "Philippe et Attal",
+          "scores": {
+            "arthaud": 1.5,
+            "melenchon": 15.5,
+            "roussel": 1.5,
+            "tondelier": 2.5,
+            "glucksmann": 15.5,
+            "attal": 4.5,
+            "philippe": 13.5,
+            "retailleau": 7.5,
+            "dupont-aignan": 3,
+            "lepen": 32.5,
+            "zemmour": 3.5
+          }
+        },
+        {
+          "id": "H6",
+          "label": "Philippe, Polony",
+          "scores": {
+            "arthaud": 1,
+            "melenchon": 15,
+            "roussel": 1,
+            "polony": 1.5,
+            "tondelier": 2.5,
+            "glucksmann": 16,
+            "philippe": 16.5,
+            "retailleau": 7.5,
+            "dupont-aignan": 2.5,
+            "lepen": 33.5,
+            "zemmour": 3
+          }
+        }
+      ]
+    },
+    {
+      "id": "yougov-20261015",
+      "institute": "YouGov",
+      "sponsor": "HuffPost",
+      "fieldwork": {
+        "start": "2026-10-12",
+        "end": "2026-10-15"
+      },
+      "sampleSize": 1094,
+      "sources": [
+        {
+          "label": "YouGov pour le HuffPost – rapport (PDF)",
+          "url": "https://ygo-assets-websites-editorial-emea.yougov.net/documents/R%C3%A9sultats_YouGov_pour_le_HuffPost_Intentions_de_vote_Octobre_2026_as_sent_16.10.2026.pdf"
+        }
+      ],
+      "verified": "Hypothèses H1 et H3 vérifiées dans le rapport YouGov du 16/10/2026.",
+      "hypotheses": [
+        {
+          "id": "H1",
+          "label": "Philippe et Attal",
+          "scores": {
+            "arthaud": 0,
+            "melenchon": 15,
+            "roussel": 3,
+            "tondelier": 6,
+            "glucksmann": 12,
+            "attal": 6,
+            "philippe": 10,
+            "retailleau": 6,
+            "dupont-aignan": 3,
+            "lepen": 36,
+            "zemmour": 3
+          }
+        },
+        {
+          "id": "H2",
+          "label": "Attal",
+          "scores": {
+            "arthaud": 0,
+            "melenchon": 15,
+            "roussel": 3,
+            "tondelier": 6,
+            "glucksmann": 14,
+            "attal": 10,
+            "retailleau": 9,
+            "dupont-aignan": 3,
+            "lepen": 37,
+            "zemmour": 4
+          }
+        },
+        {
+          "id": "H3",
+          "label": "Philippe",
+          "scores": {
+            "arthaud": 0,
+            "melenchon": 15,
+            "roussel": 3,
+            "tondelier": 6,
+            "glucksmann": 13,
+            "philippe": 13,
+            "retailleau": 7,
+            "dupont-aignan": 3,
+            "lepen": 36,
+            "zemmour": 3
+          }
+        },
+        {
+          "id": "H4",
+          "label": "Hollande, Philippe",
+          "scores": {
+            "arthaud": 1,
+            "melenchon": 16,
+            "roussel": 3,
+            "tondelier": 6,
+            "hollande": 9,
+            "philippe": 15,
+            "retailleau": 7,
+            "dupont-aignan": 3,
+            "lepen": 37,
+            "zemmour": 4
+          }
+        },
+        {
+          "id": "H5",
+          "label": "Candidatures multiples",
+          "scores": {
+            "arthaud": 0,
+            "melenchon": 13,
+            "roussel": 2,
+            "ruffin": 2,
+            "tondelier": 5,
+            "glucksmann": 12,
+            "attal": 6,
+            "philippe": 8,
+            "villepin": 1,
+            "lisnard": 4,
+            "retailleau": 5,
+            "dupont-aignan": 2,
+            "lepen": 35,
+            "zemmour": 4
+          }
+        }
+      ]
+    },
+    {
+      "id": "opinionway-20261014",
+      "institute": "OpinionWay",
+      "sponsor": "Les Echos / Radio Classique ; CNews / Europe 1",
+      "fieldwork": {
+        "start": "2026-10-13",
+        "end": "2026-10-14"
+      },
+      "sampleSize": 1043,
+      "sources": [
+        {
+          "label": "OpinionWay pour Les Echos et Radio Classique – Présitrack vague 3 (PDF)",
+          "url": "https://f.dviz.factoviz.com/UserFiles/0/9/2/2027/OpinionWay%20pour%20Les%20Echos%20et%20Radio%20Classique%20-%20Barom%C3%A8tre%20Pr%C3%A9sitrack%202027%20Vague%203%20-%20Octobre%202026.pdf"
+        },
+        {
+          "label": "Europe 1 – sondage OpinionWay",
+          "url": "https://www.europe1.fr/politique/sondage-presidentielle-2027-marine-le-pen-largement-en-tete-au-1er-tour-et-gagnante-dans-tous-les-scenarios-de-2nd-tour-1152020"
+        }
+      ],
+      "note": "Les deux publications ont le même terrain et le même échantillon : elles sont traitées comme un seul sondage. « < 0,5 % » est codé 0,25. Chiffres repris de Wikipedia.",
+      "hypotheses": [
+        {
+          "id": "Echos-H1",
+          "label": "Philippe et Attal",
+          "scores": {
+            "arthaud": 0.5,
+            "melenchon": 14,
+            "roussel": 3,
+            "tondelier": 3,
+            "glucksmann": 13,
+            "attal": 7,
+            "philippe": 12,
+            "retailleau": 7,
+            "dupont-aignan": 2,
+            "lepen": 35,
+            "zemmour": 4
+          }
+        },
+        {
+          "id": "Echos-H2",
+          "label": "Attal",
+          "scores": {
+            "arthaud": 1,
+            "melenchon": 15,
+            "roussel": 2,
+            "tondelier": 3,
+            "glucksmann": 16,
+            "attal": 11,
+            "retailleau": 9,
+            "dupont-aignan": 2,
+            "lepen": 37,
+            "zemmour": 4
+          }
+        },
+        {
+          "id": "Echos-H3",
+          "label": "Philippe",
+          "scores": {
+            "arthaud": 1,
+            "melenchon": 15,
+            "roussel": 2,
+            "tondelier": 3,
+            "glucksmann": 15,
+            "philippe": 15,
+            "retailleau": 8,
+            "dupont-aignan": 2,
+            "lepen": 35,
+            "zemmour": 4
+          }
+        },
+        {
+          "id": "CNews-H1",
+          "label": "Philippe, Attal, Bouamrane, Lisnard",
+          "scores": {
+            "arthaud": 1,
+            "melenchon": 15,
+            "roussel": 1,
+            "tondelier": 2,
+            "bouamrane": 0.25,
+            "glucksmann": 13,
+            "attal": 5,
+            "philippe": 12,
+            "lisnard": 4,
+            "retailleau": 6,
+            "dupont-aignan": 1,
+            "lepen": 35,
+            "zemmour": 5
+          }
+        }
+      ]
+    },
+    {
+      "id": "ifop-20261014",
+      "institute": "Ifop-Fiducial",
+      "sponsor": "LCI / Sud Radio",
+      "fieldwork": {
+        "start": "2026-10-12",
+        "end": "2026-10-14"
+      },
+      "sampleSize": 1390,
+      "sources": [
+        {
+          "label": "Sud Radio – sondage Ifop",
+          "url": "https://www.sudradio.fr/ifop/exclu-presidentielle-2027-glucksmann-grignote-le-pen-reste-intouchable"
+        }
+      ],
+      "verified": "Scores principaux recoupés avec l'article Sud Radio.",
+      "note": "1 390 inscrits, extraits d'un échantillon de 1 525 personnes.",
+      "hypotheses": [
+        {
+          "id": "H1",
+          "label": "Candidatures multiples",
+          "scores": {
+            "melenchon": 16,
+            "roussel": 2,
+            "ruffin": 2,
+            "tondelier": 2,
+            "glucksmann": 11.5,
+            "attal": 5,
+            "philippe": 13,
+            "villepin": 1.5,
+            "lisnard": 6,
+            "retailleau": 5,
+            "dupont-aignan": 1,
+            "lepen": 32,
+            "zemmour": 3
+          }
+        },
+        {
+          "id": "H2",
+          "label": "Attal",
+          "scores": {
+            "arthaud": 0.5,
+            "melenchon": 17,
+            "roussel": 2.5,
+            "tondelier": 2,
+            "glucksmann": 16,
+            "attal": 13,
+            "retailleau": 8,
+            "dupont-aignan": 2,
+            "lepen": 36,
+            "zemmour": 3
+          }
+        },
+        {
+          "id": "H3",
+          "label": "Philippe",
+          "scores": {
+            "arthaud": 0.5,
+            "melenchon": 16,
+            "roussel": 3,
+            "tondelier": 2.5,
+            "glucksmann": 13.5,
+            "philippe": 18,
+            "retailleau": 6.5,
+            "dupont-aignan": 2,
+            "lepen": 35,
+            "zemmour": 3
+          }
+        },
+        {
+          "id": "H4",
+          "label": "Philippe et Attal",
+          "scores": {
+            "melenchon": 16,
+            "roussel": 2.5,
+            "tondelier": 2,
+            "glucksmann": 14,
+            "attal": 6,
+            "philippe": 14,
+            "retailleau": 6.5,
+            "dupont-aignan": 2,
+            "lepen": 34,
+            "zemmour": 3
+          }
+        }
+      ]
+    },
+    {
+      "id": "harris-20261008",
+      "institute": "Harris Interactive (Toluna)",
+      "sponsor": "M6 / RTL",
+      "fieldwork": {
+        "start": "2026-10-05",
+        "end": "2026-10-08"
+      },
+      "sampleSize": 2004,
+      "sources": [
+        {
+          "label": "Toluna Harris Interactive – baromètre vague 7 (PDF)",
+          "url": "https://tolunacorporate.com/wp-content/uploads/2026/10/Rapport-Toluna-Barometre-Presidentielle-2027-Vague-7-M6-RTL-12-octobre-2026.pdf"
+        }
+      ],
+      "note": "Chiffres repris de Wikipedia (rapport PDF non lisible automatiquement).",
+      "hypotheses": [
+        {
+          "id": "H1",
+          "label": "Philippe et Attal",
+          "scores": {
+            "arthaud": 1,
+            "melenchon": 18,
+            "roussel": 2,
+            "tondelier": 2,
+            "glucksmann": 10,
+            "attal": 5,
+            "philippe": 13,
+            "retailleau": 7,
+            "dupont-aignan": 2,
+            "lepen": 35,
+            "zemmour": 5
+          }
+        },
+        {
+          "id": "H2",
+          "label": "Philippe",
+          "scores": {
+            "arthaud": 1,
+            "melenchon": 18,
+            "roussel": 2,
+            "tondelier": 3,
+            "glucksmann": 10,
+            "philippe": 17,
+            "retailleau": 7,
+            "dupont-aignan": 2,
+            "lepen": 36,
+            "zemmour": 4
+          }
+        },
+        {
+          "id": "H3",
+          "label": "Attal",
+          "scores": {
+            "arthaud": 1,
+            "melenchon": 18,
+            "roussel": 2,
+            "tondelier": 3,
+            "glucksmann": 11,
+            "attal": 12,
+            "retailleau": 10,
+            "dupont-aignan": 2,
+            "lepen": 36,
+            "zemmour": 5
+          }
+        },
+        {
+          "id": "H4",
+          "label": "Hollande, Philippe",
+          "scores": {
+            "arthaud": 1,
+            "melenchon": 18,
+            "roussel": 3,
+            "tondelier": 4,
+            "hollande": 7,
+            "philippe": 17,
+            "retailleau": 8,
+            "dupont-aignan": 2,
+            "lepen": 36,
+            "zemmour": 4
+          }
+        },
+        {
+          "id": "H5",
+          "label": "Hollande, Attal",
+          "scores": {
+            "arthaud": 1,
+            "melenchon": 19,
+            "roussel": 2,
+            "tondelier": 5,
+            "hollande": 7,
+            "attal": 12,
+            "retailleau": 10,
+            "dupont-aignan": 2,
+            "lepen": 37,
+            "zemmour": 5
+          }
+        }
+      ]
+    },
+    {
+      "id": "odoxa-20261007",
+      "institute": "Odoxa",
+      "sponsor": "Presse régionale, Public Sénat, Le Nouvel Obs, Backbone",
+      "fieldwork": {
+        "start": "2026-09-24",
+        "end": "2026-10-07"
+      },
+      "sampleSize": 12005,
+      "sources": [
+        {
+          "label": "Odoxa – « Mélenchon est passé devant Philippe au premier tour »",
+          "url": "https://www.odoxa.fr/sondage/melenchon-est-passe-devant-philippe-au-premier-tour-marine-le-pen-est-plus-que-jamais-la-grande-favorite-pour-2027-a-la-fois-au-premier-et-au-second-tour/"
+        },
+        {
+          "label": "Public Sénat – présentation du sondage",
+          "url": "https://www.publicsenat.fr/actualites/politique/sondage-presidentielle-2027-jean-luc-melenchon-passe-devant-edouard-philippe-au-premier-tour-le-centre-cherche-son-cap"
+        }
+      ],
+      "verified": "Scores principaux recoupés avec la page Odoxa.",
+      "hypotheses": [
+        {
+          "id": "H1",
+          "label": "Philippe",
+          "scores": {
+            "arthaud": 0.5,
+            "melenchon": 18,
+            "roussel": 2,
+            "tondelier": 3,
+            "glucksmann": 9.5,
+            "philippe": 17,
+            "retailleau": 6.5,
+            "dupont-aignan": 2,
+            "lepen": 37,
+            "zemmour": 4.5
+          }
+        },
+        {
+          "id": "H2",
+          "label": "Attal",
+          "scores": {
+            "arthaud": 1,
+            "melenchon": 18.5,
+            "roussel": 2,
+            "tondelier": 3.5,
+            "glucksmann": 10.5,
+            "attal": 11,
+            "retailleau": 9,
+            "dupont-aignan": 2,
+            "lepen": 38,
+            "zemmour": 4.5
+          }
+        }
+      ]
+    },
+    {
+      "id": "ifop-20260929",
+      "institute": "Ifop-Fiducial",
+      "sponsor": "Le Figaro",
+      "fieldwork": {
+        "start": "2026-09-25",
+        "end": "2026-09-29"
+      },
+      "sampleSize": 1393,
+      "sources": [
+        {
+          "label": "Commission des sondages – notice Ifop / Le Figaro (PDF)",
+          "url": "https://www.commission-des-sondages.fr/notices/files/notices/2026/septembre/10284-pres-barometre-election-presidentielle-v6-ifop-le-figaro-30-septembre.pdf"
+        }
+      ],
+      "note": "Seules les hypothèses avec Glucksmann sont reprises (7 autres hypothèses testaient d'autres candidats PS). Remplacé par la vague Ifop du 12-14/10/2026.",
+      "hypotheses": [
+        {
+          "id": "H1",
+          "label": "Philippe et Attal",
+          "scores": {
+            "arthaud": 0.5,
+            "melenchon": 15,
+            "roussel": 2.5,
+            "tondelier": 3,
+            "glucksmann": 11,
+            "attal": 8,
+            "philippe": 16,
+            "retailleau": 7,
+            "dupont-aignan": 1,
+            "lepen": 32,
+            "zemmour": 4
+          }
+        },
+        {
+          "id": "H2",
+          "label": "Philippe",
+          "scores": {
+            "arthaud": 0.5,
+            "melenchon": 16,
+            "roussel": 2.5,
+            "tondelier": 3,
+            "glucksmann": 11,
+            "philippe": 21,
+            "retailleau": 8,
+            "dupont-aignan": 1.5,
+            "lepen": 33,
+            "zemmour": 3.5
+          }
+        },
+        {
+          "id": "H3",
+          "label": "Attal",
+          "scores": {
+            "arthaud": 1,
+            "melenchon": 15,
+            "roussel": 2.5,
+            "tondelier": 4,
+            "glucksmann": 13,
+            "attal": 15,
+            "retailleau": 10,
+            "dupont-aignan": 2,
+            "lepen": 34,
+            "zemmour": 3.5
+          }
+        }
+      ]
+    },
+    {
+      "id": "cluster17-20260916",
+      "institute": "Cluster17",
+      "sponsor": "Politico",
+      "fieldwork": {
+        "start": "2026-09-15",
+        "end": "2026-09-16"
+      },
+      "sampleSize": 1943,
+      "sources": [
+        {
+          "label": "Cluster17 – « Le Pen largement en tête, Mélenchon et Philippe au coude-à-coude »",
+          "url": "https://cluster17.com/presidentielle-2027-le-pen-largement-en-tete-melenchon-et-philippe-au-coude-a-coude/"
+        }
+      ],
+      "note": "Dernier sondage Cluster17 disponible : hors de la fenêtre de 21 jours, donc non retenu.",
+      "hypotheses": [
+        {
+          "id": "H1",
+          "label": "Philippe",
+          "scores": {
+            "arthaud": 0.5,
+            "melenchon": 19,
+            "roussel": 2,
+            "tondelier": 2.5,
+            "glucksmann": 12,
+            "philippe": 19,
+            "retailleau": 7.5,
+            "dupont-aignan": 3,
+            "lepen": 31,
+            "zemmour": 3.5
+          }
+        },
+        {
+          "id": "H2",
+          "label": "Attal",
+          "scores": {
+            "arthaud": 0.5,
+            "melenchon": 20,
+            "roussel": 2.5,
+            "tondelier": 2.5,
+            "glucksmann": 14,
+            "attal": 13.5,
+            "retailleau": 9.5,
+            "dupont-aignan": 3,
+            "lepen": 31.5,
+            "zemmour": 3.5
+          }
+        },
+        {
+          "id": "H3",
+          "label": "Hollande, Philippe, Lisnard",
+          "scores": {
+            "arthaud": 1,
+            "melenchon": 19.5,
+            "roussel": 3,
+            "tondelier": 3,
+            "hollande": 7.5,
+            "philippe": 19.5,
+            "lisnard": 5,
+            "retailleau": 7.5,
+            "dupont-aignan": 4,
+            "lepen": 30
+          }
+        }
+      ]
+    }
+  ],
+  "secondRoundPolls": [
+    {
+      "institute": "Harris Interactive (Toluna)",
+      "sponsor": "M6 / RTL",
+      "fieldwork": {
+        "start": "2026-10-05",
+        "end": "2026-10-08"
+      },
+      "sampleSize": 2004,
+      "url": "https://tolunacorporate.com/wp-content/uploads/2026/10/Rapport-Toluna-Barometre-Presidentielle-2027-Vague-7-M6-RTL-12-octobre-2026.pdf",
+      "scores": {
+        "philippe": 44,
+        "lepen": 56
+      }
+    },
+    {
+      "institute": "Harris Interactive (Toluna)",
+      "sponsor": "M6 / RTL",
+      "fieldwork": {
+        "start": "2026-10-05",
+        "end": "2026-10-08"
+      },
+      "sampleSize": 2004,
+      "url": "https://tolunacorporate.com/wp-content/uploads/2026/10/Rapport-Toluna-Barometre-Presidentielle-2027-Vague-7-M6-RTL-12-octobre-2026.pdf",
+      "scores": {
+        "melenchon": 33,
+        "lepen": 67
+      }
+    },
+    {
+      "institute": "Odoxa",
+      "sponsor": "Presse régionale, Public Sénat, Le Nouvel Obs, Backbone",
+      "fieldwork": {
+        "start": "2026-09-24",
+        "end": "2026-10-07"
+      },
+      "sampleSize": 12005,
+      "url": "https://www.odoxa.fr/sondage/melenchon-est-passe-devant-philippe-au-premier-tour-marine-le-pen-est-plus-que-jamais-la-grande-favorite-pour-2027-a-la-fois-au-premier-et-au-second-tour/",
+      "scores": {
+        "philippe": 47,
+        "lepen": 53
+      }
+    },
+    {
+      "institute": "Odoxa",
+      "sponsor": "Presse régionale, Public Sénat, Le Nouvel Obs, Backbone",
+      "fieldwork": {
+        "start": "2026-09-24",
+        "end": "2026-10-07"
+      },
+      "sampleSize": 12005,
+      "url": "https://www.odoxa.fr/sondage/melenchon-est-passe-devant-philippe-au-premier-tour-marine-le-pen-est-plus-que-jamais-la-grande-favorite-pour-2027-a-la-fois-au-premier-et-au-second-tour/",
+      "scores": {
+        "melenchon": 32,
+        "lepen": 68
+      }
+    },
+    {
+      "institute": "Harris Interactive (Toluna)",
+      "sponsor": "M6 / RTL",
+      "fieldwork": {
+        "start": "2026-09-08",
+        "end": "2026-09-10"
+      },
+      "sampleSize": 2052,
+      "url": "https://tolunacorporate.com/wp-content/uploads/2026/09/Rapport-Toluna-Barometre-Presidentielle-2027-Vague-5-M6-RTL-14-septembre-2026.pdf",
+      "scores": {
+        "attal": 44,
+        "lepen": 56
+      }
+    },
+    {
+      "institute": "Elabe",
+      "sponsor": "BFMTV / La Tribune Dimanche",
+      "fieldwork": {
+        "start": "2026-08-26",
+        "end": "2026-08-28"
+      },
+      "sampleSize": 1501,
+      "url": "https://elabe.fr/presidentielle-2027-aout/",
+      "scores": {
+        "glucksmann": 43,
+        "lepen": 57
+      }
+    }
+  ]
+}
