@@ -15,6 +15,7 @@ export const TIGHT_QUALIFICATION_GAP = 1
 export function defaultSettings(): Settings {
   return {
     hypothesisSetId: null,
+    pollMode: 'average',
     progressionEnabled: false,
     correctionsEnabled: true,
     correctionIntensity: 1,
@@ -47,8 +48,8 @@ export function simulate(
   const hypothesisSet = resolveHypothesisSet(data, settings.hypothesisSetId)
   const warnings: string[] = []
 
-  const { usage, average, institutesUsed } = averagePolls(polls, hypothesisSet)
-  if (institutesUsed < 3) {
+  const { usage, average, institutesUsed } = averagePolls(polls, hypothesisSet, settings.pollMode)
+  if (settings.pollMode === 'average' && institutesUsed < 3) {
     warnings.push(`Seulement ${institutesUsed} institut(s) dans la fenêtre pour cette hypothèse : moyenne fragile.`)
   }
 
@@ -124,6 +125,7 @@ export function simulate(
 
   return {
     hypothesisSet,
+    pollMode: settings.pollMode,
     pollUsage: usage,
     institutesUsed,
     firstRound,

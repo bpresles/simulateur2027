@@ -101,6 +101,10 @@ export function App() {
 }
 
 function SimulatorPage({ result, onOpenSettings }: { result: SimulationResult; onOpenSettings: () => void }) {
+  const [basis, corrected, projected] =
+    result.pollMode === 'latest'
+      ? ['Dernier sondage publié', 'corrigé', 'projeté']
+      : ['Moyenne des derniers sondages', 'corrigée', 'projetée']
   return (
     <>
       <div className="max-w-2xl pb-8 pt-10 sm:pt-14">
@@ -108,8 +112,8 @@ function SimulatorPage({ result, onOpenSettings }: { result: SimulationResult; o
           Présidentielle 2027, simulateur
         </h1>
         <p className="mt-3 text-[1.05rem] leading-relaxed text-ink-2">
-          Moyenne des derniers sondages au {date(simulationData.polls.asOf)}, corrigée des écarts constatés en
-          2022 (et, en option, projetée selon la progression des sondages de 2022), puis reports de voix des
+          {basis} au {date(simulationData.polls.asOf)}, {corrected} des écarts constatés en 2022 (et, en
+          option, {projected} selon la progression des sondages de 2022), puis reports de voix des
           législatives 2024 pour le second tour. Une simulation, pas une prévision.{' '}
           <Link to="methodologie" className="link">
             Voir la méthodologie

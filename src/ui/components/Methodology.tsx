@@ -39,6 +39,7 @@ const ORIGIN: Record<PollOrigin, string> = {
 const STATUS: Record<PollStatus, string> = {
   used: 'Retenu',
   superseded: 'Remplacé par un sondage plus récent du même institut',
+  'not-latest': 'Plus ancien que le dernier sondage retenu',
   'out-of-window': 'Hors de la fenêtre',
   'no-matching-hypothesis': 'Aucune hypothèse conforme',
 }
@@ -78,6 +79,7 @@ export function Methodology({ result }: { result: SimulationResult }) {
   const settings = useSettings()
   const inWindow = result.pollUsage.filter((u) => u.status !== 'out-of-window')
   const older = result.pollUsage.filter((u) => u.status === 'out-of-window')
+  const latestPoll = result.pollUsage.find((u) => u.status === 'used')?.poll
   /** Candidats de 2027 qui utilisent une référence de 2022, avec leur poids s'il s'agit d'un mélange. */
   const usersOf = (refId: string) =>
     polls.candidates.flatMap((x) => {
@@ -142,10 +144,21 @@ export function Methodology({ result }: { result: SimulationResult }) {
               {result.hypothesisSet.exclude.map(anyName).join(', ')}. Les petits candidats non simulés
               (Dominique de Villepin, Natacha Polony…) sont retirés et l’hypothèse est ramenée à 100 %.
             </p>
-            <p>
-              On fait la moyenne des hypothèses retenues dans chaque sondage, puis la moyenne simple entre
-              instituts ({result.institutesUsed} ici), enfin on ramène le total à 100 %.
-            </p>
+            {result.pollMode === 'average' ? (
+              <p>
+                On fait la moyenne des hypothèses retenues dans chaque sondage, puis la moyenne simple entre
+                instituts ({result.institutesUsed} ici), enfin on ramène le total à 100 %.
+              </p>
+            ) : (
+              <p>
+                Option <strong>« Dernier sondage uniquement »</strong> activée : seul le sondage le plus récent
+                de la fenêtre ayant une hypothèse conforme est retenu
+                {latestPoll && ` (${latestPoll.institute}, terrain du ${fieldwork(latestPoll.fieldwork)})`}, tous
+                instituts confondus. On fait la moyenne de ses hypothèses retenues, puis on ramène le total à
+                100 %. Les références de 2022 (corrections, progression) restent calculées sur des moyennes
+                d’instituts.
+              </p>
+            )}
           </div>
           <Table caption={polls.collection.description}>
             <thead>

@@ -212,8 +212,12 @@ export interface SimulationData {
 }
 
 /** Réglages de l'utilisateur. Seules les surcharges sont stockées, les défauts restent calculés. */
+/** Base du 1er tour : moyenne entre instituts (défaut) ou dernier sondage en date uniquement. */
+export type PollMode = 'average' | 'latest'
+
 export interface Settings {
   hypothesisSetId: string | null
+  pollMode: PollMode
   /** Projette les derniers sondages avant le vote selon la progression observée en 2022. */
   progressionEnabled: boolean
   correctionsEnabled: boolean
@@ -242,7 +246,7 @@ export interface Settings {
 
 // ——— Résultats ———
 
-export type PollStatus = 'used' | 'superseded' | 'out-of-window' | 'no-matching-hypothesis'
+export type PollStatus = 'used' | 'superseded' | 'not-latest' | 'out-of-window' | 'no-matching-hypothesis'
 
 export interface PollUsage<P = Poll> {
   poll: P
@@ -359,7 +363,9 @@ export interface SecondRoundResult {
 
 export interface SimulationResult {
   hypothesisSet: HypothesisSet
+  pollMode: PollMode
   pollUsage: PollUsage[]
+  /** Sondages retenus : un par institut en mode moyenne, un seul en mode dernier sondage. */
   institutesUsed: number
   firstRound: FirstRoundRow[]
   entrants: Entrant[]

@@ -1,7 +1,7 @@
 import { simulationData } from '../../data/schema'
 import type { SimulationResult } from '../../domain/types'
 import { useSettings } from '../../state/settingsStore'
-import { num } from '../format'
+import { fieldwork, num } from '../format'
 import { AllianceSwitches } from './AllianceSwitches'
 import { Segmented, Slider, Switch } from './controls'
 
@@ -9,8 +9,11 @@ const { hypothesisSets } = simulationData.polls
 
 export function ScenarioBar({ result }: { result: SimulationResult }) {
   const s = useSettings()
-  const institutes = (id: string) =>
-    id === result.hypothesisSet.id ? ` (${result.institutesUsed} instituts)` : ''
+  const latestPoll = result.pollUsage.find((u) => u.status === 'used')?.poll
+  const basis =
+    result.pollMode === 'latest'
+      ? latestPoll && ` (dernier sondage : ${latestPoll.institute}, ${fieldwork(latestPoll.fieldwork)})`
+      : ` (${result.institutesUsed} instituts)`
 
   return (
     <section aria-labelledby="scenario-title" className="rounded-xl bg-surface p-5 shadow-[var(--ballot-shadow)]">
@@ -28,8 +31,17 @@ export function ScenarioBar({ result }: { result: SimulationResult }) {
           />
           <p className="mt-2 max-w-[26rem] text-sm text-ink-3">
             {result.hypothesisSet.description}
-            {institutes(result.hypothesisSet.id)}
+            {basis}
           </p>
+          <div className="mt-4">
+            <Switch
+              id="latest-poll"
+              checked={s.pollMode === 'latest'}
+              onCheckedChange={(latest) => s.setPollMode(latest ? 'latest' : 'average')}
+              label="Dernier sondage uniquement"
+              description="Retient le sondage le plus récent au lieu de la moyenne des instituts"
+            />
+          </div>
         </div>
 
         <div className="grid gap-5 sm:grid-cols-2">

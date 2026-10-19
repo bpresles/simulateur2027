@@ -1,4 +1,14 @@
-import type { CandidateId, Fieldwork, Hypothesis, HypothesisSet, Poll, PollUsage, PollsData } from './types'
+import type {
+  CandidateId,
+  Fieldwork,
+  Hypothesis,
+  HypothesisSet,
+  Poll,
+  PollMode,
+  PollStatus,
+  PollUsage,
+  PollsData,
+} from './types'
 
 type Scores = Record<CandidateId, number>
 
@@ -45,6 +55,20 @@ export interface WindowSelection<T> {
   outOfWindow: T[]
 }
 
+/** `poll` est plus récent que `current` : date de fin de terrain, puis date de début. */
+function isNewer(poll: Dated, current: Dated | undefined): boolean {
+  return (
+    !current ||
+    poll.fieldwork.end > current.fieldwork.end ||
+    (poll.fieldwork.end === current.fieldwork.end && poll.fieldwork.start > current.fieldwork.start)
+  )
+}
+
+/** Sondage le plus récent ; à égalité, le premier de la liste. */
+export function mostRecent<T extends Dated>(polls: T[]): T | undefined {
+  return polls.reduce<T | undefined>((best, poll) => (isNewer(poll, best) ? poll : best), undefined)
+}
+
 /**
  * Garde, pour chaque institut, le sondage le plus récent dont le terrain se termine dans la fenêtre
  * [asOf − windowDays ; asOf]. Départage par date de fin, puis date de début.
@@ -55,12 +79,7 @@ export function latestPerInstitute<T extends Dated>(polls: T[], asOf: string, wi
   const outOfWindow = polls.filter((p) => !inWindow.includes(p))
   const byInstitute = new Map<string, T>()
   for (const poll of inWindow) {
-    const current = byInstitute.get(poll.institute)
-    const newer =
-      !current ||
-      poll.fieldwork.end > current.fieldwork.end ||
-      (poll.fieldwork.end === current.fieldwork.end && poll.fieldwork.start > current.fieldwork.start)
-    if (newer) byInstitute.set(poll.institute, poll)
+    if (isNewer(poll, byInstitute.get(poll.institute))) byInstitute.set(poll.institute, poll)
   }
   const latest = [...byInstitute.values()]
   return { latest, superseded: inWindow.filter((p) => !latest.includes(p)), outOfWindow }
@@ -87,6 +106,8 @@ interface HypothesisPoll extends Dated {
 /**
  * Moyenne de 1er tour :
  * 1. dernier sondage de chaque institut dans la fenêtre [asOf − windowDays ; asOf] ;
+ *    en mode `latest`, seul le sondage le plus récent de la fenêtre ayant une hypothèse conforme,
+ *    tous instituts confondus ;
  * 2. dans ce sondage, hypothèses conformes au filtre (candidats requis présents, exclus absents),
  *    réduites aux candidats retenus puis renormalisées à 100, et moyennées entre elles ;
  * 3. moyenne simple entre instituts, puis normalisation à 100.
@@ -97,15 +118,19 @@ export function averageHypothesisPolls<P extends HypothesisPoll>(
   windowDays: number,
   filter: HypothesisFilter,
   keep: ReadonlySet<CandidateId>,
+  mode: PollMode = 'average',
 ): PollAverageResult<P> {
   const { latest, superseded } = latestPerInstitute(polls, asOf, windowDays)
+  const inWindow = [...latest, ...superseded]
+  const matching = (poll: P) => poll.hypotheses.filter((h) => hypothesisMatches(h, filter))
+  const newest = mode === 'latest' ? mostRecent(inWindow.filter((p) => matching(p).length > 0)) : undefined
   const usage: PollUsage<P>[] = polls.map((poll) => {
-    if (superseded.includes(poll)) return { poll, status: 'superseded', matchedHypotheses: [], average: null }
-    if (!latest.includes(poll)) return { poll, status: 'out-of-window', matchedHypotheses: [], average: null }
-    const matched = poll.hypotheses.filter((h) => hypothesisMatches(h, filter))
-    if (matched.length === 0) {
-      return { poll, status: 'no-matching-hypothesis', matchedHypotheses: [], average: null }
-    }
+    const skip = (status: PollStatus): PollUsage<P> => ({ poll, status, matchedHypotheses: [], average: null })
+    if (!inWindow.includes(poll)) return skip('out-of-window')
+    if (mode === 'average' && superseded.includes(poll)) return skip('superseded')
+    const matched = matching(poll)
+    if (matched.length === 0) return skip('no-matching-hypothesis')
+    if (mode === 'latest' && poll !== newest) return skip('not-latest')
     const average = meanByKey(matched.map((h) => normalize(pick(h.scores, keep))))
     return { poll, status: 'used', matchedHypotheses: matched.map((h) => h.id), average }
   })
@@ -114,9 +139,9 @@ export function averageHypothesisPolls<P extends HypothesisPoll>(
 }
 
 /** Moyenne des sondages 2027 pour un jeu d'hypothèses, sur les candidats simulés. */
-export function averagePolls(data: PollsData, set: HypothesisSet): PollAverageResult {
+export function averagePolls(data: PollsData, set: HypothesisSet, mode: PollMode = 'average'): PollAverageResult {
   const simulated = new Set(data.candidates.map((c) => c.id))
-  return averageHypothesisPolls(data.polls, data.asOf, data.windowDays, set, simulated)
+  return averageHypothesisPolls(data.polls, data.asOf, data.windowDays, set, simulated, mode)
 }
 
 /** Nombre de jours entre deux dates ISO. */
