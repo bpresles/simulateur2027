@@ -30,7 +30,7 @@ interface SettingsActions {
 export type SettingsStore = Settings & SettingsActions
 
 const STORAGE_KEY = 'simulateur2027:settings'
-const STORAGE_VERSION = 5
+const STORAGE_VERSION = 6
 
 export const useSettings = create<SettingsStore>()(
   persist(
@@ -100,9 +100,10 @@ export const useSettings = create<SettingsStore>()(
       // ≤ v2 : l'alliance « philippe-glucksmann » avait un leader variable, son sens a changé.
       // ≤ v3 : le report d'alliance unique est remplacé par des taux par alliance (2024 par défaut).
       // ≤ v4 : le choix d'hypothèse « Philippe seul » devient l'alliance « Attal rejoint Philippe ».
+      // ≤ v5 : les intensités passent de 100 % à 70 % par défaut ; une intensité restée à 100 % suit.
       // Le reste du scénario est conservé ; les nouveaux réglages prennent leur valeur par défaut.
       migrate: (persisted, version) => {
-        if (version < 1 || version > 4) return defaultSettings()
+        if (version < 1 || version > 5) return defaultSettings()
         const {
           allianceEfficiency: _efficiency,
           hypothesisSetId,
@@ -116,6 +117,8 @@ export const useSettings = create<SettingsStore>()(
           alliances: hypothesisSetId === 'philippe-seul' ? { ...alliances, 'attal-philippe': true } : alliances,
           transferOverrides: version === 1 ? {} : (old.transferOverrides ?? {}),
           allianceOverrides: old.allianceOverrides ?? {},
+          ...(old.progressionIntensity === 1 && { progressionIntensity: defaultSettings().progressionIntensity }),
+          ...(old.correctionIntensity === 1 && { correctionIntensity: defaultSettings().correctionIntensity }),
         }
       },
     },

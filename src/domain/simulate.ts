@@ -16,9 +16,9 @@ export function defaultSettings(): Settings {
   return {
     pollMode: 'average',
     progressionEnabled: false,
-    progressionIntensity: 1,
+    progressionIntensity: 0.7,
     correctionsEnabled: true,
-    correctionIntensity: 1,
+    correctionIntensity: 0.7,
     correctionOverrides: {},
     referenceBlend: {},
     alliances: {},

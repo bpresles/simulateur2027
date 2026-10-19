@@ -2,7 +2,6 @@ import { useState } from 'react'
 import { simulationData } from '../data/schema'
 import type { SimulationResult } from '../domain/types'
 import { useSimulation } from '../hooks/useSimulation'
-import { useSettings } from '../state/settingsStore'
 import { ElectedPresident } from './components/ElectedPresident'
 import { FirstRoundChart } from './components/FirstRoundChart'
 import { Methodology } from './components/Methodology'
@@ -30,7 +29,6 @@ export function App() {
   const result = useSimulation()
   const [settingsOpen, setSettingsOpen] = useState(false)
   const { preference, setPreference } = useTheme()
-  const resetAll = useSettings((s) => s.resetAll)
   const openSettings = () => setSettingsOpen(true)
 
   return (
@@ -90,9 +88,6 @@ export function App() {
           Simulation fondée sur des sondages publiés et des hypothèses explicites. Données au{' '}
           {date(simulationData.polls.asOf)}. Vos réglages restent dans ce navigateur.
         </p>
-        <button type="button" className="link" onClick={resetAll}>
-          Réinitialiser le scénario
-        </button>
       </footer>
 
       <SettingsSheet open={settingsOpen} onOpenChange={setSettingsOpen} result={result} />
@@ -103,17 +98,18 @@ export function App() {
 function SimulatorPage({ result, onOpenSettings }: { result: SimulationResult; onOpenSettings: () => void }) {
   return (
     <>
-      <div className="max-w-2xl pb-8 pt-10 sm:pt-14">
+      <div className="max-w-full pb-8 pt-10 sm:pt-14">
         <h1 className="wide text-[2rem] font-extrabold leading-[1.05] tracking-tight sm:text-[2.75rem]">
-          Présidentielle 2027, simulateur
+          Présidentielle 2027
         </h1>
+        <h2 className="text-[1.7rem]" >Simulateur des résultats de second tour</h2>
         <div className="mt-3 space-y-[1lh] text-[1.05rem] leading-relaxed text-ink-2">
           <p>
             Cet outil a été développé suite au constat que plus de 30 à 40 % des répondants aux sondages de
             second tour ne se prononcent pas, réduisant de ce fait leur fiabilité.
           </p>
           <p>
-            Pour tenter d’offrir une meilleure simulation du second tour, cet outil se base sur les hypothèses
+            Pour tenter d’offrir une meilleure simulation du résultat du second tour pour les présidentielles de 2027, cet outil se base sur les hypothèses
             suivantes :
           </p>
           <div>
