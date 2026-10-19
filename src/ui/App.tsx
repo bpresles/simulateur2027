@@ -84,7 +84,7 @@ export function App() {
       </main>
 
       <footer className="mt-16 flex flex-wrap items-center justify-between gap-4 border-t border-rule pt-6 text-sm text-ink-3">
-        <p className="max-w-2xl">
+        <p className="max-w-full">
           Simulation fondée sur des sondages publiés et des hypothèses explicites. Données au{' '}
           {date(simulationData.polls.asOf)}. Vos réglages restent dans ce navigateur.
         </p>
