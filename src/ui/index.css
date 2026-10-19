@@ -143,7 +143,6 @@
     font-size: 1.0625rem;
     line-height: 1.65;
     color: var(--ink);
-    max-width: 68ch;
   }
   .prose-method p + p {
     margin-top: 0.85em;
