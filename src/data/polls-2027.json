@@ -274,18 +274,18 @@
   ],
   "hypothesisSets": [
     {
-      "id": "philippe-seul",
-      "label": "Philippe seul",
-      "description": "Édouard Philippe seul candidat du bloc central (sans Gabriel Attal), Raphaël Glucksmann pour le PS.",
+      "id": "philippe-attal",
+      "label": "Philippe + Attal",
+      "description": "Édouard Philippe et Gabriel Attal tous deux candidats, Raphaël Glucksmann pour le PS.",
       "default": true,
       "require": [
         "melenchon",
         "glucksmann",
         "philippe",
+        "attal",
         "lepen"
       ],
       "exclude": [
-        "attal",
         "hollande",
         "ruffin",
         "lisnard",
@@ -293,17 +293,17 @@
       ]
     },
     {
-      "id": "philippe-attal",
-      "label": "Philippe + Attal",
-      "description": "Édouard Philippe et Gabriel Attal tous deux candidats, Raphaël Glucksmann pour le PS.",
+      "id": "philippe-seul",
+      "label": "Philippe seul",
+      "description": "Édouard Philippe seul candidat du bloc central (sans Gabriel Attal), Raphaël Glucksmann pour le PS.",
       "require": [
         "melenchon",
         "glucksmann",
         "philippe",
-        "attal",
         "lepen"
       ],
       "exclude": [
+        "attal",
         "hollande",
         "ruffin",
         "lisnard",
