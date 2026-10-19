@@ -1,7 +1,7 @@
 import { Fragment } from 'react'
 import type { CSSProperties } from 'react'
 import { motion } from 'motion/react'
-import type { AllianceLeak, Entrant, FirstRoundRow, PollMode, SimulationResult } from '../../domain/types'
+import type { AllianceLeak, Entrant, FirstRoundRow, SimulationResult } from '../../domain/types'
 import { reference2022Stats } from '../../hooks/useSimulation'
 import { simulationData } from '../../data/schema'
 import { cand, colorVars } from '../candidates'
@@ -10,8 +10,6 @@ import { InfoTip } from './InfoTip'
 
 const ref2022Names = new Map(simulationData.reference2022.candidates.map((c) => [c.id, c.name]))
 const spring = { type: 'spring', stiffness: 170, damping: 26 } as const
-const BASE_LABEL: Record<PollMode, string> = { average: 'Moyenne des sondages', latest: 'Dernier sondage' }
-const BASE_LEGEND: Record<PollMode, string> = { average: 'moyenne brute des sondages', latest: 'dernier sondage brut' }
 
 export function FirstRoundChart({ result }: { result: SimulationResult }) {
   const rows = new Map(result.firstRound.map((r) => [r.candidateId, r]))
@@ -20,7 +18,8 @@ export function FirstRoundChart({ result }: { result: SimulationResult }) {
   const w = (v: number) => `${(v / scaleMax) * 100}%`
   const threshold = result.entrants[1]!.score
   const finalists = new Set([result.secondRound.a, result.secondRound.b])
-  const baseLabel = BASE_LABEL[result.pollMode]
+  const single = result.institutesUsed === 1
+  const baseLabel = single ? 'Sondage retenu' : 'Moyenne des sondages'
 
   return (
     <section aria-labelledby="first-round-title">
@@ -30,7 +29,7 @@ export function FirstRoundChart({ result }: { result: SimulationResult }) {
         </h2>
         <ul className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-ink-3" aria-label="Légende">
           <li className="flex items-center gap-1.5">
-            <span className="h-2.5 w-5 rounded-r-[3px] bg-ink-3/25" /> {BASE_LEGEND[result.pollMode]}
+            <span className="h-2.5 w-5 rounded-r-[3px] bg-ink-3/25" /> {single ? 'sondage retenu brut' : 'moyenne brute des sondages'}
           </li>
           <li className="flex items-center gap-1.5">
             <span className="h-2.5 w-5 rounded-r-[3px] bg-ink-2" /> score simulé

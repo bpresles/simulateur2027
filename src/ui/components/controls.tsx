@@ -37,6 +37,41 @@ export function Switch({
   )
 }
 
+export function Checkbox({
+  checked,
+  onCheckedChange,
+  label,
+  description,
+  id,
+  disabled,
+  title,
+}: {
+  checked: boolean
+  onCheckedChange: (v: boolean) => void
+  label: ReactNode
+  description?: ReactNode
+  id: string
+  disabled?: boolean
+  title?: string
+}) {
+  return (
+    <div className="flex items-start gap-2.5" title={title}>
+      <input
+        type="checkbox"
+        id={id}
+        checked={checked}
+        onChange={(e) => onCheckedChange(e.target.checked)}
+        disabled={disabled}
+        className="mt-0.5 h-4 w-4 shrink-0 cursor-pointer accent-ballpoint disabled:cursor-not-allowed"
+      />
+      <label htmlFor={id} className={`select-none leading-tight ${disabled ? 'cursor-not-allowed' : 'cursor-pointer'}`}>
+        <span className="text-[0.95rem] font-medium text-ink">{label}</span>
+        {description && <span className="ml-1.5 text-sm text-ink-3">{description}</span>}
+      </label>
+    </div>
+  )
+}
+
 export function Slider({
   value,
   onValueChange,

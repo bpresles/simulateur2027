@@ -4,7 +4,6 @@ import type {
   Hypothesis,
   HypothesisSet,
   Poll,
-  PollMode,
   PollStatus,
   PollUsage,
   PollsData,
@@ -64,9 +63,9 @@ function isNewer(poll: Dated, current: Dated | undefined): boolean {
   )
 }
 
-/** Sondage le plus récent ; à égalité, le premier de la liste. */
-export function mostRecent<T extends Dated>(polls: T[]): T | undefined {
-  return polls.reduce<T | undefined>((best, poll) => (isNewer(poll, best) ? poll : best), undefined)
+/** Tri du plus récent au plus ancien : date de fin de terrain, puis date de début. */
+export function newestFirst(a: Dated, b: Dated): number {
+  return b.fieldwork.end.localeCompare(a.fieldwork.end) || b.fieldwork.start.localeCompare(a.fieldwork.start)
 }
 
 /**
@@ -105,12 +104,12 @@ interface HypothesisPoll extends Dated {
 
 /**
  * Moyenne de 1er tour :
- * 1. dernier sondage de chaque institut dans la fenêtre [asOf − windowDays ; asOf] ;
- *    en mode `latest`, seul le sondage le plus récent de la fenêtre ayant une hypothèse conforme,
- *    tous instituts confondus ;
+ * 1. dernier sondage de chaque institut dans la fenêtre [asOf − windowDays ; asOf], parmi ceux que
+ *    `include` retient ; si aucun sondage ayant une hypothèse conforme n'est retenu, `include` est
+ *    ignoré ;
  * 2. dans ce sondage, hypothèses conformes au filtre (candidats requis présents, exclus absents),
  *    réduites aux candidats retenus puis renormalisées à 100, et moyennées entre elles ;
- * 3. moyenne simple entre instituts, puis normalisation à 100.
+ * 3. moyenne simple entre instituts (aucune s'il n'en reste qu'un), puis normalisation à 100.
  */
 export function averageHypothesisPolls<P extends HypothesisPoll>(
   polls: P[],
@@ -118,19 +117,20 @@ export function averageHypothesisPolls<P extends HypothesisPoll>(
   windowDays: number,
   filter: HypothesisFilter,
   keep: ReadonlySet<CandidateId>,
-  mode: PollMode = 'average',
+  include: (poll: P) => boolean = () => true,
 ): PollAverageResult<P> {
   const { latest, superseded } = latestPerInstitute(polls, asOf, windowDays)
   const inWindow = [...latest, ...superseded]
   const matching = (poll: P) => poll.hypotheses.filter((h) => hypothesisMatches(h, filter))
-  const newest = mode === 'latest' ? mostRecent(inWindow.filter((p) => matching(p).length > 0)) : undefined
+  const eligible = latest.filter((p) => matching(p).length > 0)
+  const included = eligible.some(include) ? eligible.filter(include) : eligible
   const usage: PollUsage<P>[] = polls.map((poll) => {
     const skip = (status: PollStatus): PollUsage<P> => ({ poll, status, matchedHypotheses: [], average: null })
     if (!inWindow.includes(poll)) return skip('out-of-window')
-    if (mode === 'average' && superseded.includes(poll)) return skip('superseded')
+    if (superseded.includes(poll)) return skip('superseded')
     const matched = matching(poll)
     if (matched.length === 0) return skip('no-matching-hypothesis')
-    if (mode === 'latest' && poll !== newest) return skip('not-latest')
+    if (!included.includes(poll)) return skip('excluded')
     const average = meanByKey(matched.map((h) => normalize(pick(h.scores, keep))))
     return { poll, status: 'used', matchedHypotheses: matched.map((h) => h.id), average }
   })
@@ -138,10 +138,14 @@ export function averageHypothesisPolls<P extends HypothesisPoll>(
   return { usage, average: normalize(meanByKey(perInstitute)), institutesUsed: perInstitute.length }
 }
 
-/** Moyenne des sondages 2027 pour un jeu d'hypothèses, sur les candidats simulés. */
-export function averagePolls(data: PollsData, set: HypothesisSet, mode: PollMode = 'average'): PollAverageResult {
+/** Moyenne des sondages 2027 pour un jeu d'hypothèses, sur les candidats simulés, hors sondages exclus. */
+export function averagePolls(
+  data: PollsData,
+  set: HypothesisSet,
+  excluded: ReadonlySet<string> = new Set(),
+): PollAverageResult {
   const simulated = new Set(data.candidates.map((c) => c.id))
-  return averageHypothesisPolls(data.polls, data.asOf, data.windowDays, set, simulated, mode)
+  return averageHypothesisPolls(data.polls, data.asOf, data.windowDays, set, simulated, (p) => !excluded.has(p.id))
 }
 
 /** Nombre de jours entre deux dates ISO. */

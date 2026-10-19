@@ -46,7 +46,7 @@ const ORIGIN: Record<PollOrigin, string> = {
 const STATUS: Record<PollStatus, string> = {
   used: 'Retenu',
   superseded: 'Remplacé par un sondage plus récent du même institut',
-  'not-latest': 'Plus ancien que le dernier sondage retenu',
+  excluded: 'Décoché dans le scénario',
   'out-of-window': 'Hors de la fenêtre',
   'no-matching-hypothesis': 'Aucune hypothèse conforme',
 }
@@ -86,7 +86,8 @@ export function Methodology({ result }: { result: SimulationResult }) {
   const settings = useSettings()
   const inWindow = result.pollUsage.filter((u) => u.status !== 'out-of-window')
   const older = result.pollUsage.filter((u) => u.status === 'out-of-window')
-  const latestPoll = result.pollUsage.find((u) => u.status === 'used')?.poll
+  const singlePoll = result.institutesUsed === 1 ? result.pollUsage.find((u) => u.status === 'used')?.poll : undefined
+  const unchecked = result.pollUsage.filter((u) => u.status === 'excluded').length
   /** Candidats de 2027 qui utilisent une référence de 2022, avec leur poids s'il s'agit d'un mélange. */
   const usersOf = (refId: string) =>
     polls.candidates.flatMap((x) => {
@@ -158,19 +159,22 @@ export function Methodology({ result }: { result: SimulationResult }) {
                   : `L’hypothèse « ${DEFAULT_SET.label} » est la base par défaut ; l’alliance « ${al.label} » (étape 4) la remplace par l’hypothèse « ${al.set.label} ».`}
               </p>
             ))}
-            {result.pollMode === 'average' ? (
+            <p>
+              Les sondages ainsi retenus sont proposés, du plus récent au plus ancien, sous forme de cases à
+              cocher sur le <Link to="simulateur">simulateur</Link> : tous sont cochés par défaut
+              {unchecked > 0 && ` (${unchecked} décoché${unchecked > 1 ? 's' : ''} dans le scénario en cours)`}.
+            </p>
+            {singlePoll ? (
               <p>
-                On fait la moyenne des hypothèses retenues dans chaque sondage, puis la moyenne simple entre
-                instituts ({result.institutesUsed} ici), enfin on ramène le total à 100 %.
+                Un seul sondage est coché ({singlePoll.institute}, terrain du {fieldwork(singlePoll.fieldwork)}) :
+                il sert de base sans moyenne entre instituts. On fait la moyenne de ses hypothèses retenues, puis
+                on ramène le total à 100 %. Les références de 2022 (corrections, progression) restent calculées
+                sur des moyennes d’instituts.
               </p>
             ) : (
               <p>
-                Option <strong>« Dernier sondage uniquement »</strong> activée : seul le sondage le plus récent
-                de la fenêtre ayant une hypothèse conforme est retenu
-                {latestPoll && ` (${latestPoll.institute}, terrain du ${fieldwork(latestPoll.fieldwork)})`}, tous
-                instituts confondus. On fait la moyenne de ses hypothèses retenues, puis on ramène le total à
-                100 %. Les références de 2022 (corrections, progression) restent calculées sur des moyennes
-                d’instituts.
+                On fait la moyenne des hypothèses retenues dans chaque sondage, puis la moyenne simple entre
+                instituts ({result.institutesUsed} ici), enfin on ramène le total à 100 %.
               </p>
             )}
           </div>

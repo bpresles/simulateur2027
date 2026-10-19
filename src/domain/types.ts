@@ -217,11 +217,12 @@ export interface SimulationData {
 }
 
 /** Réglages de l'utilisateur. Seules les surcharges sont stockées, les défauts restent calculés. */
-/** Base du 1er tour : moyenne entre instituts (défaut) ou dernier sondage en date uniquement. */
-export type PollMode = 'average' | 'latest'
-
 export interface Settings {
-  pollMode: PollMode
+  /**
+   * Sondages décochés pour la base du 1er tour (identifiants). Tous les autres sont retenus, y compris
+   * ceux publiés plus tard : un seul coché sert tel quel, deux ou plus sont moyennés.
+   */
+  excludedPolls: string[]
   /** Projette les derniers sondages avant le vote selon la progression observée en 2022. */
   progressionEnabled: boolean
   /** 1 = 100 % de la progression 2022 (reproduite à l'identique). */
@@ -252,7 +253,7 @@ export interface Settings {
 
 // ——— Résultats ———
 
-export type PollStatus = 'used' | 'superseded' | 'not-latest' | 'out-of-window' | 'no-matching-hypothesis'
+export type PollStatus = 'used' | 'superseded' | 'excluded' | 'out-of-window' | 'no-matching-hypothesis'
 
 export interface PollUsage<P = Poll> {
   poll: P
@@ -373,9 +374,8 @@ export interface SimulationResult {
   hypothesisSet: HypothesisSet
   /** Alliance active qui a remplacé la base du 1er tour par son jeu d'hypothèses (null sinon). */
   hypothesisAllianceId: string | null
-  pollMode: PollMode
   pollUsage: PollUsage[]
-  /** Sondages retenus : un par institut en mode moyenne, un seul en mode dernier sondage. */
+  /** Sondages retenus, un par institut au plus (1 = sondage seul, sans moyenne). */
   institutesUsed: number
   firstRound: FirstRoundRow[]
   entrants: Entrant[]
