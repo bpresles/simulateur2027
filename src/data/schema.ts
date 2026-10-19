@@ -55,6 +55,7 @@ const pollsSchema: z.ZodType<PollsData> = z.object({
       description: z.string().optional(),
       members: z.array(z.string()).min(2),
       leader: z.string().optional(),
+      hypothesisSet: z.string().optional(),
     }),
   ),
   polls: z.array(
@@ -187,6 +188,14 @@ export function validateData(data: SimulationData): string[] {
       if (!simulated.has(id)) errors.push(`Alliance ${a.id} : candidat non simulé « ${id} »`)
     }
     if (a.leader && !a.members.includes(a.leader)) errors.push(`Alliance ${a.id} : le leader n'est pas membre`)
+    if (a.hypothesisSet) {
+      const set = polls.hypothesisSets.find((s) => s.id === a.hypothesisSet)
+      if (!set) errors.push(`Alliance ${a.id} : jeu d'hypothèses inconnu « ${a.hypothesisSet} »`)
+      if (!a.leader) errors.push(`Alliance ${a.id} : un leader fixe est requis avec un jeu d'hypothèses`)
+      for (const id of a.members.filter((m) => m !== a.leader)) {
+        if (set && !set.exclude.includes(id)) errors.push(`Alliance ${a.id} : « ${id} » n'est pas exclu de ${set.id}`)
+      }
+    }
   }
 
   for (const poll of polls.polls) {

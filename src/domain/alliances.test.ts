@@ -72,6 +72,27 @@ describe('incompatibilités entre alliances (données réelles)', () => {
     expect(alliancesConflict(byId('glucksmann-philippe'), byId('roussel-glucksmann'))).toBe(true)
     expect(alliancesConflict(byId('glucksmann-philippe'), byId('roussel-melenchon'))).toBe(false)
   })
+  it('Retailleau peut rejoindre Philippe avec Glucksmann, pas si Philippe rejoint Glucksmann', () => {
+    expect(alliancesConflict(byId('retailleau-philippe'), byId('glucksmann-philippe'))).toBe(false)
+    expect(alliancesConflict(byId('retailleau-philippe'), byId('roussel-glucksmann'))).toBe(false)
+    expect(alliancesConflict(byId('retailleau-philippe'), byId('philippe-glucksmann'))).toBe(true)
+  })
+  it('Glucksmann rejoint Mélenchon : cumulable avec Tondelier et Roussel, exclut les alliances autour de Glucksmann', () => {
+    expect(alliancesConflict(byId('glucksmann-melenchon'), byId('tondelier-melenchon'))).toBe(false)
+    expect(alliancesConflict(byId('glucksmann-melenchon'), byId('roussel-melenchon'))).toBe(false)
+    expect(alliancesConflict(byId('glucksmann-melenchon'), byId('roussel-glucksmann'))).toBe(true)
+    expect(alliancesConflict(byId('glucksmann-melenchon'), byId('philippe-glucksmann'))).toBe(true)
+    expect(alliancesConflict(byId('glucksmann-melenchon'), byId('glucksmann-philippe'))).toBe(true)
+  })
+  it('Attal rejoint Philippe (jeu d’hypothèses) n’engage qu’Attal : Philippe reste libre', () => {
+    expect(alliancesConflict(byId('attal-philippe'), byId('philippe-glucksmann'))).toBe(false)
+    expect(alliancesConflict(byId('attal-philippe'), byId('glucksmann-philippe'))).toBe(false)
+    expect(alliancesConflict(byId('attal-philippe'), byId('retailleau-philippe'))).toBe(false)
+    const attalGlucksmann: Alliance = { id: 'ag', label: 'A rejoint G', members: ['glucksmann', 'attal'] }
+    expect(alliancesConflict(byId('attal-philippe'), attalGlucksmann)).toBe(true)
+    const other: Alliance = { id: 'o', label: 'Autre base', members: ['m', 't'], leader: 'm', hypothesisSet: 'x' }
+    expect(alliancesConflict(byId('attal-philippe'), other)).toBe(true)
+  })
   it('Philippe et Glucksmann ne peuvent pas se rallier l’un à l’autre en même temps', () => {
     expect(alliancesConflict(byId('philippe-glucksmann'), byId('glucksmann-philippe'))).toBe(true)
   })

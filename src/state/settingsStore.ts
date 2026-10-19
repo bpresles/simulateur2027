@@ -4,9 +4,9 @@ import { defaultSettings } from '../domain/simulate'
 import type { Bloc, CandidateId, PollMode, ProfileId, Settings, TransferValues } from '../domain/types'
 
 interface SettingsActions {
-  setHypothesisSet: (id: string) => void
   setPollMode: (mode: PollMode) => void
   setProgressionEnabled: (enabled: boolean) => void
+  setProgressionIntensity: (intensity: number) => void
   setCorrectionsEnabled: (enabled: boolean) => void
   setCorrectionIntensity: (intensity: number) => void
   /** `undefined` retire la surcharge et rétablit la correction calculée. */
@@ -30,15 +30,15 @@ interface SettingsActions {
 export type SettingsStore = Settings & SettingsActions
 
 const STORAGE_KEY = 'simulateur2027:settings'
-const STORAGE_VERSION = 4
+const STORAGE_VERSION = 5
 
 export const useSettings = create<SettingsStore>()(
   persist(
     (set) => ({
       ...defaultSettings(),
-      setHypothesisSet: (hypothesisSetId) => set({ hypothesisSetId }),
       setPollMode: (pollMode) => set({ pollMode }),
       setProgressionEnabled: (progressionEnabled) => set({ progressionEnabled }),
+      setProgressionIntensity: (progressionIntensity) => set({ progressionIntensity }),
       setCorrectionsEnabled: (correctionsEnabled) => set({ correctionsEnabled }),
       setCorrectionIntensity: (correctionIntensity) => set({ correctionIntensity }),
       setCorrectionOverride: (id, points) =>
@@ -81,9 +81,9 @@ export const useSettings = create<SettingsStore>()(
       version: STORAGE_VERSION,
       storage: createJSONStorage(() => localStorage),
       partialize: (s): Settings => ({
-        hypothesisSetId: s.hypothesisSetId,
         pollMode: s.pollMode,
         progressionEnabled: s.progressionEnabled,
+        progressionIntensity: s.progressionIntensity,
         correctionsEnabled: s.correctionsEnabled,
         correctionIntensity: s.correctionIntensity,
         correctionOverrides: s.correctionOverrides,
@@ -99,17 +99,21 @@ export const useSettings = create<SettingsStore>()(
       // v1 → v2 : les lignes de reports ont changé de sens, leurs surcharges sont abandonnées.
       // ≤ v2 : l'alliance « philippe-glucksmann » avait un leader variable, son sens a changé.
       // ≤ v3 : le report d'alliance unique est remplacé par des taux par alliance (2024 par défaut).
+      // ≤ v4 : le choix d'hypothèse « Philippe seul » devient l'alliance « Attal rejoint Philippe ».
       // Le reste du scénario est conservé ; les nouveaux réglages prennent leur valeur par défaut.
       migrate: (persisted, version) => {
-        if (version < 1 || version > 3) return defaultSettings()
-        const { allianceEfficiency: _efficiency, ...old } = persisted as Partial<Settings> & {
-          allianceEfficiency?: unknown
-        }
+        if (version < 1 || version > 4) return defaultSettings()
+        const {
+          allianceEfficiency: _efficiency,
+          hypothesisSetId,
+          ...old
+        } = persisted as Partial<Settings> & { allianceEfficiency?: unknown; hypothesisSetId?: string | null }
         const { 'philippe-glucksmann': _dynamic, ...kept } = old.alliances ?? {}
+        const alliances = version <= 2 ? kept : (old.alliances ?? {})
         return {
           ...defaultSettings(),
           ...old,
-          alliances: version <= 2 ? kept : (old.alliances ?? {}),
+          alliances: hypothesisSetId === 'philippe-seul' ? { ...alliances, 'attal-philippe': true } : alliances,
           transferOverrides: version === 1 ? {} : (old.transferOverrides ?? {}),
           allianceOverrides: old.allianceOverrides ?? {},
         }
@@ -120,9 +124,9 @@ export const useSettings = create<SettingsStore>()(
 
 export function selectSettings(s: SettingsStore): Settings {
   return {
-    hypothesisSetId: s.hypothesisSetId,
     pollMode: s.pollMode,
     progressionEnabled: s.progressionEnabled,
+    progressionIntensity: s.progressionIntensity,
     correctionsEnabled: s.correctionsEnabled,
     correctionIntensity: s.correctionIntensity,
     correctionOverrides: s.correctionOverrides,

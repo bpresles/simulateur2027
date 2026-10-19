@@ -65,6 +65,18 @@ describe('progression appliquée au 1er tour', () => {
     for (const r of res.firstRound) expect(r.corrected).toBeCloseTo(expected[r.candidateId]!, 8)
   })
 
+  it('intensité : facteur = 1 + (progression − 1) × intensité, indépendant de la correction', () => {
+    const at = (progressionIntensity: number) =>
+      simulate(simulationData, { ...settings, progressionIntensity, correctionsEnabled: false }, reference, progression)
+    const melenchon = (res: ReturnType<typeof at>) => res.firstRound.find((r) => r.candidateId === 'melenchon')!
+    const full = melenchon(at(1))
+    expect(full.progressionFactor).toBeCloseTo(full.progressionRatio!, 10)
+    expect(melenchon(at(0.5)).progressionFactor).toBeCloseTo(1 + (full.progressionRatio! - 1) * 0.5, 10)
+    for (const r of at(0).firstRound) expect(r.projected).toBeCloseTo(r.base, 10)
+    const corrected = simulate(simulationData, { ...settings, progressionIntensity: 0.5 }, reference, progression)
+    expect(melenchon(corrected).appliedCorrection).toBeCloseTo(melenchon(corrected).defaultCorrection, 10)
+  })
+
   it('peut changer les qualifiés du 2nd tour', () => {
     const rows = applyCorrections(
       { a: 30, b: 25, c: 24, x: 21 },

@@ -233,6 +233,16 @@
   ],
   "alliances": [
     {
+      "id": "attal-philippe",
+      "label": "Attal rejoint Philippe",
+      "members": [
+        "philippe",
+        "attal"
+      ],
+      "leader": "philippe",
+      "hypothesisSet": "philippe-seul"
+    },
+    {
       "id": "tondelier-melenchon",
       "label": "Tondelier rejoint Mélenchon",
       "members": [
@@ -247,6 +257,15 @@
       "members": [
         "melenchon",
         "roussel"
+      ],
+      "leader": "melenchon"
+    },
+    {
+      "id": "glucksmann-melenchon",
+      "label": "Glucksmann rejoint Mélenchon",
+      "members": [
+        "melenchon",
+        "glucksmann"
       ],
       "leader": "melenchon"
     },
@@ -274,6 +293,15 @@
       "members": [
         "philippe",
         "glucksmann"
+      ],
+      "leader": "philippe"
+    },
+    {
+      "id": "retailleau-philippe",
+      "label": "Retailleau rejoint Philippe",
+      "members": [
+        "philippe",
+        "retailleau"
       ],
       "leader": "philippe"
     }

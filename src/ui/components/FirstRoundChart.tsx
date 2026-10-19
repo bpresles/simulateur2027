@@ -193,7 +193,7 @@ function RowDetails({
             {Math.abs(r.projected - r.base) > 1e-9 && (
               <>
                 <dt className="text-ink-3">
-                  Progression 2022{r.progressionRatio ? ` (${ratio(r.progressionRatio)})` : ''}
+                  Progression 2022{r.progressionFactor ? ` (${ratio(r.progressionFactor)})` : ''}
                 </dt>
                 <dd className="num text-right">{pct(r.projected)}</dd>
               </>

@@ -1,11 +1,8 @@
-import { simulationData } from '../../data/schema'
 import type { SimulationResult } from '../../domain/types'
 import { useSettings } from '../../state/settingsStore'
 import { fieldwork, num } from '../format'
 import { AllianceSwitches } from './AllianceSwitches'
-import { Segmented, Slider, Switch } from './controls'
-
-const { hypothesisSets } = simulationData.polls
+import { Slider, Switch } from './controls'
 
 export function ScenarioBar({ result }: { result: SimulationResult }) {
   const s = useSettings()
@@ -23,13 +20,7 @@ export function ScenarioBar({ result }: { result: SimulationResult }) {
       <div className="grid gap-6 md:grid-cols-[auto_1fr] md:gap-x-10">
         <div>
           <p className="mb-2 text-sm font-medium text-ink-2">Candidats testés au 1er tour</p>
-          <Segmented
-            label="Hypothèse de premier tour"
-            value={result.hypothesisSet.id}
-            onValueChange={s.setHypothesisSet}
-            options={hypothesisSets.map((h) => ({ value: h.id, label: h.label, hint: h.description }))}
-          />
-          <p className="mt-2 max-w-[26rem] text-sm text-ink-3">
+          <p className="max-w-[26rem] text-sm text-ink-3">
             {result.hypothesisSet.description}
             {basis}
           </p>
@@ -60,6 +51,13 @@ export function ScenarioBar({ result }: { result: SimulationResult }) {
                 label="Progression comme en 2022"
                 description="Estime les derniers sondages avant le vote selon l’évolution d’octobre 2021 à avril 2022"
               />
+              <Intensity
+                label="Intensité de la progression"
+                hint="la progression de 2022"
+                value={s.progressionIntensity}
+                onValueChange={s.setProgressionIntensity}
+                disabled={!s.progressionEnabled}
+              />
             </div>
             <Switch
               id="corrections"
@@ -68,26 +66,50 @@ export function ScenarioBar({ result }: { result: SimulationResult }) {
               label="Corriger la moyenne"
               description="Selon l’écart réel entre derniers sondages et résultat en 2022"
             />
-            <div className="mt-3 flex items-center gap-3">
-              <span className="text-sm text-ink-3" title="100 % reproduit exactement l’écart de 2022">
-                Intensité
-              </span>
-              <Slider
-                label="Intensité de la correction"
-                value={s.correctionIntensity * 100}
-                onValueChange={(v) => s.setCorrectionIntensity(v / 100)}
-                min={0}
-                max={150}
-                step={5}
-                disabled={!s.correctionsEnabled}
-              />
-              <span className="num w-12 text-right text-sm font-medium">
-                {num(s.correctionIntensity * 100, 0)}&#8239;%
-              </span>
-            </div>
+            <Intensity
+              label="Intensité de la correction"
+              hint="l’écart de 2022"
+              value={s.correctionIntensity}
+              onValueChange={s.setCorrectionIntensity}
+              disabled={!s.correctionsEnabled}
+            />
           </fieldset>
         </div>
       </div>
     </section>
+  )
+}
+
+/** Curseur d'intensité d'un ajustement 2022 (1 = 100 %, reproduit 2022 à l'identique). */
+function Intensity({
+  label,
+  hint,
+  value,
+  onValueChange,
+  disabled,
+}: {
+  label: string
+  hint: string
+  value: number
+  onValueChange: (v: number) => void
+  disabled: boolean
+}) {
+  return (
+    <div className="mt-3 flex items-center gap-3">
+      <span className="text-sm text-ink-3" title={`100 % reproduit exactement ${hint}`}>
+        Intensité <br />
+        (100&#8239;% reproduit exactement {hint})
+      </span>
+      <Slider
+        label={label}
+        value={value * 100}
+        onValueChange={(v) => onValueChange(v / 100)}
+        min={0}
+        max={150}
+        step={5}
+        disabled={disabled}
+      />
+      <span className="num w-12 text-right text-sm font-medium">{num(value * 100, 0)}&#8239;%</span>
+    </div>
   )
 }

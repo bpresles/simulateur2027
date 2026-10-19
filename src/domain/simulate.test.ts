@@ -123,6 +123,55 @@ describe('simulate (données réelles)', () => {
     expect(res.entrants.reduce((s, e) => s + e.score, 0)).toBeCloseTo(100, 8)
   })
 
+  it('Glucksmann rejoint Mélenchon : 72 % des électeurs de gauche suivent, 3 % votent RN (2024)', () => {
+    const res = run({ alliances: { 'glucksmann-melenchon': true } })
+    const melenchon = res.entrants.find((e) => e.id === 'melenchon')!
+    expect(melenchon.members.map((m) => m.candidateId)).toEqual(['melenchon', 'glucksmann'])
+    expect(res.entrants.find((e) => e.id === 'glucksmann')).toBeUndefined()
+    const rate = res.allianceRates.find((r) => r.allianceId === 'glucksmann-melenchon')!
+    expect(rate.joining[0]).toMatchObject({ leader: 0.72, rn: 0.03, source: { profileId: 'lfi_rn', bloc: 'gauche' } })
+  })
+
+  it('Attal rejoint Philippe : la base passe de « Philippe + Attal » à l’hypothèse « Philippe seul »', () => {
+    const data = {
+      ...simulationData,
+      polls: {
+        ...simulationData.polls,
+        hypothesisSets: simulationData.polls.hypothesisSets.map((s) => ({ ...s, default: s.id === 'philippe-attal' })),
+      },
+    }
+    const base = simulate(data, defaultSettings())
+    expect(base.hypothesisSet.id).toBe('philippe-attal')
+    expect(base.hypothesisAllianceId).toBeNull()
+    expect(base.firstRound.some((r) => r.candidateId === 'attal')).toBe(true)
+    expect(base.allianceRates.some((r) => r.allianceId === 'attal-philippe')).toBe(false)
+
+    const allied = simulate(data, { ...defaultSettings(), alliances: { 'attal-philippe': true } })
+    expect(allied.hypothesisSet.id).toBe('philippe-seul')
+    expect(allied.hypothesisAllianceId).toBe('attal-philippe')
+    expect(allied.firstRound.some((r) => r.candidateId === 'attal')).toBe(false)
+    expect(allied.allianceLeaks).toEqual([])
+    const philippeSeul = run()
+    expect(philippeSeul.hypothesisSet.id).toBe('philippe-seul')
+    expect(allied.secondRound.pct).toEqual(philippeSeul.secondRound.pct)
+
+    const withGlucksmann = simulate(data, {
+      ...defaultSettings(),
+      alliances: { 'attal-philippe': true, 'philippe-glucksmann': true },
+    })
+    expect(withGlucksmann.hypothesisSet.id).toBe('philippe-seul')
+    expect(withGlucksmann.entrants.find((e) => e.id === 'glucksmann')!.allianceIds).toEqual(['philippe-glucksmann'])
+  })
+
+  it('Retailleau rejoint Philippe :53 % des électeurs de droite suivent, 22,5 % votent RN (taux LR → Ensemble, 2024)', () => {
+    const res = run({ alliances: { 'retailleau-philippe': true } })
+    const philippe = res.entrants.find((e) => e.id === 'philippe')!
+    expect(philippe.members.map((m) => m.candidateId)).toEqual(['philippe', 'retailleau'])
+    const rate = res.allianceRates.find((r) => r.allianceId === 'retailleau-philippe')!
+    expect(rate.joining[0]).toMatchObject({ leader: 0.53, rn: 0.225, source: { profileId: 'ensemble_rn', bloc: 'droite' } })
+    expect(res.allianceLeaks).toEqual([{ from: 'retailleau', to: 'lepen', points: expect.any(Number) }])
+  })
+
   it('une alliance entre candidats éliminés ne change pas le 2nd tour quand les finalistes sont les mêmes', () => {
     const finalists = (r: ReturnType<typeof run>) => [r.secondRound.a, r.secondRound.b].join('-')
     let checked = 0
