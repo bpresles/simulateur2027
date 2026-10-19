@@ -21,13 +21,22 @@ describe('simulate (données réelles)', () => {
     expect(res.secondRound.pct.b).toBeCloseTo(48, 0)
   })
 
-  it('mode « dernier sondage » : base du sondage le plus récent, sans alerte de moyenne fragile', () => {
-    const res = run({ pollMode: 'latest' })
-    expect(res.pollMode).toBe('latest')
+  it('un seul sondage coché : base de ce sondage, sans alerte de moyenne fragile', () => {
+    const others = run()
+      .pollUsage.filter((u) => u.status === 'used' && u.poll.id !== 'elabe-20261016')
+      .map((u) => u.poll.id)
+    const res = run({ excludedPolls: others })
     expect(res.institutesUsed).toBe(1)
     expect(res.pollUsage.find((u) => u.status === 'used')!.poll.id).toBe('elabe-20261016')
     expect(res.firstRound.find((r) => r.candidateId === 'lepen')!.base).toBeCloseTo(33.59, 2)
     expect(res.warnings.some((w) => w.includes('moyenne fragile'))).toBe(false)
+  })
+
+  it('aucun sondage coché pour l’hypothèse : tous retenus, avec une alerte', () => {
+    const all = run().pollUsage.filter((u) => u.status === 'used').map((u) => u.poll.id)
+    const res = run({ excludedPolls: all })
+    expect(res.institutesUsed).toBe(all.length)
+    expect(res.warnings.some((w) => w.includes('Aucun des sondages cochés'))).toBe(true)
   })
 
   it('le calage peut être désactivé (taux bruts des législatives 2024)', () => {

@@ -1,10 +1,11 @@
 import { create } from 'zustand'
 import { createJSONStorage, persist } from 'zustand/middleware'
 import { defaultSettings } from '../domain/simulate'
-import type { Bloc, CandidateId, PollMode, ProfileId, Settings, TransferValues } from '../domain/types'
+import type { Bloc, CandidateId, ProfileId, Settings, TransferValues } from '../domain/types'
 
 interface SettingsActions {
-  setPollMode: (mode: PollMode) => void
+  setPollIncluded: (pollId: string, included: boolean) => void
+  includeAllPolls: () => void
   setProgressionEnabled: (enabled: boolean) => void
   setProgressionIntensity: (intensity: number) => void
   setCorrectionsEnabled: (enabled: boolean) => void
@@ -36,7 +37,12 @@ export const useSettings = create<SettingsStore>()(
   persist(
     (set) => ({
       ...defaultSettings(),
-      setPollMode: (pollMode) => set({ pollMode }),
+      setPollIncluded: (pollId, included) =>
+        set((s) => {
+          const rest = s.excludedPolls.filter((id) => id !== pollId)
+          return { excludedPolls: included ? rest : [...rest, pollId] }
+        }),
+      includeAllPolls: () => set({ excludedPolls: [] }),
       setProgressionEnabled: (progressionEnabled) => set({ progressionEnabled }),
       setProgressionIntensity: (progressionIntensity) => set({ progressionIntensity }),
       setCorrectionsEnabled: (correctionsEnabled) => set({ correctionsEnabled }),
@@ -81,7 +87,7 @@ export const useSettings = create<SettingsStore>()(
       version: STORAGE_VERSION,
       storage: createJSONStorage(() => localStorage),
       partialize: (s): Settings => ({
-        pollMode: s.pollMode,
+        excludedPolls: s.excludedPolls,
         progressionEnabled: s.progressionEnabled,
         progressionIntensity: s.progressionIntensity,
         correctionsEnabled: s.correctionsEnabled,
@@ -127,7 +133,7 @@ export const useSettings = create<SettingsStore>()(
 
 export function selectSettings(s: SettingsStore): Settings {
   return {
-    pollMode: s.pollMode,
+    excludedPolls: s.excludedPolls,
     progressionEnabled: s.progressionEnabled,
     progressionIntensity: s.progressionIntensity,
     correctionsEnabled: s.correctionsEnabled,

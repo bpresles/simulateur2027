@@ -114,7 +114,7 @@ function SimulatorPage({ result, onOpenSettings }: { result: SimulationResult; o
           </p>
           <div>
             <ul className="list-disc space-y-1 pl-5">
-              <li>La moyenne des derniers sondages (ou le dernier sondage seul en option)</li>
+              <li>La moyenne des derniers sondages (ou les seuls sondages choisis en option)</li>
               <li>Les reports de voix des législatives 2024 entre le premier tour et le second tour</li>
               <li>
                 Les données réelles d’écarts entre les sondages d’avant premier tour et les résultats réels du premier

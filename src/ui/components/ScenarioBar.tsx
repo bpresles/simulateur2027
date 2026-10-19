@@ -1,9 +1,10 @@
 import { simulationData } from '../../data/schema'
+import { newestFirst } from '../../domain/pollAverage'
 import type { SimulationResult } from '../../domain/types'
 import { useSettings } from '../../state/settingsStore'
 import { fieldwork, num } from '../format'
 import { AllianceSwitches } from './AllianceSwitches'
-import { Slider, Switch } from './controls'
+import { Checkbox, Slider, Switch } from './controls'
 
 /**
  * Candidats testés : description du jeu d'hypothèses, suivie des alliances appliquées dans l'ordre des
@@ -18,11 +19,10 @@ function firstRoundSummary(result: SimulationResult): string {
 export function ScenarioBar({ result }: { result: SimulationResult }) {
   const s = useSettings()
   const resetAll = useSettings((s) => s.resetAll)
-  const latestPoll = result.pollUsage.find((u) => u.status === 'used')?.poll
-  const basis =
-    result.pollMode === 'latest'
-      ? latestPoll && ` (dernier sondage : ${latestPoll.institute}, ${fieldwork(latestPoll.fieldwork)})`
-      : ` (${result.institutesUsed} instituts)`
+  const singlePoll = result.institutesUsed === 1 ? result.pollUsage.find((u) => u.status === 'used')?.poll : undefined
+  const basis = singlePoll
+    ? ` (sondage ${singlePoll.institute} seul, ${fieldwork(singlePoll.fieldwork)})`
+    : ` (moyenne de ${result.institutesUsed} instituts)`
 
   return (
     <section aria-labelledby="scenario-title" className="rounded-xl bg-surface p-5 shadow-[var(--ballot-shadow)]">
@@ -36,15 +36,7 @@ export function ScenarioBar({ result }: { result: SimulationResult }) {
             {firstRoundSummary(result)}
             {basis}
           </p>
-          <div className="mt-4">
-            <Switch
-              id="latest-poll"
-              checked={s.pollMode === 'latest'}
-              onCheckedChange={(latest) => s.setPollMode(latest ? 'latest' : 'average')}
-              label="Dernier sondage uniquement"
-              description="Retient le sondage le plus récent au lieu de la moyenne des instituts"
-            />
-          </div>
+          <PollPicker result={result} />
         </div>
 
         <div className="grid gap-5 sm:grid-cols-2">
@@ -94,6 +86,52 @@ export function ScenarioBar({ result }: { result: SimulationResult }) {
         </div>
       </div>
     </section>
+  )
+}
+
+/**
+ * Sondages proposés pour la base du 1er tour (dernier sondage de chaque institut testant l'hypothèse),
+ * du plus récent au plus ancien. Le dernier sondage coché ne peut pas être décoché.
+ */
+function PollPicker({ result }: { result: SimulationResult }) {
+  const excludedPolls = useSettings((s) => s.excludedPolls)
+  const setPollIncluded = useSettings((s) => s.setPollIncluded)
+  const includeAllPolls = useSettings((s) => s.includeAllPolls)
+  const excluded = new Set(excludedPolls)
+  const polls = result.pollUsage
+    .filter((u) => u.status === 'used' || u.status === 'excluded')
+    .map((u) => u.poll)
+    .sort(newestFirst)
+  const checkedCount = polls.filter((p) => !excluded.has(p.id)).length
+
+  return (
+    <fieldset className="mt-4">
+      <legend className="text-[0.95rem] font-medium text-ink">Sondages retenus</legend>
+      <p className="mt-0.5 text-sm text-ink-3">Un seul coché : sondage seul ; deux ou plus : moyenne</p>
+      <div className="mt-2 space-y-1.5">
+        {polls.map((p) => {
+          const checked = !excluded.has(p.id)
+          const last = checked && checkedCount === 1
+          return (
+            <Checkbox
+              key={p.id}
+              id={`poll-${p.id}`}
+              checked={checked}
+              onCheckedChange={(v) => setPollIncluded(p.id, v)}
+              disabled={last}
+              title={last ? 'Au moins un sondage doit rester coché' : undefined}
+              label={p.institute}
+              description={fieldwork(p.fieldwork)}
+            />
+          )
+        })}
+      </div>
+      {checkedCount < polls.length && (
+        <button type="button" className="link mt-2 text-sm" onClick={includeAllPolls}>
+          Tout cocher
+        </button>
+      )}
+    </fieldset>
   )
 }
 

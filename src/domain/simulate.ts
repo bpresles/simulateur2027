@@ -14,7 +14,7 @@ export const TIGHT_QUALIFICATION_GAP = 1
 
 export function defaultSettings(): Settings {
   return {
-    pollMode: 'average',
+    excludedPolls: [],
     progressionEnabled: false,
     progressionIntensity: 0.7,
     correctionsEnabled: true,
@@ -51,8 +51,11 @@ export function simulate(
   const hypothesisSet = resolveHypothesisSet(data, hypothesisAlliance?.hypothesisSet ?? null)
   const warnings: string[] = []
 
-  const { usage, average, institutesUsed } = averagePolls(polls, hypothesisSet, settings.pollMode)
-  if (settings.pollMode === 'average' && institutesUsed < 3) {
+  const excluded = new Set(settings.excludedPolls)
+  const { usage, average, institutesUsed } = averagePolls(polls, hypothesisSet, excluded)
+  if (usage.some((u) => u.status === 'used' && excluded.has(u.poll.id))) {
+    warnings.push('Aucun des sondages cochés ne teste cette hypothèse : tous les sondages disponibles sont retenus.')
+  } else if (!usage.some((u) => u.status === 'excluded') && institutesUsed < 3) {
     warnings.push(`Seulement ${institutesUsed} institut(s) dans la fenêtre pour cette hypothèse : moyenne fragile.`)
   }
 
@@ -129,7 +132,6 @@ export function simulate(
   return {
     hypothesisSet,
     hypothesisAllianceId: hypothesisAlliance?.id ?? null,
-    pollMode: settings.pollMode,
     pollUsage: usage,
     institutesUsed,
     firstRound,
