@@ -1,7 +1,7 @@
 import { Fragment } from 'react'
 import type { CSSProperties } from 'react'
 import { motion } from 'motion/react'
-import type { AllianceLeak, Entrant, FirstRoundRow, SimulationResult } from '../../domain/types'
+import type { AllianceLeak, Entrant, FirstRoundRow, PollMode, SimulationResult } from '../../domain/types'
 import { reference2022Stats } from '../../hooks/useSimulation'
 import { simulationData } from '../../data/schema'
 import { cand, colorVars } from '../candidates'
@@ -10,6 +10,8 @@ import { InfoTip } from './InfoTip'
 
 const ref2022Names = new Map(simulationData.reference2022.candidates.map((c) => [c.id, c.name]))
 const spring = { type: 'spring', stiffness: 170, damping: 26 } as const
+const BASE_LABEL: Record<PollMode, string> = { average: 'Moyenne des sondages', latest: 'Dernier sondage' }
+const BASE_LEGEND: Record<PollMode, string> = { average: 'moyenne brute des sondages', latest: 'dernier sondage brut' }
 
 export function FirstRoundChart({ result }: { result: SimulationResult }) {
   const rows = new Map(result.firstRound.map((r) => [r.candidateId, r]))
@@ -18,6 +20,7 @@ export function FirstRoundChart({ result }: { result: SimulationResult }) {
   const w = (v: number) => `${(v / scaleMax) * 100}%`
   const threshold = result.entrants[1]!.score
   const finalists = new Set([result.secondRound.a, result.secondRound.b])
+  const baseLabel = BASE_LABEL[result.pollMode]
 
   return (
     <section aria-labelledby="first-round-title">
@@ -27,7 +30,7 @@ export function FirstRoundChart({ result }: { result: SimulationResult }) {
         </h2>
         <ul className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-ink-3" aria-label="Légende">
           <li className="flex items-center gap-1.5">
-            <span className="h-2.5 w-5 rounded-r-[3px] bg-ink-3/25" /> moyenne brute des sondages
+            <span className="h-2.5 w-5 rounded-r-[3px] bg-ink-3/25" /> {BASE_LEGEND[result.pollMode]}
           </li>
           <li className="flex items-center gap-1.5">
             <span className="h-2.5 w-5 rounded-r-[3px] bg-ink-2" /> score simulé
@@ -71,6 +74,7 @@ export function FirstRoundChart({ result }: { result: SimulationResult }) {
                 base={baseOf(e)}
                 width={w}
                 leaks={result.allianceLeaks}
+                baseLabel={baseLabel}
               />
             </motion.li>
           ))}
@@ -88,10 +92,12 @@ function CandidateRow({
   base,
   width,
   leaks,
+  baseLabel,
 }: {
   entrant: Entrant
   rows: Map<string, FirstRoundRow>
   leaks: AllianceLeak[]
+  baseLabel: string
   qualified: boolean
   rank: number
   base: number
@@ -102,7 +108,7 @@ function CandidateRow({
   const label = entrant.members.map((m) => cand(m.candidateId).shortName).join(' + ')
 
   return (
-    <InfoTip content={<RowDetails entrant={entrant} rows={rows} leaks={leaks} />}>
+    <InfoTip content={<RowDetails entrant={entrant} rows={rows} leaks={leaks} baseLabel={baseLabel} />}>
       <div
         tabIndex={0}
         aria-label={`${rank}e : ${label}, ${pct(entrant.score)}`}
@@ -158,10 +164,12 @@ function RowDetails({
   entrant,
   rows,
   leaks,
+  baseLabel,
 }: {
   entrant: Entrant
   rows: Map<string, FirstRoundRow>
   leaks: AllianceLeak[]
+  baseLabel: string
 }) {
   return (
     <div className="space-y-2">
@@ -180,7 +188,7 @@ function RowDetails({
         return (
           <dl key={m.candidateId} className="grid grid-cols-[auto_auto] gap-x-3 gap-y-0.5">
             <dt className="col-span-2 font-semibold">{c.name}</dt>
-            <dt className="text-ink-3">Moyenne des sondages</dt>
+            <dt className="text-ink-3">{baseLabel}</dt>
             <dd className="num text-right">{pct(r.base)}</dd>
             {Math.abs(r.projected - r.base) > 1e-9 && (
               <>

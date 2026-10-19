@@ -174,7 +174,7 @@ function CorrectionsPanel({ result }: { result: SimulationResult }) {
         <thead>
           <tr className="border-b border-rule text-left text-ink-3">
             <th className="py-1.5 font-medium">Candidat</th>
-            <th className="py-1.5 text-right font-medium">{s.progressionEnabled ? 'Projetée' : 'Moyenne'}</th>
+            <th className="py-1.5 text-right font-medium">{s.progressionEnabled ? 'Projetée' : s.pollMode === 'latest' ? 'Sondage' : 'Moyenne'}</th>
             <th className="py-1.5 text-right font-medium">Ratio 2022</th>
             <th className="py-1.5 text-right font-medium">Calculée</th>
             <th className="py-1.5 text-right font-medium">Manuelle</th>

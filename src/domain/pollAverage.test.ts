@@ -1,5 +1,13 @@
 import { frozenData as simulationData } from '../test/frozenData'
-import { averagePolls, hypothesisMatches, latestPerInstitute, meanByKey, normalize } from './pollAverage'
+import {
+  averageHypothesisPolls,
+  averagePolls,
+  hypothesisMatches,
+  latestPerInstitute,
+  meanByKey,
+  mostRecent,
+  normalize,
+} from './pollAverage'
 
 const sum = (r: Record<string, number>) => Object.values(r).reduce((s, v) => s + v, 0)
 const set = (id: string) => simulationData.polls.hypothesisSets.find((s) => s.id === id)!
@@ -23,6 +31,12 @@ describe('latestPerInstitute', () => {
     expect(res.latest).toEqual([recent])
     expect(res.superseded).toEqual([old])
     expect(res.outOfWindow).toEqual([outside])
+  })
+  it('mostRecent départage par date de fin, puis de début', () => {
+    const a = poll('A', '2026-10-10', '2026-10-12')
+    const b = poll('B', '2026-10-11', '2026-10-12')
+    expect(mostRecent([a, b, poll('C', '2026-10-01', '2026-10-11')])).toBe(b)
+    expect(mostRecent([])).toBeUndefined()
   })
 })
 
@@ -59,5 +73,52 @@ describe('averagePolls (données réelles au 18/10/2026)', () => {
     const withAttal = averagePolls(simulationData.polls, set('philippe-attal'))
     expect(withAttal.institutesUsed).toBe(5)
     expect(withAttal.usage.find((u) => u.poll.id === 'odoxa-20261007')!.status).toBe('no-matching-hypothesis')
+  })
+})
+
+describe('averagePolls, mode « dernier sondage uniquement »', () => {
+  const res = averagePolls(simulationData.polls, set('philippe-seul'), 'latest')
+  const status = (id: string) => res.usage.find((u) => u.poll.id === id)!
+
+  it('retient le seul sondage le plus récent, tous instituts confondus', () => {
+    expect(res.institutesUsed).toBe(1)
+    expect(status('elabe-20261016').status).toBe('used')
+    expect(status('ifop-20261014').status).toBe('not-latest')
+    expect(status('ifop-20260929').status).toBe('not-latest')
+    expect(status('cluster17-20260916').status).toBe('out-of-window')
+  })
+  it('prend la moyenne des hypothèses conformes de ce sondage, normalisée', () => {
+    const elabe = averagePolls(simulationData.polls, set('philippe-seul')).usage.find(
+      (u) => u.poll.id === 'elabe-20261016',
+    )!
+    expect(status('elabe-20261016').matchedHypotheses).toEqual(['H1', 'H6'])
+    expect(sum(res.average)).toBeCloseTo(100, 8)
+    for (const [id, v] of Object.entries(normalize(elabe.average!)))
+      expect(res.average[id]).toBeCloseTo(v, 10)
+  })
+  it('ignore un sondage plus récent sans hypothèse conforme', () => {
+    const scores = { a: 60, b: 40 }
+    const older = {
+      id: 'old',
+      institute: 'A',
+      fieldwork: { start: '2026-10-01', end: '2026-10-02' },
+      hypotheses: [{ id: 'H1', scores }],
+    }
+    const newer = {
+      id: 'new',
+      institute: 'B',
+      fieldwork: { start: '2026-10-10', end: '2026-10-11' },
+      hypotheses: [{ id: 'H1', scores: { ...scores, c: 5 } }],
+    }
+    const r = averageHypothesisPolls(
+      [older, newer],
+      '2026-10-18',
+      21,
+      { require: [], exclude: ['c'] },
+      new Set(['a', 'b']),
+      'latest',
+    )
+    expect(r.usage.map((u) => u.status)).toEqual(['used', 'no-matching-hypothesis'])
+    expect(r.average).toEqual({ a: 60, b: 40 })
   })
 })

@@ -1,10 +1,11 @@
 import { create } from 'zustand'
 import { createJSONStorage, persist } from 'zustand/middleware'
 import { defaultSettings } from '../domain/simulate'
-import type { Bloc, CandidateId, ProfileId, Settings, TransferValues } from '../domain/types'
+import type { Bloc, CandidateId, PollMode, ProfileId, Settings, TransferValues } from '../domain/types'
 
 interface SettingsActions {
   setHypothesisSet: (id: string) => void
+  setPollMode: (mode: PollMode) => void
   setProgressionEnabled: (enabled: boolean) => void
   setCorrectionsEnabled: (enabled: boolean) => void
   setCorrectionIntensity: (intensity: number) => void
@@ -36,6 +37,7 @@ export const useSettings = create<SettingsStore>()(
     (set) => ({
       ...defaultSettings(),
       setHypothesisSet: (hypothesisSetId) => set({ hypothesisSetId }),
+      setPollMode: (pollMode) => set({ pollMode }),
       setProgressionEnabled: (progressionEnabled) => set({ progressionEnabled }),
       setCorrectionsEnabled: (correctionsEnabled) => set({ correctionsEnabled }),
       setCorrectionIntensity: (correctionIntensity) => set({ correctionIntensity }),
@@ -80,6 +82,7 @@ export const useSettings = create<SettingsStore>()(
       storage: createJSONStorage(() => localStorage),
       partialize: (s): Settings => ({
         hypothesisSetId: s.hypothesisSetId,
+        pollMode: s.pollMode,
         progressionEnabled: s.progressionEnabled,
         correctionsEnabled: s.correctionsEnabled,
         correctionIntensity: s.correctionIntensity,
@@ -118,6 +121,7 @@ export const useSettings = create<SettingsStore>()(
 export function selectSettings(s: SettingsStore): Settings {
   return {
     hypothesisSetId: s.hypothesisSetId,
+    pollMode: s.pollMode,
     progressionEnabled: s.progressionEnabled,
     correctionsEnabled: s.correctionsEnabled,
     correctionIntensity: s.correctionIntensity,

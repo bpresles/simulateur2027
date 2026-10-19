@@ -21,6 +21,15 @@ describe('simulate (données réelles)', () => {
     expect(res.secondRound.pct.b).toBeCloseTo(49, 0)
   })
 
+  it('mode « dernier sondage » : base du sondage le plus récent, sans alerte de moyenne fragile', () => {
+    const res = run({ pollMode: 'latest' })
+    expect(res.pollMode).toBe('latest')
+    expect(res.institutesUsed).toBe(1)
+    expect(res.pollUsage.find((u) => u.status === 'used')!.poll.id).toBe('elabe-20261016')
+    expect(res.firstRound.find((r) => r.candidateId === 'lepen')!.base).toBeCloseTo(33.59, 2)
+    expect(res.warnings.some((w) => w.includes('moyenne fragile'))).toBe(false)
+  })
+
   it('le calage peut être désactivé (taux bruts des législatives 2024)', () => {
     const res = run({ abstentionCalibration: false })
     expect(res.secondRound.abstention.target).toBeNull()
