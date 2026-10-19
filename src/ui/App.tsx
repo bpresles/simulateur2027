@@ -106,7 +106,7 @@ function SimulatorPage({ result, onOpenSettings }: { result: SimulationResult; o
         <div className="mt-3 space-y-[1lh] text-[1.05rem] leading-relaxed text-ink-2">
           <p>
             Cet outil a été développé suite au constat que plus de 30 à 40 % des répondants aux sondages de
-            second tour ne se prononcent pas, réduisant de ce fait leur fiabilité.
+            second tour ne se prononcent pas (i.e: n'expriment ni le souhait de voter pour un candidat, ni le souhait de voter blanc ou nul, ni le souhait de s'abstenir), réduisant de ce fait leur fiabilité.
           </p>
           <p>
             Pour tenter d’offrir une meilleure simulation du résultat du second tour pour les présidentielles de 2027, cet outil se base sur les hypothèses
