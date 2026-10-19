@@ -85,6 +85,11 @@ export interface Alliance {
   members: CandidateId[]
   /** Leader fixe ; absent = le membre le mieux placé au 1er tour mène l'alliance. */
   leader?: CandidateId
+  /**
+   * Jeu d'hypothèses où les ralliés ne sont pas testés : l'alliance remplace alors la base du 1er tour
+   * par ces sondages au lieu de répartir les électeurs des ralliés (ex. Attal rejoint Philippe).
+   */
+  hypothesisSet?: string
 }
 
 export interface SecondRoundPoll {
@@ -216,10 +221,11 @@ export interface SimulationData {
 export type PollMode = 'average' | 'latest'
 
 export interface Settings {
-  hypothesisSetId: string | null
   pollMode: PollMode
   /** Projette les derniers sondages avant le vote selon la progression observée en 2022. */
   progressionEnabled: boolean
+  /** 1 = 100 % de la progression 2022 (reproduite à l'identique). */
+  progressionIntensity: number
   correctionsEnabled: boolean
   /** 1 = 100 % de la correction 2022. */
   correctionIntensity: number
@@ -262,6 +268,8 @@ export interface FirstRoundRow {
   base: number
   /** Progression de la référence 2022 entre la même distance du scrutin et les derniers sondages. */
   progressionRatio: number | null
+  /** Facteur appliqué : 1 + (progression − 1) × intensité (null si la progression est désactivée). */
+  progressionFactor: number | null
   /** Derniers sondages projetés (= base si la progression est désactivée), normalisés à 100. */
   projected: number
   ratio2022: number | null
@@ -363,6 +371,8 @@ export interface SecondRoundResult {
 
 export interface SimulationResult {
   hypothesisSet: HypothesisSet
+  /** Alliance active qui a remplacé la base du 1er tour par son jeu d'hypothèses (null sinon). */
+  hypothesisAllianceId: string | null
   pollMode: PollMode
   pollUsage: PollUsage[]
   /** Sondages retenus : un par institut en mode moyenne, un seul en mode dernier sondage. */

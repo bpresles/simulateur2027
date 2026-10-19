@@ -14,9 +14,9 @@ export const TIGHT_QUALIFICATION_GAP = 1
 
 export function defaultSettings(): Settings {
   return {
-    hypothesisSetId: null,
     pollMode: 'average',
     progressionEnabled: false,
+    progressionIntensity: 1,
     correctionsEnabled: true,
     correctionIntensity: 1,
     correctionOverrides: {},
@@ -45,7 +45,10 @@ export function simulate(
 ): SimulationResult {
   const { polls, transfers } = data
   const candidatesById = new Map(polls.candidates.map((c) => [c.id, c]))
-  const hypothesisSet = resolveHypothesisSet(data, settings.hypothesisSetId)
+  // Une alliance modélisée par un jeu d'hypothèses (ex. Attal rejoint Philippe → sondages sans Attal)
+  // remplace la base du 1er tour ; ses ralliés, absents de ces sondages, ne sont pas redistribués.
+  const hypothesisAlliance = polls.alliances.find((a) => a.hypothesisSet && settings.alliances[a.id]) ?? null
+  const hypothesisSet = resolveHypothesisSet(data, hypothesisAlliance?.hypothesisSet ?? null)
   const warnings: string[] = []
 
   const { usage, average, institutesUsed } = averagePolls(polls, hypothesisSet, settings.pollMode)
@@ -71,7 +74,7 @@ export function simulate(
   }
   const { entrants, leaks } = applyAlliances(corrected, polls.alliances, settings.alliances, split, rnId)
   const allianceRates: AllianceRate[] = polls.alliances
-    .filter((al) => al.members.every((id) => corrected[id] !== undefined))
+    .filter((al) => !al.hypothesisSet && al.members.every((id) => corrected[id] !== undefined))
     .map((al) => {
       const leaderId = allianceLeader(al, corrected)
       const leaderProfile = candidatesById.get(leaderId)!.duelProfile
@@ -125,6 +128,7 @@ export function simulate(
 
   return {
     hypothesisSet,
+    hypothesisAllianceId: hypothesisAlliance?.id ?? null,
     pollMode: settings.pollMode,
     pollUsage: usage,
     institutesUsed,

@@ -101,24 +101,43 @@ export function App() {
 }
 
 function SimulatorPage({ result, onOpenSettings }: { result: SimulationResult; onOpenSettings: () => void }) {
-  const [basis, corrected, projected] =
-    result.pollMode === 'latest'
-      ? ['Dernier sondage publié', 'corrigé', 'projeté']
-      : ['Moyenne des derniers sondages', 'corrigée', 'projetée']
   return (
     <>
       <div className="max-w-2xl pb-8 pt-10 sm:pt-14">
         <h1 className="wide text-[2rem] font-extrabold leading-[1.05] tracking-tight sm:text-[2.75rem]">
           Présidentielle 2027, simulateur
         </h1>
-        <p className="mt-3 text-[1.05rem] leading-relaxed text-ink-2">
-          {basis} au {date(simulationData.polls.asOf)}, {corrected} des écarts constatés en 2022 (et, en
-          option, {projected} selon la progression des sondages de 2022), puis reports de voix des
-          législatives 2024 pour le second tour. Une simulation, pas une prévision.{' '}
-          <Link to="methodologie" className="link">
-            Voir la méthodologie
-          </Link>
-        </p>
+        <div className="mt-3 space-y-[1lh] text-[1.05rem] leading-relaxed text-ink-2">
+          <p>
+            Cet outil a été développé suite au constat que plus de 30 à 40 % des répondants aux sondages de
+            second tour ne se prononcent pas, réduisant de ce fait leur fiabilité.
+          </p>
+          <p>
+            Pour tenter d’offrir une meilleure simulation du second tour, cet outil se base sur les hypothèses
+            suivantes :
+          </p>
+          <div>
+            <ul className="list-disc space-y-1 pl-5">
+              <li>La moyenne des derniers sondages (ou le dernier sondage seul en option)</li>
+              <li>Les reports de voix des législatives 2024 entre le premier tour et le second tour</li>
+              <li>
+                Les données réelles d’écarts entre les sondages d’avant premier tour et les résultats réels du premier
+                tour de la présidentielle 2022 (en option)
+              </li>
+              <li>L’évolution des sondages de fin 2021 jusqu’aux derniers sondages de 2022 (en option)</li>
+            </ul>
+          </div>
+          <p>
+            Cependant, les résultats passés ne présagent pas des résultats futurs réels : il ne faut donc pas
+            prendre ce simulateur comme un outil de prévision des résultats de 2027.
+          </p>
+          <p>
+            Cet outil est proposé à titre d’expérimentation uniquement.{' '}
+            <Link to="methodologie" className="link">
+              Voir la méthodologie
+            </Link>
+          </p>
+        </div>
       </div>
 
       <ScenarioBar result={result} />

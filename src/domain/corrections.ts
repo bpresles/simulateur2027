@@ -38,8 +38,8 @@ export function defaultCorrection(base: number, ratio: number | null): number {
 
 /**
  * Ajustements du 1er tour, dans l'ordre :
- * 1. progression (optionnelle) : moyenne × progression 2022 de la référence, ramenée à 100 —
- *    estimation des derniers sondages avant le vote ;
+ * 1. progression (optionnelle) : moyenne × (1 + (progression 2022 de la référence − 1) × intensité),
+ *    ramenée à 100 — estimation des derniers sondages avant le vote ;
  * 2. correction : écart relatif entre derniers sondages et résultat en 2022, appliqué au résultat
  *    de l'étape 1 (les deux se cumulent), puis ramené à 100.
  */
@@ -50,19 +50,19 @@ export function applyCorrections(
   settings: Pick<
     Settings,
     'correctionsEnabled' | 'correctionIntensity' | 'correctionOverrides' | 'progressionEnabled'
-  > & { referenceBlend?: Settings['referenceBlend'] },
+  > & { referenceBlend?: Settings['referenceBlend']; progressionIntensity?: Settings['progressionIntensity'] },
   progression: { ratio: Record<string, number> } | null = null,
 ): FirstRoundRow[] {
   const present = candidates.filter((c) => base[c.id] !== undefined)
   const partsOf = (c: Candidate) => referenceParts(c, settings.referenceBlend?.[c.id])
   const progressionOf = (c: Candidate) => (progression ? blendedRatio(partsOf(c), progression.ratio) : null)
+  const intensity = settings.progressionIntensity ?? 1
+  const factorOf = (c: Candidate) => {
+    const p = settings.progressionEnabled ? progressionOf(c) : null
+    return p === null ? null : Math.max(0, 1 + (p - 1) * intensity)
+  }
   const projected = normalize(
-    Object.fromEntries(
-      present.map((c) => {
-        const p = settings.progressionEnabled ? progressionOf(c) : null
-        return [c.id, (base[c.id] ?? 0) * (p ?? 1)]
-      }),
-    ),
+    Object.fromEntries(present.map((c) => [c.id, (base[c.id] ?? 0) * (factorOf(c) ?? 1)])),
   )
   const draft = present.map((c) => {
     const score = projected[c.id] ?? 0
@@ -78,6 +78,7 @@ export function applyCorrections(
     candidateId: d.c.id,
     base: base[d.c.id] ?? 0,
     progressionRatio: progressionOf(d.c),
+    progressionFactor: factorOf(d.c),
     projected: d.score,
     ratio2022: d.ratio,
     references: partsOf(d.c),

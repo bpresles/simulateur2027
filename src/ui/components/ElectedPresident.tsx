@@ -12,7 +12,7 @@ const allianceLabels = new Map(simulationData.polls.alliances.map((a) => [a.id, 
 
 export function ElectedPresident({ result }: { result: SimulationResult }) {
   const sr = result.secondRound
-  const { correctionsEnabled, correctionIntensity, progressionEnabled } = useSettings()
+  const { correctionsEnabled, correctionIntensity, progressionEnabled, progressionIntensity } = useSettings()
   const aWins = sr.pct.a >= sr.pct.b
   const winnerId = aWins ? sr.a : sr.b
   const loserId = aWins ? sr.b : sr.a
@@ -21,17 +21,24 @@ export function ElectedPresident({ result }: { result: SimulationResult }) {
   const tie = margin < TIE_MARGIN
 
   const winner = cand(winnerId)
-  const allies = result.entrants
-    .find((e) => e.id === winnerId)!
-    .members.slice(1)
-    .map((m) => cand(m.candidateId).shortName)
+  const hypothesisAlliance = simulationData.polls.alliances.find((a) => a.id === result.hypothesisAllianceId)
+  const allies = [
+    ...(hypothesisAlliance?.leader === winnerId ? hypothesisAlliance.members.filter((id) => id !== winnerId) : []),
+    ...result.entrants
+      .find((e) => e.id === winnerId)!
+      .members.slice(1)
+      .map((m) => m.candidateId),
+  ].map((id) => cand(id).shortName)
   const [firstName, ...lastName] = winner.name.split(' ')
 
-  const alliances = result.entrants.flatMap((e) => e.allianceIds.map((id) => allianceLabels.get(id) ?? id))
+  const alliances = [
+    ...(result.hypothesisAllianceId ? [result.hypothesisAllianceId] : []),
+    ...result.entrants.flatMap((e) => e.allianceIds),
+  ].map((id) => allianceLabels.get(id) ?? id)
   const third = result.qualification.picked === 'third'
   const scenario = [
     `hypothèse « ${result.hypothesisSet.label} »`,
-    ...(progressionEnabled ? ['progression des sondages comme en 2022'] : []),
+    ...(progressionEnabled ? [`progression des sondages comme en 2022 à ${pct(progressionIntensity * 100, 0)}`] : []),
     ...(result.qualification.tight
       ? [`qualification serrée, 2nd tour avec le ${third ? '3e' : '2e'} du 1er tour`]
       : []),

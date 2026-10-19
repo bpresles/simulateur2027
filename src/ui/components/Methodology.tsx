@@ -26,6 +26,13 @@ const STEPS: [string, string][] = [
   ['abstention', 'Abstention du 2nd tour'],
 ]
 
+const DEFAULT_SET = polls.hypothesisSets.find((s) => s.default) ?? polls.hypothesisSets[0]!
+/** Alliances modélisées par un jeu d'hypothèses (ex. Attal rejoint Philippe → sondages sans Attal). */
+const HYPOTHESIS_ALLIANCES = polls.alliances.flatMap((al) => {
+  const set = polls.hypothesisSets.find((s) => s.id === al.hypothesisSet)
+  return set ? [{ ...al, set, rallied: al.members.filter((id) => id !== al.leader) }] : []
+})
+
 const INCOMPATIBLE = polls.alliances.flatMap((x, i) =>
   polls.alliances.slice(i + 1).flatMap((y) => (alliancesConflict(x, y) ? [[x, y] as const] : [])),
 )
@@ -144,6 +151,13 @@ export function Methodology({ result }: { result: SimulationResult }) {
               {result.hypothesisSet.exclude.map(anyName).join(', ')}. Les petits candidats non simulés
               (Dominique de Villepin, Natacha Polony…) sont retirés et l’hypothèse est ramenée à 100 %.
             </p>
+            {HYPOTHESIS_ALLIANCES.map((al) => (
+              <p key={al.id}>
+                {result.hypothesisAllianceId === al.id
+                  ? `Cette hypothèse est retenue parce que l’alliance « ${al.label} » est activée (étape 4) ; sans elle, la base est l’hypothèse « ${DEFAULT_SET.label} ».`
+                  : `L’hypothèse « ${DEFAULT_SET.label} » est la base par défaut ; l’alliance « ${al.label} » (étape 4) la remplace par l’hypothèse « ${al.set.label} ».`}
+              </p>
+            ))}
             {result.pollMode === 'average' ? (
               <p>
                 On fait la moyenne des hypothèses retenues dans chaque sondage, puis la moyenne simple entre
@@ -245,8 +259,12 @@ export function Methodology({ result }: { result: SimulationResult }) {
               derniers sondages avant le vote de 2027 en reproduisant l’évolution observée en 2022, entre la
               même distance au scrutin et les derniers sondages, pour le candidat de 2022 du même camp (même
               correspondance qu’à l’étape 3). Elle est{' '}
-              <strong>{settings.progressionEnabled ? 'activée' : 'désactivée'}</strong> dans le scénario en
-              cours et se cumule avec la correction de l’étape 3.
+              <strong>
+                {settings.progressionEnabled
+                  ? `activée, à ${pct(settings.progressionIntensity * 100, 0)} d’intensité`
+                  : 'désactivée'}
+              </strong>{' '}
+              dans le scénario en cours et se cumule avec la correction de l’étape 3.
             </p>
             <p>
               La base 2027 date du {date(polls.asOf)}, {progression2022Stats.daysBefore} jours avant le 1er
@@ -258,7 +276,18 @@ export function Methodology({ result }: { result: SimulationResult }) {
             <code className="formula">
               progression = derniers sondages 2022 ÷ sondages 2022 à la même distance du scrutin
             </code>
-            <code className="formula">sondages projetés = moyenne 2027 × progression, ramenés à 100 %</code>
+            <code className="formula">
+              sondages projetés = moyenne 2027 × (1 + (progression − 1) × intensité), ramenés à 100 %
+            </code>
+            <p>
+              L’intensité de la progression se règle indépendamment de celle de la correction (étape 3). À
+              100 %, chaque candidat de 2027 reproduit à l’identique l’évolution relative de sa référence de
+              2022 ; à 50 %, la moitié de cette évolution ; à 0 %, aucune (comme si la progression était
+              désactivée). Au-delà de 100 %, l’évolution de 2022 est amplifiée. Exemple : une référence passée
+              de 10 % à 15 % dans les sondages de 2022 (progression ×1,5) multiplie le score de son candidat
+              de 2027 par 1,5 à 100 % d’intensité et par 1,25 à 50 %, avant que les scores ne soient ramenés à
+              100 %.
+            </p>
           </div>
           <Table caption={`Sondages de 2021-2022 autour du ${date(progression2022Stats.asOf)}`}>
             <thead>
@@ -360,7 +389,8 @@ export function Methodology({ result }: { result: SimulationResult }) {
               ratio = résultat officiel 2022 ÷ moyenne des derniers sondages 2022
             </code>
             <code className="formula">
-              correction (points) = moyenne 2027 (ou sondages projetés, étape 2) × (ratio − 1) × intensité
+              correction (points) = moyenne 2027 (ou sondages projetés, étape 2) × (ratio − 1) × intensité de
+              la correction
             </code>
             <p>
               Moyenne 2022 : dernier sondage de chaque institut dont le terrain s’achève dans les{' '}
@@ -378,7 +408,7 @@ export function Methodology({ result }: { result: SimulationResult }) {
             <p>
               Après correction, les scores sont ramenés à 100 %.{' '}
               {settings.correctionsEnabled
-                ? `Intensité actuelle : ${pct(settings.correctionIntensity * 100, 0)}${result.firstRound.some((r) => r.isOverride) ? ', certaines corrections sont saisies à la main' : ''}.`
+                ? `Intensité actuelle de la correction : ${pct(settings.correctionIntensity * 100, 0)}${result.firstRound.some((r) => r.isOverride) ? ', certaines corrections sont saisies à la main' : ''}.`
                 : 'Les corrections sont désactivées dans le scénario en cours.'}
             </p>
           </div>
@@ -505,8 +535,8 @@ export function Methodology({ result }: { result: SimulationResult }) {
                   {settings.progressionEnabled && (
                     <td className={`${td} num text-right`}>
                       {pct(r.projected, 2)}
-                      {r.progressionRatio && (
-                        <span className="ml-1 text-xs text-ink-3">{ratio(r.progressionRatio)}</span>
+                      {r.progressionFactor && (
+                        <span className="ml-1 text-xs text-ink-3">{ratio(r.progressionFactor)}</span>
                       )}
                     </td>
                   )}
@@ -549,6 +579,21 @@ export function Methodology({ result }: { result: SimulationResult }) {
               autour du même leader se cumulent. Paires incompatibles :{' '}
               {INCOMPATIBLE.map(([x, y]) => `« ${x.label} » et « ${y.label} »`).join(' ; ')}.
             </p>
+            {HYPOTHESIS_ALLIANCES.map((al) => {
+              const rallied = al.rallied.map((id) => cand(id).name).join(', ')
+              return (
+                <p key={al.id}>
+                  <strong>« {al.label} » fait exception.</strong> Les sondages testent directement un 1er tour
+                  sans {rallied} : l’activer remplace la base du 1er tour par l’hypothèse « {al.set.label} »
+                  (étape 1) au lieu d’appliquer des taux de report. Ce sont donc les sondés eux-mêmes qui
+                  répartissent les électeurs de {rallied}. Seul le rallié est engagé : {cand(al.leader!).name}{' '}
+                  peut encore mener ou rallier une autre alliance.{' '}
+                  {result.hypothesisAllianceId === al.id
+                    ? 'Cette alliance est activée dans le scénario en cours.'
+                    : 'Elle n’est pas activée dans le scénario en cours.'}
+                </p>
+              )
+            })}
           </div>
           <AllianceRates result={result} />
           <div className="prose-method">
@@ -577,7 +622,7 @@ export function Methodology({ result }: { result: SimulationResult }) {
                   </p>
                 ))
             ) : (
-              <p>Aucune alliance n’est activée dans le scénario en cours.</p>
+              !result.hypothesisAllianceId && <p>Aucune alliance n’est activée dans le scénario en cours.</p>
             )}
           </div>
         </Step>

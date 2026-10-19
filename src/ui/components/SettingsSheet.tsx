@@ -127,7 +127,7 @@ function CorrectionsPanel({ result }: { result: SimulationResult }) {
   return (
     <div className="space-y-5">
       <p className="text-sm text-ink-2">
-        La correction par défaut vaut <em>moyenne × (ratio 2022 − 1) × intensité</em>, appliquée aux sondages
+        La correction par défaut vaut <em>moyenne × (ratio 2022 − 1) × intensité de la correction</em>, appliquée aux sondages
         projetés si la progression comme en 2022 est activée. Saisissez une valeur en
         points pour la remplacer ; videz le champ pour revenir au calcul.
       </p>

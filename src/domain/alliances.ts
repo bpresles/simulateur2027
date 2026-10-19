@@ -5,9 +5,17 @@ import type { Alliance, AllianceLeak, CandidateId, Entrant, EntrantMember } from
  * commun : un candidat ne rallie qu'une alliance, et un candidat rallié ne mène pas d'autre alliance.
  * Exemple : « Roussel rejoint Mélenchon » exclut « Roussel rejoint Glucksmann », alors que
  * « Tondelier rejoint Mélenchon » et « Roussel rejoint Mélenchon » se cumulent.
+ * Une alliance modélisée par un jeu d'hypothèses retire seulement ses ralliés des sondages : son leader
+ * reste libre (« Attal rejoint Philippe » et « Philippe rejoint Glucksmann » se cumulent), mais deux
+ * telles alliances s'excluent, une seule base de 1er tour pouvant être retenue.
  */
 export function alliancesConflict(a: Alliance, b: Alliance): boolean {
   if (a.id === b.id) return false
+  if (a.hypothesisSet && b.hypothesisSet) return true
+  if (a.hypothesisSet || b.hypothesisSet) {
+    const rallied = (x: Alliance) => (x.hypothesisSet ? x.members.filter((id) => id !== x.leader) : [])
+    return rallied(a).some((id) => b.members.includes(id)) || rallied(b).some((id) => a.members.includes(id))
+  }
   return a.members.some((id) => b.members.includes(id) && !(a.leader === id && b.leader === id))
 }
 
