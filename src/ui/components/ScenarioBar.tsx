@@ -1,11 +1,23 @@
+import { simulationData } from '../../data/schema'
 import type { SimulationResult } from '../../domain/types'
 import { useSettings } from '../../state/settingsStore'
 import { fieldwork, num } from '../format'
 import { AllianceSwitches } from './AllianceSwitches'
 import { Slider, Switch } from './controls'
 
+/**
+ * Candidats testés : description du jeu d'hypothèses, suivie des alliances appliquées dans l'ordre des
+ * données. Une alliance modélisée par un jeu d'hypothèses est déjà décrite par celui-ci.
+ */
+function firstRoundSummary(result: SimulationResult): string {
+  const applied = new Set(result.entrants.flatMap((e) => e.allianceIds))
+  const rallies = simulationData.polls.alliances.filter((a) => !a.hypothesisSet && applied.has(a.id))
+  return [result.hypothesisSet.description.replace(/\.$/, ''), ...rallies.map((a) => a.label)].join(', ') + '.'
+}
+
 export function ScenarioBar({ result }: { result: SimulationResult }) {
   const s = useSettings()
+  const resetAll = useSettings((s) => s.resetAll)
   const latestPoll = result.pollUsage.find((u) => u.status === 'used')?.poll
   const basis =
     result.pollMode === 'latest'
@@ -15,13 +27,13 @@ export function ScenarioBar({ result }: { result: SimulationResult }) {
   return (
     <section aria-labelledby="scenario-title" className="rounded-xl bg-surface p-5 shadow-[var(--ballot-shadow)]">
       <h2 id="scenario-title" className="sr-only">
-        Scénario
+        Scénarios
       </h2>
       <div className="grid gap-6 md:grid-cols-[auto_1fr] md:gap-x-10">
         <div>
-          <p className="mb-2 text-sm font-medium text-ink-2">Candidats testés au 1er tour</p>
+          <p className="mb-2 text-lg font-medium text-ink-2">Candidats testés au 1er tour</p>
           <p className="max-w-[26rem] text-sm text-ink-3">
-            {result.hypothesisSet.description}
+            {firstRoundSummary(result)}
             {basis}
           </p>
           <div className="mt-4">
@@ -37,12 +49,12 @@ export function ScenarioBar({ result }: { result: SimulationResult }) {
 
         <div className="grid gap-5 sm:grid-cols-2">
           <fieldset>
-            <legend className="mb-2 text-sm font-medium text-ink-2">Alliances</legend>
+            <legend className="mb-2 text-lg font-medium text-ink-2">Alliances</legend>
             <AllianceSwitches idPrefix="alliance" />
           </fieldset>
 
           <fieldset>
-            <legend className="mb-2 text-sm font-medium text-ink-2">Ajustements fondés sur 2022</legend>
+            <legend className="mb-2 text-lg font-medium text-ink-2">Ajustements fondés sur 2022</legend>
             <div className="mb-4">
               <Switch
                 id="progression"
@@ -74,6 +86,11 @@ export function ScenarioBar({ result }: { result: SimulationResult }) {
               disabled={!s.correctionsEnabled}
             />
           </fieldset>
+        </div>
+        <div>
+          <button type="button" className="link text-sm" onClick={resetAll}>
+          Réinitialiser tous les paramètres
+          </button>
         </div>
       </div>
     </section>

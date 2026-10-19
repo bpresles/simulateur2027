@@ -37,7 +37,7 @@ describe('computeProgression2022', () => {
 })
 
 describe('progression appliquée au 1er tour', () => {
-  const settings = { ...defaultSettings(), progressionEnabled: true }
+  const settings = { ...defaultSettings(), progressionEnabled: true, progressionIntensity: 1, correctionIntensity: 1 }
 
   it('désactivée par défaut : sondages projetés = moyenne brute', () => {
     const res = simulate(simulationData, defaultSettings(), reference, progression)

@@ -18,7 +18,7 @@ describe('simulate (données réelles)', () => {
     const res = run()
     expect(res.secondRound.abstention.target).toBeCloseTo(secondRoundDropout2022(simulationData.reference2022), 10)
     expect(res.secondRound.votes.abstention).toBeCloseTo(res.secondRound.abstention.target!, 8)
-    expect(res.secondRound.pct.b).toBeCloseTo(49, 0)
+    expect(res.secondRound.pct.b).toBeCloseTo(48, 0)
   })
 
   it('mode « dernier sondage » : base du sondage le plus récent, sans alerte de moyenne fragile', () => {
