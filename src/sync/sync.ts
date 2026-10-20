@@ -1,16 +1,8 @@
-// Synchronisation des sondages : fusion des flux externes avec les données existantes.
-import type { Reference2022Stats } from '../domain/corrections'
-import { addDays, averagePolls } from '../domain/pollAverage'
-import { computeProgression2022 } from '../domain/progression'
-import type { Poll, PollOrigin, PollsData, Reference2022, SecondRoundPoll } from '../domain/types'
-import { CandidateResolver, FEEDS, canonicalInstitute, fromEtmoi, fromMieuxVoter } from './feeds'
-import type { EtmoiFeed, MieuxVoterFeed } from './feeds'
-
-/** Un sondage vérifié sur la notice officielle remplace une compilation, qui remplace une saisie manuelle. */
-const PRIORITY: Record<PollOrigin, number> = { manuel: 1, mieuxvoter: 2, '2027etmoi': 3 }
-
-/** Les flux importés ne sont repris que sur cette durée ; les sondages déjà présents sont conservés. */
-export const RETENTION_DAYS = 120
+// Synchronisation des sondages depuis la page Wikipedia de la liste des sondages : période la plus
+// récente du 1er tour, dernier sondage de chaque institut avec toutes ses hypothèses.
+import type { Poll, PollsData, SecondRoundPoll } from '../domain/types'
+import { CandidateResolver, FEEDS, canonicalInstitute } from './feeds'
+import { NO_SPONSOR, fromWikipedia } from './wikipedia'
 
 /** Sérialisation à clés triées : compare le contenu indépendamment de l'ordre des champs. */
 export function stableStringify(value: unknown): string {
@@ -21,149 +13,140 @@ export function stableStringify(value: unknown): string {
   )
 }
 
-/** Mêmes éléments, quel que soit leur ordre. */
-const sameEntries = (a: unknown[], b: unknown[]) =>
-  a.length === b.length && stableStringify(a.map(stableStringify).sort()) === stableStringify(b.map(stableStringify).sort())
+const pollKey = (p: Pick<Poll, 'institute' | 'fieldwork'>) =>
+  `${canonicalInstitute(p.institute)}|${p.fieldwork.end}`
 
-const pollKey = (p: Pick<Poll, 'institute' | 'fieldwork'>) => `${canonicalInstitute(p.institute)}|${p.fieldwork.end}`
-const duelKey = (p: SecondRoundPoll) =>
-  `${canonicalInstitute(p.institute)}|${p.fieldwork.end}|${Object.keys(p.scores).sort().join('-')}`
+/** `a` est plus récent que `b` : date de fin de terrain, puis date de début. */
+const newer = (a: Pick<Poll, 'fieldwork'>, b: Pick<Poll, 'fieldwork'>) =>
+  a.fieldwork.end > b.fieldwork.end ||
+  (a.fieldwork.end === b.fieldwork.end && a.fieldwork.start > b.fieldwork.start)
 
-/** Réunit les publications d'un même sondage (même institut, même fin de terrain) venant d'une même source. */
+/**
+ * Réunit les blocs d'un même sondage (même institut, même fin de terrain), que la page présente
+ * parfois séparément, par exemple un bloc par commanditaire.
+ */
 function combine(polls: Poll[]): Poll {
   const [first, ...rest] = polls
   if (!first || rest.length === 0) return first!
-  const hypotheses = polls.flatMap((p) => p.hypotheses).map((h, i) => ({ ...h, id: `H${i + 1}` }))
+  const sponsors = [...new Set(polls.map((p) => p.sponsor).filter((s) => s !== NO_SPONSOR))]
   return {
     ...first,
-    sponsor: [...new Set(polls.map((p) => p.sponsor))].join(' ; '),
+    sponsor: sponsors.length ? sponsors.join(' ; ') : NO_SPONSOR,
     sampleSize: Math.max(...polls.map((p) => p.sampleSize)),
-    sources: polls.flatMap((p) => p.sources).filter((s, i, all) => all.findIndex((x) => x.url === s.url) === i),
-    hypotheses,
+    sources: polls
+      .flatMap((p) => p.sources)
+      .filter((s, i, all) => all.findIndex((x) => x.url === s.url) === i)
+      // Notices d'abord, lien vers la page en dernier.
+      .sort((a, b) => Number(a.url === FEEDS.wikipedia.page) - Number(b.url === FEEDS.wikipedia.page)),
+    hypotheses: polls.flatMap((p) => p.hypotheses).map((h, i) => ({ ...h, id: `H${i + 1}` })),
   }
 }
 
-export function mergePolls(existing: Poll[], imported: Poll[], cutoff: string): Poll[] {
-  const result = new Map(existing.map((p) => [pollKey(p), p]))
-  const groups = new Map<string, Poll[]>()
-  for (const p of imported.filter((x) => x.fieldwork.end >= cutoff)) {
-    const key = `${pollKey(p)}|${p.origin}`
-    groups.set(key, [...(groups.get(key) ?? []), p])
+/** Dernier sondage de chaque institut, du plus récent au plus ancien. */
+export function latestPerInstitute<T extends Pick<Poll, 'institute' | 'fieldwork'>>(polls: T[]): T[] {
+  const byInstitute = new Map<string, T>()
+  for (const p of polls) {
+    const current = byInstitute.get(canonicalInstitute(p.institute))
+    if (!current || newer(p, current)) byInstitute.set(canonicalInstitute(p.institute), p)
   }
-  const candidates = [...groups.values()]
-    .map(combine)
-    .sort((a, b) => PRIORITY[b.origin ?? 'manuel'] - PRIORITY[a.origin ?? 'manuel'])
-  for (const poll of candidates) {
-    const key = pollKey(poll)
-    const current = result.get(key)
-    if (!current) result.set(key, poll)
-    else if (PRIORITY[poll.origin ?? 'manuel'] > PRIORITY[current.origin ?? 'manuel'] || poll.origin === current.origin) {
-      // L'identifiant reste stable : il peut être référencé ailleurs.
-      result.set(key, { ...poll, id: current.id })
-    }
-  }
-  return [...result.values()].sort(
+  return [...byInstitute.values()].sort(
     (a, b) => b.fieldwork.end.localeCompare(a.fieldwork.end) || a.institute.localeCompare(b.institute),
   )
 }
 
-export function mergeSecondRound(existing: SecondRoundPoll[], imported: SecondRoundPoll[], cutoff: string) {
-  const result = new Map(existing.map((p) => [duelKey(p), p]))
-  for (const p of imported.filter((x) => x.fieldwork.end >= cutoff)) result.set(duelKey(p), p)
-  return [...result.values()].sort((a, b) => b.fieldwork.end.localeCompare(a.fieldwork.end))
+/**
+ * Sondages de la période : blocs d'un même sondage réunis, dernier sondage de chaque institut. Une saisie
+ * manuelle de la période est gardée si elle est plus récente que le sondage de son institut sur la page.
+ * Un sondage déjà présent garde son identifiant (référencé par les sondages décochés).
+ */
+export function selectPolls(current: Poll[], imported: Poll[], periodStart: string): Poll[] {
+  const groups = new Map<string, Poll[]>()
+  for (const p of imported) groups.set(pollKey(p), [...(groups.get(pollKey(p)) ?? []), p])
+  const manual = current.filter((p) => (p.origin ?? 'manuel') === 'manuel' && p.fieldwork.end >= periodStart)
+  const ids = new Map(current.map((p) => [pollKey(p), p.id]))
+  return latestPerInstitute([...[...groups.values()].map(combine), ...manual]).map((p) => ({
+    ...p,
+    id: ids.get(pollKey(p)) ?? p.id,
+  }))
 }
 
-export interface SyncFeeds {
-  etmoi?: EtmoiFeed
-  mieuxvoter?: MieuxVoterFeed
+/** Duels de la période : pour chaque institut et chaque paire de candidats, le plus récent. */
+export function selectDuels(duels: SecondRoundPoll[]): SecondRoundPoll[] {
+  const byPair = new Map<string, SecondRoundPoll[]>()
+  for (const d of duels) {
+    const pair = Object.keys(d.scores).sort().join('-')
+    byPair.set(pair, [...(byPair.get(pair) ?? []), d])
+  }
+  return [...byPair.values()]
+    .flatMap(latestPerInstitute)
+    .sort((a, b) => b.fieldwork.end.localeCompare(a.fieldwork.end))
 }
 
 export interface SyncReport {
   changed: boolean
   asOf: string
+  period: string
   added: string[]
   replaced: string[]
-  secondRoundAdded: number
+  removed: string[]
+  secondRound: number
   newCandidates: string[]
-  selectionChanged: boolean
-}
-
-/** Sondages retenus dans la fenêtre (2027, par jeu d'hypothèses) et pour la progression 2022. */
-function selection(data: PollsData, ref: Reference2022, stats: Reference2022Stats): string {
-  const sets = data.hypothesisSets.map((set) =>
-    averagePolls(data, set)
-      .usage.filter((u) => u.status === 'used')
-      .map((u) => `${u.poll.id}:${u.matchedHypotheses.join('+')}`)
-      .sort(),
-  )
-  const progression = computeProgression2022(data, ref, stats)
-    .usage.filter((u) => u.status === 'used')
-    .map((u) => `${u.poll.institute}:${u.poll.fieldwork.end}`)
-    .sort()
-  return JSON.stringify({ sets, progression })
+  /** Lignes de la période écartées. */
+  skipped: string[]
 }
 
 /**
- * Fusionne les flux avec les données existantes. Les données ne changent (et la date de référence
- * n'avance) que si un sondage est ajouté ou modifié, ou si la fenêtre glissante retient d'autres
- * sondages : sans cela, aucun redéploiement n'est nécessaire.
+ * Remplace les sondages par ceux de la période la plus récente de la page. Les données ne changent (et
+ * la date de référence n'avance) que si la période, un sondage ou un duel change. Renvoie undefined si la
+ * page ne contient aucun sondage reconnaissable (format modifié) : les données restent alors inchangées.
  */
 export function syncPolls(
   current: PollsData,
-  feeds: SyncFeeds,
+  wikitext: string,
   today: string,
-  ref: Reference2022,
-  stats: Reference2022Stats,
-): { data: PollsData; report: SyncReport } {
-  const cutoff = addDays(today, -RETENTION_DAYS)
+): { data: PollsData; report: SyncReport } | undefined {
   const resolver = new CandidateResolver(current.candidates, current.otherCandidates)
   const simulated = new Set(current.candidates.map((c) => c.id))
-  const imported: Poll[] = []
-  let secondRound: SecondRoundPoll[] = []
-  if (feeds.mieuxvoter) {
-    const mv = fromMieuxVoter(feeds.mieuxvoter, resolver, simulated)
-    imported.push(...mv.polls)
-    secondRound = mv.secondRound
-  }
-  if (feeds.etmoi) imported.push(...fromEtmoi(feeds.etmoi, resolver))
+  const wiki = fromWikipedia(wikitext, resolver, simulated)
+  if (!wiki) return undefined
 
-  const polls = mergePolls(current.polls, imported, cutoff)
-  const secondRoundPolls = mergeSecondRound(current.secondRoundPolls, secondRound, cutoff)
-  const sources = [
-    ...current.collection.sources.filter((s) => s.url !== FEEDS.etmoi.page && s.url !== FEEDS.mieuxvoter.page),
-    ...(feeds.etmoi ? [{ label: FEEDS.etmoi.label, url: FEEDS.etmoi.page }] : []),
-    ...(feeds.mieuxvoter ? [{ label: FEEDS.mieuxvoter.label, url: FEEDS.mieuxvoter.page }] : []),
-  ]
+  const polls = selectPolls(current.polls, wiki.polls, wiki.period.start)
+  const secondRoundPolls = selectDuels(wiki.secondRound)
   const next: PollsData = {
     ...current,
     asOf: today,
-    collection: { ...current.collection, sources: feeds.etmoi || feeds.mieuxvoter ? sources : current.collection.sources },
+    period: wiki.period,
+    collection: {
+      ...current.collection,
+      sources: [
+        { label: FEEDS.wikipedia.label, url: FEEDS.wikipedia.page },
+        ...current.collection.sources.filter((s) => s.url !== FEEDS.wikipedia.page),
+      ],
+    },
     otherCandidates: resolver.others,
     polls,
     secondRoundPolls,
   }
 
+  const content = (d: PollsData) =>
+    stableStringify([d.period, d.polls, d.secondRoundPolls, d.otherCandidates, d.collection])
+  const changed = content(next) !== content(current)
   const before = new Map(current.polls.map((p) => [p.id, stableStringify(p)]))
-  const added = polls.filter((p) => !before.has(p.id)).map((p) => p.id)
-  const replaced = polls.filter((p) => before.has(p.id) && before.get(p.id) !== stableStringify(p)).map((p) => p.id)
-  const contentChanged =
-    added.length > 0 ||
-    replaced.length > 0 ||
-    !sameEntries(secondRoundPolls, current.secondRoundPolls) ||
-    resolver.others.length !== current.otherCandidates.length
-  const selectionChanged = selection(next, ref, stats) !== selection(current, ref, stats)
-  const changed = contentChanged || selectionChanged
-
+  const after = new Set(polls.map((p) => p.id))
   return {
     data: changed ? next : current,
     report: {
       changed,
       asOf: changed ? today : current.asOf,
-      added,
-      replaced,
-      secondRoundAdded: secondRoundPolls.length - current.secondRoundPolls.length,
+      period: wiki.period.label,
+      added: polls.filter((p) => !before.has(p.id)).map((p) => p.id),
+      replaced: polls
+        .filter((p) => before.has(p.id) && before.get(p.id) !== stableStringify(p))
+        .map((p) => p.id),
+      removed: current.polls.filter((p) => !after.has(p.id)).map((p) => p.id),
+      secondRound: secondRoundPolls.length,
       newCandidates: resolver.others.slice(current.otherCandidates.length).map((c) => c.name),
-      selectionChanged,
+      skipped: wiki.skipped,
     },
   }
 }

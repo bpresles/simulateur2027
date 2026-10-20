@@ -2,7 +2,8 @@ import type { ReactNode } from 'react'
 import { simulationData } from '../../data/schema'
 import { BLOCS } from '../../domain/types'
 import type { PollOrigin, PollStatus, SimulationResult } from '../../domain/types'
-import { alliancesConflict } from '../../domain/alliances'
+import { allianceCombos, alliancesConflict, availableAlliances, defaultSet } from '../../domain/alliances'
+import { windowDaysOf } from '../../domain/pollAverage'
 import { referenceParts } from '../../domain/references'
 import { TIGHT_QUALIFICATION_GAP } from '../../domain/simulate'
 import { secondRoundDropout2022 } from '../../domain/secondRound'
@@ -11,7 +12,6 @@ import { useSettings } from '../../state/settingsStore'
 import { anyName, BLOC_LABELS, BLOC_VOTERS, cand, entrantLabel, profileLabel } from '../candidates'
 import { date, fieldwork, integer, num, pct, pts, ratio } from '../format'
 import { Link } from '../Link'
-import { AllianceRates } from './AllianceRates'
 import { ProvenanceLegend, ProvenanceValue } from './Provenance'
 
 const { polls, reference2022, transfers } = simulationData
@@ -26,21 +26,20 @@ const STEPS: [string, string][] = [
   ['abstention', 'Abstention du 2nd tour'],
 ]
 
-const DEFAULT_SET = polls.hypothesisSets.find((s) => s.default) ?? polls.hypothesisSets[0]!
-/** Alliances modélisées par un jeu d'hypothèses (ex. Attal rejoint Philippe → sondages sans Attal). */
-const HYPOTHESIS_ALLIANCES = polls.alliances.flatMap((al) => {
-  const set = polls.hypothesisSets.find((s) => s.id === al.hypothesisSet)
-  return set ? [{ ...al, set, rallied: al.members.filter((id) => id !== al.leader) }] : []
-})
+const DEFAULT_SET = defaultSet(polls)
+/** Alliances proposées : celles que les hypothèses des sondages retenus permettent, seules ou combinées. */
+const PROPOSED = availableAlliances(polls)
+const COMBOS = allianceCombos(polls).filter((c) => c.length > 1)
 
-const INCOMPATIBLE = polls.alliances.flatMap((x, i) =>
-  polls.alliances.slice(i + 1).flatMap((y) => (alliancesConflict(x, y) ? [[x, y] as const] : [])),
+const INCOMPATIBLE = PROPOSED.flatMap((x, i) =>
+  PROPOSED.slice(i + 1).flatMap((y) => (alliancesConflict(x, y) ? [[x, y] as const] : [])),
 )
 
 const ORIGIN: Record<PollOrigin, string> = {
   '2027etmoi': 'Notice officielle (2027etmoi)',
   mieuxvoter: 'Notice officielle (Mieux Voter)',
   manuel: 'Saisie manuelle',
+  wikipedia: 'Wikipedia',
 }
 
 const STATUS: Record<PollStatus, string> = {
@@ -79,7 +78,7 @@ const td = 'px-3 py-1.5 align-top'
 
 export function Methodology({ result }: { result: SimulationResult }) {
   const cutoff = new Date(`${polls.asOf}T00:00:00Z`)
-  cutoff.setUTCDate(cutoff.getUTCDate() - polls.windowDays)
+  cutoff.setUTCDate(cutoff.getUTCDate() - windowDaysOf(polls))
   const cutoffIso = cutoff.toISOString().slice(0, 10)
   const sr = result.secondRound
   const [a, b] = [result.entrants[0]!, result.entrants[1]!]
@@ -108,7 +107,9 @@ export function Methodology({ result }: { result: SimulationResult }) {
         <p>
           Le simulateur enchaîne sept étapes. Chaque chiffre de cette page est celui du scénario en cours sur
           le <Link to="simulateur">simulateur</Link> : il change avec vos réglages. Les données d’origine sont
-          publiques et listées avec leur lien.
+          publiques et listées avec leur lien. Les alliances ne s’appliquent pas par des taux de report : elles
+          choisissent, parmi les hypothèses testées par les sondeurs, celles où les candidats ralliés sont
+          absents (étapes 1 et 4).
         </p>
       </div>
       <nav aria-label="Étapes du calcul" className="mt-6">
@@ -140,25 +141,43 @@ export function Methodology({ result }: { result: SimulationResult }) {
       <div className="mt-8 space-y-12">
         <Step id="sondages" n={1} title="Moyenne des sondages de 1er tour">
           <div className="prose-method">
-            <p>
-              Base au <strong>{date(polls.asOf)}</strong> : pour chaque institut, on retient son{' '}
-              <strong>dernier sondage</strong> dont le terrain s’achève dans les {polls.windowDays} jours
-              précédents (depuis le {date(cutoffIso)}).
-            </p>
+            {polls.period ? (
+              <p>
+                Base au <strong>{date(polls.asOf)}</strong> : pour chaque institut, on retient son{' '}
+                <strong>dernier sondage</strong> de la période la plus récente de la{' '}
+                <a
+                  href={polls.collection.sources.find((x) => /wikipedia/.test(x.url))?.url}
+                  className="link"
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  liste des sondages de Wikipedia
+                </a>{' '}
+                (« {polls.period.label} », depuis le {date(polls.period.start)}), avec toutes ses hypothèses.
+              </p>
+            ) : (
+              <p>
+                Base au <strong>{date(polls.asOf)}</strong> : pour chaque institut, on retient son{' '}
+                <strong>dernier sondage</strong> dont le terrain s’achève dans les {polls.windowDays} jours
+                précédents (depuis le {date(cutoffIso)}).
+              </p>
+            )}
             <p>
               Un sondage teste plusieurs listes de candidats (hypothèses). Pour l’hypothèse «{' '}
-              {result.hypothesisSet.label} », on garde celles qui contiennent{' '}
-              {result.hypothesisSet.require.map(anyName).join(', ')} et aucun de ces noms :{' '}
-              {result.hypothesisSet.exclude.map(anyName).join(', ')}. Les petits candidats non simulés
-              (Dominique de Villepin, Natacha Polony…) sont retirés et l’hypothèse est ramenée à 100 %.
+              {result.hypothesisSet.label} », on garde celles qui testent tous ces candidats :{' '}
+              {result.hypothesisSet.require.map(anyName).join(', ')}, et aucun de ceux-ci :{' '}
+              {result.hypothesisSet.exclude.map(anyName).join(', ')}. Une hypothèse où un candidat exclu est
+              remplacé par un autre (Hollande à la place de Glucksmann) n’est pas retenue non plus. Les petits
+              candidats non simulés (Dominique de Villepin, Natacha Polony…) sont retirés et l’hypothèse est
+              ramenée à 100 %.
             </p>
-            {HYPOTHESIS_ALLIANCES.map((al) => (
-              <p key={al.id}>
-                {result.hypothesisAllianceId === al.id
-                  ? `Cette hypothèse est retenue parce que l’alliance « ${al.label} » est activée (étape 4) ; sans elle, la base est l’hypothèse « ${DEFAULT_SET.label} ».`
-                  : `L’hypothèse « ${DEFAULT_SET.label} » est la base par défaut ; l’alliance « ${al.label} » (étape 4) la remplace par l’hypothèse « ${al.set.label} ».`}
-              </p>
-            ))}
+            <p>
+              {result.allianceIds.length > 0
+                ? `Cette hypothèse vient des alliances activées (étape 4), qui retirent leurs ralliés ; sans alliance, la base est l’hypothèse « ${DEFAULT_SET.label} ».`
+                : `C’est la base sans alliance ; chaque alliance activée (étape 4) retire son rallié des hypothèses retenues.`}{' '}
+              Seuls les sondages qui ont une hypothèse conforme sont retenus : les autres ne sont ni comptés ni
+              proposés.
+            </p>
             <p>
               Les sondages ainsi retenus sont proposés, du plus récent au plus ancien, sous forme de cases à
               cocher sur le <Link to="simulateur">simulateur</Link> : tous sont cochés par défaut
@@ -570,64 +589,36 @@ export function Methodology({ result }: { result: SimulationResult }) {
         <Step id="alliances" n={4} title="Alliances">
           <div className="prose-method">
             <p>
-              Quand une alliance est activée, le candidat rallié se retire. Ses électeurs se répartissent
-              comme lors des <strong>désistements des législatives 2024</strong> : on lit, dans la grille des
-              reports (étape 6), la ligne de son électorat pour le type de duel du leader. Une part suit le
-              leader, une part vote pour le candidat RN, le reste s’abstient ; les scores sont ensuite ramenés
-              à 100 %. Une part modifiée dans les réglages garde, pour le reste, la répartition RN /
-              abstention de 2024.
+              Une alliance retire le candidat rallié du 1er tour : on ne garde que les hypothèses des sondages
+              qui testent tous les autres candidats simulés sans lui (ni personne à sa place), et seuls les
+              sondages qui en ont une (étape 1). Aucun taux de report n’est appliqué au 1er tour : ce sont les
+              sondés eux-mêmes qui répartissent ses électeurs.
             </p>
             <p>
-              Alliances proposées : {polls.alliances.map((al) => al.label).join(' ; ')}. Un candidat ne rallie
-              qu’une alliance, et un candidat rallié ne peut pas en mener une autre. Plusieurs alliances
-              autour du même leader se cumulent. Paires incompatibles :{' '}
-              {INCOMPATIBLE.map(([x, y]) => `« ${x.label} » et « ${y.label} »`).join(' ; ')}.
+              Le retrait d’un candidat ne mesure son ralliement que si le leader reste le seul candidat principal
+              de leur camp (leurs blocs) : quand Philippe se retire alors qu’Attal reste en lice, ses électeurs
+              vont aussi vers Attal, et rien ne dit qu’ils suivraient Glucksmann.
             </p>
-            {HYPOTHESIS_ALLIANCES.map((al) => {
-              const rallied = al.rallied.map((id) => cand(id).name).join(', ')
-              return (
-                <p key={al.id}>
-                  <strong>« {al.label} » fait exception.</strong> Les sondages testent directement un 1er tour
-                  sans {rallied} : l’activer remplace la base du 1er tour par l’hypothèse « {al.set.label} »
-                  (étape 1) au lieu d’appliquer des taux de report. Ce sont donc les sondés eux-mêmes qui
-                  répartissent les électeurs de {rallied}. Seul le rallié est engagé : {cand(al.leader!).name}{' '}
-                  peut encore mener ou rallier une autre alliance.{' '}
-                  {result.hypothesisAllianceId === al.id
-                    ? 'Cette alliance est activée dans le scénario en cours.'
-                    : 'Elle n’est pas activée dans le scénario en cours.'}
-                </p>
-              )
-            })}
-          </div>
-          <AllianceRates result={result} />
-          <div className="prose-method">
-            {result.allianceLeaks.length > 0 && (
-              <p>
-                Électeurs ralliés qui votent RN :{' '}
-                {result.allianceLeaks
-                  .map((l) => `${pct(l.points)} venus de ${cand(l.from).shortName}`)
-                  .join(', ')}
-                , ajoutés au score de {cand(result.allianceLeaks[0]!.to).shortName}.
-              </p>
-            )}
-            {result.entrants.some((e) => e.allianceIds.length > 0) ? (
-              result.entrants
-                .filter((e) => e.allianceIds.length > 0)
-                .map((e) => (
-                  <p key={e.id}>
-                    <strong>{entrantLabel(e)}</strong> : {pct(e.score)}, soit{' '}
-                    {e.members
-                      .map(
-                        (m) =>
-                          `${cand(m.candidateId).shortName} ${pct(m.contribution)} (poids ${num(m.weight, 2)})`,
-                      )
-                      .join(' et ')}
-                    . Ces poids servent à mélanger les profils de reports au 2nd tour.
-                  </p>
-                ))
-            ) : (
-              !result.hypothesisAllianceId && <p>Aucune alliance n’est activée dans le scénario en cours.</p>
-            )}
+            <p>
+              Les alliances proposées sont donc celles que les sondages de la période testent, seules ou
+              combinées ; la liste suit la synchronisation des sondages.{' '}
+              {PROPOSED.length > 0
+                ? `Actuellement : ${PROPOSED.map((al) => al.label).join(' ; ')}.`
+                : 'Aucune n’est testée actuellement.'}
+              {COMBOS.length > 0 &&
+                ` Certaines ne sont testées qu’ensemble, et s’activent alors ensemble : ${COMBOS.map((c) => c.map((al) => `« ${al.label} »`).join(' + ')).join(' ; ')}.`}{' '}
+              Un candidat ne rallie qu’une alliance, et un candidat rallié ne peut pas en mener une autre.
+              {INCOMPATIBLE.length > 0 &&
+                ` Paires incompatibles : ${INCOMPATIBLE.map(([x, y]) => `« ${x.label} » et « ${y.label} »`).join(' ; ')}.`}
+            </p>
+            <p>
+              {result.allianceIds.length > 0
+                ? `Dans le scénario en cours : ${polls.alliances
+                    .filter((al) => result.allianceIds.includes(al.id))
+                    .map((al) => `« ${al.label} »`)
+                    .join(', ')} (hypothèse « ${result.hypothesisSet.label} », ${result.institutesUsed} institut${result.institutesUsed > 1 ? 's' : ''}).`
+                : 'Aucune alliance n’est activée dans le scénario en cours.'}
+            </p>
           </div>
         </Step>
 
@@ -686,8 +677,7 @@ export function Methodology({ result }: { result: SimulationResult }) {
             <p>
               Le type de duel détermine les taux : un candidat LFI face au RN (Mélenchon), un candidat PS,
               écologiste ou PCF face au RN (Glucksmann, Tondelier, Roussel), un candidat Ensemble face au RN
-              (Philippe, Attal), un candidat LR face au RN (Retailleau). Pour un candidat d’alliance, on fait
-              la moyenne des profils de ses membres, pondérée par leur poids (étape 4).
+              (Philippe, Attal), un candidat LR face au RN (Retailleau).
             </p>
             <code className="formula">
               voix du finaliste = Σ (électorat de chaque candidat × taux de report vers ce finaliste)
@@ -696,18 +686,12 @@ export function Methodology({ result }: { result: SimulationResult }) {
               résultat = voix A ÷ (voix A + voix B), en % des suffrages exprimés
             </code>
             <p>
-              Le calcul part de l’électorat de chaque candidat au 1er tour simulé{' '}
-              <strong>avant alliances</strong>. Les électeurs d’un candidat éliminé se reportent selon leur
-              bloc, qu’il ait rallié un autre éliminé ou non : une alliance entre candidats éliminés ne change
-              donc pas le 2nd tour, seulement la qualification. Pour les électeurs d’un candidat rallié à un
-              finaliste, on reprend le taux d’alliance (étape 4) : la part qui a suivi le leader dès le 1er
-              tour lui reste fidèle, la part qui a voté RN vote RN, et ceux qui se sont abstenus au 1er tour
-              se reportent comme les électeurs de leur bloc. Une alliance avec un finaliste renforce donc son
-              report : aux taux de 2024, 72 % + 25 % × 72 % ≈ 90 % des électeurs ralliés de gauche votent pour
-              lui, contre 72 % sans alliance.
+              Le calcul part de l’électorat de chaque candidat au 1er tour simulé ; les électeurs d’un candidat
+              éliminé se reportent selon leur bloc. Un candidat rallié (étape 4) est absent des hypothèses
+              retenues : ses électeurs sont déjà répartis entre les autres candidats par les sondés.
             </p>
             <p>
-              <strong>Hors alliance, seuls des taux mesurés en 2024 sont utilisés par défaut.</strong>{' '}
+              <strong>Seuls des taux mesurés en 2024 sont utilisés par défaut.</strong>{' '}
               {transfers.completionRule}
             </p>
             <p>
@@ -900,8 +884,8 @@ export function Methodology({ result }: { result: SimulationResult }) {
               Le calage de l’abstention suppose une participation au 1er tour comparable à celle de 2022.
             </li>
             <li>
-              Les chiffres de certains sondages proviennent de Wikipedia et n’ont pas pu être revérifiés dans
-              la publication de l’institut (indiqué dans le tableau de l’étape 1).
+              Les chiffres des sondages viennent de la liste des sondages de Wikipedia et ne sont pas
+              revérifiés dans les notices de la Commission des sondages (en lien pour chaque sondage, étape 1).
             </li>
           </ul>
         </section>

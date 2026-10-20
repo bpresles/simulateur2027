@@ -1,4 +1,3 @@
-import { simulationData } from '../../data/schema'
 import { newestFirst } from '../../domain/pollAverage'
 import type { SimulationResult } from '../../domain/types'
 import { useSettings } from '../../state/settingsStore'
@@ -6,14 +5,9 @@ import { fieldwork, num } from '../format'
 import { AllianceSwitches } from './AllianceSwitches'
 import { Checkbox, Slider, Switch } from './controls'
 
-/**
- * Candidats testés : description du jeu d'hypothèses, suivie des alliances appliquées dans l'ordre des
- * données. Une alliance modélisée par un jeu d'hypothèses est déjà décrite par celui-ci.
- */
+/** Candidats testés : description du jeu d'hypothèses retenu (les alliances y retirent leurs ralliés). */
 function firstRoundSummary(result: SimulationResult): string {
-  const applied = new Set(result.entrants.flatMap((e) => e.allianceIds))
-  const rallies = simulationData.polls.alliances.filter((a) => !a.hypothesisSet && applied.has(a.id))
-  return [result.hypothesisSet.description.replace(/\.$/, ''), ...rallies.map((a) => a.label)].join(', ') + '.'
+  return result.hypothesisSet.description
 }
 
 export function ScenarioBar({ result }: { result: SimulationResult }) {

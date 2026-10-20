@@ -2,9 +2,9 @@
 
 Ce simulateur calcule l'élection présidentielle de 2027 en trois temps :
 
-1. **Premier tour.** On part de la moyenne des derniers sondages (dernier sondage de chaque institut sur 21 jours) ; des cases à cocher, triées du plus récent au plus ancien, permettent de choisir les sondages retenus (tous par défaut ; un seul coché sert tel quel, sans moyenne) parmi ceux qui testent l'hypothèse retenue (« Philippe + Attal » par défaut, « Philippe seul » si l'alliance « Attal rejoint Philippe » est activée). En option, on la projette jusqu'aux derniers sondages avant le vote en reproduisant, avec une intensité réglable, la progression observée en 2022 à la même distance du scrutin (sondages de l'automne 2021). Par défaut, on la corrige strictement de l'écart relatif réel de 2022 entre les derniers sondages et le résultat officiel, avec sa propre intensité : appliquée aux sondages de 2022, la correction redonne exactement le résultat. On applique ensuite les alliances choisies. Les alliances incompatibles sont exclues : un candidat ne rallie qu'une alliance, et un candidat rallié n'en mène pas d'autre.
+1. **Premier tour.** On part de la moyenne des derniers sondages (dernier sondage de chaque institut sur la période la plus récente de la liste des sondages de Wikipedia) ; des cases à cocher, triées du plus récent au plus ancien, permettent de choisir les sondages retenus (tous par défaut ; un seul coché sert tel quel, sans moyenne) parmi ceux qui testent l'hypothèse retenue (« Philippe + Attal » par défaut). Les alliances ne passent pas par des taux de report : activer une alliance retient les hypothèses qui testent tous les autres candidats simulés sans le rallié (ni personne à sa place), et seuls les sondages qui en ont une. Pour qu'une absence vaille ralliement, le leader doit rester le seul candidat principal de leur camp (leurs blocs) : Philippe absent alors qu'Attal reste en lice ne dit pas que ses électeurs suivent Glucksmann. Ne sont proposées que les alliances (ou combinaisons, activées ensemble) que les sondages de la période testent : la liste suit la synchronisation. En option, on la projette jusqu'aux derniers sondages avant le vote en reproduisant, avec une intensité réglable, la progression observée en 2022 à la même distance du scrutin (sondages de l'automne 2021). Par défaut, on la corrige strictement de l'écart relatif réel de 2022 entre les derniers sondages et le résultat officiel, avec sa propre intensité : appliquée aux sondages de 2022, la correction redonne exactement le résultat. Les alliances incompatibles sont exclues : un candidat ne rallie qu'une alliance, et un candidat rallié n'en mène pas d'autre.
 2. **Qualification.** Les deux candidats en tête du premier tour simulé passent au second tour.
-3. **Second tour.** Par défaut, on applique strictement les reports de voix mesurés aux législatives 2024 (enquête Ipsos-Talan publiée par franceinfo le 07/07/2024), selon le type de duel. Pour une alliance, on mélange les profils de ses membres selon leur poids. Le niveau global des blancs, nuls et abstentions est calé sur le niveau réel du second tour 2022 (Conseil constitutionnel).
+3. **Second tour.** Par défaut, on applique strictement les reports de voix mesurés aux législatives 2024 (enquête Ipsos-Talan publiée par franceinfo le 07/07/2024), selon le type de duel. Le niveau global des blancs, nuls et abstentions est calé sur le niveau réel du second tour 2022 (Conseil constitutionnel).
 
 Le site a deux pages, accessibles par le menu du haut :
 
@@ -57,20 +57,16 @@ src/
 
 ### Synchronisation automatique des sondages
 
-`bun run sync-polls` met à jour `src/data/polls-2027.json` à partir de deux flux ouverts, compilés d'après les notices officielles de la Commission des sondages :
-
-| Flux | Contenu | Licence | Priorité |
-|---|---|---|---|
-| [2027etmoi](https://www.data.gouv.fr/datasets/sondages-dintentions-de-vote-au-premier-tour-presidentielle-2027-notices-officielles) (`2027etmoi.fr/data/sondages.json`) | 1er tour, chaque chiffre vérifié sur la notice | Licence Ouverte 2.0 | 1 |
-| [Mieux Voter](https://github.com/MieuxVoter/presidentielle2027) (`presidentielle2027.json`) | 1er et 2nd tours, historique depuis 2024 | MIT (citer « Données : Mieux Voter ») | 2 |
+`bun run sync-polls` met à jour `src/data/polls-2027.json` à partir d'une seule source, la page Wikipedia [« Liste de sondages sur l'élection présidentielle française de 2027 »](https://fr.wikipedia.org/wiki/Liste_de_sondages_sur_l%27%C3%A9lection_pr%C3%A9sidentielle_fran%C3%A7aise_de_2027) (wikitext de la page, licence CC BY-SA 4.0), qui compile tous les sondages avec un lien vers leur notice à la Commission des sondages. Les chiffres ne sont pas revérifiés dans ces notices.
 
 Le script :
 
-1. récupère les deux flux et contrôle leur format (un flux injoignable ou au format inattendu est ignoré ; si les deux le sont, le script échoue) ;
-2. convertit leurs données dans notre format : instituts harmonisés, candidats associés à nos identifiants, candidats inconnus ajoutés aux candidats non simulés ;
-3. fusionne avec les données existantes : un même sondage (même institut, même fin de terrain) est remplacé par la version de la source la plus fiable (2027etmoi, puis Mieux Voter, puis saisie manuelle), en gardant son identifiant. Les saisies manuelles absentes des flux sont conservées. Seuls les sondages des 120 derniers jours sont importés ;
-4. ne modifie le fichier (et n'avance la date de référence `asOf`) que si un sondage est ajouté ou modifié, ou si la fenêtre glissante retient d'autres sondages ;
-5. valide le résultat avec le même schéma que l'application.
+1. lit les tableaux du 1er tour et retient la **période la plus récente** (actuellement « Octobre-décembre 2026 ») : celle dont un sondage se termine le plus tard, quel que soit son titre, pour s'adapter à l'ouverture d'une nouvelle période. La section « Autres » (vote blanc compté comme exprimé) est ignorée ;
+2. lit chaque ligne comme une **hypothèse** : colonnes des candidats, candidat nommé dans la colonne d'un autre (Hollande dans la colonne de Glucksmann : il le remplace, ce qui est noté dans `replacing`), colonne « Autres » à plusieurs candidats, « <1 » compté pour 0,5 ; les lignes au total éloigné de 100 (± 3 points, ± 1 au 2nd tour), décalées ou d'un institut inconnu sont écartées et signalées ;
+3. réunit les blocs d'un même sondage (même institut, même fin de terrain, par exemple un bloc par commanditaire) et ne garde que le **dernier sondage de chaque institut** sur la période ; le commanditaire est lu dans le nom de la notice. Un sondage déjà présent garde son identifiant (les sondages décochés le restent). Une saisie manuelle de la période est conservée si elle est plus récente que le sondage de son institut sur la page ;
+4. reprend les duels de 2nd tour de la période entre candidats simulés, le dernier par institut et par duel ;
+5. remplace les sondages des données par cette sélection, et la période (`period`) remplace la fenêtre glissante de `windowDays` ; le fichier (et la date de référence `asOf`) ne change que si la page change ;
+6. valide le résultat avec le même schéma que l'application, et échoue sans rien modifier si la page est injoignable ou si son format n'est plus reconnu.
 
 Les tests qui vérifient des chiffres précis utilisent un instantané figé (`src/data/__fixtures__/polls-2027-20261018.json`) : une synchronisation ne les casse donc pas. Les données vivantes sont contrôlées par `src/data/data.test.ts`.
 
@@ -86,11 +82,11 @@ Les tests qui vérifient des chiffres précis utilisent un instantané figé (`s
 
 1. Ajoutez le sondage dans `polls` avec **toutes** ses hypothèses, en reprenant les scores tels que publiés. Les candidats non simulés sont permis s'ils figurent dans `otherCandidates`.
 2. Renseignez les sources (`sources`) et, si vous avez recoupé les chiffres avec la publication de l'institut, le champ `verified`.
-3. Mettez à jour `asOf` (date de référence de la fenêtre).
+3. Mettez à jour `asOf` (date de référence).
 4. Lancez `bun run test` : la validation détecte un candidat inconnu, une date incohérente ou une ligne de reports qui ne totalise pas 100.
 5. Redéployez.
 
-Les sondages trop anciens restent dans le fichier : la page les affiche comme « hors de la fenêtre » ou « remplacé ».
+Une saisie manuelle (sans `origin`) reste en place tant qu'elle est plus récente que le sondage de son institut sur la page Wikipedia ; la synchronisation la remplace ensuite, et la retire quand une nouvelle période commence.
 
 ## Déploiement sur Vercel
 

@@ -34,26 +34,22 @@ export function App() {
   return (
     <div className="mx-auto max-w-[80rem] px-4 pb-16 sm:px-6 lg:px-8">
       <header className="flex flex-wrap items-center justify-between gap-x-6 gap-y-3 border-b border-rule py-4">
-        <div className="flex flex-wrap items-center gap-x-8 gap-y-2">
-          <Link to="simulateur" className="wide text-lg font-extrabold tracking-tight">
-            Présidentielle 2027
-          </Link>
-          <nav aria-label="Pages">
-            <ul className="flex gap-1">
-              {NAV.map((item) => (
-                <li key={item.route}>
-                  <Link
-                    to={item.route}
-                    current={route === item.route}
-                    className="block rounded-lg px-3 py-2 text-[0.95rem] font-medium text-ink-2 hover:bg-sunken hover:text-ink aria-[current=page]:bg-ballpoint-soft aria-[current=page]:text-ballpoint"
-                  >
-                    {item.label}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </nav>
-        </div>
+        <nav aria-label="Pages">
+          {/* Marge négative : le texte du premier lien s'aligne sur le bord gauche du contenu. */}
+          <ul className="-ml-3 flex gap-1">
+            {NAV.map((item) => (
+              <li key={item.route}>
+                <Link
+                  to={item.route}
+                  current={route === item.route}
+                  className="block rounded-lg px-3 py-2 text-[0.95rem] font-medium text-ink-2 hover:bg-sunken hover:text-ink aria-[current=page]:bg-ballpoint-soft aria-[current=page]:text-ballpoint"
+                >
+                  {item.label}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </nav>
         <div className="flex items-center gap-2">
           <button
             type="button"
@@ -114,7 +110,10 @@ function SimulatorPage({ result, onOpenSettings }: { result: SimulationResult; o
           </p>
           <div>
             <ul className="list-disc space-y-1 pl-5">
-              <li>La moyenne des derniers sondages (ou les seuls sondages choisis en option)</li>
+              <li>
+                La moyenne du dernier sondage de chaque institut (ou des seuls sondages choisis en option), repris
+                de la liste des sondages de Wikipedia
+              </li>
               <li>Les reports de voix des législatives 2024 entre le premier tour et le second tour</li>
               <li>
                 Les données réelles d’écarts entre les sondages d’avant premier tour et les résultats réels du premier
@@ -124,7 +123,16 @@ function SimulatorPage({ result, onOpenSettings }: { result: SimulationResult; o
             </ul>
           </div>
           <p>
-            Cependant, les résultats passés ne présagent pas des résultats futurs réels : il ne faut donc pas
+            Les alliances ne sont pas des calculs de report : chaque sondeur teste plusieurs listes de candidats
+            (hypothèses), et activer une alliance revient à retenir les hypothèses où le candidat rallié n’est
+            pas présent (et où personne ne le remplace), le leader de l’alliance l’étant. Ce sont donc les
+            sondés eux-mêmes qui répartissent ses électeurs, et seuls les sondages qui testent cette hypothèse
+            sont retenus. Pour qu’une absence vaille ralliement, le leader doit rester le seul candidat principal
+            de leur camp. Les alliances proposées sont celles que les sondages testent : la liste évolue avec
+            les hypothèses publiées par les instituts.
+          </p>
+          <p>
+            Les résultats et reports de voix des élections passées ne présagent pas des résultats futurs réels : il ne faut donc pas
             prendre ce simulateur comme un outil de prévision des résultats de 2027.
           </p>
           <p>
