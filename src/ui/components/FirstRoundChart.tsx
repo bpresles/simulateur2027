@@ -5,7 +5,7 @@ import type { AllianceLeak, Entrant, FirstRoundRow, SimulationResult } from '../
 import { reference2022Stats } from '../../hooks/useSimulation'
 import { simulationData } from '../../data/schema'
 import { cand, colorVars } from '../candidates'
-import { pct, pts, ratio } from '../format'
+import { pct, pts, ratio, shownScore } from '../format'
 import { InfoTip } from './InfoTip'
 
 const ref2022Names = new Map(simulationData.reference2022.candidates.map((c) => [c.id, c.name]))
@@ -70,6 +70,7 @@ export function FirstRoundChart({ result }: { result: SimulationResult }) {
                 rows={rows}
                 qualified={finalists.has(e.id)}
                 rank={i + 1}
+                shown={shownScore(result, e)}
                 base={baseOf(e)}
                 width={w}
                 leaks={result.allianceLeaks}
@@ -88,6 +89,7 @@ function CandidateRow({
   rows,
   qualified,
   rank,
+  shown,
   base,
   width,
   leaks,
@@ -99,6 +101,8 @@ function CandidateRow({
   baseLabel: string
   qualified: boolean
   rank: number
+  /** Score affiché, arrondi pour que les scores affichés totalisent 100,0 %. */
+  shown: number
   base: number
   width: (v: number) => string
 }) {
@@ -110,7 +114,7 @@ function CandidateRow({
     <InfoTip content={<RowDetails entrant={entrant} rows={rows} leaks={leaks} baseLabel={baseLabel} />}>
       <div
         tabIndex={0}
-        aria-label={`${rank}e : ${label}, ${pct(entrant.score)}`}
+        aria-label={`${rank}e : ${label}, ${pct(shown)}`}
         className={`grid grid-cols-[1fr_auto] items-center gap-x-3 gap-y-1 rounded-lg px-2 py-1.5 outline-offset-0 hover:bg-sunken/70 sm:grid-cols-[10rem_1fr_4rem_4rem] ${
           qualified ? 'bg-ballpoint-soft/60' : ''
         }`}
@@ -148,7 +152,7 @@ function CandidateRow({
           </motion.div>
         </div>
 
-        <span className="num text-right font-semibold">{pct(entrant.score)}</span>
+        <span className="num text-right font-semibold">{pct(shown)}</span>
         <span
           className={`num hidden text-right text-sm sm:block ${Math.abs(delta) < 0.05 ? 'text-ink-3' : 'text-ink-2'}`}
         >

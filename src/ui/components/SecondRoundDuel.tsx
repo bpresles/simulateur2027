@@ -3,7 +3,7 @@ import { simulationData } from '../../data/schema'
 import { secondRoundDropout2022 } from '../../domain/secondRound'
 import type { Entrant, SimulationResult } from '../../domain/types'
 import { cand, colorVars, entrantLabel, profileLabel } from '../candidates'
-import { fieldwork, pct } from '../format'
+import { fieldwork, pct, shownScore } from '../format'
 import { Link } from '../Link'
 import { AnimatedNumber } from './AnimatedNumber'
 
@@ -29,8 +29,8 @@ export function SecondRoundDuel({ result }: { result: SimulationResult }) {
       </h2>
       <p className="mt-1 text-ink-2">
         {result.qualification.picked === 'third'
-          ? `Qualification serrée, hypothèse retenue : ${entrantLabel(a)} (${pct(a.score)}, 1re position) et ${entrantLabel(b)} (${pct(b.score)}, 3e position) au 1er tour simulé.`
-          : `Les deux premiers du 1er tour simulé : ${entrantLabel(a)} (${pct(a.score)}) et ${entrantLabel(b)} (${pct(b.score)}).`}
+          ? `Qualification serrée, hypothèse retenue : ${entrantLabel(a)} (${pct(shownScore(result, a))}, 1re position) et ${entrantLabel(b)} (${pct(shownScore(result, b))}, 3e position) au 1er tour simulé.`
+          : `Les deux premiers du 1er tour simulé : ${entrantLabel(a)} (${pct(shownScore(result, a))}) et ${entrantLabel(b)} (${pct(shownScore(result, b))}).`}
       </p>
 
       <div className="mt-5 grid grid-cols-2 gap-3 sm:gap-5">
