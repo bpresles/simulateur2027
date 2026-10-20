@@ -21,14 +21,22 @@ export function ElectedPresident({ result }: { result: SimulationResult }) {
   const tie = margin < TIE_MARGIN
 
   const winner = cand(winnerId)
-  // Candidats ralliés au vainqueur (absents des hypothèses retenues).
-  const allies = simulationData.polls.alliances
-    .filter((a) => result.allianceIds.includes(a.id) && a.leader === winnerId)
-    .flatMap((a) => a.members.filter((id) => id !== winnerId))
-    .map((id) => cand(id).shortName)
+  // Candidats ralliés au vainqueur : absents des hypothèses retenues (alliances testées) ou estimés.
+  const allies = [
+    ...simulationData.polls.alliances
+      .filter((a) => result.allianceIds.includes(a.id) && a.leader === winnerId)
+      .flatMap((a) => a.members.filter((id) => id !== winnerId)),
+    ...result.entrants
+      .find((e) => e.id === winnerId)!
+      .members.slice(1)
+      .map((m) => m.candidateId),
+  ].map((id) => cand(id).shortName)
   const [firstName, ...lastName] = winner.name.split(' ')
 
-  const alliances = result.allianceIds.map((id) => allianceLabels.get(id) ?? id)
+  const alliances = [
+    ...result.allianceIds.map((id) => allianceLabels.get(id) ?? id),
+    ...result.estimatedAllianceIds.map((id) => `${allianceLabels.get(id) ?? id} (estimée)`),
+  ]
   const third = result.qualification.picked === 'third'
   const scenario = [
     `hypothèse « ${result.hypothesisSet.label} »`,

@@ -245,6 +245,13 @@ export interface Settings {
   /** Référence composite à deux candidats : poids du second (0 à 1), qui remplace celui des données. */
   referenceBlend: Record<CandidateId, number>
   alliances: Record<string, boolean>
+  /** Option : permettre des alliances qu'aucun sondage ne teste, estimées par les reports de 2024. */
+  untestedAlliances: boolean
+  /**
+   * Alliance estimée : part des électeurs du candidat rallié qui suit le leader (0 à 1).
+   * Absente = taux constaté aux législatives 2024.
+   */
+  allianceOverrides: Record<string, number>
   transferOverrides: Partial<Record<ProfileId, Partial<Record<Bloc, TransferValues>>>>
   /** Part des électeurs d'un finaliste qui revotent pour lui (0 à 1), null = valeur par défaut. */
   fidelity: number | null
@@ -297,6 +304,30 @@ export interface EntrantMember {
   rate: number
   /** Part des électeurs de ce membre qui votent pour le candidat RN (0 pour le leader). */
   rnRate: number
+}
+
+/** Taux d'une alliance estimée, pour chaque candidat rallié. */
+export interface AllianceRate {
+  allianceId: string
+  leaderId: CandidateId
+  joining: {
+    candidateId: CandidateId
+    /** Parts (0 à 1) qui suivent le leader et qui votent RN ; le reste s'abstient. */
+    leader: number
+    rn: number
+    /** Taux constaté en 2024, avant une éventuelle modification dans les réglages. */
+    default2024: { leader: number; rn: number }
+    /** Ligne de la grille 2024 utilisée, null si le leader n'a pas de profil de reports. */
+    source: { profileId: ProfileId; bloc: Bloc } | null
+    isOverride: boolean
+  }[]
+}
+
+/** Électeurs d'un candidat rallié qui votent pour le candidat RN au lieu de suivre le leader. */
+export interface AllianceLeak {
+  from: CandidateId
+  to: CandidateId
+  points: number
 }
 
 /** Candidat présent au 1er tour après application des alliances. */
@@ -353,8 +384,13 @@ export interface SecondRoundResult {
 
 export interface SimulationResult {
   hypothesisSet: HypothesisSet
-  /** Alliances actives retenues : leurs ralliés sont absents des hypothèses de sondage retenues. */
+  /** Alliances testées par les sondeurs : leurs ralliés sont absents des hypothèses retenues. */
   allianceIds: string[]
+  /** Alliances non testées (option), estimées par les reports des législatives 2024. */
+  estimatedAllianceIds: string[]
+  /** Taux des alliances estimables (option activée), retenues ou non. */
+  allianceRates: AllianceRate[]
+  allianceLeaks: AllianceLeak[]
   pollUsage: PollUsage[]
   /** Sondages retenus, un par institut au plus (1 = sondage seul, sans moyenne). */
   institutesUsed: number

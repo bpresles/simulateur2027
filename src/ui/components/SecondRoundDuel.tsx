@@ -107,6 +107,7 @@ function SplitBar({ a, b, pctA }: { a: Entrant; b: Entrant; pctA: number }) {
 
 function MethodLine({ result }: { result: SimulationResult }) {
   const { duel, directPolls, a, b } = result.secondRound
+  const withAlliance = result.entrants.some((e) => (e.id === a || e.id === b) && e.allianceIds.length > 0)
   return (
     <div className="mt-6 space-y-4 border-t border-rule pt-4">
       {duel.kind === 'sourced' ? (
@@ -150,6 +151,7 @@ function MethodLine({ result }: { result: SimulationResult }) {
             </p>
           )}
           <p className="mt-2 text-sm text-ink-3">
+            {withAlliance && 'Ces sondages testent les candidats sans l’alliance estimée. '}
             L’écart avec la simulation s’explique par la part élevée de personnes interrogées qui n’expriment
             aucun choix entre les deux candidats : elles sont écartées des pourcentages publiés, qui ne portent
             que sur les « votants décidés ».

@@ -1,12 +1,13 @@
-import { acceptAlliances, defaultSet, scenarioSet } from './alliances'
+import { acceptAlliances, applyAlliances, defaultSet, ralliedOf, resolveEstimatedAlliances, scenarioSet } from './alliances'
+import type { AllianceSplit } from './alliances'
 import { applyCorrections, computeReference2022 } from './corrections'
 import type { Reference2022Stats } from './corrections'
 import { averagePolls } from './pollAverage'
 import { computeProgression2022 } from './progression'
 import type { ProgressionStats } from './progression'
 import { computeSecondRound, secondRoundDropout2022 } from './secondRound'
-import { effectiveProfiles, resolveDuel } from './transfers'
-import type { Entrant, Settings, SimulationData, SimulationResult } from './types'
+import { allianceSplit2024, effectiveProfiles, resolveDuel } from './transfers'
+import type { AllianceRate, Entrant, Settings, SimulationData, SimulationResult } from './types'
 
 /** Écart de qualification (en points) en dessous duquel un avertissement est affiché. */
 export const TIGHT_QUALIFICATION_GAP = 1
@@ -21,6 +22,8 @@ export function defaultSettings(): Settings {
     correctionOverrides: {},
     referenceBlend: {},
     alliances: {},
+    untestedAlliances: false,
+    allianceOverrides: {},
     transferOverrides: {},
     fidelity: null,
     abstentionCalibration: true,
@@ -39,7 +42,8 @@ export function simulate(
   const { polls, transfers } = data
   const candidatesById = new Map(polls.candidates.map((c) => [c.id, c]))
   // Les alliances activées retirent leurs ralliés : seules comptent les hypothèses des sondages qui les
-  // testent ainsi, et seuls ces sondages sont retenus (une combinaison non testée n'est pas retenue).
+  // testent ainsi, et seuls ces sondages sont retenus. Les autres alliances activées ne sont retenues
+  // qu'avec l'option des alliances non testées, estimées ensuite par les reports de 2024.
   const alliances = acceptAlliances(polls, settings.alliances)
   const exact = scenarioSet(polls, alliances, (id) => candidatesById.get(id)?.name ?? id)
   const warnings: string[] = []
@@ -62,15 +66,47 @@ export function simulate(
   const corrected = Object.fromEntries(firstRound.map((r) => [r.candidateId, r.corrected]))
   const fidelity = settings.fidelity ?? transfers.defaultFidelity
   const profiles = effectiveProfiles(transfers, settings.transferOverrides, fidelity)
-  // Chaque candidat se présente seul : les électeurs des ralliés sont déjà répartis par les sondés.
-  const entrants: Entrant[] = Object.entries(corrected)
-    .map(([id, score]) => ({
-      id,
-      allianceIds: [],
-      members: [{ candidateId: id, contribution: score, weight: 1, rate: 1, rnRate: 0 }],
-      score,
-    }))
-    .sort((x, y) => y.score - x.score)
+  const rnId = polls.candidates.find((c) => c.isRN)?.id ?? null
+  const split2024 = (leaderId: string, joiningId: string): AllianceSplit =>
+    allianceSplit2024(candidatesById.get(leaderId)!, candidatesById.get(joiningId)!, profiles)
+  // Une part modifiée dans les réglages remplace celle de 2024 ; le reste garde la répartition
+  // RN / abstention constatée en 2024.
+  const split = (allianceId: string, leaderId: string, joiningId: string): AllianceSplit => {
+    const base = split2024(leaderId, joiningId)
+    const override = settings.allianceOverrides[allianceId]
+    if (override === undefined) return base
+    const rest = 1 - base.leader
+    return { leader: override, rn: rest > 0 ? ((1 - override) * base.rn) / rest : 0 }
+  }
+  // Les électeurs des ralliés testés sont déjà répartis par les sondés ; seules les alliances non testées
+  // (option) passent par les taux de report.
+  const estimated = settings.untestedAlliances
+    ? resolveEstimatedAlliances(corrected, polls.alliances, settings.alliances, alliances)
+    : []
+  const { entrants, leaks } = applyAlliances(corrected, estimated, split, rnId)
+  if (estimated.length > 0) {
+    warnings.push(
+      `Alliance${estimated.length > 1 ? 's' : ''} non testée${estimated.length > 1 ? 's' : ''} par les sondeurs, estimée${estimated.length > 1 ? 's' : ''} par les reports des législatives 2024 : ${estimated.map((a) => a.label).join(', ')}.`,
+    )
+  }
+  const allianceRates: AllianceRate[] = settings.untestedAlliances
+    ? polls.alliances
+        .filter((al) => !alliances.includes(al) && al.members.every((id) => corrected[id] !== undefined))
+        .map((al) => {
+          const leaderProfile = candidatesById.get(al.leader)!.duelProfile
+          return {
+            allianceId: al.id,
+            leaderId: al.leader,
+            joining: ralliedOf(al).map((id) => ({
+              candidateId: id,
+              ...split(al.id, al.leader, id),
+              default2024: split2024(al.leader, id),
+              source: leaderProfile ? { profileId: leaderProfile, bloc: candidatesById.get(id)!.bloc } : null,
+              isOverride: settings.allianceOverrides[al.id] !== undefined,
+            })),
+          }
+        })
+    : []
 
   const [first, second, third] = entrants
   if (!first || !second) throw new Error('Moins de deux candidats au 1er tour')
@@ -108,6 +144,9 @@ export function simulate(
   return {
     hypothesisSet,
     allianceIds: alliances.map((a) => a.id),
+    estimatedAllianceIds: estimated.map((a) => a.id),
+    allianceRates,
+    allianceLeaks: leaks,
     pollUsage: usage,
     institutesUsed,
     firstRound,

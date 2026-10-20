@@ -1,5 +1,5 @@
 import { hypothesisMatches, latestPerInstitute, windowDaysOf } from './pollAverage'
-import type { Alliance, Bloc, CandidateId, HypothesisSet, PollsData } from './types'
+import type { Alliance, AllianceLeak, Bloc, CandidateId, Entrant, EntrantMember, HypothesisSet, PollsData } from './types'
 
 /*
  * Une alliance retire son candidat rallié du 1er tour : on ne garde que les hypothèses des sondages qui
@@ -125,4 +125,98 @@ export function scenarioSet(data: PollsData, alliances: Alliance[], name: (id: C
     description: `Hypothèses sans ${without} (${alliances.map((a) => a.label).join(', ')}).`,
     ...filter,
   }
+}
+
+// ——— Alliances non testées par les sondeurs (option) : estimation par les reports de 2024 ———
+
+/** Répartition des électeurs d'un candidat rallié (fractions de 0 à 1) ; le reste s'abstient. */
+export interface AllianceSplit {
+  leader: number
+  rn: number
+}
+
+export interface AllianceResult {
+  entrants: Entrant[]
+  leaks: AllianceLeak[]
+}
+
+/**
+ * Alliances non testées retenues, dans l'ordre des données : chacune doit avoir ses membres en lice
+ * dans la base et être compatible avec les alliances déjà retenues (testées comprises).
+ */
+export function resolveEstimatedAlliances(
+  scores: Record<CandidateId, number>,
+  alliances: Alliance[],
+  active: Record<string, boolean>,
+  tested: Alliance[],
+): Alliance[] {
+  const accepted: Alliance[] = []
+  for (const a of alliances) {
+    if (!active[a.id] || tested.includes(a)) continue
+    if (a.members.some((id) => scores[id] === undefined)) continue
+    if ([...tested, ...accepted].some((b) => alliancesConflict(a, b))) continue
+    accepted.push(a)
+  }
+  return accepted
+}
+
+/**
+ * Applique au 1er tour des alliances estimées.
+ * Les électeurs de chaque candidat rallié se répartissent selon `split` : une part suit le leader,
+ * une part vote pour le candidat RN, le reste s'abstient. Les scores sont ensuite ramenés à 100.
+ * Les poids des membres (part de chacun dans le score de l'entrant) servent à mélanger les profils
+ * de reports au 2nd tour. Sans alliance, chaque candidat se présente seul.
+ */
+export function applyAlliances(
+  scores: Record<CandidateId, number>,
+  alliances: Alliance[],
+  split: (allianceId: string, leaderId: CandidateId, joiningId: CandidateId) => AllianceSplit,
+  rnId: CandidateId | null,
+): AllianceResult {
+  const joiningByLeader = new Map<
+    CandidateId,
+    { joining: { id: CandidateId; allianceId: string }[]; allianceIds: string[] }
+  >()
+  const absorbed = new Set<CandidateId>()
+  for (const a of alliances) {
+    const group = joiningByLeader.get(a.leader) ?? { joining: [], allianceIds: [] }
+    const joining = ralliedOf(a).filter((id) => scores[id] !== undefined)
+    group.joining.push(...joining.map((id) => ({ id, allianceId: a.id })))
+    group.allianceIds.push(a.id)
+    joiningByLeader.set(a.leader, group)
+    joining.forEach((id) => absorbed.add(id))
+  }
+
+  const leaks: AllianceLeak[] = []
+  const entrants: Entrant[] = []
+  for (const [id, score] of Object.entries(scores)) {
+    if (absorbed.has(id)) continue
+    const group = joiningByLeader.get(id)
+    const members: EntrantMember[] = [{ candidateId: id, contribution: score, weight: 0, rate: 1, rnRate: 0 }]
+    for (const { id: j, allianceId } of group?.joining ?? []) {
+      const { leader, rn } = split(allianceId, id, j)
+      const joiningScore = scores[j] ?? 0
+      members.push({ candidateId: j, contribution: joiningScore * leader, weight: 0, rate: leader, rnRate: rn })
+      if (rnId && rnId !== id && scores[rnId] !== undefined && !absorbed.has(rnId) && rn > 0) {
+        leaks.push({ from: j, to: rnId, points: joiningScore * rn })
+      }
+    }
+    entrants.push({ id, allianceIds: group?.allianceIds ?? [], members, score: 0 })
+  }
+
+  // Les électeurs ralliés qui votent RN rejoignent le score du candidat RN.
+  for (const leak of leaks) {
+    const target = entrants.find((e) => e.id === leak.to)
+    if (target) target.members[0]!.contribution += leak.points
+  }
+
+  const total = entrants.reduce((s, e) => s + e.members.reduce((t, m) => t + m.contribution, 0), 0)
+  const factor = total > 0 ? 100 / total : 0
+  for (const e of entrants) {
+    for (const m of e.members) m.contribution *= factor
+    e.score = e.members.reduce((s, m) => s + m.contribution, 0)
+    for (const m of e.members) m.weight = e.score > 0 ? m.contribution / e.score : 0
+  }
+  for (const leak of leaks) leak.points *= factor
+  return { entrants: entrants.sort((a, b) => b.score - a.score), leaks }
 }

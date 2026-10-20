@@ -16,6 +16,9 @@ interface SettingsActions {
   setReferenceBlend: (id: CandidateId, weight: number | undefined) => void
   /** Remplace les alliances actives (celles qu'aucun sondage ne permet plus sont retirées). */
   setAlliances: (alliances: Record<string, boolean>) => void
+  setUntestedAlliances: (enabled: boolean) => void
+  /** `undefined` rétablit le taux constaté en 2024 pour cette alliance estimée. */
+  setAllianceOverride: (allianceId: string, share: number | undefined) => void
   setTransferOverride: (profile: ProfileId, bloc: Bloc, values: TransferValues | undefined) => void
   setFidelity: (fidelity: number | null) => void
   setAbstentionCalibration: (enabled: boolean) => void
@@ -57,6 +60,12 @@ export const useSettings = create<SettingsStore>()(
           return { referenceBlend: weight === undefined ? rest : { ...rest, [id]: weight } }
         }),
       setAlliances: (alliances) => set({ alliances }),
+      setUntestedAlliances: (untestedAlliances) => set({ untestedAlliances }),
+      setAllianceOverride: (allianceId, share) =>
+        set((s) => {
+          const { [allianceId]: _, ...rest } = s.allianceOverrides
+          return { allianceOverrides: share === undefined ? rest : { ...rest, [allianceId]: share } }
+        }),
       setTransferOverride: (profile, bloc, values) =>
         set((s) => {
           const { [bloc]: _, ...rows } = s.transferOverrides[profile] ?? {}
@@ -89,6 +98,8 @@ export const useSettings = create<SettingsStore>()(
         correctionOverrides: s.correctionOverrides,
         referenceBlend: s.referenceBlend,
         alliances: s.alliances,
+        untestedAlliances: s.untestedAlliances,
+        allianceOverrides: s.allianceOverrides,
         transferOverrides: s.transferOverrides,
         fidelity: s.fidelity,
         abstentionCalibration: s.abstentionCalibration,
@@ -100,20 +111,16 @@ export const useSettings = create<SettingsStore>()(
       // ≤ v3 : le report d'alliance unique est remplacé par des taux par alliance (2024 par défaut).
       // ≤ v4 : le choix d'hypothèse « Philippe seul » devient l'alliance « Attal rejoint Philippe ».
       // ≤ v5 : les intensités passent de 100 % à 70 % par défaut ; une intensité restée à 100 % suit.
-      // ≤ v6 : les alliances ne passent plus par des taux de report, leurs taux modifiés sont abandonnés.
+      // ≤ v6 : les alliances passent par les hypothèses des sondages ; leurs taux modifiés ne servent plus
+      // qu'aux alliances non testées (option désactivée par défaut).
       // Le reste du scénario est conservé ; les nouveaux réglages prennent leur valeur par défaut.
       migrate: (persisted, version) => {
         if (version < 1 || version > 6) return defaultSettings()
         const {
           allianceEfficiency: _efficiency,
-          allianceOverrides: _overrides,
           hypothesisSetId,
           ...old
-        } = persisted as Partial<Settings> & {
-          allianceEfficiency?: unknown
-          allianceOverrides?: unknown
-          hypothesisSetId?: string | null
-        }
+        } = persisted as Partial<Settings> & { allianceEfficiency?: unknown; hypothesisSetId?: string | null }
         const { 'philippe-glucksmann': _dynamic, ...kept } = old.alliances ?? {}
         const alliances = version <= 2 ? kept : (old.alliances ?? {})
         return {
@@ -139,6 +146,8 @@ export function selectSettings(s: SettingsStore): Settings {
     correctionOverrides: s.correctionOverrides,
     referenceBlend: s.referenceBlend,
     alliances: s.alliances,
+    untestedAlliances: s.untestedAlliances,
+    allianceOverrides: s.allianceOverrides,
     transferOverrides: s.transferOverrides,
     fidelity: s.fidelity,
     abstentionCalibration: s.abstentionCalibration,

@@ -9,7 +9,8 @@ import { BLOC_VOTERS, cand, colorVars } from '../candidates'
 import { num, pct, pts, ratio } from '../format'
 import { referenceParts } from '../../domain/references'
 import { secondRoundDropout2022 } from '../../domain/secondRound'
-import { AllianceSwitches } from './AllianceSwitches'
+import { AllianceRates } from './AllianceRates'
+import { AllianceSwitches, UntestedAlliancesSwitch } from './AllianceSwitches'
 import { Segmented, Slider, Switch, TextButton } from './controls'
 import { provenanceClass } from '../provenance'
 import { ProvenanceLegend } from './Provenance'
@@ -66,7 +67,7 @@ export function SettingsSheet({
                 <CorrectionsPanel result={result} />
               </Tabs.Content>
               <Tabs.Content value="alliances">
-                <AlliancesPanel />
+                <AlliancesPanel result={result} />
               </Tabs.Content>
               <Tabs.Content value="reports">
                 <TransfersEditor />
@@ -214,17 +215,35 @@ function CorrectionsPanel({ result }: { result: SimulationResult }) {
   )
 }
 
-function AlliancesPanel() {
+function AlliancesPanel({ result }: { result: SimulationResult }) {
+  const untested = useSettings((s) => s.untestedAlliances)
   return (
     <div className="space-y-6">
-      <AllianceSwitches idPrefix="sheet-alliance" />
+      <UntestedAlliancesSwitch id="sheet-untested-alliances" />
+      <AllianceSwitches idPrefix="sheet-alliance" result={result} />
       <p className="text-sm text-ink-3">
-        Une alliance retire le candidat rallié du 1er tour : on ne retient que les hypothèses de sondage qui
-        testent tous les autres candidats sans lui, et seuls les sondages qui en ont une. Aucun taux de report
-        n’est appliqué : ce sont les sondés qui répartissent ses électeurs. Ne sont proposées que les alliances
-        testées par les sondages de la période ; une alliance testée seulement avec une autre active les deux.
-        Un candidat ne peut rallier qu’une alliance, et un candidat rallié ne peut pas en mener une autre.
+        Une alliance testée par les sondeurs retire le candidat rallié du 1er tour : on ne retient que les
+        hypothèses de sondage qui testent tous les autres candidats sans lui, et seuls les sondages qui en ont
+        une. Aucun taux de report n’est appliqué : ce sont les sondés qui répartissent ses électeurs. Une
+        alliance testée seulement avec une autre active les deux. Un candidat ne peut rallier qu’une alliance,
+        et un candidat rallié ne peut pas en mener une autre.
       </p>
+      {untested && (
+        <div className="space-y-4 border-t border-rule pt-5">
+          <div>
+            <p className="text-[0.95rem] font-medium">Report des voix du candidat rallié (alliances estimées)</p>
+            <p className="mt-0.5 text-sm text-ink-3">
+              Une alliance qu’aucun sondage ne teste est estimée : par défaut, taux constatés aux législatives
+              2024 après les désistements, les électeurs du candidat rallié se comportant comme leur électorat
+              dans les duels où un candidat de la famille du leader affrontait le RN. Le curseur règle la part
+              qui suit le leader ; le reste se répartit entre vote RN et abstention dans les proportions de
+              2024. Si le leader est au 2nd tour, ceux qui se sont abstenus au 1er tour se reportent alors comme
+              les électeurs de leur bloc.
+            </p>
+          </div>
+          <AllianceRates result={result} editable />
+        </div>
+      )}
     </div>
   )
 }
