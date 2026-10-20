@@ -103,18 +103,3 @@ export function fallbackSplit(
   return { toA: (expressed * affA) / (affA + affB), toB: (expressed * affB) / (affA + affB), abstention }
 }
 
-/**
- * Taux d'alliance constaté en 2024 : les électeurs du candidat rallié se comportent comme son
- * électorat dans les duels des législatives où le candidat de la famille du leader affrontait le RN
- * (après désistement). Exemple : Glucksmann rejoint Philippe → ligne « électeurs de gauche » du
- * profil Ensemble : 72 % suivent, 3 % votent RN, 25 % s'abstiennent.
- */
-export function allianceSplit2024(
-  leader: Candidate,
-  joining: Candidate,
-  profiles: ProfileTable,
-): { leader: number; rn: number } {
-  if (!leader.duelProfile) return { leader: 1, rn: 0 }
-  const row = profiles[leader.duelProfile][joining.bloc]
-  return { leader: row.finalist / 100, rn: row.rn / 100 }
-}

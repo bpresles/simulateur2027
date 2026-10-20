@@ -14,9 +14,8 @@ interface SettingsActions {
   setCorrectionOverride: (id: CandidateId, points: number | undefined) => void
   /** `undefined` rétablit le dosage des données pour cette référence composite. */
   setReferenceBlend: (id: CandidateId, weight: number | undefined) => void
-  setAlliance: (id: string, active: boolean) => void
-  /** `undefined` rétablit le taux constaté en 2024 pour cette alliance. */
-  setAllianceOverride: (allianceId: string, share: number | undefined) => void
+  /** Remplace les alliances actives (celles qu'aucun sondage ne permet plus sont retirées). */
+  setAlliances: (alliances: Record<string, boolean>) => void
   setTransferOverride: (profile: ProfileId, bloc: Bloc, values: TransferValues | undefined) => void
   setFidelity: (fidelity: number | null) => void
   setAbstentionCalibration: (enabled: boolean) => void
@@ -31,7 +30,7 @@ interface SettingsActions {
 export type SettingsStore = Settings & SettingsActions
 
 const STORAGE_KEY = 'simulateur2027:settings'
-const STORAGE_VERSION = 6
+const STORAGE_VERSION = 7
 
 export const useSettings = create<SettingsStore>()(
   persist(
@@ -57,12 +56,7 @@ export const useSettings = create<SettingsStore>()(
           const { [id]: _, ...rest } = s.referenceBlend
           return { referenceBlend: weight === undefined ? rest : { ...rest, [id]: weight } }
         }),
-      setAlliance: (id, active) => set((s) => ({ alliances: { ...s.alliances, [id]: active } })),
-      setAllianceOverride: (allianceId, share) =>
-        set((s) => {
-          const { [allianceId]: _, ...rest } = s.allianceOverrides
-          return { allianceOverrides: share === undefined ? rest : { ...rest, [allianceId]: share } }
-        }),
+      setAlliances: (alliances) => set({ alliances }),
       setTransferOverride: (profile, bloc, values) =>
         set((s) => {
           const { [bloc]: _, ...rows } = s.transferOverrides[profile] ?? {}
@@ -95,7 +89,6 @@ export const useSettings = create<SettingsStore>()(
         correctionOverrides: s.correctionOverrides,
         referenceBlend: s.referenceBlend,
         alliances: s.alliances,
-        allianceOverrides: s.allianceOverrides,
         transferOverrides: s.transferOverrides,
         fidelity: s.fidelity,
         abstentionCalibration: s.abstentionCalibration,
@@ -107,14 +100,20 @@ export const useSettings = create<SettingsStore>()(
       // ≤ v3 : le report d'alliance unique est remplacé par des taux par alliance (2024 par défaut).
       // ≤ v4 : le choix d'hypothèse « Philippe seul » devient l'alliance « Attal rejoint Philippe ».
       // ≤ v5 : les intensités passent de 100 % à 70 % par défaut ; une intensité restée à 100 % suit.
+      // ≤ v6 : les alliances ne passent plus par des taux de report, leurs taux modifiés sont abandonnés.
       // Le reste du scénario est conservé ; les nouveaux réglages prennent leur valeur par défaut.
       migrate: (persisted, version) => {
-        if (version < 1 || version > 5) return defaultSettings()
+        if (version < 1 || version > 6) return defaultSettings()
         const {
           allianceEfficiency: _efficiency,
+          allianceOverrides: _overrides,
           hypothesisSetId,
           ...old
-        } = persisted as Partial<Settings> & { allianceEfficiency?: unknown; hypothesisSetId?: string | null }
+        } = persisted as Partial<Settings> & {
+          allianceEfficiency?: unknown
+          allianceOverrides?: unknown
+          hypothesisSetId?: string | null
+        }
         const { 'philippe-glucksmann': _dynamic, ...kept } = old.alliances ?? {}
         const alliances = version <= 2 ? kept : (old.alliances ?? {})
         return {
@@ -122,7 +121,6 @@ export const useSettings = create<SettingsStore>()(
           ...old,
           alliances: hypothesisSetId === 'philippe-seul' ? { ...alliances, 'attal-philippe': true } : alliances,
           transferOverrides: version === 1 ? {} : (old.transferOverrides ?? {}),
-          allianceOverrides: old.allianceOverrides ?? {},
           ...(old.progressionIntensity === 1 && { progressionIntensity: defaultSettings().progressionIntensity }),
           ...(old.correctionIntensity === 1 && { correctionIntensity: defaultSettings().correctionIntensity }),
         }
@@ -141,7 +139,6 @@ export function selectSettings(s: SettingsStore): Settings {
     correctionOverrides: s.correctionOverrides,
     referenceBlend: s.referenceBlend,
     alliances: s.alliances,
-    allianceOverrides: s.allianceOverrides,
     transferOverrides: s.transferOverrides,
     fidelity: s.fidelity,
     abstentionCalibration: s.abstentionCalibration,

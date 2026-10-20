@@ -1,13 +1,12 @@
-import { allianceLeader, applyAlliances } from './alliances'
-import type { AllianceSplit } from './alliances'
+import { acceptAlliances, defaultSet, scenarioSet } from './alliances'
 import { applyCorrections, computeReference2022 } from './corrections'
 import type { Reference2022Stats } from './corrections'
 import { averagePolls } from './pollAverage'
 import { computeProgression2022 } from './progression'
 import type { ProgressionStats } from './progression'
 import { computeSecondRound, secondRoundDropout2022 } from './secondRound'
-import { allianceSplit2024, effectiveProfiles, resolveDuel } from './transfers'
-import type { AllianceRate, Entrant, HypothesisSet, Settings, SimulationData, SimulationResult } from './types'
+import { effectiveProfiles, resolveDuel } from './transfers'
+import type { Entrant, Settings, SimulationData, SimulationResult } from './types'
 
 /** Écart de qualification (en points) en dessous duquel un avertissement est affiché. */
 export const TIGHT_QUALIFICATION_GAP = 1
@@ -22,18 +21,12 @@ export function defaultSettings(): Settings {
     correctionOverrides: {},
     referenceBlend: {},
     alliances: {},
-    allianceOverrides: {},
     transferOverrides: {},
     fidelity: null,
     abstentionCalibration: true,
     abstentionTarget: null,
     qualificationPick: 'second',
   }
-}
-
-export function resolveHypothesisSet(data: SimulationData, id: string | null): HypothesisSet {
-  const sets = data.polls.hypothesisSets
-  return sets.find((s) => s.id === id) ?? sets.find((s) => s.default) ?? sets[0]!
 }
 
 /** Pipeline complet : sondages → corrections → alliances → qualification → 2nd tour. */
@@ -45,56 +38,39 @@ export function simulate(
 ): SimulationResult {
   const { polls, transfers } = data
   const candidatesById = new Map(polls.candidates.map((c) => [c.id, c]))
-  // Une alliance modélisée par un jeu d'hypothèses (ex. Attal rejoint Philippe → sondages sans Attal)
-  // remplace la base du 1er tour ; ses ralliés, absents de ces sondages, ne sont pas redistribués.
-  const hypothesisAlliance = polls.alliances.find((a) => a.hypothesisSet && settings.alliances[a.id]) ?? null
-  const hypothesisSet = resolveHypothesisSet(data, hypothesisAlliance?.hypothesisSet ?? null)
+  // Les alliances activées retirent leurs ralliés : seules comptent les hypothèses des sondages qui les
+  // testent ainsi, et seuls ces sondages sont retenus (une combinaison non testée n'est pas retenue).
+  const alliances = acceptAlliances(polls, settings.alliances)
+  const exact = scenarioSet(polls, alliances, (id) => candidatesById.get(id)?.name ?? id)
   const warnings: string[] = []
 
   const excluded = new Set(settings.excludedPolls)
-  const { usage, average, institutesUsed } = averagePolls(polls, hypothesisSet, excluded)
+  // Sans alliance, si aucun sondage ne teste tous les candidats simulés, la base se contente des
+  // candidats principaux du jeu par défaut.
+  const exactAverage = averagePolls(polls, exact, excluded)
+  const fallback = exactAverage.institutesUsed === 0 && alliances.length === 0
+  const hypothesisSet = fallback ? defaultSet(polls) : exact
+  const { usage, average, institutesUsed } = fallback ? averagePolls(polls, hypothesisSet, excluded) : exactAverage
+  if (fallback) warnings.push('Aucun sondage ne teste tous les candidats simulés : hypothèses des seuls candidats principaux.')
   if (usage.some((u) => u.status === 'used' && excluded.has(u.poll.id))) {
     warnings.push('Aucun des sondages cochés ne teste cette hypothèse : tous les sondages disponibles sont retenus.')
   } else if (!usage.some((u) => u.status === 'excluded') && institutesUsed < 3) {
-    warnings.push(`Seulement ${institutesUsed} institut(s) dans la fenêtre pour cette hypothèse : moyenne fragile.`)
+    warnings.push(`Seulement ${institutesUsed} institut(s) pour cette hypothèse : moyenne fragile.`)
   }
 
   const firstRound = applyCorrections(average, polls.candidates, reference, settings, progression)
   const corrected = Object.fromEntries(firstRound.map((r) => [r.candidateId, r.corrected]))
   const fidelity = settings.fidelity ?? transfers.defaultFidelity
   const profiles = effectiveProfiles(transfers, settings.transferOverrides, fidelity)
-  const rnId = polls.candidates.find((c) => c.isRN)?.id ?? null
-  const split2024 = (leaderId: string, joiningId: string): AllianceSplit =>
-    allianceSplit2024(candidatesById.get(leaderId)!, candidatesById.get(joiningId)!, profiles)
-  // Une part modifiée dans les réglages remplace celle de 2024 ; le reste garde la répartition
-  // RN / abstention constatée en 2024.
-  const split = (allianceId: string, leaderId: string, joiningId: string): AllianceSplit => {
-    const base = split2024(leaderId, joiningId)
-    const override = settings.allianceOverrides[allianceId]
-    if (override === undefined) return base
-    const rest = 1 - base.leader
-    return { leader: override, rn: rest > 0 ? ((1 - override) * base.rn) / rest : 0 }
-  }
-  const { entrants, leaks } = applyAlliances(corrected, polls.alliances, settings.alliances, split, rnId)
-  const allianceRates: AllianceRate[] = polls.alliances
-    .filter((al) => !al.hypothesisSet && al.members.every((id) => corrected[id] !== undefined))
-    .map((al) => {
-      const leaderId = allianceLeader(al, corrected)
-      const leaderProfile = candidatesById.get(leaderId)!.duelProfile
-      return {
-        allianceId: al.id,
-        leaderId,
-        joining: al.members
-          .filter((id) => id !== leaderId)
-          .map((id) => ({
-            candidateId: id,
-            ...split(al.id, leaderId, id),
-            default2024: split2024(leaderId, id),
-            source: leaderProfile ? { profileId: leaderProfile, bloc: candidatesById.get(id)!.bloc } : null,
-            isOverride: settings.allianceOverrides[al.id] !== undefined,
-          })),
-      }
-    })
+  // Chaque candidat se présente seul : les électeurs des ralliés sont déjà répartis par les sondés.
+  const entrants: Entrant[] = Object.entries(corrected)
+    .map(([id, score]) => ({
+      id,
+      allianceIds: [],
+      members: [{ candidateId: id, contribution: score, weight: 1, rate: 1, rnRate: 0 }],
+      score,
+    }))
+    .sort((x, y) => y.score - x.score)
 
   const [first, second, third] = entrants
   if (!first || !second) throw new Error('Moins de deux candidats au 1er tour')
@@ -131,13 +107,11 @@ export function simulate(
 
   return {
     hypothesisSet,
-    hypothesisAllianceId: hypothesisAlliance?.id ?? null,
+    allianceIds: alliances.map((a) => a.id),
     pollUsage: usage,
     institutesUsed,
     firstRound,
     entrants,
-    allianceRates,
-    allianceLeaks: leaks,
     qualification: { gap, tight, picked, withSecond, withThird },
     secondRound,
     warnings,

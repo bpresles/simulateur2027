@@ -49,6 +49,12 @@ describe('hypothesisMatches', () => {
     const { lisnard: _, ...scores } = h.scores
     expect(hypothesisMatches({ id: 'H', scores }, set('philippe-seul'))).toBe(true)
   })
+  it('rejette une hypothèse où un candidat exclu est remplacé (Hollande à la place de Glucksmann)', () => {
+    const filter = { require: ['melenchon', 'philippe'], exclude: ['glucksmann'] }
+    const scores = { melenchon: 16, hollande: 9, philippe: 15, lepen: 37 }
+    expect(hypothesisMatches({ id: 'H', scores }, filter)).toBe(true)
+    expect(hypothesisMatches({ id: 'H', scores, replacing: { hollande: 'glucksmann' } }, filter)).toBe(false)
+  })
 })
 
 describe('averagePolls (données réelles au 18/10/2026)', () => {

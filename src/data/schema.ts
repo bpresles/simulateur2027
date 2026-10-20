@@ -14,11 +14,13 @@ const provenance = z.enum(['franceinfo', 'publicsenat', 'lcp', 'derive', 'transp
 const sourceLink = z.object({ label: z.string(), url: z.url() })
 const fieldwork = z.object({ start: isoDate, end: isoDate })
 const scores = z.record(z.string(), percent)
+const pollOrigin = z.enum(['manuel', 'mieuxvoter', '2027etmoi', 'wikipedia'])
 
 const pollsSchema: z.ZodType<PollsData> = z.object({
   asOf: isoDate,
   electionDate: isoDate,
   windowDays: z.number().int().positive(),
+  period: z.object({ label: z.string(), start: isoDate }).optional(),
   collection: z.object({ description: z.string(), sources: z.array(sourceLink) }),
   candidates: z.array(
     z.object({
@@ -54,14 +56,13 @@ const pollsSchema: z.ZodType<PollsData> = z.object({
       label: z.string(),
       description: z.string().optional(),
       members: z.array(z.string()).min(2),
-      leader: z.string().optional(),
-      hypothesisSet: z.string().optional(),
+      leader: z.string(),
     }),
   ),
   polls: z.array(
     z.object({
       id: z.string(),
-      origin: z.enum(['manuel', 'mieuxvoter', '2027etmoi']).optional(),
+      origin: pollOrigin.optional(),
       institute: z.string(),
       sponsor: z.string(),
       fieldwork,
@@ -70,12 +71,20 @@ const pollsSchema: z.ZodType<PollsData> = z.object({
       verified: z.string().optional(),
       note: z.string().optional(),
       hypotheses: z
-        .array(z.object({ id: z.string(), label: z.string().optional(), scores }))
+        .array(
+          z.object({
+            id: z.string(),
+            label: z.string().optional(),
+            scores,
+            replacing: z.record(z.string(), z.string()).optional(),
+          }),
+        )
         .min(1),
     }),
   ),
   secondRoundPolls: z.array(
     z.object({
+      origin: pollOrigin.optional(),
       institute: z.string(),
       sponsor: z.string(),
       fieldwork,
@@ -187,15 +196,7 @@ export function validateData(data: SimulationData): string[] {
     for (const id of a.members) {
       if (!simulated.has(id)) errors.push(`Alliance ${a.id} : candidat non simulé « ${id} »`)
     }
-    if (a.leader && !a.members.includes(a.leader)) errors.push(`Alliance ${a.id} : le leader n'est pas membre`)
-    if (a.hypothesisSet) {
-      const set = polls.hypothesisSets.find((s) => s.id === a.hypothesisSet)
-      if (!set) errors.push(`Alliance ${a.id} : jeu d'hypothèses inconnu « ${a.hypothesisSet} »`)
-      if (!a.leader) errors.push(`Alliance ${a.id} : un leader fixe est requis avec un jeu d'hypothèses`)
-      for (const id of a.members.filter((m) => m !== a.leader)) {
-        if (set && !set.exclude.includes(id)) errors.push(`Alliance ${a.id} : « ${id} » n'est pas exclu de ${set.id}`)
-      }
-    }
+    if (!a.members.includes(a.leader)) errors.push(`Alliance ${a.id} : le leader n'est pas membre`)
   }
 
   for (const poll of polls.polls) {

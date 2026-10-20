@@ -51,10 +51,18 @@ export interface Hypothesis {
   id: string
   label?: string
   scores: Record<CandidateId, number>
+  /**
+   * Candidat testé à la place d'un autre (même colonne sur Wikipedia, ex. Hollande à la place de
+   * Glucksmann) : l'hypothèse ne mesure pas un retrait de ce dernier.
+   */
+  replacing?: Record<CandidateId, CandidateId>
 }
 
-/** Provenance d'un sondage : saisie manuelle ou flux synchronisé automatiquement. */
-export type PollOrigin = 'manuel' | 'mieuxvoter' | '2027etmoi'
+/**
+ * Provenance d'un sondage : saisie manuelle ou flux synchronisé automatiquement. « wikipedia » est
+ * provisoire : la reprise est remplacée dès qu'une compilation des notices officielles publie le sondage.
+ */
+export type PollOrigin = 'manuel' | 'mieuxvoter' | '2027etmoi' | 'wikipedia'
 
 export interface Poll {
   id: string
@@ -83,16 +91,13 @@ export interface Alliance {
   label: string
   description?: string
   members: CandidateId[]
-  /** Leader fixe ; absent = le membre le mieux placé au 1er tour mène l'alliance. */
-  leader?: CandidateId
-  /**
-   * Jeu d'hypothèses où les ralliés ne sont pas testés : l'alliance remplace alors la base du 1er tour
-   * par ces sondages au lieu de répartir les électeurs des ralliés (ex. Attal rejoint Philippe).
-   */
-  hypothesisSet?: string
+  /** Candidat que rejoignent les autres membres : il doit être testé dans les hypothèses retenues. */
+  leader: CandidateId
 }
 
 export interface SecondRoundPoll {
+  /** « wikipedia » pour une reprise provisoire ; absent : Mieux Voter ou saisie manuelle. */
+  origin?: PollOrigin
   institute: string
   sponsor: string
   fieldwork: Fieldwork
@@ -106,6 +111,11 @@ export interface PollsData {
   /** Date prévue du 1er tour, pour situer la base dans le temps (distance au scrutin). */
   electionDate: string
   windowDays: number
+  /**
+   * Période de la page Wikipedia d'où viennent les sondages : quand elle est indiquée, elle remplace la
+   * fenêtre glissante (dernier sondage de chaque institut terminé depuis son premier jour).
+   */
+  period?: { label: string; start: string }
   collection: { description: string; sources: SourceLink[] }
   candidates: Candidate[]
   otherCandidates: OtherCandidate[]
@@ -235,11 +245,6 @@ export interface Settings {
   /** Référence composite à deux candidats : poids du second (0 à 1), qui remplace celui des données. */
   referenceBlend: Record<CandidateId, number>
   alliances: Record<string, boolean>
-  /**
-   * Part des électeurs du candidat rallié qui suit le leader (0 à 1), par alliance.
-   * Absente = taux constaté aux législatives 2024.
-   */
-  allianceOverrides: Record<string, number>
   transferOverrides: Partial<Record<ProfileId, Partial<Record<Bloc, TransferValues>>>>
   /** Part des électeurs d'un finaliste qui revotent pour lui (0 à 1), null = valeur par défaut. */
   fidelity: number | null
@@ -292,30 +297,6 @@ export interface EntrantMember {
   rate: number
   /** Part des électeurs de ce membre qui votent pour le candidat RN (0 pour le leader). */
   rnRate: number
-}
-
-/** Taux d'alliance appliqué (ou applicable) à chaque candidat rallié d'une alliance. */
-export interface AllianceRate {
-  allianceId: string
-  leaderId: CandidateId
-  joining: {
-    candidateId: CandidateId
-    /** Parts (0 à 1) qui suivent le leader et qui votent RN ; le reste s'abstient. */
-    leader: number
-    rn: number
-    /** Taux constaté en 2024, avant une éventuelle modification dans les réglages. */
-    default2024: { leader: number; rn: number }
-    /** Ligne de la grille 2024 utilisée, null si le leader n'a pas de profil de reports. */
-    source: { profileId: ProfileId; bloc: Bloc } | null
-    isOverride: boolean
-  }[]
-}
-
-/** Électeurs d'un candidat rallié qui votent pour le candidat RN au lieu de suivre le leader. */
-export interface AllianceLeak {
-  from: CandidateId
-  to: CandidateId
-  points: number
 }
 
 /** Candidat présent au 1er tour après application des alliances. */
@@ -372,15 +353,13 @@ export interface SecondRoundResult {
 
 export interface SimulationResult {
   hypothesisSet: HypothesisSet
-  /** Alliance active qui a remplacé la base du 1er tour par son jeu d'hypothèses (null sinon). */
-  hypothesisAllianceId: string | null
+  /** Alliances actives retenues : leurs ralliés sont absents des hypothèses de sondage retenues. */
+  allianceIds: string[]
   pollUsage: PollUsage[]
   /** Sondages retenus, un par institut au plus (1 = sondage seul, sans moyenne). */
   institutesUsed: number
   firstRound: FirstRoundRow[]
   entrants: Entrant[]
-  allianceRates: AllianceRate[]
-  allianceLeaks: AllianceLeak[]
   qualification: {
     /** Écart entre le 2e et le 3e du 1er tour, en points (null s'il n'y a pas de 3e). */
     gap: number | null

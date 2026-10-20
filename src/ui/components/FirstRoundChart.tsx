@@ -1,7 +1,6 @@
-import { Fragment } from 'react'
 import type { CSSProperties } from 'react'
 import { motion } from 'motion/react'
-import type { AllianceLeak, Entrant, FirstRoundRow, SimulationResult } from '../../domain/types'
+import type { Entrant, FirstRoundRow, SimulationResult } from '../../domain/types'
 import { reference2022Stats } from '../../hooks/useSimulation'
 import { simulationData } from '../../data/schema'
 import { cand, colorVars } from '../candidates'
@@ -72,7 +71,6 @@ export function FirstRoundChart({ result }: { result: SimulationResult }) {
                 rank={i + 1}
                 base={baseOf(e)}
                 width={w}
-                leaks={result.allianceLeaks}
                 baseLabel={baseLabel}
               />
             </motion.li>
@@ -90,12 +88,10 @@ function CandidateRow({
   rank,
   base,
   width,
-  leaks,
   baseLabel,
 }: {
   entrant: Entrant
   rows: Map<string, FirstRoundRow>
-  leaks: AllianceLeak[]
   baseLabel: string
   qualified: boolean
   rank: number
@@ -107,7 +103,7 @@ function CandidateRow({
   const label = entrant.members.map((m) => cand(m.candidateId).shortName).join(' + ')
 
   return (
-    <InfoTip content={<RowDetails entrant={entrant} rows={rows} leaks={leaks} baseLabel={baseLabel} />}>
+    <InfoTip content={<RowDetails entrant={entrant} rows={rows} baseLabel={baseLabel} />}>
       <div
         tabIndex={0}
         aria-label={`${rank}e : ${label}, ${pct(entrant.score)}`}
@@ -162,12 +158,10 @@ function CandidateRow({
 function RowDetails({
   entrant,
   rows,
-  leaks,
   baseLabel,
 }: {
   entrant: Entrant
   rows: Map<string, FirstRoundRow>
-  leaks: AllianceLeak[]
   baseLabel: string
 }) {
   return (
@@ -225,14 +219,6 @@ function RowDetails({
                 <dd className="num text-right">{pct(m.contribution)}</dd>
               </>
             )}
-            {leaks
-              .filter((l) => l.to === m.candidateId)
-              .map((l) => (
-                <Fragment key={l.from}>
-                  <dt className="text-ink-3">Dont électeurs de {cand(l.from).shortName}</dt>
-                  <dd className="num text-right">{pct(l.points)}</dd>
-                </Fragment>
-              ))}
           </dl>
         )
       })}

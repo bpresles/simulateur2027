@@ -86,9 +86,14 @@ export function latestPerInstitute<T extends Dated>(polls: T[], asOf: string, wi
 
 export type HypothesisFilter = Pick<HypothesisSet, 'require' | 'exclude'>
 
+/**
+ * Candidats requis présents, exclus absents. Un exclu ne doit pas non plus être remplacé par un autre
+ * candidat (Hollande à la place de Glucksmann) : l'hypothèse ne mesure alors pas son absence.
+ */
 export function hypothesisMatches(h: Hypothesis, set: HypothesisFilter): boolean {
   const tested = (id: CandidateId) => id in h.scores
-  return set.require.every(tested) && !set.exclude.some(tested)
+  const replaced = Object.values(h.replacing ?? {})
+  return set.require.every(tested) && !set.exclude.some((id) => tested(id) || replaced.includes(id))
 }
 
 export interface PollAverageResult<P = Poll> {
@@ -138,14 +143,19 @@ export function averageHypothesisPolls<P extends HypothesisPoll>(
   return { usage, average: normalize(meanByKey(perInstitute)), institutesUsed: perInstitute.length }
 }
 
+/** Durée retenue avant la date de référence : depuis le début de la période, sinon la fenêtre glissante. */
+export function windowDaysOf(data: Pick<PollsData, 'asOf' | 'windowDays' | 'period'>): number {
+  return data.period ? Math.max(0, daysBetween(data.period.start, data.asOf)) : data.windowDays
+}
+
 /** Moyenne des sondages 2027 pour un jeu d'hypothèses, sur les candidats simulés, hors sondages exclus. */
 export function averagePolls(
   data: PollsData,
-  set: HypothesisSet,
+  set: HypothesisFilter,
   excluded: ReadonlySet<string> = new Set(),
 ): PollAverageResult {
   const simulated = new Set(data.candidates.map((c) => c.id))
-  return averageHypothesisPolls(data.polls, data.asOf, data.windowDays, set, simulated, (p) => !excluded.has(p.id))
+  return averageHypothesisPolls(data.polls, data.asOf, windowDaysOf(data), set, simulated, (p) => !excluded.has(p.id))
 }
 
 /** Nombre de jours entre deux dates ISO. */
