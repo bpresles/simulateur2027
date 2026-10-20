@@ -188,6 +188,12 @@ describe('alliances estimées (option) : reports de 2024', () => {
     const alone = simulate(data, { ...settings, alliances: { 'retailleau-philippe': true } })
     expect(alone).toMatchObject({ allianceIds: [], estimatedAllianceIds: ['retailleau-philippe'] })
 
+    // Retailleau rejoint Le Pen n'est jamais lue : Cluster17 teste une hypothèse sans Attal ni Retailleau, mais
+    // les électeurs de Retailleau n'y vont pas tous vers Le Pen. Elle est estimée.
+    const lepen = simulate(data, { ...settings, alliances: { 'attal-philippe': true, 'retailleau-lepen': true } })
+    expect(lepen).toMatchObject({ allianceIds: ['attal-philippe'], estimatedAllianceIds: ['retailleau-lepen'] })
+    expect(simulate(data, { ...defaultSettings(), alliances: { 'retailleau-lepen': true } }).allianceIds).toEqual([])
+
     // Une alliance estimée incompatible avec une alliance testée est ignorée.
     const conflict = simulate(data, { ...settings, alliances: { 'attal-philippe': true, 'philippe-glucksmann': true } })
     expect(conflict).toMatchObject({ allianceIds: ['attal-philippe'], estimatedAllianceIds: [] })

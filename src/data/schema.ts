@@ -57,6 +57,7 @@ const pollsSchema: z.ZodType<PollsData> = z.object({
       description: z.string().optional(),
       members: z.array(z.string()).min(2),
       leader: z.string(),
+      estimatedOnly: z.boolean().optional(),
     }),
   ),
   polls: z.array(
