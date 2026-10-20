@@ -10,7 +10,7 @@ import { secondRoundDropout2022 } from '../../domain/secondRound'
 import { progression2022Stats, reference2022Stats } from '../../hooks/useSimulation'
 import { useSettings } from '../../state/settingsStore'
 import { anyName, BLOC_LABELS, BLOC_VOTERS, cand, entrantLabel, profileLabel } from '../candidates'
-import { date, fieldwork, integer, num, pct, pts, ratio } from '../format'
+import { date, fieldwork, integer, num, pct, pts, ratio, shownScore } from '../format'
 import { Link } from '../Link'
 import { AllianceRates } from './AllianceRates'
 import { ProvenanceLegend, ProvenanceValue } from './Provenance'
@@ -680,7 +680,7 @@ export function Methodology({ result }: { result: SimulationResult }) {
               .filter((e) => e.allianceIds.length > 0)
               .map((e) => (
                 <p key={e.id}>
-                  <strong>{entrantLabel(e)}</strong> (alliance estimée) : {pct(e.score)}, soit{' '}
+                  <strong>{entrantLabel(e)}</strong> (alliance estimée) : {pct(shownScore(result, e))}, soit{' '}
                   {e.members
                     .map((m) => `${cand(m.candidateId).shortName} ${pct(m.contribution)} (poids ${num(m.weight, 2)})`)
                     .join(' et ')}
@@ -694,11 +694,11 @@ export function Methodology({ result }: { result: SimulationResult }) {
           <div className="prose-method">
             <p>
               Les deux candidats en tête du 1er tour simulé sont qualifiés :{' '}
-              <strong>{entrantLabel(a)}</strong> ({pct(a.score)}) et <strong>{entrantLabel(b)}</strong> (
-              {pct(b.score)})
+              <strong>{entrantLabel(a)}</strong> ({pct(shownScore(result, a))}) et <strong>{entrantLabel(b)}</strong> (
+              {pct(shownScore(result, b))})
               {result.entrants[2] && (
                 <>
-                  , devant {entrantLabel(result.entrants[2])} ({pct(result.entrants[2].score)})
+                  , devant {entrantLabel(result.entrants[2])} ({pct(shownScore(result, result.entrants[2]))})
                 </>
               )}
               . Quand l’écart entre le 2e et le 3e est inférieur à {num(TIGHT_QUALIFICATION_GAP, 0)} point,

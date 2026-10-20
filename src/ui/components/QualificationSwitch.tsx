@@ -3,7 +3,7 @@ import type { SecondRoundResult, SimulationResult } from '../../domain/types'
 import { TIGHT_QUALIFICATION_GAP } from '../../domain/simulate'
 import { useSettings } from '../../state/settingsStore'
 import { cand, colorVars, entrantLabel } from '../candidates'
-import { num, pct } from '../format'
+import { num, pct, shownScore } from '../format'
 
 /** Qualification serrée : bascule entre le 2nd tour avec le 2e et celui avec le 3e du 1er tour. */
 export function QualificationSwitch({ result }: { result: SimulationResult }) {
@@ -21,7 +21,7 @@ export function QualificationSwitch({ result }: { result: SimulationResult }) {
         Qualification serrée : deux seconds tours possibles
       </h2>
       <p className="mt-1 text-sm text-ink-2">
-        {entrantLabel(second!)} ({pct(second!.score)}) devance {entrantLabel(third!)} ({pct(third!.score)}) de{' '}
+        {entrantLabel(second!)} ({pct(shownScore(result, second!))}) devance {entrantLabel(third!)} ({pct(shownScore(result, third!))}) de{' '}
         {num(gap, 2)} point, sous le seuil de {num(TIGHT_QUALIFICATION_GAP, 0)} point : un écart bien inférieur à la
         marge d’erreur des sondages. Choisissez le second tour à afficher.
       </p>

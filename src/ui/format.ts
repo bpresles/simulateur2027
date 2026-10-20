@@ -1,4 +1,4 @@
-import type { Fieldwork } from '../domain/types'
+import type { CandidateId, Entrant, Fieldwork, SimulationResult } from '../domain/types'
 
 const formatters = new Map<number, Intl.NumberFormat>()
 function nf(digits: number): Intl.NumberFormat {
@@ -26,6 +26,34 @@ export const pts = (v: number, digits = 1) => {
 }
 
 export const ratio = (v: number) => `×${num(v, 2)}`
+
+/**
+ * Arrondit des parts à `digits` décimales en gardant leur total, arrondi (méthode du plus fort reste) :
+ * on tronque, puis on ajoute une unité aux plus grands restes. Arrondies une à une, les parts du 1er tour
+ * totaliseraient parfois 100,1 % ou 99,9 %.
+ */
+export function roundToTotal(values: number[], digits = 1): number[] {
+  const scale = 10 ** digits
+  const scaled = values.map((v) => v * scale)
+  const units = scaled.map((v) => Math.floor(v + 1e-9))
+  const missing = Math.round(scaled.reduce((s, v) => s + v, 0)) - units.reduce((s, v) => s + v, 0)
+  const byRemainder = scaled.map((_, i) => i).sort((i, j) => scaled[j]! - units[j]! - (scaled[i]! - units[i]!))
+  for (const i of byRemainder.slice(0, Math.max(0, missing))) units[i]! += 1
+  return units.map((u) => u / scale)
+}
+
+const shownScores = new WeakMap<SimulationResult, Map<CandidateId, number>>()
+
+/** Score affiché d'un candidat au 1er tour : au dixième, les scores affichés totalisant 100,0 %. */
+export function shownScore(result: SimulationResult, entrant: Entrant): number {
+  let shown = shownScores.get(result)
+  if (!shown) {
+    const rounded = roundToTotal(result.entrants.map((e) => e.score))
+    shown = new Map(result.entrants.map((e, i) => [e.id, rounded[i]!]))
+    shownScores.set(result, shown)
+  }
+  return shown.get(entrant.id) ?? entrant.score
+}
 
 /** AAAA-MM-JJ → JJ/MM/AAAA */
 export function date(iso: string): string {
