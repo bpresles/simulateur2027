@@ -3,13 +3,14 @@ import {
   acceptAlliances,
   allianceCombos,
   alliancesConflict,
+  applyAlliances,
   availableAlliances,
   campRivals,
   comboWith,
   scenarioSet,
 } from './alliances'
 import { defaultSettings, simulate } from './simulate'
-import type { Hypothesis, Poll, PollsData } from './types'
+import type { Alliance, Hypothesis, Poll, PollsData } from './types'
 
 // Catalogue d'alliances et candidats des données, avec des sondages construits pour les tests.
 const FULL = {
@@ -132,5 +133,73 @@ describe('alliances testées par les sondages', () => {
     const res = simulate(data, { ...defaultSettings(), alliances: { 'tondelier-melenchon': true } })
     expect(res.allianceIds).toEqual([])
     expect(res.pollUsage.find((u) => u.poll.id === 'a')!.matchedHypotheses).toEqual(['H1'])
+  })
+})
+
+describe('alliances estimées (option) : reports de 2024', () => {
+  const alliance: Alliance = { id: 'al', label: 'T rejoint M', members: ['m', 't'], leader: 'm' }
+  const follow = (leader: number, rn = 0) => () => ({ leader, rn })
+
+  it('sans alliance, chaque candidat reste seul', () => {
+    const { entrants } = applyAlliances({ m: 20, t: 3, x: 77 }, [], follow(1), null)
+    expect(entrants.map((e) => [e.id, e.members.length])).toEqual([
+      ['x', 1],
+      ['m', 1],
+      ['t', 1],
+    ])
+  })
+
+  it('fusionne les scores et calcule les poids (20 + 3 → 0,87 / 0,13)', () => {
+    const m = applyAlliances({ m: 20, t: 3, x: 77 }, [alliance], follow(1), null).entrants.find((e) => e.id === 'm')!
+    expect(m.score).toBeCloseTo(23, 8)
+    expect(m.allianceIds).toEqual(['al'])
+    expect(m.members[1]!.weight).toBeCloseTo(3 / 23, 8)
+  })
+
+  it('la part qui vote RN rejoint le candidat RN, celle qui ne suit pas s’abstient', () => {
+    const { entrants, leaks } = applyAlliances({ m: 20, t: 10, rn: 30, x: 40 }, [alliance], follow(0.7, 0.2), 'rn')
+    // m : 20 + 7, rn : 30 + 2, 1 point s'abstient → total 99
+    expect(entrants.find((e) => e.id === 'rn')!.score).toBeCloseTo((32 * 100) / 99, 8)
+    expect(entrants.find((e) => e.id === 'm')!.score).toBeCloseTo((27 * 100) / 99, 8)
+    expect(leaks).toEqual([{ from: 't', to: 'rn', points: expect.closeTo((2 * 100) / 99, 8) }])
+  })
+
+  it('simulation : option désactivée par défaut, une alliance non testée est ignorée', () => {
+    expect(defaultSettings().untestedAlliances).toBe(false)
+    const res = simulate(data, { ...defaultSettings(), alliances: { 'tondelier-melenchon': true } })
+    expect(res).toMatchObject({ allianceIds: [], estimatedAllianceIds: [], allianceRates: [] })
+  })
+
+  it('simulation avec l’option : alliance non testée estimée (72 % suivent, 3 % RN), testées en priorité', () => {
+    const settings = { ...defaultSettings(), untestedAlliances: true }
+    const res = simulate(data, { ...settings, alliances: { 'tondelier-melenchon': true } })
+    expect(res).toMatchObject({ allianceIds: [], estimatedAllianceIds: ['tondelier-melenchon'] })
+    const melenchon = res.entrants.find((e) => e.id === 'melenchon')!
+    expect(melenchon.members.map((m) => [m.candidateId, m.rate])).toEqual([
+      ['melenchon', 1],
+      ['tondelier', 0.72],
+    ])
+    expect(res.allianceLeaks).toEqual([{ from: 'tondelier', to: 'lepen', points: expect.any(Number) }])
+
+    // Retailleau rejoint Philippe : estimée seule (Attal en lice), lue dans les sondages avec Attal rejoint Philippe.
+    const alone = simulate(data, { ...settings, alliances: { 'retailleau-philippe': true } })
+    expect(alone).toMatchObject({ allianceIds: [], estimatedAllianceIds: ['retailleau-philippe'] })
+    const both = simulate(data, { ...settings, alliances: { 'attal-philippe': true, 'retailleau-philippe': true } })
+    expect(both).toMatchObject({ allianceIds: ['attal-philippe', 'retailleau-philippe'], estimatedAllianceIds: [] })
+
+    // Une alliance estimée incompatible avec une alliance testée est ignorée.
+    const conflict = simulate(data, { ...settings, alliances: { 'attal-philippe': true, 'philippe-glucksmann': true } })
+    expect(conflict).toMatchObject({ allianceIds: ['attal-philippe'], estimatedAllianceIds: [] })
+  })
+
+  it('simulation avec l’option : une part modifiée remplace le taux 2024', () => {
+    const res = simulate(data, {
+      ...defaultSettings(),
+      untestedAlliances: true,
+      alliances: { 'tondelier-melenchon': true },
+      allianceOverrides: { 'tondelier-melenchon': 0.9 },
+    })
+    const rate = res.allianceRates.find((r) => r.allianceId === 'tondelier-melenchon')!.joining[0]!
+    expect(rate).toMatchObject({ leader: 0.9, isOverride: true, default2024: { leader: 0.72, rn: 0.03 } })
   })
 })

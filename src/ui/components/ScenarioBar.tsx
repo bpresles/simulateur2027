@@ -2,12 +2,19 @@ import { newestFirst } from '../../domain/pollAverage'
 import type { SimulationResult } from '../../domain/types'
 import { useSettings } from '../../state/settingsStore'
 import { fieldwork, num } from '../format'
-import { AllianceSwitches } from './AllianceSwitches'
+import { simulationData } from '../../data/schema'
+import { AllianceSwitches, UntestedAlliancesSwitch } from './AllianceSwitches'
 import { Checkbox, Slider, Switch } from './controls'
 
-/** Candidats testés : description du jeu d'hypothèses retenu (les alliances y retirent leurs ralliés). */
+/**
+ * Candidats testés : description du jeu d'hypothèses retenu (les alliances testées y retirent leurs
+ * ralliés), suivie des alliances estimées.
+ */
 function firstRoundSummary(result: SimulationResult): string {
-  return result.hypothesisSet.description
+  const estimated = simulationData.polls.alliances.filter((a) => result.estimatedAllianceIds.includes(a.id))
+  return [result.hypothesisSet.description.replace(/\.$/, ''), ...estimated.map((a) => `${a.label} (estimée)`)].join(
+    ', ',
+  ) + '.'
 }
 
 export function ScenarioBar({ result }: { result: SimulationResult }) {
@@ -33,46 +40,48 @@ export function ScenarioBar({ result }: { result: SimulationResult }) {
           <PollPicker result={result} />
         </div>
 
-        <div className="grid gap-5 sm:grid-cols-2">
-          <fieldset>
-            <legend className="mb-2 text-lg font-medium text-ink-2">Alliances</legend>
-            <AllianceSwitches idPrefix="alliance" />
-          </fieldset>
+        <fieldset className="md:col-span-2">
+          <legend className="mb-2 text-lg font-medium text-ink-2">Alliances</legend>
+          <AllianceSwitches idPrefix="alliance" result={result} columns />
+        </fieldset>
 
-          <fieldset>
-            <legend className="mb-2 text-lg font-medium text-ink-2">Ajustements fondés sur 2022</legend>
-            <div className="mb-4">
-              <Switch
-                id="progression"
-                checked={s.progressionEnabled}
-                onCheckedChange={s.setProgressionEnabled}
-                label="Progression comme en 2022"
-                description="Estime les derniers sondages avant le vote selon l’évolution d’octobre 2021 à avril 2022"
-              />
-              <Intensity
-                label="Intensité de la progression"
-                hint="la progression de 2022"
-                value={s.progressionIntensity}
-                onValueChange={s.setProgressionIntensity}
-                disabled={!s.progressionEnabled}
-              />
-            </div>
+        {/* À droite des sondages sur grand écran ; sous les alliances sur mobile. */}
+        <fieldset className="md:col-start-2 md:row-start-1">
+          <legend className="mb-2 text-lg font-medium text-ink-2">Ajustements de la simulation</legend>
+          <div className="mb-4">
+            <UntestedAlliancesSwitch id="untested-alliances" />
+          </div>
+          <div className="mb-4">
             <Switch
-              id="corrections"
-              checked={s.correctionsEnabled}
-              onCheckedChange={s.setCorrectionsEnabled}
-              label="Corriger la moyenne"
-              description="Selon l’écart réel entre derniers sondages et résultat en 2022"
+              id="progression"
+              checked={s.progressionEnabled}
+              onCheckedChange={s.setProgressionEnabled}
+              label="Progression comme en 2022"
+              description="Estime les derniers sondages avant le vote selon l’évolution d’octobre 2021 à avril 2022"
             />
             <Intensity
-              label="Intensité de la correction"
-              hint="l’écart de 2022"
-              value={s.correctionIntensity}
-              onValueChange={s.setCorrectionIntensity}
-              disabled={!s.correctionsEnabled}
+              label="Intensité de la progression"
+              hint="la progression de 2022"
+              value={s.progressionIntensity}
+              onValueChange={s.setProgressionIntensity}
+              disabled={!s.progressionEnabled}
             />
-          </fieldset>
-        </div>
+          </div>
+          <Switch
+            id="corrections"
+            checked={s.correctionsEnabled}
+            onCheckedChange={s.setCorrectionsEnabled}
+            label="Corriger la moyenne"
+            description="Selon l’écart réel entre derniers sondages et résultat en 2022"
+          />
+          <Intensity
+            label="Intensité de la correction"
+            hint="l’écart de 2022"
+            value={s.correctionIntensity}
+            onValueChange={s.setCorrectionIntensity}
+            disabled={!s.correctionsEnabled}
+          />
+        </fieldset>
         <div>
           <button type="button" className="link text-sm" onClick={resetAll}>
           Réinitialiser tous les paramètres

@@ -132,6 +132,11 @@ function SimulatorPage({ result, onOpenSettings }: { result: SimulationResult; o
             les hypothèses publiées par les instituts.
           </p>
           <p>
+            En option, désactivée par défaut, vous pouvez aussi tester des alliances qu’aucun sondeur n’a
+            évaluées : elles sont alors estimées en appliquant aux sondages les reports de voix des législatives
+            2024. Une estimation reste moins fiable qu’une hypothèse testée, qui garde toujours la priorité.
+          </p>
+          <p>
             Les résultats et reports de voix des élections passées ne présagent pas des résultats futurs réels : il ne faut donc pas
             prendre ce simulateur comme un outil de prévision des résultats de 2027.
           </p>

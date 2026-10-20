@@ -12,6 +12,7 @@ import { useSettings } from '../../state/settingsStore'
 import { anyName, BLOC_LABELS, BLOC_VOTERS, cand, entrantLabel, profileLabel } from '../candidates'
 import { date, fieldwork, integer, num, pct, pts, ratio } from '../format'
 import { Link } from '../Link'
+import { AllianceRates } from './AllianceRates'
 import { ProvenanceLegend, ProvenanceValue } from './Provenance'
 
 const { polls, reference2022, transfers } = simulationData
@@ -109,7 +110,8 @@ export function Methodology({ result }: { result: SimulationResult }) {
           le <Link to="simulateur">simulateur</Link> : il change avec vos réglages. Les données d’origine sont
           publiques et listées avec leur lien. Les alliances ne s’appliquent pas par des taux de report : elles
           choisissent, parmi les hypothèses testées par les sondeurs, celles où les candidats ralliés sont
-          absents (étapes 1 et 4).
+          absents (étapes 1 et 4). En option, désactivée par défaut, une alliance qu’aucun sondeur ne teste peut
+          être estimée par les reports de voix des législatives 2024.
         </p>
       </div>
       <nav aria-label="Étapes du calcul" className="mt-6">
@@ -617,8 +619,44 @@ export function Methodology({ result }: { result: SimulationResult }) {
                     .filter((al) => result.allianceIds.includes(al.id))
                     .map((al) => `« ${al.label} »`)
                     .join(', ')} (hypothèse « ${result.hypothesisSet.label} », ${result.institutesUsed} institut${result.institutesUsed > 1 ? 's' : ''}).`
-                : 'Aucune alliance n’est activée dans le scénario en cours.'}
+                : result.estimatedAllianceIds.length === 0 && 'Aucune alliance n’est activée dans le scénario en cours.'}
             </p>
+            <h3>Option : alliances non évaluées par les sondeurs</h3>
+            <p>
+              Désactivée par défaut, l’option « Permettre de tester des alliances non évaluées par les
+              sondeurs » propose tout le catalogue d’alliances. Une alliance qu’aucune hypothèse ne teste (avec
+              les alliances testées actives) est alors <strong>estimée</strong> : sur la base des sondages,
+              les électeurs du candidat rallié se répartissent comme lors des{' '}
+              <strong>désistements des législatives 2024</strong>. On lit, dans la grille des reports (étape 6),
+              la ligne de son électorat pour le type de duel du leader : une part suit le leader, une part vote
+              pour le candidat RN, le reste s’abstient ; les scores sont ensuite ramenés à 100 %. Une part
+              modifiée dans les réglages garde, pour le reste, la répartition RN / abstention de 2024. Les
+              alliances testées restent lues dans les sondages en priorité.{' '}
+              {settings.untestedAlliances
+                ? 'L’option est activée dans le scénario en cours.'
+                : 'L’option n’est pas activée dans le scénario en cours.'}
+            </p>
+          </div>
+          {settings.untestedAlliances && <AllianceRates result={result} />}
+          <div className="prose-method">
+            {result.allianceLeaks.length > 0 && (
+              <p>
+                Électeurs ralliés qui votent RN :{' '}
+                {result.allianceLeaks.map((l) => `${pct(l.points)} venus de ${cand(l.from).shortName}`).join(', ')},
+                ajoutés au score de {cand(result.allianceLeaks[0]!.to).shortName}.
+              </p>
+            )}
+            {result.entrants
+              .filter((e) => e.allianceIds.length > 0)
+              .map((e) => (
+                <p key={e.id}>
+                  <strong>{entrantLabel(e)}</strong> (alliance estimée) : {pct(e.score)}, soit{' '}
+                  {e.members
+                    .map((m) => `${cand(m.candidateId).shortName} ${pct(m.contribution)} (poids ${num(m.weight, 2)})`)
+                    .join(' et ')}
+                  . Ces poids servent à mélanger les profils de reports au 2nd tour.
+                </p>
+              ))}
           </div>
         </Step>
 
@@ -677,7 +715,8 @@ export function Methodology({ result }: { result: SimulationResult }) {
             <p>
               Le type de duel détermine les taux : un candidat LFI face au RN (Mélenchon), un candidat PS,
               écologiste ou PCF face au RN (Glucksmann, Tondelier, Roussel), un candidat Ensemble face au RN
-              (Philippe, Attal), un candidat LR face au RN (Retailleau).
+              (Philippe, Attal), un candidat LR face au RN (Retailleau). Pour une alliance estimée (option de
+              l’étape 4), on fait la moyenne des profils de ses membres, pondérée par leur poids.
             </p>
             <code className="formula">
               voix du finaliste = Σ (électorat de chaque candidat × taux de report vers ce finaliste)
@@ -687,8 +726,13 @@ export function Methodology({ result }: { result: SimulationResult }) {
             </code>
             <p>
               Le calcul part de l’électorat de chaque candidat au 1er tour simulé ; les électeurs d’un candidat
-              éliminé se reportent selon leur bloc. Un candidat rallié (étape 4) est absent des hypothèses
-              retenues : ses électeurs sont déjà répartis entre les autres candidats par les sondés.
+              éliminé se reportent selon leur bloc. Le rallié d’une alliance testée par les sondeurs (étape 4) est
+              absent des hypothèses retenues : ses électeurs sont déjà répartis entre les autres candidats par les
+              sondés. Pour une alliance estimée, le calcul part de l’électorat <strong>avant alliance</strong> :
+              les électeurs d’un candidat rallié à un finaliste suivent le taux d’alliance (la part qui a suivi le
+              leader dès le 1er tour lui reste fidèle, la part qui a voté RN vote RN, et ceux qui se sont abstenus
+              se reportent comme les électeurs de leur bloc) ; une alliance estimée entre candidats éliminés ne
+              change pas le 2nd tour, seulement la qualification.
             </p>
             <p>
               <strong>Seuls des taux mesurés en 2024 sont utilisés par défaut.</strong>{' '}
