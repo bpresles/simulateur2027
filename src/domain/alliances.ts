@@ -141,26 +141,6 @@ export interface AllianceResult {
 }
 
 /**
- * Alliances non testées retenues, dans l'ordre des données : chacune doit avoir ses membres en lice
- * dans la base et être compatible avec les alliances déjà retenues (testées comprises).
- */
-export function resolveEstimatedAlliances(
-  scores: Record<CandidateId, number>,
-  alliances: Alliance[],
-  active: Record<string, boolean>,
-  tested: Alliance[],
-): Alliance[] {
-  const accepted: Alliance[] = []
-  for (const a of alliances) {
-    if (!active[a.id] || tested.includes(a)) continue
-    if (a.members.some((id) => scores[id] === undefined)) continue
-    if ([...tested, ...accepted].some((b) => alliancesConflict(a, b))) continue
-    accepted.push(a)
-  }
-  return accepted
-}
-
-/**
  * Applique au 1er tour des alliances estimées.
  * Les électeurs de chaque candidat rallié se répartissent selon `split` : une part suit le leader,
  * une part vote pour le candidat RN, le reste s'abstient. Les scores sont ensuite ramenés à 100.

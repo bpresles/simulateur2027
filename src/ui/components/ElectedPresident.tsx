@@ -8,7 +8,6 @@ import { AnimatedNumber } from './AnimatedNumber'
 
 /** Écart (en points) en dessous duquel le 2nd tour est présenté comme une égalité. */
 const TIE_MARGIN = 0.05
-const allianceLabels = new Map(simulationData.polls.alliances.map((a) => [a.id, a.label]))
 
 export function ElectedPresident({ result }: { result: SimulationResult }) {
   const sr = result.secondRound
@@ -30,13 +29,16 @@ export function ElectedPresident({ result }: { result: SimulationResult }) {
       .find((e) => e.id === winnerId)!
       .members.slice(1)
       .map((m) => m.candidateId),
-  ].map((id) => cand(id).shortName)
+  ]
+    .filter((id, i, all) => all.indexOf(id) === i)
+    .map((id) => cand(id).shortName)
   const [firstName, ...lastName] = winner.name.split(' ')
 
-  const alliances = [
-    ...result.allianceIds.map((id) => allianceLabels.get(id) ?? id),
-    ...result.estimatedAllianceIds.map((id) => `${allianceLabels.get(id) ?? id} (estimée)`),
-  ]
+  const alliances = simulationData.polls.alliances.flatMap((a) => {
+    const [read, estimated] = [result.allianceIds.includes(a.id), result.estimatedAllianceIds.includes(a.id)]
+    if (!read && !estimated) return []
+    return [`${a.label}${estimated ? (read ? ' (en partie estimée)' : ' (estimée)') : ''}`]
+  })
   const third = result.qualification.picked === 'third'
   const scenario = [
     `hypothèse « ${result.hypothesisSet.label} »`,

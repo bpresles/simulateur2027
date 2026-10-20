@@ -86,14 +86,20 @@ export function AllianceSwitches({
           onCheckedChange = (v) =>
             setAlliances(ids(v ? (combo ?? tested) : acceptAlliances(polls, ids(tested.filter((b) => b !== a)))))
         } else {
+          // Sondages où l'alliance est lue dans une hypothèse, et ceux où elle est estimée.
+          const pollsWhere = (field: 'allianceIds' | 'estimatedAllianceIds') =>
+            result.hypothesisGroups.filter((g) => g[field].includes(a.id)).reduce((n, g) => n + g.pollIds.length, 0)
+          const [read, guessed] = [pollsWhere('allianceIds'), pollsWhere('estimatedAllianceIds')]
           const isEstimated = checked ? estimated.includes(a) : !combo || partners.length > 0
           disabled = !checked && blocker !== undefined
           description =
             !checked && blocker
               ? `Incompatible avec « ${blocker.label} »`
-              : isEstimated
-                ? `Estimée (reports 2024)${partners.length > 0 ? ` ; testée par les sondeurs avec ${quoted(partners)}` : ' : non testée par les sondeurs'}`
-                : a.description
+              : checked && read > 0 && guessed > 0
+                ? `Lue dans ${read} sondage${read > 1 ? 's' : ''}, estimée pour ${guessed} (reports 2024)`
+                : isEstimated
+                  ? `Estimée (reports 2024)${partners.length > 0 ? ` ; testée par les sondeurs avec ${quoted(partners)}` : ' : non testée par les sondeurs'}`
+                  : a.description
           onCheckedChange = (v) => setAlliances(ids(v ? [...applied, a] : applied.filter((b) => b !== a)))
         }
         return (

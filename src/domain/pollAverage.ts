@@ -107,6 +107,66 @@ interface HypothesisPoll extends Dated {
   hypotheses: Hypothesis[]
 }
 
+/** Sondages retenus pour un même scénario et leur moyenne. */
+export interface ScenarioGroup<K, P = Poll> {
+  key: K
+  /** Moyenne entre instituts du groupe, normalisée à 100. */
+  average: Scores
+  institutes: number
+  polls: P[]
+}
+
+export interface ScenarioAverageResult<K, P = Poll> {
+  usage: PollUsage<P>[]
+  /** Groupes dans l'ordre des scénarios, sans les scénarios qu'aucun sondage retenu ne teste. */
+  groups: ScenarioGroup<K, P>[]
+  institutesUsed: number
+}
+
+/**
+ * Comme averageHypothesisPolls, avec plusieurs scénarios essayés dans l'ordre : chaque sondage retient
+ * le premier dont il a une hypothèse conforme, puis les sondages sont moyennés scénario par scénario.
+ */
+export function averageByScenario<K, P extends HypothesisPoll>(
+  polls: P[],
+  asOf: string,
+  windowDays: number,
+  scenarios: { key: K; filter: HypothesisFilter }[],
+  keep: ReadonlySet<CandidateId>,
+  include: (poll: P) => boolean = () => true,
+): ScenarioAverageResult<K, P> {
+  const { latest, superseded } = latestPerInstitute(polls, asOf, windowDays)
+  const inWindow = [...latest, ...superseded]
+  const choice = new Map<P, { index: number; matched: Hypothesis[] }>()
+  for (const poll of latest) {
+    for (const [index, s] of scenarios.entries()) {
+      const matched = poll.hypotheses.filter((h) => hypothesisMatches(h, s.filter))
+      if (matched.length > 0) {
+        choice.set(poll, { index, matched })
+        break
+      }
+    }
+  }
+  const eligible = latest.filter((p) => choice.has(p))
+  const included = eligible.some(include) ? eligible.filter(include) : eligible
+  const usage: PollUsage<P>[] = polls.map((poll) => {
+    const skip = (status: PollStatus): PollUsage<P> => ({ poll, status, matchedHypotheses: [], average: null })
+    if (!inWindow.includes(poll)) return skip('out-of-window')
+    if (superseded.includes(poll)) return skip('superseded')
+    const chosen = choice.get(poll)
+    if (!chosen) return skip('no-matching-hypothesis')
+    if (!included.includes(poll)) return skip('excluded')
+    const average = meanByKey(chosen.matched.map((h) => normalize(pick(h.scores, keep))))
+    return { poll, status: 'used', matchedHypotheses: chosen.matched.map((h) => h.id), average }
+  })
+  const groups = scenarios.flatMap((s, index) => {
+    const used = usage.filter((u) => u.average && choice.get(u.poll)?.index === index)
+    const average = normalize(meanByKey(used.map((u) => u.average!)))
+    return used.length ? [{ key: s.key, average, institutes: used.length, polls: used.map((u) => u.poll) }] : []
+  })
+  return { usage, groups, institutesUsed: usage.filter((u) => u.status === 'used').length }
+}
+
 /**
  * Moyenne de 1er tour :
  * 1. dernier sondage de chaque institut dans la fenêtre [asOf − windowDays ; asOf], parmi ceux que
@@ -124,28 +184,23 @@ export function averageHypothesisPolls<P extends HypothesisPoll>(
   keep: ReadonlySet<CandidateId>,
   include: (poll: P) => boolean = () => true,
 ): PollAverageResult<P> {
-  const { latest, superseded } = latestPerInstitute(polls, asOf, windowDays)
-  const inWindow = [...latest, ...superseded]
-  const matching = (poll: P) => poll.hypotheses.filter((h) => hypothesisMatches(h, filter))
-  const eligible = latest.filter((p) => matching(p).length > 0)
-  const included = eligible.some(include) ? eligible.filter(include) : eligible
-  const usage: PollUsage<P>[] = polls.map((poll) => {
-    const skip = (status: PollStatus): PollUsage<P> => ({ poll, status, matchedHypotheses: [], average: null })
-    if (!inWindow.includes(poll)) return skip('out-of-window')
-    if (superseded.includes(poll)) return skip('superseded')
-    const matched = matching(poll)
-    if (matched.length === 0) return skip('no-matching-hypothesis')
-    if (!included.includes(poll)) return skip('excluded')
-    const average = meanByKey(matched.map((h) => normalize(pick(h.scores, keep))))
-    return { poll, status: 'used', matchedHypotheses: matched.map((h) => h.id), average }
-  })
-  const perInstitute = usage.flatMap((u) => (u.average ? [u.average] : []))
-  return { usage, average: normalize(meanByKey(perInstitute)), institutesUsed: perInstitute.length }
+  const { usage, groups, institutesUsed } = averageByScenario(polls, asOf, windowDays, [{ key: 0, filter }], keep, include)
+  return { usage, average: groups[0]?.average ?? {}, institutesUsed }
 }
 
 /** Durée retenue avant la date de référence : depuis le début de la période, sinon la fenêtre glissante. */
 export function windowDaysOf(data: Pick<PollsData, 'asOf' | 'windowDays' | 'period'>): number {
   return data.period ? Math.max(0, daysBetween(data.period.start, data.asOf)) : data.windowDays
+}
+
+/** Sondages 2027 par scénario (premier testé par chaque sondage), sur les candidats simulés, hors exclus. */
+export function averagePollsByScenario<K>(
+  data: PollsData,
+  scenarios: { key: K; filter: HypothesisFilter }[],
+  excluded: ReadonlySet<string> = new Set(),
+): ScenarioAverageResult<K> {
+  const simulated = new Set(data.candidates.map((c) => c.id))
+  return averageByScenario(data.polls, data.asOf, windowDaysOf(data), scenarios, simulated, (p) => !excluded.has(p.id))
 }
 
 /** Moyenne des sondages 2027 pour un jeu d'hypothèses, sur les candidats simulés, hors sondages exclus. */
