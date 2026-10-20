@@ -384,9 +384,21 @@ export interface SecondRoundResult {
 
 export interface SimulationResult {
   hypothesisSet: HypothesisSet
-  /** Alliances testées par les sondeurs : leurs ralliés sont absents des hypothèses retenues. */
+  /**
+   * Hypothèses retenues par groupe de sondages : un seul groupe, sauf avec l'option des alliances non
+   * évaluées quand certains sondages ne testent qu'une partie des alliances (les autres y sont estimées).
+   */
+  hypothesisGroups: {
+    set: HypothesisSet
+    /** Alliances lues dans les hypothèses de ces sondages. */
+    allianceIds: string[]
+    /** Alliances estimées pour ces sondages (reports 2024). */
+    estimatedAllianceIds: string[]
+    pollIds: string[]
+  }[]
+  /** Alliances lues dans les hypothèses d'au moins un groupe de sondages. */
   allianceIds: string[]
-  /** Alliances non testées (option), estimées par les reports des législatives 2024. */
+  /** Alliances estimées par les reports des législatives 2024 pour au moins un groupe (option). */
   estimatedAllianceIds: string[]
   /** Taux des alliances estimables (option activée), retenues ou non. */
   allianceRates: AllianceRate[]

@@ -198,6 +198,29 @@ export function Methodology({ result }: { result: SimulationResult }) {
                 instituts ({result.institutesUsed} ici), enfin on ramène le total à 100 %.
               </p>
             )}
+            {result.hypothesisGroups.length > 1 && (
+              <p>
+                Avec l’option des alliances non évaluées (étape 4), chaque sondage utilise l’hypothèse la plus
+                complète qu’il teste, les alliances restantes y étant estimées :{' '}
+                {result.hypothesisGroups
+                  .map(
+                    (g) =>
+                      `« ${g.set.label} » pour ${g.pollIds
+                        .map((id) => result.pollUsage.find((u) => u.poll.id === id)?.poll.institute)
+                        .join(', ')}${
+                        g.estimatedAllianceIds.length > 0
+                          ? ` (estimées : ${polls.alliances
+                              .filter((al) => g.estimatedAllianceIds.includes(al.id))
+                              .map((al) => al.label)
+                              .join(', ')})`
+                          : ''
+                      }`,
+                  )
+                  .join(' ; ')}
+                . Chaque groupe est moyenné et corrigé, puis les groupes sont moyennés au prorata de leur nombre
+                d’instituts.
+              </p>
+            )}
           </div>
           <Table caption={polls.collection.description}>
             <thead>
@@ -630,8 +653,15 @@ export function Methodology({ result }: { result: SimulationResult }) {
               <strong>désistements des législatives 2024</strong>. On lit, dans la grille des reports (étape 6),
               la ligne de son électorat pour le type de duel du leader : une part suit le leader, une part vote
               pour le candidat RN, le reste s’abstient ; les scores sont ensuite ramenés à 100 %. Une part
-              modifiée dans les réglages garde, pour le reste, la répartition RN / abstention de 2024. Les
-              alliances testées restent lues dans les sondages en priorité.{' '}
+              modifiée dans les réglages garde, pour le reste, la répartition RN / abstention de 2024.
+            </p>
+            <p>
+              Les hypothèses testées gardent la priorité, sondage par sondage : chaque sondage utilise la plus
+              grande combinaison d’alliances actives qu’il teste (par exemple « Philippe seul » quand il ne teste
+              pas aussi le retrait de Retailleau), et seules les alliances qu’il ne teste pas y sont estimées. Les
+              sondages qui utilisent la même hypothèse sont moyennés, corrigés et leurs alliances estimées, puis
+              les groupes sont moyennés au prorata de leur nombre d’instituts : aucun sondage n’est écarté parce
+              qu’il ne teste qu’une partie des alliances.{' '}
               {settings.untestedAlliances
                 ? 'L’option est activée dans le scénario en cours.'
                 : 'L’option n’est pas activée dans le scénario en cours.'}
