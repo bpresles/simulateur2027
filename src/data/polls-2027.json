@@ -391,6 +391,15 @@
       "leader": "philippe"
     },
     {
+      "id": "glucksmann-attal",
+      "label": "Glucksmann rejoint Attal",
+      "members": [
+        "attal",
+        "glucksmann"
+      ],
+      "leader": "attal"
+    },
+    {
       "id": "retailleau-philippe",
       "label": "Retailleau rejoint Philippe",
       "members": [
@@ -434,6 +443,16 @@
         "tondelier"
       ],
       "leader": "glucksmann"
+    },
+    {
+      "id": "retailleau-lepen",
+      "label": "Retailleau rejoint Le Pen",
+      "members": [
+        "lepen",
+        "retailleau"
+      ],
+      "leader": "lepen",
+      "estimatedOnly": true
     },
     {
       "id": "zemmour-lepen",

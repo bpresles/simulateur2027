@@ -93,6 +93,11 @@ export interface Alliance {
   members: CandidateId[]
   /** Candidat que rejoignent les autres membres : il doit être testé dans les hypothèses retenues. */
   leader: CandidateId
+  /**
+   * Jamais lue dans les hypothèses des sondages, dont la lecture serait ambiguë (sans Retailleau, ses
+   * électeurs ne vont pas tous vers Le Pen) : toujours estimée, avec l'option des alliances non évaluées.
+   */
+  estimatedOnly?: boolean
 }
 
 export interface SecondRoundPoll {

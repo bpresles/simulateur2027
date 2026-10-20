@@ -69,7 +69,9 @@ export function allianceCombos(data: PollsData): Alliance[][] {
   const combos = new Map<string, Alliance[]>()
   for (const h of latest.flatMap((p) => p.hypotheses)) {
     // Alliances dont le leader est testé et le rallié absent : les seules qui peuvent décrire l'hypothèse.
-    const fitting = data.alliances.filter((a) => a.leader in h.scores && ralliedOf(a).every((id) => !(id in h.scores)))
+    const fitting = data.alliances.filter(
+      (a) => !a.estimatedOnly && a.leader in h.scores && ralliedOf(a).every((id) => !(id in h.scores)),
+    )
     const subsets = fitting.reduce<Alliance[][]>(
       (all, a) => [...all, ...all.filter((s) => !s.some((b) => alliancesConflict(a, b))).map((s) => [...s, a])],
       [[]],
