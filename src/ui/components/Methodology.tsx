@@ -939,9 +939,9 @@ export function Methodology({ result }: { result: SimulationResult }) {
               Les reports des législatives de 2024 ont été mesurés dans un contexte de désistements et de «
               front républicain » circonscription par circonscription. La simulation est nettement plus
               favorable aux adversaires du RN que les sondages directs de 2nd tour, affichés en repère à côté
-              du résultat. Ces sondages ne portent que sur les « votants décidés » : à six mois du scrutin,
-              plus de 40 % des personnes interrogées n’expriment aucun choix entre les deux candidats, alors
-              qu’en 2022 seuls {pct(secondRoundDropout2022(reference2022), 2)} des électeurs exprimés au 1er
+              du résultat. Ces sondages ne portent que sur les « votants décidés » : à six mois du scrutin, 20
+              à 40 % des inscrits interrogés, selon les instituts et les duels, n’expriment aucun choix entre
+              les deux candidats (indécis, vote blanc ou nul et abstention compris), alors qu’en 2022 seuls {pct(secondRoundDropout2022(reference2022), 2)} des électeurs exprimés au 1er
               tour ne se sont pas exprimés au 2nd.
             </li>
             <li>

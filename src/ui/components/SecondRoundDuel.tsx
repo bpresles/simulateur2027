@@ -10,8 +10,6 @@ import { AnimatedNumber } from './AnimatedNumber'
 const spring = { type: 'spring', stiffness: 120, damping: 22 } as const
 /** Repères affichés : les plus récents. */
 const MAX_DIRECT_POLLS = 4
-// Exemple chiffré de la part de répondants sans choix au 2nd tour (rapport YouGov du 16/10/2026).
-const yougovPoll = simulationData.polls.polls.find((p) => p.id === 'yougov-20261015')
 const pct1 = (v: number) => pct(v)
 
 export function SecondRoundDuel({ result }: { result: SimulationResult }) {
@@ -154,18 +152,8 @@ function MethodLine({ result }: { result: SimulationResult }) {
             {withAlliance && 'Ces sondages testent les candidats sans l’alliance estimée. '}
             L’écart avec la simulation s’explique par la part élevée de personnes interrogées qui n’expriment
             aucun choix entre les deux candidats : elles sont écartées des pourcentages publiés, qui ne portent
-            que sur les « votants décidés ».
-            {yougovPoll && (
-              <>
-                {' '}
-                Dans le{' '}
-                <a href={yougovPoll.sources[0]!.url} className="link" target="_blank" rel="noreferrer">
-                  sondage YouGov du {fieldwork(yougovPoll.fieldwork)}
-                </a>
-                , c’est plus de 40 % des personnes interrogées (45 % pour Mélenchon – Le Pen).
-              </>
-            )}{' '}
-            En 2022, seuls{' '}
+            que sur les « votants décidés ». Selon les instituts et les duels, c’est 20 à 40 % des inscrits
+            interrogés (indécis, vote blanc ou nul et abstention compris). En 2022, seuls{' '}
             {pct(secondRoundDropout2022(simulationData.reference2022), 2)} des électeurs qui s’étaient exprimés
             au 1er tour ne se sont pas exprimés au 2nd (abstention, vote blanc ou nul).
           </p>
