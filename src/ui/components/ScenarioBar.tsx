@@ -128,17 +128,49 @@ function PollPicker({ result }: { result: SimulationResult }) {
         {polls.map((p) => {
           const checked = !excluded.has(p.id)
           const last = checked && checkedCount === 1
+          // Synthèse de l'institut, à défaut la publication reprise par Wikipedia ; notice à part.
+          const synthesis =
+            p.sources.find((s) => s.kind === 'synthese') ??
+            p.sources.find((s) => !s.kind && !/wikipedia|commission-des-sondages/.test(s.url))
+          const notice = p.sources.find((s) => s.kind === 'notice' || /commission-des-sondages/.test(s.url))
           return (
-            <Checkbox
-              key={p.id}
-              id={`poll-${p.id}`}
-              checked={checked}
-              onCheckedChange={(v) => setPollIncluded(p.id, v)}
-              disabled={last}
-              title={last ? 'Au moins un sondage doit rester coché' : undefined}
-              label={p.institute}
-              description={fieldwork(p.fieldwork)}
-            />
+            <div key={p.id} className="flex items-start gap-2">
+              <Checkbox
+                id={`poll-${p.id}`}
+                checked={checked}
+                onCheckedChange={(v) => setPollIncluded(p.id, v)}
+                disabled={last}
+                title={last ? 'Au moins un sondage doit rester coché' : undefined}
+                label={p.institute}
+                description={fieldwork(p.fieldwork)}
+              />
+              <span className="mt-0.5 flex shrink-0 items-center gap-2">
+                {synthesis && (
+                  <a
+                    href={synthesis.url}
+                    target="_blank"
+                    rel="noreferrer"
+                    title={synthesis.label}
+                    aria-label={`${synthesis.label} : sondage ${p.institute} (nouvel onglet)`}
+                    className="rounded text-ink-3 transition-colors hover:text-ballpoint"
+                  >
+                    <ExternalLinkIcon />
+                  </a>
+                )}
+                {notice && (
+                  <a
+                    href={notice.url}
+                    target="_blank"
+                    rel="noreferrer"
+                    title="Notice déposée à la Commission des sondages"
+                    aria-label={`Note technique du sondage ${p.institute}, Commission des sondages (nouvel onglet)`}
+                    className="link text-xs"
+                  >
+                    note technique
+                  </a>
+                )}
+              </span>
+            </div>
           )
         })}
       </div>
@@ -148,6 +180,24 @@ function PollPicker({ result }: { result: SimulationResult }) {
         </button>
       )}
     </fieldset>
+  )
+}
+
+/** Icône de lien externe (flèche sortant d'un cadre). */
+function ExternalLinkIcon() {
+  return (
+    <svg
+      viewBox="0 0 16 16"
+      aria-hidden="true"
+      className="h-3.5 w-3.5"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M9.5 2.5h4v4M13.5 2.5 7 9M11.5 9.5v3a1 1 0 0 1-1 1h-7a1 1 0 0 1-1-1v-7a1 1 0 0 1 1-1h3" />
+    </svg>
   )
 }
 

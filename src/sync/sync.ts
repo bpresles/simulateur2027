@@ -2,6 +2,8 @@
 // récente du 1er tour, dernier sondage de chaque institut avec toutes ses hypothèses.
 import type { Poll, PollsData, SecondRoundPoll } from '../domain/types'
 import { CandidateResolver, FEEDS, canonicalInstitute } from './feeds'
+import { NO_LINKS, addLinks } from './links'
+import type { LinkSources } from './links'
 import { NO_SPONSOR, fromWikipedia } from './wikipedia'
 
 /** Sérialisation à clés triées : compare le contenu indépendamment de l'ordre des champs. */
@@ -90,27 +92,33 @@ export interface SyncReport {
   replaced: string[]
   removed: string[]
   secondRound: number
+  /** Synthèses et notices nouvellement associées, par sondage. */
+  newLinks: string[]
   newCandidates: string[]
   /** Lignes de la période écartées. */
   skipped: string[]
 }
 
 /**
- * Remplace les sondages par ceux de la période la plus récente de la page. Les données ne changent (et
- * la date de référence n'avance) que si la période, un sondage ou un duel change. Renvoie undefined si la
- * page ne contient aucun sondage reconnaissable (format modifié) : les données restent alors inchangées.
+ * Remplace les sondages par ceux de la période la plus récente de la page, avec la synthèse de chaque
+ * institut et la notice de la Commission des sondages quand elles sont repérées (`links`). Les données ne
+ * changent (et la date de référence n'avance) que si la période, un sondage, un lien ou un duel change.
+ * Renvoie undefined si la page ne contient aucun sondage reconnaissable (format modifié) : les données
+ * restent alors inchangées.
  */
 export function syncPolls(
   current: PollsData,
   wikitext: string,
   today: string,
+  links: LinkSources = NO_LINKS,
 ): { data: PollsData; report: SyncReport } | undefined {
   const resolver = new CandidateResolver(current.candidates, current.otherCandidates)
   const simulated = new Set(current.candidates.map((c) => c.id))
   const wiki = fromWikipedia(wikitext, resolver, simulated)
   if (!wiki) return undefined
 
-  const polls = selectPolls(current.polls, wiki.polls, wiki.period.start)
+  const selected = selectPolls(current.polls, wiki.polls, wiki.period.start)
+  const polls = addLinks(selected, current.polls, links)
   const secondRoundPolls = selectDuels(wiki.secondRound)
   const next: PollsData = {
     ...current,
@@ -132,6 +140,7 @@ export function syncPolls(
     stableStringify([d.period, d.polls, d.secondRoundPolls, d.otherCandidates, d.collection])
   const changed = content(next) !== content(current)
   const before = new Map(current.polls.map((p) => [p.id, stableStringify(p)]))
+  const urlsBefore = new Map(current.polls.map((p) => [p.id, p.sources.map((s) => s.url)]))
   const after = new Set(polls.map((p) => p.id))
   return {
     data: changed ? next : current,
@@ -145,6 +154,12 @@ export function syncPolls(
         .map((p) => p.id),
       removed: current.polls.filter((p) => !after.has(p.id)).map((p) => p.id),
       secondRound: secondRoundPolls.length,
+      // Liens ajoutés par cette synchronisation : ni sur la page, ni dans les données précédentes.
+      newLinks: polls.flatMap((p, i) => {
+        const known = new Set([...selected[i]!.sources.map((s) => s.url), ...(urlsBefore.get(p.id) ?? [])])
+        const added = p.sources.filter((s) => s.kind && !known.has(s.url))
+        return added.length ? [`${p.id} (${added.map((s) => s.label).join(', ')})`] : []
+      }),
       newCandidates: resolver.others.slice(current.otherCandidates.length).map((c) => c.name),
       skipped: wiki.skipped,
     },

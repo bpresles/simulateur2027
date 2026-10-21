@@ -189,7 +189,7 @@ const fold = (s: string) =>
 
 const MONTHS = ['jan', 'fev', 'mar', 'avr', 'mai', 'juin', 'juil', 'aou', 'sep', 'oct', 'nov', 'dec']
 /** Numéro du mois (0 à 11) d'un nom de mois, éventuellement abrégé (« sept. »), sinon -1. */
-const month = (name: string) => {
+export const month = (name: string) => {
   const m = fold(name).replace(/\./g, '')
   return MONTHS.findIndex((p) => m.startsWith(p))
 }
