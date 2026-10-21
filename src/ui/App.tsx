@@ -103,7 +103,19 @@ function SimulatorPage({ result, onOpenSettings }: { result: SimulationResult; o
           <p>
             Cet outil a été développé suite au constat que, dans les sondages de second tour, 20 à 40 % des
             inscrits interrogés n’expriment aucun choix entre les deux candidats selon les instituts et les duels
-            (indécis, vote blanc ou nul et abstention compris), réduisant de ce fait leur fiabilité.
+            (indécis, vote blanc ou nul et abstention compris), réduisant de ce fait leur fiabilité. Les indécis ne
+            sont mesurés à part que par Odoxa : dans{' '}
+            <a
+              href="https://www.odoxa.fr/wp-content/uploads/2026/10/Odoxa-Backbone-pour-la-Presse-Regionale-Public-Senat-et-le-Nouvel-Obs-IV-a-lelection-presidentielle-de-2027.pdf"
+              className="link"
+              target="_blank"
+              rel="noreferrer"
+            >
+              son sondage du 24/09 au 07/10/2026
+            </a>
+            , au moins 14 % des électeurs comptant voter ne savent pas encore pour qui voter, que Marine Le Pen
+            affronte Jean-Luc Mélenchon ou Édouard Philippe (ceux qui pensent ne pas voter ne sont pas interrogés
+            sur leur choix).
           </p>
           <p>
             Pour tenter d’offrir une meilleure simulation du résultat du second tour pour les présidentielles de 2027, cet outil se base sur les hypothèses

@@ -941,8 +941,21 @@ export function Methodology({ result }: { result: SimulationResult }) {
               favorable aux adversaires du RN que les sondages directs de 2nd tour, affichés en repère à côté
               du résultat. Ces sondages ne portent que sur les « votants décidés » : à six mois du scrutin, 20
               à 40 % des inscrits interrogés, selon les instituts et les duels, n’expriment aucun choix entre
-              les deux candidats (indécis, vote blanc ou nul et abstention compris), alors qu’en 2022 seuls {pct(secondRoundDropout2022(reference2022), 2)} des électeurs exprimés au 1er
-              tour ne se sont pas exprimés au 2nd.
+              les deux candidats (indécis, vote blanc ou nul et abstention compris), alors qu’en 2022 seuls{' '}
+              {pct(secondRoundDropout2022(reference2022), 2)} des électeurs exprimés au 1er tour ne se sont pas
+              exprimés au 2nd. Les indécis ne sont mesurés à part que par Odoxa : dans{' '}
+              <a
+                href="https://www.odoxa.fr/wp-content/uploads/2026/10/Odoxa-Backbone-pour-la-Presse-Regionale-Public-Senat-et-le-Nouvel-Obs-IV-a-lelection-presidentielle-de-2027.pdf"
+                className="link"
+                target="_blank"
+                rel="noreferrer"
+              >
+                son sondage du 24/09 au 07/10/2026
+              </a>
+              , 14 % des électeurs comptant voter répondent qu’ils ne savent pas encore pour qui voter, que Marine
+              Le Pen affronte Jean-Luc Mélenchon ou Édouard Philippe, en plus de respectivement 23 % et 18 % qui
+              envisagent de voter blanc ou nul. C’est un minimum : ceux qui pensent probablement ne pas voter ne sont pas
+              interrogés sur leur choix, et aucun autre institut ne propose ou ne publie cette réponse à part.
             </li>
             <li>
               Chaque sondage a une marge d’erreur et décrit l’opinion au moment de son terrain, à six mois du
