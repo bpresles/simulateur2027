@@ -1,5 +1,5 @@
 {
-  "asOf": "2026-10-20",
+  "asOf": "2026-10-21",
   "electionDate": "2027-04-18",
   "windowDays": 21,
   "collection": {
@@ -475,6 +475,148 @@
   ],
   "polls": [
     {
+      "id": "ifop-fiducial-20261019",
+      "origin": "wikipedia",
+      "institute": "Ifop-Fiducial",
+      "sponsor": "Non indiqué",
+      "fieldwork": {
+        "start": "2026-10-17",
+        "end": "2026-10-19"
+      },
+      "sampleSize": 1928,
+      "sources": [
+        {
+          "label": "Publication",
+          "url": "https://www.tf1info.fr/politique/elections/presidentielle/sondage-lci-presidentielle-2027-apres-les-violences-du-17-octobre-ce-que-revele-notre-derniere-enquete-2471007.html"
+        },
+        {
+          "label": "Wikipedia – liste des sondages",
+          "url": "https://fr.wikipedia.org/wiki/Liste_de_sondages_sur_l%27%C3%A9lection_pr%C3%A9sidentielle_fran%C3%A7aise_de_2027"
+        }
+      ],
+      "note": "Repris de Wikipedia : chiffres non revérifiés.",
+      "hypotheses": [
+        {
+          "id": "H1",
+          "label": "Roussel, Tondelier, Glucksmann, Attal, Philippe, Retailleau",
+          "scores": {
+            "arthaud": 0.5,
+            "melenchon": 16.5,
+            "roussel": 3,
+            "tondelier": 3,
+            "glucksmann": 13.5,
+            "attal": 5,
+            "philippe": 12,
+            "retailleau": 5,
+            "dupont-aignan": 2,
+            "lepen": 36,
+            "zemmour": 3.5
+          }
+        },
+        {
+          "id": "H2",
+          "label": "Roussel, Tondelier, Glucksmann, Philippe, Retailleau",
+          "scores": {
+            "arthaud": 0.5,
+            "melenchon": 16.5,
+            "roussel": 2.5,
+            "tondelier": 3,
+            "glucksmann": 14,
+            "philippe": 15,
+            "retailleau": 7.5,
+            "dupont-aignan": 1.5,
+            "lepen": 36,
+            "zemmour": 3.5
+          }
+        },
+        {
+          "id": "H3",
+          "label": "Roussel, Tondelier, Glucksmann, Attal, Retailleau",
+          "scores": {
+            "arthaud": 0.5,
+            "melenchon": 16,
+            "roussel": 2,
+            "tondelier": 3,
+            "glucksmann": 16,
+            "attal": 13,
+            "retailleau": 7,
+            "dupont-aignan": 1.5,
+            "lepen": 38,
+            "zemmour": 3
+          }
+        },
+        {
+          "id": "H4",
+          "label": "Glucksmann, Philippe, Retailleau",
+          "scores": {
+            "arthaud": 0.5,
+            "melenchon": 18,
+            "glucksmann": 16,
+            "philippe": 16,
+            "retailleau": 6.5,
+            "dupont-aignan": 2.5,
+            "lepen": 37,
+            "zemmour": 3.5
+          }
+        },
+        {
+          "id": "H5",
+          "label": "Hollande, Attal, Philippe, Retailleau",
+          "scores": {
+            "arthaud": 0.5,
+            "melenchon": 20,
+            "hollande": 10,
+            "attal": 6.5,
+            "philippe": 14,
+            "retailleau": 6,
+            "dupont-aignan": 2.5,
+            "lepen": 38,
+            "zemmour": 3
+          },
+          "replacing": {
+            "hollande": "glucksmann"
+          }
+        },
+        {
+          "id": "H6",
+          "label": "Roussel, Tondelier, Glucksmann, Attal, Philippe, Lisnard, Retailleau, Ruffin, Villepin",
+          "scores": {
+            "arthaud": 0,
+            "melenchon": 15,
+            "roussel": 2,
+            "tondelier": 2.5,
+            "glucksmann": 12,
+            "attal": 4,
+            "philippe": 12,
+            "lisnard": 5.5,
+            "retailleau": 5.5,
+            "dupont-aignan": 1.5,
+            "lepen": 34,
+            "zemmour": 3,
+            "ruffin": 1.5,
+            "villepin": 1.5
+          }
+        },
+        {
+          "id": "H7",
+          "label": "Roussel, Tondelier, Glucksmann, Attal, Philippe, Lisnard",
+          "scores": {
+            "arthaud": 0.5,
+            "melenchon": 15.5,
+            "roussel": 2,
+            "tondelier": 3,
+            "glucksmann": 13,
+            "attal": 5,
+            "philippe": 13,
+            "lisnard": 7,
+            "dupont-aignan": 2,
+            "lepen": 36,
+            "zemmour": 3
+          }
+        }
+      ]
+    },
+    {
       "id": "elabe-20261016",
       "origin": "wikipedia",
       "institute": "Elabe",
@@ -540,28 +682,28 @@
             "tondelier": 2.5,
             "glucksmann": 15,
             "philippe": 15.5,
+            "lisnard": 5.5,
             "retailleau": 6.5,
             "dupont-aignan": 3,
             "lepen": 31.5,
-            "zemmour": 3,
-            "lisnard": 5.5
+            "zemmour": 3
           }
         },
         {
           "id": "H4",
-          "label": "Attal, Ruffin, Lisnard",
+          "label": "Attal, Lisnard, Ruffin",
           "scores": {
             "arthaud": 0.5,
             "melenchon": 16,
             "roussel": 1.5,
             "glucksmann": 16.5,
             "attal": 9.5,
+            "lisnard": 6.5,
             "retailleau": 9,
             "dupont-aignan": 2.5,
             "lepen": 31,
             "zemmour": 3.5,
-            "ruffin": 3,
-            "lisnard": 6.5
+            "ruffin": 3
           }
         },
         {
@@ -624,7 +766,7 @@
       "hypotheses": [
         {
           "id": "H1",
-          "label": "Philippe, Retailleau, Lisnard",
+          "label": "Philippe, Lisnard, Retailleau",
           "scores": {
             "arthaud": 0.5,
             "melenchon": 18,
@@ -632,11 +774,11 @@
             "tondelier": 2,
             "glucksmann": 11,
             "philippe": 17,
+            "lisnard": 7,
             "retailleau": 7,
             "dupont-aignan": 2,
             "lepen": 31,
-            "zemmour": 3,
-            "lisnard": 7
+            "zemmour": 3
           }
         },
         {
@@ -678,10 +820,10 @@
             "roussel": 2,
             "tondelier": 2,
             "glucksmann": 16,
+            "lisnard": 17,
             "dupont-aignan": 2,
             "lepen": 35.5,
-            "zemmour": 4,
-            "lisnard": 17
+            "zemmour": 4
           }
         },
         {
@@ -802,106 +944,13 @@
             "glucksmann": 12,
             "attal": 6,
             "philippe": 8,
+            "lisnard": 4,
             "retailleau": 5,
             "dupont-aignan": 2,
             "lepen": 35,
             "zemmour": 4,
-            "lisnard": 4,
             "ruffin": 2,
             "villepin": 1
-          }
-        }
-      ]
-    },
-    {
-      "id": "ifop-20261014",
-      "origin": "wikipedia",
-      "institute": "Ifop-Fiducial",
-      "sponsor": "LCI",
-      "fieldwork": {
-        "start": "2026-10-12",
-        "end": "2026-10-14"
-      },
-      "sampleSize": 1390,
-      "sources": [
-        {
-          "label": "Notice (Commission des sondages)",
-          "url": "https://www.commission-des-sondages.fr/notices/files/notices/2026/octobre/10314-pres-climat-politique-post-primaire-ps-pp-ifop-lci-14-octobre.pdf"
-        },
-        {
-          "label": "Wikipedia – liste des sondages",
-          "url": "https://fr.wikipedia.org/wiki/Liste_de_sondages_sur_l%27%C3%A9lection_pr%C3%A9sidentielle_fran%C3%A7aise_de_2027"
-        }
-      ],
-      "note": "Repris de Wikipedia : chiffres non revérifiés.",
-      "hypotheses": [
-        {
-          "id": "H1",
-          "label": "Attal, Philippe, Lisnard, Ruffin, Villepin",
-          "scores": {
-            "arthaud": 0,
-            "melenchon": 16,
-            "roussel": 2,
-            "tondelier": 2,
-            "glucksmann": 11.5,
-            "attal": 5,
-            "philippe": 13,
-            "retailleau": 5,
-            "dupont-aignan": 1,
-            "lepen": 32,
-            "zemmour": 3,
-            "lisnard": 6,
-            "ruffin": 2,
-            "villepin": 1.5
-          }
-        },
-        {
-          "id": "H2",
-          "label": "Attal",
-          "scores": {
-            "arthaud": 0.5,
-            "melenchon": 17,
-            "roussel": 2.5,
-            "tondelier": 2,
-            "glucksmann": 16,
-            "attal": 13,
-            "retailleau": 8,
-            "dupont-aignan": 2,
-            "lepen": 36,
-            "zemmour": 3
-          }
-        },
-        {
-          "id": "H3",
-          "label": "Philippe",
-          "scores": {
-            "arthaud": 0.5,
-            "melenchon": 16,
-            "roussel": 3,
-            "tondelier": 2.5,
-            "glucksmann": 13.5,
-            "philippe": 18,
-            "retailleau": 6.5,
-            "dupont-aignan": 2,
-            "lepen": 35,
-            "zemmour": 3
-          }
-        },
-        {
-          "id": "H4",
-          "label": "Attal, Philippe",
-          "scores": {
-            "arthaud": 0,
-            "melenchon": 16,
-            "roussel": 2.5,
-            "tondelier": 2,
-            "glucksmann": 14,
-            "attal": 6,
-            "philippe": 14,
-            "retailleau": 6.5,
-            "dupont-aignan": 2,
-            "lepen": 34,
-            "zemmour": 3
           }
         }
       ]
@@ -942,11 +991,11 @@
             "glucksmann": 13,
             "attal": 5,
             "philippe": 12,
+            "lisnard": 4,
             "retailleau": 6,
             "dupont-aignan": 1,
             "lepen": 35,
             "zemmour": 5,
-            "lisnard": 4,
             "bouamrane": 0.5
           }
         },
@@ -1170,6 +1219,66 @@
     }
   ],
   "secondRoundPolls": [
+    {
+      "origin": "wikipedia",
+      "institute": "Ifop-Fiducial",
+      "sponsor": "Non indiqué",
+      "fieldwork": {
+        "start": "2026-10-17",
+        "end": "2026-10-20"
+      },
+      "sampleSize": 2081,
+      "url": "https://www.tf1info.fr/politique/elections/presidentielle/sondage-lci-presidentielle-2027-apres-les-violences-du-17-octobre-ce-que-revele-notre-derniere-enquete-2471007.html",
+      "scores": {
+        "attal": 42,
+        "lepen": 58
+      }
+    },
+    {
+      "origin": "wikipedia",
+      "institute": "Ifop-Fiducial",
+      "sponsor": "Non indiqué",
+      "fieldwork": {
+        "start": "2026-10-17",
+        "end": "2026-10-20"
+      },
+      "sampleSize": 2081,
+      "url": "https://www.tf1info.fr/politique/elections/presidentielle/sondage-lci-presidentielle-2027-apres-les-violences-du-17-octobre-ce-que-revele-notre-derniere-enquete-2471007.html",
+      "scores": {
+        "glucksmann": 43,
+        "lepen": 57
+      }
+    },
+    {
+      "origin": "wikipedia",
+      "institute": "Ifop-Fiducial",
+      "sponsor": "Non indiqué",
+      "fieldwork": {
+        "start": "2026-10-17",
+        "end": "2026-10-20"
+      },
+      "sampleSize": 2081,
+      "url": "https://www.tf1info.fr/politique/elections/presidentielle/sondage-lci-presidentielle-2027-apres-les-violences-du-17-octobre-ce-que-revele-notre-derniere-enquete-2471007.html",
+      "scores": {
+        "melenchon": 32,
+        "lepen": 68
+      }
+    },
+    {
+      "origin": "wikipedia",
+      "institute": "Ifop-Fiducial",
+      "sponsor": "Non indiqué",
+      "fieldwork": {
+        "start": "2026-10-17",
+        "end": "2026-10-20"
+      },
+      "sampleSize": 2081,
+      "url": "https://www.tf1info.fr/politique/elections/presidentielle/sondage-lci-presidentielle-2027-apres-les-violences-du-17-octobre-ce-que-revele-notre-derniere-enquete-2471007.html",
+      "scores": {
+        "philippe": 44,
+        "lepen": 56
+      }
+    },
     {
       "origin": "wikipedia",
       "institute": "Elabe",
