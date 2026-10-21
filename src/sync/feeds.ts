@@ -7,7 +7,33 @@ export const FEEDS = {
     url: 'https://fr.wikipedia.org/w/index.php?title=Liste_de_sondages_sur_l%27%C3%A9lection_pr%C3%A9sidentielle_fran%C3%A7aise_de_2027&action=raw',
     page: 'https://fr.wikipedia.org/wiki/Liste_de_sondages_sur_l%27%C3%A9lection_pr%C3%A9sidentielle_fran%C3%A7aise_de_2027',
   },
+  notices: {
+    label: 'Commission des sondages – notices',
+    url: 'https://www.commission-des-sondages.fr/notices/',
+  },
 } as const
+
+/**
+ * Flux des publications de chaque institut (nom harmonisé) et titre de ses synthèses d'intentions de vote,
+ * sans accents ni majuscules. YouGov ne publie pas de flux : sa synthèse peut être ajoutée à la main.
+ */
+export const SYNTHESES: Record<string, { url: string; title: RegExp }> = {
+  Elabe: { url: 'https://elabe.fr/feed/', title: /election presidentielle/ },
+  'Ifop-Fiducial': {
+    url: 'https://www.ifopgroup.com/feed/',
+    title: /intentions de vote|barometre de l.election presidentielle/,
+  },
+  OpinionWay: { url: 'https://www.opinion-way.com/fr/publications/feed/', title: /intentions de vote/ },
+  'Harris Interactive (Toluna)': {
+    url: 'https://tolunacorporate.com/fr/feed/',
+    title: /intentions de vote.*presidentielle/,
+  },
+  Cluster17: { url: 'https://cluster17.com/feed/', title: /presidentielle 20\d\d/ },
+  Odoxa: {
+    url: 'https://www.odoxa.fr/sondage/feed/',
+    title: /intentions de vote|presidentielle|premier tour|second tour/,
+  },
+}
 
 // ——— Instituts et candidats ———
 

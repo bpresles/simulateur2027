@@ -1,10 +1,13 @@
-// Synchronise src/data/polls-2027.json avec la page Wikipedia de la liste des sondages (bun run sync-polls).
+// Synchronise src/data/polls-2027.json avec la page Wikipedia de la liste des sondages (bun run sync-polls),
+// en y ajoutant les synthèses des instituts et les notices de la Commission des sondages.
 // N'écrit le fichier que si les données changent ; échoue si la page est injoignable, si son format n'est
-// plus reconnu ou si les données obtenues sont invalides.
+// plus reconnu ou si les données obtenues sont invalides. Un site d'institut ou de la Commission injoignable
+// n'est qu'un avertissement : les liens déjà trouvés sont gardés.
 import { appendFile, readFile, writeFile } from 'node:fs/promises'
 import { parseData } from '../src/data/schema'
 import type { PollsData } from '../src/domain/types'
-import { FEEDS } from '../src/sync/feeds'
+import { FEEDS, SYNTHESES } from '../src/sync/feeds'
+import { parseFeed, parseNoticeIndex } from '../src/sync/links'
 import { syncPolls } from '../src/sync/sync'
 import reference2022 from '../src/data/reference-2022.json'
 import transfers from '../src/data/transfers-legislatives-2024.json'
@@ -26,10 +29,33 @@ const res = await fetch(FEEDS.wikipedia.url, { headers: { 'user-agent': USER_AGE
 if (!res.ok) fail(`Wikipedia : HTTP ${res.status}.`)
 const wikitext = await res.text()
 
+// Notices et flux des instituts : en parallèle, chacun facultatif.
+const warnings: string[] = []
+const optional = async (label: string, url: string): Promise<string> => {
+  try {
+    const r = await fetch(url, { headers: { 'user-agent': USER_AGENT }, signal: AbortSignal.timeout(20_000) })
+    if (!r.ok) throw new Error(`HTTP ${r.status}`)
+    return await r.text()
+  } catch (e) {
+    warnings.push(`${label} injoignable (${e instanceof Error ? e.message : String(e)})`)
+    return ''
+  }
+}
+const [noticeIndex, ...feeds] = await Promise.all([
+  optional('Liste des notices de la Commission des sondages', FEEDS.notices.url),
+  ...Object.entries(SYNTHESES).map(([institute, { url }]) => optional(`Flux ${institute}`, url)),
+])
+const links = {
+  notices: parseNoticeIndex(noticeIndex!),
+  publications: Object.fromEntries(
+    Object.keys(SYNTHESES).map((institute, i) => [institute, parseFeed(feeds[i]!)]),
+  ),
+}
+
 // Fichier brut : l'ordre des champs est conservé à l'écriture.
 const current = JSON.parse(await readFile(POLLS_FILE, 'utf8')) as PollsData
 parseData({ polls: current, reference2022, transfers })
-const result = syncPolls(current, wikitext, today)
+const result = syncPolls(current, wikitext, today, links)
 if (!result) fail('Aucun sondage de 1er tour reconnu sur la page Wikipedia (format modifié ?).')
 const { data, report } = result!
 
@@ -44,8 +70,10 @@ const lines = [
   `Sondages mis à jour : ${list(report.replaced, 'aucun')}`,
   `Sondages retirés : ${list(report.removed, 'aucun')}`,
   `Duels de 2nd tour : ${report.secondRound}`,
+  `Liens ajoutés : ${list(report.newLinks, 'aucun')}`,
   `Nouveaux candidats non simulés : ${list(report.newCandidates, 'aucun')}`,
   `Lignes écartées : ${report.skipped.length ? report.skipped.join(' ; ') : 'aucune'}`,
+  ...(warnings.length ? [`Avertissements : ${warnings.join(' ; ')} — liens déjà trouvés conservés.`] : []),
 ]
 console.log(lines.join('\n'))
 

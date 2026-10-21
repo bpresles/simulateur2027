@@ -486,6 +486,11 @@
       "sampleSize": 1928,
       "sources": [
         {
+          "label": "Synthèse de l’institut",
+          "url": "https://www.ifopgroup.com/article/barometre-de-lelection-presidentielle-vague-7-2",
+          "kind": "synthese"
+        },
+        {
           "label": "Publication",
           "url": "https://www.tf1info.fr/politique/elections/presidentielle/sondage-lci-presidentielle-2027-apres-les-violences-du-17-octobre-ce-que-revele-notre-derniere-enquete-2471007.html"
         },
@@ -628,8 +633,14 @@
       "sampleSize": 1701,
       "sources": [
         {
+          "label": "Synthèse de l’institut",
+          "url": "https://elabe.fr/presidentielle-2027-octobre/",
+          "kind": "synthese"
+        },
+        {
           "label": "Notice (Commission des sondages)",
-          "url": "https://www.commission-des-sondages.fr/notices/files/notices/2026/octobre/10324-pres-iv-elabe-17-octobre.pdf"
+          "url": "https://www.commission-des-sondages.fr/notices/files/notices/2026/octobre/10324-pres-iv-elabe-17-octobre.pdf",
+          "kind": "notice"
         },
         {
           "label": "Wikipedia – liste des sondages",
@@ -754,8 +765,14 @@
       "sampleSize": 1263,
       "sources": [
         {
+          "label": "Synthèse de l’institut",
+          "url": "https://cluster17.com/presidentielle-2027-le-pen-en-tete-dans-tous-les-scenarios-lisnard-a-egalite-avec-retailleau/",
+          "kind": "synthese"
+        },
+        {
           "label": "Notice (Commission des sondages)",
-          "url": "https://www.commission-des-sondages.fr/notices/files/notices/2026/octobre/10325-pres-focus-droite-et-centre-cluster17-le-point-18-octobre.pdf"
+          "url": "https://www.commission-des-sondages.fr/notices/files/notices/2026/octobre/10325-pres-focus-droite-et-centre-cluster17-le-point-18-octobre.pdf",
+          "kind": "notice"
         },
         {
           "label": "Wikipedia – liste des sondages",
@@ -855,8 +872,14 @@
       "sampleSize": 1094,
       "sources": [
         {
+          "label": "Synthèse de l’institut",
+          "url": "https://ygo-assets-websites-editorial-emea.yougov.net/documents/R%C3%A9sultats_YouGov_pour_le_HuffPost_Intentions_de_vote_Octobre_2026_as_sent_16.10.2026.pdf",
+          "kind": "synthese"
+        },
+        {
           "label": "Notice (Commission des sondages)",
-          "url": "https://www.commission-des-sondages.fr/notices/files/notices/2026/octobre/10323-pres-iv-yougov-le-huffpost-18-octobre.pdf"
+          "url": "https://www.commission-des-sondages.fr/notices/files/notices/2026/octobre/10323-pres-iv-yougov-le-huffpost-18-octobre.pdf",
+          "kind": "notice"
         },
         {
           "label": "Wikipedia – liste des sondages",
@@ -967,12 +990,19 @@
       "sampleSize": 1043,
       "sources": [
         {
-          "label": "Notice (Commission des sondages)",
-          "url": "https://www.commission-des-sondages.fr/notices/files/notices/2026/octobre/10319-pres-iv-opinionway-cnews-15-octobre.pdf"
+          "label": "Synthèse de l’institut",
+          "url": "https://www.opinion-way.com/fr/publications/les-intentions-de-vote-a-lelection-presidentielle-de-2027-4-2026-24539/",
+          "kind": "synthese"
         },
         {
           "label": "Notice (Commission des sondages)",
-          "url": "https://www.commission-des-sondages.fr/notices/files/notices/2026/octobre/10318-pres-presitrack-v3-opinionway-15-octobre.pdf"
+          "url": "https://www.commission-des-sondages.fr/notices/files/notices/2026/octobre/10319-pres-iv-opinionway-cnews-15-octobre.pdf",
+          "kind": "notice"
+        },
+        {
+          "label": "Notice (Commission des sondages)",
+          "url": "https://www.commission-des-sondages.fr/notices/files/notices/2026/octobre/10318-pres-presitrack-v3-opinionway-15-octobre.pdf",
+          "kind": "notice"
         },
         {
           "label": "Wikipedia – liste des sondages",
@@ -1062,8 +1092,14 @@
       "sampleSize": 2004,
       "sources": [
         {
+          "label": "Synthèse de l’institut",
+          "url": "https://tolunacorporate.com/fr/intentions-de-vote-a-lelection-presidentielle-2027-4/",
+          "kind": "synthese"
+        },
+        {
           "label": "Notice (Commission des sondages)",
-          "url": "https://www.commission-des-sondages.fr/notices/files/notices/2026/octobre/10305-pres-iv-toluna-harris-interactive-12-octobre.pdf"
+          "url": "https://www.commission-des-sondages.fr/notices/files/notices/2026/octobre/10305-pres-iv-toluna-harris-interactive-12-octobre.pdf",
+          "kind": "notice"
         },
         {
           "label": "Wikipedia – liste des sondages",
@@ -1173,8 +1209,14 @@
       "sampleSize": 12005,
       "sources": [
         {
-          "label": "Publication",
-          "url": "https://www.odoxa.fr/sondage/melenchon-est-passe-devant-philippe-au-premier-tour-marine-le-pen-est-plus-que-jamais-la-grande-favorite-pour-2027-a-la-fois-au-premier-et-au-second-tour/"
+          "label": "Synthèse de l’institut",
+          "url": "https://www.odoxa.fr/sondage/melenchon-est-passe-devant-philippe-au-premier-tour-marine-le-pen-est-plus-que-jamais-la-grande-favorite-pour-2027-a-la-fois-au-premier-et-au-second-tour/",
+          "kind": "synthese"
+        },
+        {
+          "label": "Notice (Commission des sondages)",
+          "url": "https://www.commission-des-sondages.fr/notices/medias/fichiers/add/2325",
+          "kind": "notice"
         },
         {
           "label": "Wikipedia – liste des sondages",

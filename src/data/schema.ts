@@ -12,6 +12,7 @@ const bloc = z.enum(['gauche', 'centre', 'droite', 'extreme_droite'])
 const profileId = z.enum(['lfi_rn', 'ecolo_ps_pcf_rn', 'ensemble_rn', 'lr_rn'])
 const provenance = z.enum(['franceinfo', 'publicsenat', 'lcp', 'derive', 'transpose', 'camp', 'hypothese'])
 const sourceLink = z.object({ label: z.string(), url: z.url() })
+const pollSource = sourceLink.extend({ kind: z.enum(['synthese', 'notice']).optional() })
 const fieldwork = z.object({ start: isoDate, end: isoDate })
 const scores = z.record(z.string(), percent)
 const pollOrigin = z.enum(['manuel', 'mieuxvoter', '2027etmoi', 'wikipedia'])
@@ -68,7 +69,7 @@ const pollsSchema: z.ZodType<PollsData> = z.object({
       sponsor: z.string(),
       fieldwork,
       sampleSize: z.number().int().positive(),
-      sources: z.array(sourceLink).min(1),
+      sources: z.array(pollSource).min(1),
       verified: z.string().optional(),
       note: z.string().optional(),
       hypotheses: z

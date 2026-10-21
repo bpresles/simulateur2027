@@ -47,6 +47,14 @@ export interface SourceLink {
   url: string
 }
 
+/**
+ * Lien d'un sondage : synthèse publiée par l'institut, notice déposée à la Commission des sondages, ou autre
+ * lien sans type (publication reprise par Wikipedia, page Wikipedia).
+ */
+export interface PollSource extends SourceLink {
+  kind?: 'synthese' | 'notice'
+}
+
 export interface Hypothesis {
   id: string
   label?: string
@@ -71,7 +79,7 @@ export interface Poll {
   sponsor: string
   fieldwork: Fieldwork
   sampleSize: number
-  sources: SourceLink[]
+  sources: PollSource[]
   verified?: string
   note?: string
   hypotheses: Hypothesis[]
