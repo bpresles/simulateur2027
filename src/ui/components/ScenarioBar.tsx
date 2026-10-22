@@ -39,69 +39,93 @@ export function ScenarioBar({ result }: { result: SimulationResult }) {
     : ` (moyenne de ${result.institutesUsed} instituts)`
 
   return (
-    <section aria-labelledby="scenario-title" className="rounded-xl bg-surface p-5 shadow-[var(--ballot-shadow)]">
-      <h2 id="scenario-title" className="sr-only">
-        Scénarios
-      </h2>
-      <div className="grid gap-6 md:grid-cols-[auto_1fr] md:gap-x-10">
-        <div>
-          <p className="mb-2 text-lg font-medium text-ink-2">Candidats testés au 1er tour</p>
-          <p className="max-w-[26rem] text-sm text-ink-3">
-            {firstRoundSummary(result)}
-            {basis}
-          </p>
-          <PollPicker result={result} />
-        </div>
-
-        <fieldset className="md:col-span-2">
-          <legend className="mb-2 text-lg font-medium text-ink-2">Alliances</legend>
-          <AllianceSwitches idPrefix="alliance" result={result} columns />
-        </fieldset>
-
-        {/* À droite des sondages sur grand écran ; sous les alliances sur mobile. */}
-        <fieldset className="md:col-start-2 md:row-start-1">
-          <legend className="mb-2 text-lg font-medium text-ink-2">Ajustements de la simulation</legend>
-          <div className="mb-4">
-            <UntestedAlliancesSwitch id="untested-alliances" />
+    <section aria-labelledby="scenario-title" className="rounded-xl bg-surface shadow-[var(--ballot-shadow)]">
+      {/* Replié par défaut : les résultats restent en vue, les réglages s'ouvrent à la demande. */}
+      <details className="group">
+        <summary className="flex cursor-pointer list-none items-center justify-between gap-4 rounded-xl px-5 py-4 hover:bg-sunken/50 [&::-webkit-details-marker]:hidden">
+          <h2 id="scenario-title" className="text-lg font-semibold tracking-tight">
+            Paramètres de la simulation
+          </h2>
+          <ChevronIcon />
+        </summary>
+        <div className="grid gap-6 px-5 pb-5 pt-1 md:grid-cols-[auto_1fr] md:gap-x-10">
+          <div>
+            <p className="mb-2 text-lg font-medium text-ink-2">Candidats testés au 1er tour</p>
+            <p className="max-w-[26rem] text-sm text-ink-3">
+              {firstRoundSummary(result)}
+              {basis}
+            </p>
+            <PollPicker result={result} />
           </div>
-          <div className="mb-4">
+
+          <fieldset className="md:col-span-2">
+            <legend className="mb-2 text-lg font-medium text-ink-2">Alliances</legend>
+            <AllianceSwitches idPrefix="alliance" result={result} columns />
+          </fieldset>
+
+          {/* À droite des sondages sur grand écran ; sous les alliances sur mobile. */}
+          <fieldset className="md:col-start-2 md:row-start-1">
+            <legend className="mb-2 text-lg font-medium text-ink-2">Ajustements de la simulation</legend>
+            <div className="mb-4">
+              <UntestedAlliancesSwitch id="untested-alliances" />
+            </div>
+            <div className="mb-4">
+              <Switch
+                id="progression"
+                checked={s.progressionEnabled}
+                onCheckedChange={s.setProgressionEnabled}
+                label="Progression comme en 2022"
+                description="Estime les derniers sondages avant le vote selon l’évolution d’octobre 2021 à avril 2022"
+              />
+              <Intensity
+                label="Intensité de la progression"
+                hint="la progression de 2022"
+                value={s.progressionIntensity}
+                onValueChange={s.setProgressionIntensity}
+                disabled={!s.progressionEnabled}
+              />
+            </div>
             <Switch
-              id="progression"
-              checked={s.progressionEnabled}
-              onCheckedChange={s.setProgressionEnabled}
-              label="Progression comme en 2022"
-              description="Estime les derniers sondages avant le vote selon l’évolution d’octobre 2021 à avril 2022"
+              id="corrections"
+              checked={s.correctionsEnabled}
+              onCheckedChange={s.setCorrectionsEnabled}
+              label="Corriger la moyenne"
+              description="Selon l’écart réel entre derniers sondages et résultat en 2022"
             />
             <Intensity
-              label="Intensité de la progression"
-              hint="la progression de 2022"
-              value={s.progressionIntensity}
-              onValueChange={s.setProgressionIntensity}
-              disabled={!s.progressionEnabled}
+              label="Intensité de la correction"
+              hint="l’écart de 2022"
+              value={s.correctionIntensity}
+              onValueChange={s.setCorrectionIntensity}
+              disabled={!s.correctionsEnabled}
             />
+          </fieldset>
+          <div>
+            <button type="button" className="link text-sm" onClick={resetAll}>
+              Réinitialiser tous les paramètres
+            </button>
           </div>
-          <Switch
-            id="corrections"
-            checked={s.correctionsEnabled}
-            onCheckedChange={s.setCorrectionsEnabled}
-            label="Corriger la moyenne"
-            description="Selon l’écart réel entre derniers sondages et résultat en 2022"
-          />
-          <Intensity
-            label="Intensité de la correction"
-            hint="l’écart de 2022"
-            value={s.correctionIntensity}
-            onValueChange={s.setCorrectionIntensity}
-            disabled={!s.correctionsEnabled}
-          />
-        </fieldset>
-        <div>
-          <button type="button" className="link text-sm" onClick={resetAll}>
-          Réinitialiser tous les paramètres
-          </button>
         </div>
-      </div>
+      </details>
     </section>
+  )
+}
+
+/** Chevron du bloc repliable, tourné vers le haut quand il est ouvert. */
+function ChevronIcon() {
+  return (
+    <svg
+      viewBox="0 0 16 16"
+      aria-hidden="true"
+      className="h-4 w-4 shrink-0 text-ink-3 transition-transform group-open:rotate-180"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.75"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="m4 6 4 4 4-4" />
+    </svg>
   )
 }
 
