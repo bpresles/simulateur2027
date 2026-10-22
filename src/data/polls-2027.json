@@ -1,5 +1,5 @@
 {
-  "asOf": "2026-10-21",
+  "asOf": "2026-10-22",
   "electionDate": "2027-04-18",
   "windowDays": 21,
   "collection": {
@@ -491,8 +491,9 @@
           "kind": "synthese"
         },
         {
-          "label": "Publication",
-          "url": "https://www.tf1info.fr/politique/elections/presidentielle/sondage-lci-presidentielle-2027-apres-les-violences-du-17-octobre-ce-que-revele-notre-derniere-enquete-2471007.html"
+          "label": "Notice (Commission des sondages)",
+          "url": "https://www.commission-des-sondages.fr/notices/files/notices/2026/octobre/10327-pres-barometre-election-v7-ifop-20-octobre.pdf",
+          "kind": "notice"
         },
         {
           "label": "Wikipedia – liste des sondages",
@@ -574,7 +575,7 @@
             "attal": 6.5,
             "philippe": 14,
             "retailleau": 6,
-            "dupont-aignan": 2.5,
+            "dupont-aignan": 2,
             "lepen": 38,
             "zemmour": 3
           },
@@ -617,6 +618,25 @@
             "dupont-aignan": 2,
             "lepen": 36,
             "zemmour": 3
+          }
+        },
+        {
+          "id": "H8",
+          "label": "Roussel, Tondelier, Glucksmann, Attal, Philippe, Retailleau, Polony, Ruffin",
+          "scores": {
+            "arthaud": 0.5,
+            "melenchon": 15,
+            "roussel": 2,
+            "tondelier": 3,
+            "glucksmann": 12,
+            "attal": 6,
+            "philippe": 12,
+            "retailleau": 6,
+            "dupont-aignan": 2,
+            "lepen": 35,
+            "zemmour": 3.5,
+            "polony": 1,
+            "ruffin": 2
           }
         }
       ]
@@ -1267,10 +1287,10 @@
       "sponsor": "Non indiqué",
       "fieldwork": {
         "start": "2026-10-17",
-        "end": "2026-10-20"
+        "end": "2026-10-19"
       },
       "sampleSize": 2081,
-      "url": "https://www.tf1info.fr/politique/elections/presidentielle/sondage-lci-presidentielle-2027-apres-les-violences-du-17-octobre-ce-que-revele-notre-derniere-enquete-2471007.html",
+      "url": "https://www.commission-des-sondages.fr/notices/files/notices/2026/octobre/10327-pres-barometre-election-v7-ifop-20-octobre.pdf",
       "scores": {
         "attal": 42,
         "lepen": 58
@@ -1282,10 +1302,10 @@
       "sponsor": "Non indiqué",
       "fieldwork": {
         "start": "2026-10-17",
-        "end": "2026-10-20"
+        "end": "2026-10-19"
       },
       "sampleSize": 2081,
-      "url": "https://www.tf1info.fr/politique/elections/presidentielle/sondage-lci-presidentielle-2027-apres-les-violences-du-17-octobre-ce-que-revele-notre-derniere-enquete-2471007.html",
+      "url": "https://www.commission-des-sondages.fr/notices/files/notices/2026/octobre/10327-pres-barometre-election-v7-ifop-20-octobre.pdf",
       "scores": {
         "glucksmann": 43,
         "lepen": 57
@@ -1297,10 +1317,10 @@
       "sponsor": "Non indiqué",
       "fieldwork": {
         "start": "2026-10-17",
-        "end": "2026-10-20"
+        "end": "2026-10-19"
       },
       "sampleSize": 2081,
-      "url": "https://www.tf1info.fr/politique/elections/presidentielle/sondage-lci-presidentielle-2027-apres-les-violences-du-17-octobre-ce-que-revele-notre-derniere-enquete-2471007.html",
+      "url": "https://www.commission-des-sondages.fr/notices/files/notices/2026/octobre/10327-pres-barometre-election-v7-ifop-20-octobre.pdf",
       "scores": {
         "melenchon": 32,
         "lepen": 68
@@ -1312,10 +1332,10 @@
       "sponsor": "Non indiqué",
       "fieldwork": {
         "start": "2026-10-17",
-        "end": "2026-10-20"
+        "end": "2026-10-19"
       },
       "sampleSize": 2081,
-      "url": "https://www.tf1info.fr/politique/elections/presidentielle/sondage-lci-presidentielle-2027-apres-les-violences-du-17-octobre-ce-que-revele-notre-derniere-enquete-2471007.html",
+      "url": "https://www.commission-des-sondages.fr/notices/files/notices/2026/octobre/10327-pres-barometre-election-v7-ifop-20-octobre.pdf",
       "scores": {
         "philippe": 44,
         "lepen": 56
