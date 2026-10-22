@@ -2,14 +2,15 @@ import type { ReactNode } from 'react'
 import { simulationData } from '../../data/schema'
 import { BLOCS } from '../../domain/types'
 import type { PollOrigin, PollStatus, SimulationResult } from '../../domain/types'
-import { allianceCombos, alliancesConflict, availableAlliances, defaultSet } from '../../domain/alliances'
+import { allianceCombos, alliancesConflict, availableAlliances, comboWith, defaultSet } from '../../domain/alliances'
 import { windowDaysOf } from '../../domain/pollAverage'
 import { referenceParts } from '../../domain/references'
+import { minorTransfer } from '../../domain/transfers'
 import { TIGHT_QUALIFICATION_GAP } from '../../domain/simulate'
 import { secondRoundDropout2022 } from '../../domain/secondRound'
 import { progression2022Stats, reference2022Stats } from '../../hooks/useSimulation'
 import { useSettings } from '../../state/settingsStore'
-import { anyName, BLOC_LABELS, BLOC_VOTERS, cand, entrantLabel, profileLabel } from '../candidates'
+import { anyName, BLOC_LABELS, BLOC_VOTERS, cand, entrantLabel, profileLabel, transferLabel } from '../candidates'
 import { date, fieldwork, integer, num, pct, pts, ratio, shownScore } from '../format'
 import { Link } from '../Link'
 import { AllianceRates } from './AllianceRates'
@@ -30,7 +31,15 @@ const STEPS: [string, string][] = [
 const DEFAULT_SET = defaultSet(polls)
 /** Alliances proposées : celles que les hypothèses des sondages retenus permettent, seules ou combinées. */
 const PROPOSED = availableAlliances(polls)
-const COMBOS = allianceCombos(polls).filter((c) => c.length > 1)
+/** Plus petite combinaison des alliances qui ne sont testées qu'avec d'autres. */
+const COMBOS = [
+  ...new Map(
+    PROPOSED.filter((a) => !allianceCombos(polls).some((c) => c.length === 1 && c[0] === a))
+      .map((a) => comboWith(polls, [], a)!)
+      .map((c) => [c.map((al) => al.id).sort().join('|'), c] as const),
+  ).values(),
+]
+const MINORS = polls.candidates.filter((c) => c.minor)
 
 const INCOMPATIBLE = PROPOSED.flatMap((x, i) =>
   PROPOSED.slice(i + 1).flatMap((y) => (alliancesConflict(x, y) ? [[x, y] as const] : [])),
@@ -73,6 +82,9 @@ function Table({ children, caption }: { children: ReactNode; caption?: string })
     </div>
   )
 }
+
+/** « Droite (LR) » → « droite (LR) ». */
+const lowerFirst = (s: string) => s.charAt(0).toLowerCase() + s.slice(1)
 
 const th = 'px-3 py-2 text-left font-medium text-ink-3'
 const td = 'px-3 py-1.5 align-top'
@@ -169,10 +181,19 @@ export function Methodology({ result }: { result: SimulationResult }) {
               {result.hypothesisSet.label} », on garde celles qui testent tous ces candidats :{' '}
               {result.hypothesisSet.require.map(anyName).join(', ')}, et aucun de ceux-ci :{' '}
               {result.hypothesisSet.exclude.map(anyName).join(', ')}. Une hypothèse où un candidat exclu est
-              remplacé par un autre (Hollande à la place de Glucksmann) n’est pas retenue non plus. Les petits
-              candidats non simulés (Dominique de Villepin, Natacha Polony…) sont retirés et l’hypothèse est
-              ramenée à 100 %.
+              remplacé par un autre (Hollande à la place de Glucksmann) n’est pas retenue non plus. Les candidats
+              non simulés sont retirés et l’hypothèse est ramenée à 100 %.
             </p>
+            {MINORS.length > 0 && (
+              <p>
+                Les <strong>petits candidats</strong> ({MINORS.map((c) => c.name).join(', ')}) ne sont testés que
+                dans une partie des hypothèses : ils ne sont jamais requis, et une hypothèse retenue qui ne les
+                teste pas les compte à <strong>0 %</strong> (ses sondés répartissent leurs électeurs entre les
+                autres candidats). Leur score est ensuite moyenné comme celui des autres : entre les hypothèses
+                retenues de chaque sondage, puis entre instituts. Un petit candidat qu’aucune hypothèse retenue
+                ne teste n’apparaît pas.
+              </p>
+            )}
             <p>
               {result.allianceIds.length > 0
                 ? `Cette hypothèse vient des alliances activées (étape 4), qui retirent leurs ralliés ; sans alliance, la base est l’hypothèse « ${DEFAULT_SET.label} ».`
@@ -624,6 +645,16 @@ export function Methodology({ result }: { result: SimulationResult }) {
               de leur camp (leurs blocs) : quand Philippe se retire alors qu’Attal reste en lice, ses électeurs
               vont aussi vers Attal, et rien ne dit qu’ils suivraient Glucksmann.
             </p>
+            {MINORS.length > 0 && (
+              <p>
+                Les mêmes règles valent pour les petits candidats (étape 1). Le ralliement d’un petit candidat se
+                lit dans les hypothèses qui ne le testent pas, si son leader reste le seul candidat principal du
+                camp : « Lisnard rejoint Retailleau » retient les hypothèses sans Lisnard. Les autres (Ruffin
+                vers Mélenchon, alors que Glucksmann reste en lice à gauche) ne sont proposés qu’avec l’option
+                des alliances non évaluées. Un petit candidat qui mène une alliance doit être testé : « Retailleau
+                rejoint Lisnard » retient les hypothèses où Lisnard est le candidat de la droite.
+              </p>
+            )}
             <p>
               Les alliances proposées sont donc celles que les sondages de la période testent, seules ou
               combinées ; la liste suit la synchronisation des sondages.{' '}
@@ -633,9 +664,17 @@ export function Methodology({ result }: { result: SimulationResult }) {
               {COMBOS.length > 0 &&
                 ` Certaines ne sont testées qu’ensemble, et s’activent alors ensemble : ${COMBOS.map((c) => c.map((al) => `« ${al.label} »`).join(' + ')).join(' ; ')}.`}{' '}
               Un candidat ne rallie qu’une alliance, et un candidat rallié ne peut pas en mener une autre.
-              {INCOMPATIBLE.length > 0 &&
-                ` Paires incompatibles : ${INCOMPATIBLE.map(([x, y]) => `« ${x.label} » et « ${y.label} »`).join(' ; ')}.`}
             </p>
+            {INCOMPATIBLE.length > 0 && (
+              <details>
+                <summary className="cursor-pointer font-sans text-sm font-medium text-ballpoint">
+                  {INCOMPATIBLE.length} paires d’alliances proposées incompatibles
+                </summary>
+                <p className="mt-2">
+                  {INCOMPATIBLE.map(([x, y]) => `« ${x.label} » et « ${y.label} »`).join(' ; ')}.
+                </p>
+              </details>
+            )}
             <p>
               {result.allianceIds.length > 0
                 ? `Dans le scénario en cours : ${polls.alliances
@@ -835,16 +874,75 @@ export function Methodology({ result }: { result: SimulationResult }) {
           </details>
           <div className="prose-method">
             <p>
-              Les électorats sont regroupés en blocs : gauche (Arthaud, Mélenchon, Roussel, Tondelier,
-              Glucksmann), centre (Philippe, Attal), droite (Retailleau), extrême droite (Le Pen, Zemmour,
-              Dupont-Aignan). Les chiffres des législatives portent sur des électorats de partis (NFP,
-              Ensemble, LR) et sont appliqués aux candidats de ces familles ; Zemmour et Dupont-Aignan sont
-              rattachés au camp RN, comme l’électorat « RN et alliés » de 2024.
+              Les électorats sont regroupés en blocs :{' '}
+              {BLOCS.map(
+                (bloc) =>
+                  `${lowerFirst(BLOC_LABELS[bloc])} (${polls.candidates
+                    .filter((c) => c.bloc === bloc && !c.minor)
+                    .map((c) => c.shortName)
+                    .join(', ')})`,
+              ).join(', ')}
+              . Les chiffres des législatives portent sur des électorats de partis (NFP, Ensemble, LR) et sont
+              appliqués aux candidats de ces familles ; Zemmour et Dupont-Aignan sont rattachés au camp RN,
+              comme l’électorat « RN et alliés » de 2024.
             </p>
+            {MINORS.length > 0 && (
+              <>
+                <h3>Électeurs des petits candidats</h3>
+                <p>
+                  Aucune enquête ne mesure le report des électeurs des petits candidats. Éliminés au 1er tour,
+                  ils se reportent comme les électeurs d’un ou plusieurs candidats principaux, selon des poids :
+                  une part se comporte comme l’électorat de Glucksmann, l’autre comme celui de Philippe, par
+                  exemple. Chaque part suit ainsi son candidat s’il est finaliste (fidélité de{' '}
+                  {pct(sr.fidelity * 100, 0)}) ou allié d’un finaliste, et sinon le report de son bloc. Ces poids
+                  sont des <strong>hypothèses</strong> fondées sur le positionnement de chaque candidat et sur
+                  les sources citées ; d’autres répartitions sont proposées dans les réglages.
+                </p>
+              </>
+            )}
+          </div>
+          {MINORS.length > 0 && (
+            <Table caption="Report des électeurs des petits candidats au 2nd tour (répartition du scénario en cours)">
+              <thead>
+                <tr className="border-b border-rule">
+                  <th className={th}>Candidat</th>
+                  <th className={th}>Se reportent comme</th>
+                  <th className={th}>Justification</th>
+                  <th className={th}>Autres répartitions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {MINORS.map((c) => {
+                  const chosen = minorTransfer(c, settings.minorTransfers)!
+                  return (
+                    <tr key={c.id} className="border-b border-rule/60">
+                      <td className={`${td} font-medium`}>{c.name}</td>
+                      <td className={td}>{transferLabel(chosen.parts)}</td>
+                      <td className={td}>
+                        {chosen.note}
+                        {chosen.sources?.map((src) => (
+                          <a key={src.url} href={src.url} className="link ml-1.5 text-xs" target="_blank" rel="noreferrer">
+                            {src.label}
+                          </a>
+                        ))}
+                      </td>
+                      <td className={`${td} text-ink-2`}>
+                        {c.minor!.transfers
+                          .filter((t) => t !== chosen)
+                          .map((t) => `${t.label} (${transferLabel(t.parts)})`)
+                          .join(' ; ') || '—'}
+                      </td>
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </Table>
+          )}
+          <div className="prose-method">
             <p>
               <strong>Modèle de repli.</strong> {transfers.fallback.description} Abstention par bloc :{' '}
               {BLOCS.map(
-                (bloc) => `${BLOC_LABELS[bloc].toLowerCase()} ${pct(transfers.fallback.abstention[bloc], 0)}`,
+                (bloc) => `${lowerFirst(BLOC_LABELS[bloc])} ${pct(transfers.fallback.abstention[bloc], 0)}`,
               ).join(', ')}
               .
             </p>
@@ -967,6 +1065,14 @@ export function Methodology({ result }: { result: SimulationResult }) {
               Les taux repris d’un autre duel et le rattachement de Zemmour et Dupont-Aignan au camp RN sont
               des choix de modélisation, signalés dans le tableau de l’étape 6.
             </li>
+            {MINORS.length > 0 && (
+              <li>
+                Les petits candidats comptent pour 0 % dans les hypothèses qui ne les testent pas : leur score
+                moyen dépend du nombre d’hypothèses où les sondeurs les testent, et il est plus faible que
+                dans les seules hypothèses où ils figurent. Le report de leurs électeurs au 2nd tour est une
+                hypothèse (étape 6).
+              </li>
+            )}
             <li>
               Le calage de l’abstention suppose une participation au 1er tour comparable à celle de 2022.
             </li>

@@ -6,6 +6,7 @@ import type {
   CandidateId,
   Entrant,
   Reference2022,
+  ReferencePart,
   ResolvedDuel,
   SecondRoundPoll,
   SecondRoundResult,
@@ -34,6 +35,8 @@ interface SecondRoundInput {
   /** Total visé de blancs, nuls et abstentions (points des électeurs du 1er tour), null = pas de calage. */
   abstentionTarget: number | null
   secondRoundPolls: SecondRoundPoll[]
+  /** Petits candidats : électorats principaux dont leurs électeurs suivent les reports (poids de total 1). */
+  minorTransfers?: Record<CandidateId, ReferencePart[]>
 }
 
 /**
@@ -47,6 +50,8 @@ interface SecondRoundInput {
  * - Électeurs des candidats éliminés, en alliance ou non, selon leur bloc :
  *   duel sourcé : la colonne « finaliste » va au challenger, la colonne « RN » au candidat RN ;
  *   duel hors source : modèle de repli par affinités entre blocs.
+ * - Électeurs d'un petit candidat éliminé : répartis entre des électorats principaux selon leurs poids,
+ *   chaque part se reporte comme cet électorat (fidèle à son candidat s'il est finaliste ou allié).
  * Calage : le taux d'abstention de chaque électorat est multiplié par un même coefficient pour que
  * le total atteigne la cible ; les votes exprimés gardent la répartition des taux de report.
  * Le résultat est exprimé en % des suffrages exprimés : A / (A + B).
@@ -74,32 +79,34 @@ export function computeSecondRound(input: SecondRoundInput): SecondRoundResult {
     return { toA: (share * split.toA) / 100, toB: (share * split.toB) / 100, abstention: (share * split.abstention) / 100 }
   }
 
-  const raw: VoteFlow[] = []
-  for (const [candidateId, share] of Object.entries(electorate)) {
-    const voterBloc = bloc(candidateId)
+  /** Report d'une part `share` de l'électorat d'un candidat simulé, d'après son bloc ou son finaliste. */
+  const flowOf = (candidateId: CandidateId, share: number) => {
     const finalist = [a, b].find((e) => e.members.some((m) => m.candidateId === candidateId))
     const member = finalist?.members.find((m) => m.candidateId === candidateId)
-    if (finalist && member) {
-      // Leader : rate = 1. Rallié : part qui a suivi le leader au 1er tour, part RN (vers l'autre
-      // finaliste s'il est RN), et part abstentionniste au 1er tour qui se reporte comme son bloc.
-      const other = finalist === a ? b : a
-      const follow = share * member.rate * fidelity
-      const toRN = isRN(other) ? share * member.rnRate : 0
-      const back = blocTransfer(share * Math.max(0, 1 - member.rate - member.rnRate), voterBloc)
-      const loyalAbstention = share * member.rate * (1 - fidelity) + (isRN(other) ? 0 : share * member.rnRate)
-      raw.push({
-        candidateId,
-        share,
-        toA: (finalist === a ? follow : toRN) + back.toA,
-        toB: (finalist === b ? follow : toRN) + back.toB,
-        abstention: loyalAbstention + back.abstention,
-        bloc: voterBloc,
-        isFinalistVoter: true,
-      })
-    } else {
-      raw.push({ candidateId, share, ...blocTransfer(share, voterBloc), bloc: voterBloc, isFinalistVoter: false })
+    if (!finalist || !member) return blocTransfer(share, bloc(candidateId))
+    // Leader : rate = 1. Rallié : part qui a suivi le leader au 1er tour, part RN (vers l'autre
+    // finaliste s'il est RN), et part abstentionniste au 1er tour qui se reporte comme son bloc.
+    const other = finalist === a ? b : a
+    const follow = share * member.rate * fidelity
+    const toRN = isRN(other) ? share * member.rnRate : 0
+    const back = blocTransfer(share * Math.max(0, 1 - member.rate - member.rnRate), bloc(candidateId))
+    const loyalAbstention = share * member.rate * (1 - fidelity) + (isRN(other) ? 0 : share * member.rnRate)
+    return {
+      toA: (finalist === a ? follow : toRN) + back.toA,
+      toB: (finalist === b ? follow : toRN) + back.toB,
+      abstention: loyalAbstention + back.abstention,
     }
   }
+
+  const raw: VoteFlow[] = Object.entries(electorate).map(([candidateId, share]) => {
+    const isFinalistVoter = [a, b].some((e) => e.members.some((m) => m.candidateId === candidateId))
+    const like = isFinalistVoter ? undefined : input.minorTransfers?.[candidateId]
+    const flow = { candidateId, share, bloc: bloc(candidateId), isFinalistVoter }
+    if (!like) return { ...flow, ...flowOf(candidateId, share) }
+    const parts = like.map((p) => flowOf(p.id, share * p.weight))
+    const sum = (key: 'toA' | 'toB' | 'abstention') => parts.reduce((s, f) => s + f[key], 0)
+    return { ...flow, toA: sum('toA'), toB: sum('toB'), abstention: sum('abstention'), like }
+  })
 
   const uncalibrated = raw.reduce((s, f) => s + f.abstention, 0)
   const factor = abstentionTarget === null ? 1 : uncalibrated > 0 ? abstentionTarget / uncalibrated : 0

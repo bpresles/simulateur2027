@@ -87,7 +87,7 @@ const slugify = (s: string) =>
 
 /**
  * Associe les noms de la source aux identifiants du simulateur. Un candidat inconnu est ajouté aux
- * candidats non simulés (il est retiré des hypothèses lors de la moyenne, comme Villepin ou Polony).
+ * candidats non simulés (il est retiré des hypothèses lors de la moyenne, comme Hollande ou Bayrou).
  */
 export class CandidateResolver {
   private readonly byKey = new Map<string, string>()

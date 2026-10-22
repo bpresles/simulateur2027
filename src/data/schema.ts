@@ -38,6 +38,21 @@ const pollsSchema: z.ZodType<PollsData> = z.object({
         .nullable(),
       ref2022Note: z.string().optional(),
       isRN: z.boolean().optional(),
+      minor: z
+        .object({
+          transfers: z
+            .array(
+              z.object({
+                id: z.string(),
+                label: z.string(),
+                parts: z.array(z.object({ id: z.string(), weight: z.number().positive() })).min(1),
+                note: z.string(),
+                sources: z.array(sourceLink).optional(),
+              }),
+            )
+            .min(1),
+        })
+        .optional(),
     }),
   ),
   otherCandidates: z.array(z.object({ id: z.string(), name: z.string() })),
@@ -175,6 +190,7 @@ export function validateData(data: SimulationData): string[] {
   const errors: string[] = []
   const { polls, reference2022, transfers } = data
   const simulated = new Set(polls.candidates.map((c) => c.id))
+  const main = new Set(polls.candidates.filter((c) => !c.minor).map((c) => c.id))
   const known = new Set([...simulated, ...polls.otherCandidates.map((c) => c.id)])
   const ref2022Ids = new Set(reference2022.candidates.map((c) => c.id))
   const profileIds = new Set(transfers.profiles.map((p) => p.id))
@@ -184,12 +200,21 @@ export function validateData(data: SimulationData): string[] {
       if (!ref2022Ids.has(id)) errors.push(`${c.id} : référence 2022 inconnue « ${id} »`)
     }
     if (c.duelProfile && !profileIds.has(c.duelProfile)) errors.push(`${c.id} : profil inconnu « ${c.duelProfile} »`)
+    const transfers = c.minor?.transfers ?? []
+    if (new Set(transfers.map((t) => t.id)).size !== transfers.length) errors.push(`${c.id} : répartitions en double`)
+    for (const t of transfers) {
+      for (const p of t.parts) {
+        if (!main.has(p.id)) errors.push(`${c.id}/${t.id} : report vers « ${p.id} », qui n'est pas un candidat principal`)
+      }
+    }
+    if (c.minor && c.isRN) errors.push(`${c.id} : le candidat RN ne peut pas être un petit candidat`)
   }
   if (polls.candidates.filter((c) => c.isRN).length !== 1) errors.push('Il faut exactement un candidat marqué isRN')
 
   for (const set of polls.hypothesisSets) {
     for (const id of [...set.require, ...set.exclude]) {
       if (!known.has(id)) errors.push(`Jeu d'hypothèses ${set.id} : candidat inconnu « ${id} »`)
+      else if (simulated.has(id) && !main.has(id)) errors.push(`Jeu d'hypothèses ${set.id} : petit candidat « ${id} »`)
     }
   }
   if (polls.hypothesisSets.filter((s) => s.default).length !== 1) errors.push('Il faut exactement un jeu par défaut')

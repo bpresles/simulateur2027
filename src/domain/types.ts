@@ -25,11 +25,28 @@ export interface Candidate {
   /** Justification de la correspondance 2027 ↔ 2022, affichée dans la méthodologie. */
   ref2022Note?: string
   isRN?: boolean
+  /**
+   * Petit candidat : testé dans une partie des hypothèses seulement. Il n'est jamais requis et compte pour
+   * 0 % dans une hypothèse qui ne le teste pas. Au 2nd tour, ses électeurs se reportent comme ceux de
+   * candidats principaux : première répartition par défaut, les autres au choix dans les réglages.
+   */
+  minor?: { transfers: MinorTransfer[] }
 }
 
 export interface ReferencePart {
   id: string
   weight: number
+}
+
+/** Répartition des électeurs d'un petit candidat entre les électorats de candidats principaux. */
+export interface MinorTransfer {
+  id: string
+  label: string
+  /** Électorats principaux et leurs poids (ramenés à un total de 1). */
+  parts: ReferencePart[]
+  /** Justification, affichée dans la méthodologie et les réglages. */
+  note: string
+  sources?: SourceLink[]
 }
 
 export interface OtherCandidate {
@@ -266,6 +283,8 @@ export interface Settings {
    */
   allianceOverrides: Record<string, number>
   transferOverrides: Partial<Record<ProfileId, Partial<Record<Bloc, TransferValues>>>>
+  /** Répartition choisie pour les électeurs de chaque petit candidat (identifiant), absente = la première. */
+  minorTransfers: Record<CandidateId, string>
   /** Part des électeurs d'un finaliste qui revotent pour lui (0 à 1), null = valeur par défaut. */
   fidelity: number | null
   /** Cale le total des blancs, nuls et abstentions du 2nd tour sur une cible. */
@@ -374,6 +393,8 @@ export interface VoteFlow {
   abstention: number
   bloc: Bloc
   isFinalistVoter: boolean
+  /** Petit candidat éliminé : électorats principaux dont ses électeurs suivent les reports. */
+  like?: ReferencePart[]
 }
 
 export interface SecondRoundResult {

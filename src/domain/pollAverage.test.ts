@@ -147,3 +147,40 @@ describe('averagePolls, sondages décochés', () => {
     expect(r.average).toEqual({ a: 40, b: 60 })
   })
 })
+
+describe('petits candidats : facultatifs, à 0 % quand une hypothèse ne les teste pas', () => {
+  const poll = (id: string, institute: string, hypotheses: { id: string; scores: Record<string, number> }[]) => ({
+    id,
+    institute,
+    fieldwork: { start: '2026-10-10', end: '2026-10-11' },
+    hypotheses,
+  })
+  const polls = [
+    poll('p1', 'A', [
+      { id: 'H1', scores: { a: 60, b: 40 } },
+      { id: 'H2', scores: { a: 55, b: 41, m: 4 } },
+    ]),
+    poll('p2', 'B', [{ id: 'H1', scores: { a: 50, b: 50 } }]),
+  ]
+  const keep = new Set(['a', 'b', 'm', 'n'])
+  const average = (exclude: string[]) =>
+    averageHypothesisPolls(polls, '2026-10-18', 21, { require: ['a', 'b'], exclude }, keep, undefined, ['m', 'n'])
+
+  it('compte 0 % dans une hypothèse ou un sondage qui ne le teste pas, puis fait la moyenne', () => {
+    const r = average([])
+    expect(r.usage[0]!.matchedHypotheses).toEqual(['H1', 'H2'])
+    // A : (0 + 4) / 2 = 2 ; B : 0 → moyenne 1.
+    expect(r.average.m).toBeCloseTo(1, 10)
+    expect(r.average.a).toBeCloseTo((57.5 + 50) / 2, 10)
+    expect(sum(r.average)).toBeCloseTo(100, 10)
+  })
+  it('n’affiche pas un petit candidat qu’aucune hypothèse retenue ne teste', () => {
+    expect(average([]).average).not.toHaveProperty('n')
+  })
+  it('un petit candidat exclu du scénario (rallié) n’est pas compté à 0 %', () => {
+    const r = average(['m'])
+    expect(r.usage[0]!.matchedHypotheses).toEqual(['H1'])
+    expect(r.usage[0]!.average).not.toHaveProperty('m')
+    expect(r.usage[0]!.average).toHaveProperty('n', 0)
+  })
+})
