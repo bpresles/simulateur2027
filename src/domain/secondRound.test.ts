@@ -133,6 +133,33 @@ describe('computeSecondRound', () => {
     expect(eco.abstention).toBeCloseTo(1.6 * 0.25, 10)
   })
 
+  it('électeurs d’un petit candidat : chaque part se reporte comme l’électorat principal indiqué', () => {
+    const minor = { ...cand('pt', 'gauche', null), minor: { transfers: [] } } as Candidate
+    const candidatesById = new Map([...byId, ['pt', minor]])
+    const input = {
+      electorate: { rn: 40, ens: 30, lfi: 20, pt: 10 },
+      a: solo('rn', 40),
+      b: solo('ens', 30),
+      duel: resolveDuel(solo('rn', 40), solo('ens', 30), byId),
+      profiles,
+      fallback: transfers.fallback,
+      candidatesById,
+      fidelity: 1,
+      abstentionTarget: null,
+      secondRoundPolls: [],
+      minorTransfers: { pt: [{ id: 'ens', weight: 0.5 }, { id: 'lfi', weight: 0.5 }] },
+    }
+    const pt = computeSecondRound(input).flows.find((f) => f.candidateId === 'pt')!
+    // Moitié fidèle au finaliste Ensemble, moitié comme les électeurs de gauche (72 / 3 / 25).
+    expect(pt).toMatchObject({ share: 10, isFinalistVoter: false, like: input.minorTransfers.pt })
+    expect(pt.toB).toBeCloseTo(5 + 5 * 0.72, 10)
+    expect(pt.toA).toBeCloseTo(5 * 0.03, 10)
+    expect(pt.abstention).toBeCloseTo(5 * 0.25, 10)
+    // Finaliste lui-même : ses électeurs le suivent, la répartition ne s'applique pas.
+    const own = computeSecondRound({ ...input, b: solo('pt', 10), duel: resolveDuel(solo('rn', 40), solo('pt', 10), candidatesById) })
+    expect(own.flows.find((f) => f.candidateId === 'pt')).toMatchObject({ toB: 10, isFinalistVoter: true })
+  })
+
   it('applique la fidélité aux électeurs des finalistes', () => {
     const res = run([solo('rn', 60), solo('lfi', 40)], { fidelity: 0.9 })
     expect(res.votes).toEqual({ a: 54, b: 36, abstention: expect.closeTo(10, 8) })

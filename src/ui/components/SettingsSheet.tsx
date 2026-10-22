@@ -5,10 +5,11 @@ import { simulationData } from '../../data/schema'
 import { BLOCS } from '../../domain/types'
 import type { Bloc, ProfileId, SimulationResult, TransferValues } from '../../domain/types'
 import { useSettings } from '../../state/settingsStore'
-import { BLOC_VOTERS, cand, colorVars } from '../candidates'
+import { BLOC_VOTERS, MINOR_CANDIDATES, cand, colorVars, transferLabel } from '../candidates'
 import { num, pct, pts, ratio } from '../format'
 import { referenceParts } from '../../domain/references'
 import { secondRoundDropout2022 } from '../../domain/secondRound'
+import { minorTransfer } from '../../domain/transfers'
 import { AllianceRates } from './AllianceRates'
 import { AllianceSwitches, UntestedAlliancesSwitch } from './AllianceSwitches'
 import { Segmented, Slider, Switch, TextButton } from './controls'
@@ -299,6 +300,63 @@ function SecondRoundPanel() {
   )
 }
 
+/** Répartition des électeurs de chaque petit candidat au 2nd tour, parmi celles des données. */
+function MinorTransfersPanel() {
+  const choices = useSettings((s) => s.minorTransfers)
+  const setMinorTransfer = useSettings((s) => s.setMinorTransfer)
+  if (MINOR_CANDIDATES.length === 0) return null
+  return (
+    <div className="space-y-5 border-b border-rule pb-6">
+      <div>
+        <p className="text-[0.95rem] font-medium">Électeurs des petits candidats</p>
+        <p className="mt-0.5 text-sm text-ink-3">
+          Éliminés au 1er tour, leurs électeurs se reportent comme ceux des candidats principaux indiqués,
+          selon leurs poids : fidèles à ce candidat s’il est finaliste ou allié d’un finaliste, sinon comme
+          les électeurs de son bloc. Ces répartitions sont des hypothèses, appuyées sur les sources citées.
+        </p>
+      </div>
+      {MINOR_CANDIDATES.map((c) => {
+        const variants = c.minor!.transfers
+        const chosen = minorTransfer(c, choices)!
+        return (
+          <fieldset key={c.id}>
+            <legend className="flex items-center gap-2 text-sm font-medium">
+              <span style={colorVars(c)} className="cand-fill h-2.5 w-2.5 rounded-full" />
+              {c.name}
+            </legend>
+            <div className="mt-2 space-y-1.5">
+              {variants.map((t, i) => (
+                <label key={t.id} className="flex cursor-pointer items-start gap-2 text-sm">
+                  <input
+                    type="radio"
+                    name={`minor-transfer-${c.id}`}
+                    checked={t.id === chosen.id}
+                    onChange={() => setMinorTransfer(c.id, i === 0 ? undefined : t.id)}
+                    className="mt-0.5 h-4 w-4 shrink-0 cursor-pointer accent-ballpoint"
+                  />
+                  <span className="leading-tight">
+                    <span className="font-medium text-ink">{t.label}</span>
+                    {i === 0 && <span className="text-ink-3"> (par défaut)</span>}
+                    <span className="block text-xs text-ink-3">{transferLabel(t.parts)}</span>
+                  </span>
+                </label>
+              ))}
+            </div>
+            <p className="mt-2 text-xs text-ink-3">
+              {chosen.note}
+              {chosen.sources?.map((src) => (
+                <a key={src.url} href={src.url} className="link ml-1.5" target="_blank" rel="noreferrer">
+                  {src.label}
+                </a>
+              ))}
+            </p>
+          </fieldset>
+        )
+      })}
+    </div>
+  )
+}
+
 function TransfersEditor() {
   const [profileId, setProfileId] = useState<ProfileId>('lfi_rn')
   const s = useSettings()
@@ -318,6 +376,7 @@ function TransfersEditor() {
   return (
     <div className="space-y-5">
       <SecondRoundPanel />
+      <MinorTransfersPanel />
       <p className="text-sm text-ink-2">
         Taux de report de chaque électorat selon le type de duel. Le taux de blanc, nul ou abstention est
         recalculé pour que la ligne totalise 100 %.

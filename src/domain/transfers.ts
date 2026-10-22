@@ -4,8 +4,10 @@ import type {
   Candidate,
   CandidateId,
   Entrant,
+  MinorTransfer,
   ProfileId,
   ProfileWeight,
+  ReferencePart,
   ResolvedDuel,
   Settings,
   TransferValues,
@@ -101,6 +103,29 @@ export function fallbackSplit(
   const expressed = 100 - abstention
   if (affA + affB <= 0) return { toA: expressed / 2, toB: expressed / 2, abstention }
   return { toA: (expressed * affA) / (affA + affB), toB: (expressed * affB) / (affA + affB), abstention }
+}
+
+/** Répartition retenue pour les électeurs d'un petit candidat : choix des réglages, sinon la première. */
+export function minorTransfer(c: Candidate, choices: Settings['minorTransfers']): MinorTransfer | null {
+  if (!c.minor) return null
+  return c.minor.transfers.find((t) => t.id === choices[c.id]) ?? c.minor.transfers[0] ?? null
+}
+
+/**
+ * Électorats principaux que suivent, au 2nd tour, les électeurs de chaque petit candidat, poids ramenés
+ * à un total de 1.
+ */
+export function minorTransferParts(
+  candidates: Candidate[],
+  choices: Settings['minorTransfers'],
+): Record<CandidateId, ReferencePart[]> {
+  return Object.fromEntries(
+    candidates.flatMap((c) => {
+      const parts = minorTransfer(c, choices)?.parts ?? []
+      const total = parts.reduce((s, p) => s + p.weight, 0)
+      return total > 0 ? [[c.id, parts.map((p) => ({ id: p.id, weight: p.weight / total }))]] : []
+    }),
+  )
 }
 
 /**

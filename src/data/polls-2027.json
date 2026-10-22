@@ -44,8 +44,8 @@
       "shortName": "Roussel",
       "party": "PCF",
       "bloc": "gauche",
-      "color": "#e4572e",
-      "colorDark": "#e0592f",
+      "color": "#b5160c",
+      "colorDark": "#d42a20",
       "duelProfile": "ecolo_ps_pcf_rn",
       "ref2022": "roussel"
     },
@@ -144,8 +144,8 @@
       "shortName": "Le Pen",
       "party": "RN",
       "bloc": "extreme_droite",
-      "color": "#3f4c99",
-      "colorDark": "#6672c9",
+      "color": "#22397f",
+      "colorDark": "#4a5bc0",
       "duelProfile": null,
       "ref2022": "lepen",
       "isRN": true
@@ -156,36 +156,354 @@
       "shortName": "Zemmour",
       "party": "Reconquête",
       "bloc": "extreme_droite",
-      "color": "#a0582a",
-      "colorDark": "#b0662f",
+      "color": "#101a3a",
+      "colorDark": "#323d85",
       "duelProfile": null,
       "ref2022": "zemmour"
+    },
+    {
+      "id": "ruffin",
+      "name": "François Ruffin",
+      "shortName": "Ruffin",
+      "party": "Divers gauche",
+      "bloc": "gauche",
+      "color": "#d9416a",
+      "colorDark": "#dc4b78",
+      "duelProfile": null,
+      "ref2022": null,
+      "ref2022Note": "aucune référence 2022 : pas de correction ni de progression.",
+      "minor": {
+        "transfers": [
+          {
+            "id": "elabe",
+            "label": "Électorat estimé (Elabe)",
+            "parts": [
+              {
+                "id": "melenchon",
+                "weight": 55
+              },
+              {
+                "id": "glucksmann",
+                "weight": 30
+              },
+              {
+                "id": "attal",
+                "weight": 10
+              },
+              {
+                "id": "lepen",
+                "weight": 5
+              }
+            ],
+            "note": "Dans l’hypothèse d’Elabe qui le teste (avec Attal, sans Tondelier), Ruffin recueille 8 % des électeurs de Mélenchon en 2022, 10 % de ceux de Jadot et 1 % de ceux de Macron : ses électeurs viennent à 70 % de Mélenchon, 19 % de Jadot et 11 % de Macron. Chaque part se reporte ensuite comme le vote actuel de son électorat de 2022 dans la même hypothèse ; parts inférieures à 5 % réparties au prorata, poids arrondis à 5 points. Sous-échantillons de quelques dizaines de personnes : ordre de grandeur.",
+            "sources": [
+              {
+                "label": "Elabe, 14-16/10/2026 (résultats détaillés)",
+                "url": "https://elabe.fr/fichier-pdf/13329-les-francais-et-lelection-presidentielle-2027/"
+              }
+            ]
+          },
+          {
+            "id": "melenchon",
+            "label": "Comme les électeurs de Mélenchon",
+            "parts": [
+              {
+                "id": "melenchon",
+                "weight": 100
+              }
+            ],
+            "note": "Hypothèse de départ du simulateur, sans source."
+          }
+        ]
+      }
+    },
+    {
+      "id": "villepin",
+      "name": "Dominique de Villepin",
+      "shortName": "Villepin",
+      "party": "La France humaniste",
+      "bloc": "centre",
+      "color": "#25c2c0",
+      "colorDark": "#33cccc",
+      "duelProfile": null,
+      "ref2022": null,
+      "ref2022Note": "aucune référence 2022 : pas de correction ni de progression.",
+      "minor": {
+        "transfers": [
+          {
+            "id": "elabe",
+            "label": "Électorat estimé (Elabe)",
+            "parts": [
+              {
+                "id": "philippe",
+                "weight": 30
+              },
+              {
+                "id": "glucksmann",
+                "weight": 25
+              },
+              {
+                "id": "melenchon",
+                "weight": 20
+              },
+              {
+                "id": "retailleau",
+                "weight": 10
+              },
+              {
+                "id": "lepen",
+                "weight": 10
+              },
+              {
+                "id": "tondelier",
+                "weight": 5
+              }
+            ],
+            "note": "Dans l’hypothèse d’Elabe avec Philippe, Villepin recueille 3 % des électeurs de Macron en 2022, 2 % de ceux de Mélenchon, 5 % de ceux de Jadot et 4 % de ceux de Pécresse : ses électeurs viennent à 49 % de Macron, 26 % de Mélenchon, 14 % de Jadot et 11 % de Pécresse. Chaque part se reporte ensuite comme le vote actuel de son électorat de 2022 dans la même hypothèse ; parts inférieures à 5 % réparties au prorata, poids arrondis à 5 points. Sous-échantillons de quelques dizaines de personnes : ordre de grandeur.",
+            "sources": [
+              {
+                "label": "Elabe, 14-16/10/2026 (résultats détaillés)",
+                "url": "https://elabe.fr/fichier-pdf/13329-les-francais-et-lelection-presidentielle-2027/"
+              }
+            ]
+          },
+          {
+            "id": "glucksmann-philippe",
+            "label": "Moitié Glucksmann, moitié Philippe",
+            "parts": [
+              {
+                "id": "glucksmann",
+                "weight": 50
+              },
+              {
+                "id": "philippe",
+                "weight": 50
+              }
+            ],
+            "note": "Hypothèse de départ du simulateur, sans source."
+          },
+          {
+            "id": "gauche",
+            "label": "Électorat de gauche",
+            "parts": [
+              {
+                "id": "melenchon",
+                "weight": 40
+              },
+              {
+                "id": "glucksmann",
+                "weight": 30
+              },
+              {
+                "id": "philippe",
+                "weight": 30
+              }
+            ],
+            "note": "Hypothèse : sa popularité chez les sympathisants LFI (potentiel de 28 à 29 % selon Toluna-Harris Interactive) se traduirait en votes, ce que les intentions de vote ne montrent pas à ce jour."
+          }
+        ]
+      }
+    },
+    {
+      "id": "polony",
+      "name": "Natacha Polony",
+      "shortName": "Polony",
+      "party": "Sans étiquette",
+      "bloc": "centre",
+      "color": "#e4572e",
+      "colorDark": "#e0592f",
+      "duelProfile": null,
+      "ref2022": null,
+      "ref2022Note": "aucune référence 2022 : pas de correction ni de progression.",
+      "minor": {
+        "transfers": [
+          {
+            "id": "elabe",
+            "label": "Électorat estimé (Elabe)",
+            "parts": [
+              {
+                "id": "melenchon",
+                "weight": 35
+              },
+              {
+                "id": "philippe",
+                "weight": 25
+              },
+              {
+                "id": "glucksmann",
+                "weight": 20
+              },
+              {
+                "id": "lepen",
+                "weight": 10
+              },
+              {
+                "id": "retailleau",
+                "weight": 10
+              }
+            ],
+            "note": "Dans l’hypothèse d’Elabe qui la teste, Polony recueille 3 % des électeurs de Mélenchon en 2022, 2 % de ceux de Macron, 1 % de ceux de Jadot et de Pécresse, aucun de ceux de Le Pen ou de Zemmour : ses électeurs viennent à 50 % de Mélenchon et 43 % de Macron. Chaque part se reporte ensuite comme le vote actuel de son électorat de 2022 dans la même hypothèse ; parts inférieures à 5 % réparties au prorata, poids arrondis à 5 points. Sous-échantillons de quelques dizaines de personnes : ordre de grandeur.",
+            "sources": [
+              {
+                "label": "Elabe, 14-16/10/2026 (résultats détaillés)",
+                "url": "https://elabe.fr/fichier-pdf/13329-les-francais-et-lelection-presidentielle-2027/"
+              }
+            ]
+          },
+          {
+            "id": "glucksmann-philippe",
+            "label": "Moitié Glucksmann, moitié Philippe",
+            "parts": [
+              {
+                "id": "glucksmann",
+                "weight": 50
+              },
+              {
+                "id": "philippe",
+                "weight": 50
+              }
+            ],
+            "note": "Hypothèse de départ du simulateur, sans source."
+          },
+          {
+            "id": "souverainiste",
+            "label": "Électorat souverainiste",
+            "parts": [
+              {
+                "id": "lepen",
+                "weight": 30
+              },
+              {
+                "id": "melenchon",
+                "weight": 25
+              },
+              {
+                "id": "dupont-aignan",
+                "weight": 15
+              },
+              {
+                "id": "philippe",
+                "weight": 15
+              },
+              {
+                "id": "glucksmann",
+                "weight": 15
+              }
+            ],
+            "note": "Hypothèse fondée sur son positionnement souverainiste ; les intentions de vote ne la confirment pas (aucun électeur de Le Pen ou de Zemmour de 2022 chez Elabe)."
+          }
+        ]
+      }
+    },
+    {
+      "id": "lisnard",
+      "name": "David Lisnard",
+      "shortName": "Lisnard",
+      "party": "Nouvelle Énergie",
+      "bloc": "droite",
+      "color": "#2a7bff",
+      "colorDark": "#58a6ff",
+      "duelProfile": null,
+      "ref2022": null,
+      "ref2022Note": "aucune référence 2022 : pas de correction ni de progression.",
+      "minor": {
+        "transfers": [
+          {
+            "id": "cluster17-retailleau",
+            "label": "Report mesuré vers Retailleau (Cluster17)",
+            "parts": [
+              {
+                "id": "retailleau",
+                "weight": 50
+              },
+              {
+                "id": "lepen",
+                "weight": 40
+              },
+              {
+                "id": "glucksmann",
+                "weight": 10
+              }
+            ],
+            "note": "Report mesuré par Cluster17 : quand Retailleau est le seul candidat du bloc central et de LR, 42 % des électeurs de Lisnard votent pour lui, 36 % pour Le Pen, Zemmour ou Dupont-Aignan, 9 % à gauche et 13 % blanc, nul ou abstention. Poids rapportés aux votes exprimés et arrondis ; extrême droite comptée avec Le Pen, gauche avec Glucksmann.",
+            "sources": [
+              {
+                "label": "Cluster17 / Le Point, 14-15/10/2026 (focus droite et centre, p. 37)",
+                "url": "https://cluster17.com/wp-content/uploads/2026/10/P27-ITV-et-focus-droite-et-centre-C17-Le-Point-1.pdf"
+              }
+            ]
+          },
+          {
+            "id": "retailleau",
+            "label": "Comme les électeurs de Retailleau",
+            "parts": [
+              {
+                "id": "retailleau",
+                "weight": 100
+              }
+            ],
+            "note": "Hypothèse de départ du simulateur, sans source."
+          },
+          {
+            "id": "cluster17-philippe",
+            "label": "Report mesuré vers Philippe (Cluster17)",
+            "parts": [
+              {
+                "id": "lepen",
+                "weight": 65
+              },
+              {
+                "id": "philippe",
+                "weight": 30
+              },
+              {
+                "id": "glucksmann",
+                "weight": 5
+              }
+            ],
+            "note": "Report mesuré par Cluster17 quand Philippe est le seul candidat du bloc central et de LR : 26 % des électeurs de Lisnard votent pour lui, 53 % pour Le Pen, Zemmour ou Dupont-Aignan, 6 % à gauche, 15 % blanc, nul ou abstention.",
+            "sources": [
+              {
+                "label": "Cluster17 / Le Point, 14-15/10/2026 (focus droite et centre, p. 37)",
+                "url": "https://cluster17.com/wp-content/uploads/2026/10/P27-ITV-et-focus-droite-et-centre-C17-Le-Point-1.pdf"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "bouamrane",
+      "name": "Karim Bouamrane",
+      "shortName": "Bouamrane",
+      "party": "Divers gauche",
+      "bloc": "gauche",
+      "color": "#f7a368",
+      "colorDark": "#f2a36c",
+      "duelProfile": null,
+      "ref2022": null,
+      "ref2022Note": "aucune référence 2022 : pas de correction ni de progression.",
+      "minor": {
+        "transfers": [
+          {
+            "id": "glucksmann",
+            "label": "Comme les électeurs de Glucksmann",
+            "parts": [
+              {
+                "id": "glucksmann",
+                "weight": 100
+              }
+            ],
+            "note": "Hypothèse fondée sur son appartenance au PS : aucun institut ne publie le détail de ses électeurs."
+          }
+        ]
+      }
     }
   ],
   "otherCandidates": [
     {
-      "id": "ruffin",
-      "name": "François Ruffin"
-    },
-    {
-      "id": "polony",
-      "name": "Natacha Polony"
-    },
-    {
-      "id": "bouamrane",
-      "name": "Karim Bouamrane"
-    },
-    {
       "id": "hollande",
       "name": "François Hollande"
-    },
-    {
-      "id": "villepin",
-      "name": "Dominique de Villepin"
-    },
-    {
-      "id": "lisnard",
-      "name": "David Lisnard"
     },
     {
       "id": "poutou",
@@ -274,10 +592,7 @@
         "lepen"
       ],
       "exclude": [
-        "hollande",
-        "ruffin",
-        "lisnard",
-        "bouamrane"
+        "hollande"
       ]
     },
     {
@@ -292,10 +607,7 @@
       ],
       "exclude": [
         "attal",
-        "hollande",
-        "ruffin",
-        "lisnard",
-        "bouamrane"
+        "hollande"
       ]
     },
     {
@@ -310,10 +622,7 @@
       ],
       "exclude": [
         "philippe",
-        "hollande",
-        "ruffin",
-        "lisnard",
-        "bouamrane"
+        "hollande"
       ]
     }
   ],
@@ -471,6 +780,87 @@
         "dupont-aignan"
       ],
       "leader": "lepen"
+    },
+    {
+      "id": "ruffin-melenchon",
+      "label": "Ruffin rejoint Mélenchon",
+      "members": [
+        "melenchon",
+        "ruffin"
+      ],
+      "leader": "melenchon"
+    },
+    {
+      "id": "ruffin-glucksmann",
+      "label": "Ruffin rejoint Glucksmann",
+      "members": [
+        "glucksmann",
+        "ruffin"
+      ],
+      "leader": "glucksmann"
+    },
+    {
+      "id": "bouamrane-glucksmann",
+      "label": "Bouamrane rejoint Glucksmann",
+      "members": [
+        "glucksmann",
+        "bouamrane"
+      ],
+      "leader": "glucksmann"
+    },
+    {
+      "id": "villepin-philippe",
+      "label": "Villepin rejoint Philippe",
+      "members": [
+        "philippe",
+        "villepin"
+      ],
+      "leader": "philippe"
+    },
+    {
+      "id": "villepin-glucksmann",
+      "label": "Villepin rejoint Glucksmann",
+      "members": [
+        "glucksmann",
+        "villepin"
+      ],
+      "leader": "glucksmann"
+    },
+    {
+      "id": "polony-melenchon",
+      "label": "Polony rejoint Mélenchon",
+      "members": [
+        "melenchon",
+        "polony"
+      ],
+      "leader": "melenchon"
+    },
+    {
+      "id": "polony-philippe",
+      "label": "Polony rejoint Philippe",
+      "members": [
+        "philippe",
+        "polony"
+      ],
+      "leader": "philippe"
+    },
+    {
+      "id": "lisnard-retailleau",
+      "label": "Lisnard rejoint Retailleau",
+      "members": [
+        "retailleau",
+        "lisnard"
+      ],
+      "leader": "retailleau"
+    },
+    {
+      "id": "retailleau-lisnard",
+      "label": "Retailleau rejoint Lisnard",
+      "members": [
+        "lisnard",
+        "retailleau"
+      ],
+      "leader": "lisnard"
     }
   ],
   "polls": [

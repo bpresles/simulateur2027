@@ -1,3 +1,4 @@
+import { simulationData } from '../data/schema'
 import type { PollsData } from '../domain/types'
 import { frozenData } from '../test/frozenData'
 import { WIKITEXT } from '../test/wikipediaFixture'
@@ -69,6 +70,15 @@ describe('syncPolls', () => {
 
   it('une page méconnaissable ne produit rien : les données restent inchangées', () => {
     expect(syncPolls(current as PollsData, '== Page vide ==', '2026-10-20')).toBeUndefined()
+  })
+
+  it('garde les petits candidats simulés et leurs reports, sans les rajouter aux candidats non simulés', () => {
+    const live = syncPolls(simulationData.polls, WIKITEXT, '2026-10-20')!
+    expect(live.data.candidates).toEqual(simulationData.polls.candidates)
+    expect(live.data.otherCandidates.map((c) => c.id)).not.toContain('lisnard')
+    expect(live.report.newCandidates).toEqual([])
+    const scores = live.data.polls.flatMap((p) => p.hypotheses.map((h) => h.scores))
+    expect(scores).toContainEqual(expect.objectContaining({ lisnard: 4, bouamrane: 0.5 }))
   })
 
   it('compare le contenu indépendamment de l’ordre des champs', () => {

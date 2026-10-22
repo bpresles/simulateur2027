@@ -7,6 +7,7 @@ import {
   availableAlliances,
   campRivals,
   comboWith,
+  scenarioFilter,
   scenarioSet,
 } from './alliances'
 import { defaultSettings, simulate } from './simulate'
@@ -44,8 +45,12 @@ const poll = (id: string, institute: string, hypotheses: Hypothesis[]): Poll => 
   sources: [{ label: 'x', url: 'https://example.org' }],
   hypotheses,
 })
+// Candidats principaux et leurs alliances : les petits candidats sont testés à part.
+const main = liveData.polls.candidates.filter((c) => !c.minor)
 const polls: PollsData = {
   ...liveData.polls,
+  candidates: main,
+  alliances: liveData.polls.alliances.filter((a) => a.members.every((id) => main.some((c) => c.id === id))),
   asOf: '2026-10-20',
   period: { label: 'Octobre-décembre 2026', start: '2026-10-01' },
   polls: [
@@ -246,5 +251,58 @@ describe('alliances estimées (option) : reports de 2024', () => {
     })
     const rate = res.allianceRates.find((r) => r.allianceId === 'tondelier-melenchon')!.joining[0]!
     expect(rate).toMatchObject({ leader: 0.9, isOverride: true, default2024: { leader: 0.72, rn: 0.03 } })
+  })
+})
+
+describe('petits candidats : alliances lues dans les hypothèses', () => {
+  // Lisnard testé (H1), absent (H2), puis seul candidat de la droite à la place de Retailleau (H3).
+  const { retailleau, ...noRetailleau } = FULL
+  const withMinors: PollsData = {
+    ...liveData.polls,
+    asOf: '2026-10-20',
+    period: { label: 'Octobre-décembre 2026', start: '2026-10-01' },
+    polls: [
+      poll('a', 'Elabe', [
+        { id: 'H1', scores: { ...FULL, melenchon: 15, retailleau: 3, lisnard: 4, ruffin: 2 } },
+        { id: 'H2', scores: FULL },
+        { id: 'H3', scores: { ...noRetailleau, lisnard: retailleau + 1 } },
+      ]),
+    ],
+  }
+  const minorData = { ...liveData, polls: withMinors }
+  const byIdLive = (id: string) => withMinors.alliances.find((a) => a.id === id)!
+
+  it('un petit candidat n’est requis que s’il mène une alliance', () => {
+    expect(scenarioFilter(withMinors, []).require).not.toContain('lisnard')
+    const filter = scenarioFilter(withMinors, [byIdLive('retailleau-lisnard')])
+    expect(filter.require).toContain('lisnard')
+    expect(filter.exclude).toContain('retailleau')
+  })
+
+  it('ralliement lu par l’absence du petit candidat, si son leader reste seul dans le camp', () => {
+    const combos = allianceCombos(withMinors).map(ids)
+    expect(combos).toContainEqual(['lisnard-retailleau'])
+    expect(combos).toContainEqual(['retailleau-lisnard'])
+    // Glucksmann reste en lice à gauche : l'absence de Ruffin ne dit pas qu'il rallie Mélenchon.
+    expect(combos.flat()).not.toContain('ruffin-melenchon')
+  })
+
+  it('simulation : 0 % dans les hypothèses sans lui, retiré quand il rallie son leader', () => {
+    const base = simulate(minorData, defaultSettings())
+    expect(base.pollUsage[0]!.matchedHypotheses).toEqual(['H1', 'H2'])
+    const lisnard = base.firstRound.find((r) => r.candidateId === 'lisnard')!
+    // (4 + 0) / 2 dans le seul sondage retenu.
+    expect(lisnard.base).toBeCloseTo(2, 8)
+    expect(base.firstRound.map((r) => r.candidateId)).not.toContain('villepin')
+
+    const rallied = simulate(minorData, { ...defaultSettings(), alliances: { 'lisnard-retailleau': true } })
+    expect(rallied.allianceIds).toEqual(['lisnard-retailleau'])
+    expect(rallied.pollUsage[0]!.matchedHypotheses).toEqual(['H2'])
+    expect(rallied.firstRound.map((r) => r.candidateId)).not.toContain('lisnard')
+
+    const leader = simulate(minorData, { ...defaultSettings(), alliances: { 'retailleau-lisnard': true } })
+    expect(leader.pollUsage[0]!.matchedHypotheses).toEqual(['H3'])
+    expect(leader.entrants.map((e) => e.id)).toContain('lisnard')
+    expect(leader.entrants.map((e) => e.id)).not.toContain('retailleau')
   })
 })

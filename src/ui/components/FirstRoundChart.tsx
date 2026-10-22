@@ -193,6 +193,12 @@ function RowDetails({
             <dt className="col-span-2 font-semibold">{c.name}</dt>
             <dt className="text-ink-3">{baseLabel}</dt>
             <dd className="num text-right">{pct(r.base)}</dd>
+            {c.minor && (
+              <>
+                <dt className="text-ink-3">Hypothèses sans {c.shortName}</dt>
+                <dd className="text-right">comptées à 0 %</dd>
+              </>
+            )}
             {Math.abs(r.projected - r.base) > 1e-9 && (
               <>
                 <dt className="text-ink-3">

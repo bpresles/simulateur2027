@@ -25,11 +25,18 @@ export function alliancesConflict(a: Alliance, b: Alliance): boolean {
 export const defaultSet = (data: Pick<PollsData, 'hypothesisSets'>): HypothesisSet =>
   data.hypothesisSets.find((s) => s.default) ?? data.hypothesisSets[0]!
 
-/** Critères d'une hypothèse du scénario : tous les candidats simulés sauf les ralliés (et les exclus de la base). */
+/**
+ * Critères d'une hypothèse du scénario : tous les candidats simulés sauf les ralliés (et les exclus de la
+ * base). Les petits candidats ne sont requis que s'ils mènent une alliance.
+ */
 export function scenarioFilter(data: PollsData, alliances: Alliance[]): Pick<HypothesisSet, 'require' | 'exclude'> {
   const rallied = alliances.flatMap(ralliedOf)
+  const leaders = alliances.map((a) => a.leader)
   const exclude = [...new Set([...defaultSet(data).exclude, ...rallied])]
-  return { require: data.candidates.map((c) => c.id).filter((id) => !exclude.includes(id)), exclude }
+  const require = data.candidates
+    .filter((c) => (!c.minor || leaders.includes(c.id)) && !exclude.includes(c.id))
+    .map((c) => c.id)
+  return { require, exclude }
 }
 
 /**
@@ -77,7 +84,7 @@ export function allianceCombos(data: PollsData): Alliance[][] {
       [[]],
     )
     for (const s of subsets) {
-      if (s.length > 0 && campRivals(data, s).length === 0 && hypothesisMatches(h, scenarioFilter(data, s))) {
+      if (s.length > 0 && hypothesisMatches(h, scenarioFilter(data, s)) && campRivals(data, s).length === 0) {
         combos.set(key(s), s)
       }
     }

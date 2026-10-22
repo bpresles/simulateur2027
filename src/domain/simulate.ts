@@ -15,7 +15,7 @@ import { averagePollsByScenario } from './pollAverage'
 import { computeProgression2022 } from './progression'
 import type { ProgressionStats } from './progression'
 import { computeSecondRound, secondRoundDropout2022 } from './secondRound'
-import { allianceSplit2024, effectiveProfiles, resolveDuel } from './transfers'
+import { allianceSplit2024, effectiveProfiles, minorTransferParts, resolveDuel } from './transfers'
 import type {
   Alliance,
   AllianceLeak,
@@ -47,6 +47,7 @@ export function defaultSettings(): Settings {
     untestedAlliances: false,
     allianceOverrides: {},
     transferOverrides: {},
+    minorTransfers: {},
     fidelity: null,
     abstentionCalibration: true,
     abstentionTarget: null,
@@ -263,6 +264,7 @@ export function simulate(
   const abstentionTarget = settings.abstentionCalibration
     ? (settings.abstentionTarget ?? secondRoundDropout2022(data.reference2022))
     : null
+  const minorTransfers = minorTransferParts(polls.candidates, settings.minorTransfers)
   const duelAgainst = (opponent: Entrant) =>
     computeSecondRound({
       electorate: corrected,
@@ -275,6 +277,7 @@ export function simulate(
       fidelity,
       abstentionTarget,
       secondRoundPolls: polls.secondRoundPolls,
+      minorTransfers,
     })
   // Qualification serrée : le 2nd tour avec le 3e est aussi simulé, l'utilisateur choisit lequel afficher.
   const withSecond = duelAgainst(second)

@@ -20,6 +20,8 @@ interface SettingsActions {
   /** `undefined` rétablit le taux constaté en 2024 pour cette alliance estimée. */
   setAllianceOverride: (allianceId: string, share: number | undefined) => void
   setTransferOverride: (profile: ProfileId, bloc: Bloc, values: TransferValues | undefined) => void
+  /** `undefined` rétablit la répartition par défaut des électeurs de ce petit candidat. */
+  setMinorTransfer: (id: CandidateId, transferId: string | undefined) => void
   setFidelity: (fidelity: number | null) => void
   setAbstentionCalibration: (enabled: boolean) => void
   /** `null` rétablit le niveau réel du 2nd tour 2022. */
@@ -73,6 +75,11 @@ export const useSettings = create<SettingsStore>()(
             transferOverrides: { ...s.transferOverrides, [profile]: values ? { ...rows, [bloc]: values } : rows },
           }
         }),
+      setMinorTransfer: (id, transferId) =>
+        set((s) => {
+          const { [id]: _, ...rest } = s.minorTransfers
+          return { minorTransfers: transferId === undefined ? rest : { ...rest, [id]: transferId } }
+        }),
       setFidelity: (fidelity) => set({ fidelity }),
       setAbstentionCalibration: (abstentionCalibration) => set({ abstentionCalibration }),
       setAbstentionTarget: (abstentionTarget) => set({ abstentionTarget }),
@@ -82,7 +89,13 @@ export const useSettings = create<SettingsStore>()(
         set({ correctionsEnabled, correctionIntensity, correctionOverrides, referenceBlend })
       },
       resetTransfers: () =>
-        set({ transferOverrides: {}, fidelity: null, abstentionCalibration: true, abstentionTarget: null }),
+        set({
+          transferOverrides: {},
+          minorTransfers: {},
+          fidelity: null,
+          abstentionCalibration: true,
+          abstentionTarget: null,
+        }),
       resetAll: () => set(defaultSettings()),
     }),
     {
@@ -101,6 +114,7 @@ export const useSettings = create<SettingsStore>()(
         untestedAlliances: s.untestedAlliances,
         allianceOverrides: s.allianceOverrides,
         transferOverrides: s.transferOverrides,
+        minorTransfers: s.minorTransfers,
         fidelity: s.fidelity,
         abstentionCalibration: s.abstentionCalibration,
         abstentionTarget: s.abstentionTarget,
@@ -149,6 +163,7 @@ export function selectSettings(s: SettingsStore): Settings {
     untestedAlliances: s.untestedAlliances,
     allianceOverrides: s.allianceOverrides,
     transferOverrides: s.transferOverrides,
+    minorTransfers: s.minorTransfers,
     fidelity: s.fidelity,
     abstentionCalibration: s.abstentionCalibration,
     abstentionTarget: s.abstentionTarget,

@@ -134,6 +134,7 @@ export function averageByScenario<K, P extends HypothesisPoll>(
   scenarios: { key: K; filter: HypothesisFilter }[],
   keep: ReadonlySet<CandidateId>,
   include: (poll: P) => boolean = () => true,
+  optional: readonly CandidateId[] = [],
 ): ScenarioAverageResult<K, P> {
   const { latest, superseded } = latestPerInstitute(polls, asOf, windowDays)
   const inWindow = [...latest, ...superseded]
@@ -156,12 +157,18 @@ export function averageByScenario<K, P extends HypothesisPoll>(
     const chosen = choice.get(poll)
     if (!chosen) return skip('no-matching-hypothesis')
     if (!included.includes(poll)) return skip('excluded')
-    const average = meanByKey(chosen.matched.map((h) => normalize(pick(h.scores, keep))))
+    // Petit candidat qu'une hypothèse ne teste pas : 0 %, sauf s'il est exclu du scénario (rallié).
+    const { exclude } = scenarios[chosen.index]!.filter
+    const zeros = Object.fromEntries(optional.filter((id) => !exclude.includes(id)).map((id) => [id, 0]))
+    const average = meanByKey(chosen.matched.map((h) => ({ ...zeros, ...normalize(pick(h.scores, keep)) })))
     return { poll, status: 'used', matchedHypotheses: chosen.matched.map((h) => h.id), average }
   })
   const groups = scenarios.flatMap((s, index) => {
     const used = usage.filter((u) => u.average && choice.get(u.poll)?.index === index)
-    const average = normalize(meanByKey(used.map((u) => u.average!)))
+    // Un petit candidat qu'aucune hypothèse retenue ne teste n'est pas présenté.
+    const average = Object.fromEntries(
+      Object.entries(normalize(meanByKey(used.map((u) => u.average!)))).filter(([id, v]) => v > 0 || !optional.includes(id)),
+    )
     return used.length ? [{ key: s.key, average, institutes: used.length, polls: used.map((u) => u.poll) }] : []
   })
   return { usage, groups, institutesUsed: usage.filter((u) => u.status === 'used').length }
@@ -173,7 +180,8 @@ export function averageByScenario<K, P extends HypothesisPoll>(
  *    `include` retient ; si aucun sondage ayant une hypothèse conforme n'est retenu, `include` est
  *    ignoré ;
  * 2. dans ce sondage, hypothèses conformes au filtre (candidats requis présents, exclus absents),
- *    réduites aux candidats retenus puis renormalisées à 100, et moyennées entre elles ;
+ *    réduites aux candidats retenus puis renormalisées à 100, et moyennées entre elles ; un candidat
+ *    `optional` (petit candidat) absent d'une hypothèse y compte pour 0 ;
  * 3. moyenne simple entre instituts (aucune s'il n'en reste qu'un), puis normalisation à 100.
  */
 export function averageHypothesisPolls<P extends HypothesisPoll>(
@@ -183,8 +191,10 @@ export function averageHypothesisPolls<P extends HypothesisPoll>(
   filter: HypothesisFilter,
   keep: ReadonlySet<CandidateId>,
   include: (poll: P) => boolean = () => true,
+  optional: readonly CandidateId[] = [],
 ): PollAverageResult<P> {
-  const { usage, groups, institutesUsed } = averageByScenario(polls, asOf, windowDays, [{ key: 0, filter }], keep, include)
+  const scenarios = [{ key: 0, filter }]
+  const { usage, groups, institutesUsed } = averageByScenario(polls, asOf, windowDays, scenarios, keep, include, optional)
   return { usage, average: groups[0]?.average ?? {}, institutesUsed }
 }
 
@@ -193,6 +203,10 @@ export function windowDaysOf(data: Pick<PollsData, 'asOf' | 'windowDays' | 'peri
   return data.period ? Math.max(0, daysBetween(data.period.start, data.asOf)) : data.windowDays
 }
 
+/** Petits candidats des données : facultatifs dans les hypothèses, à 0 % quand ils n'y sont pas. */
+export const minorIds = (data: Pick<PollsData, 'candidates'>): CandidateId[] =>
+  data.candidates.filter((c) => c.minor).map((c) => c.id)
+
 /** Sondages 2027 par scénario (premier testé par chaque sondage), sur les candidats simulés, hors exclus. */
 export function averagePollsByScenario<K>(
   data: PollsData,
@@ -200,7 +214,8 @@ export function averagePollsByScenario<K>(
   excluded: ReadonlySet<string> = new Set(),
 ): ScenarioAverageResult<K> {
   const simulated = new Set(data.candidates.map((c) => c.id))
-  return averageByScenario(data.polls, data.asOf, windowDaysOf(data), scenarios, simulated, (p) => !excluded.has(p.id))
+  const include = (p: Poll) => !excluded.has(p.id)
+  return averageByScenario(data.polls, data.asOf, windowDaysOf(data), scenarios, simulated, include, minorIds(data))
 }
 
 /** Moyenne des sondages 2027 pour un jeu d'hypothèses, sur les candidats simulés, hors sondages exclus. */
@@ -210,7 +225,8 @@ export function averagePolls(
   excluded: ReadonlySet<string> = new Set(),
 ): PollAverageResult {
   const simulated = new Set(data.candidates.map((c) => c.id))
-  return averageHypothesisPolls(data.polls, data.asOf, windowDaysOf(data), set, simulated, (p) => !excluded.has(p.id))
+  const include = (p: Poll) => !excluded.has(p.id)
+  return averageHypothesisPolls(data.polls, data.asOf, windowDaysOf(data), set, simulated, include, minorIds(data))
 }
 
 /** Nombre de jours entre deux dates ISO. */

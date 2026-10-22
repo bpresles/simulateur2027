@@ -1,5 +1,5 @@
 import type { SimulationResult, VoteFlow as Flow } from '../../domain/types'
-import { cand, colorVars } from '../candidates'
+import { cand, colorVars, transferLabel } from '../candidates'
 import { num, pct } from '../format'
 import { InfoTip } from './InfoTip'
 
@@ -50,6 +50,8 @@ export function VoteFlow({ result }: { result: SimulationResult }) {
       </div>
       <p className="mt-2 text-sm text-ink-3">
         Les électeurs des finalistes et de leurs alliés leur restent fidèles à {pct(sr.fidelity * 100, 0)}.
+        {flows.some((f) => f.like) &&
+          ' Ceux d’un petit candidat se reportent comme les électorats indiqués, selon leurs poids (réglages).'}
       </p>
     </section>
   )
@@ -65,6 +67,7 @@ function FlowRow({ flow }: { flow: Flow }) {
           <span style={colorVars(c)} className="cand-fill h-2.5 w-2.5 shrink-0 rounded-full" />
           {c.shortName}
         </span>
+        {flow.like && <span className="block pl-[1.125rem] text-xs text-ink-3">comme {transferLabel(flow.like)}</span>}
       </td>
       <td className="num py-1.5 pr-2 text-right text-ink-2">{pct(flow.share)}</td>
       <td className="num py-1.5 pr-2 text-right">{num(rate(flow.toA), 0)}&#8239;%</td>
