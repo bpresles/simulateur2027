@@ -1,5 +1,5 @@
 {
-  "asOf": "2026-10-22",
+  "asOf": "2026-10-23",
   "electionDate": "2027-04-18",
   "windowDays": 21,
   "collection": {
@@ -865,6 +865,167 @@
   ],
   "polls": [
     {
+      "id": "opinionway-20261022",
+      "origin": "wikipedia",
+      "institute": "OpinionWay",
+      "sponsor": "Non indiqué",
+      "fieldwork": {
+        "start": "2026-10-21",
+        "end": "2026-10-22"
+      },
+      "sampleSize": 973,
+      "sources": [
+        {
+          "label": "Synthèse de l’institut",
+          "url": "https://www.opinion-way.com/fr/publications/les-intentions-de-vote-a-lelection-presidentielle-de-2027-vague-3-2026-24596/",
+          "kind": "synthese"
+        },
+        {
+          "label": "Publication",
+          "url": "https://www.cnews.fr/france/2026-10-22/sondage-marine-le-pen-conforte-son-avance-au-premier-tour-de-lelection"
+        },
+        {
+          "label": "Wikipedia – liste des sondages",
+          "url": "https://fr.wikipedia.org/wiki/Liste_de_sondages_sur_l%27%C3%A9lection_pr%C3%A9sidentielle_fran%C3%A7aise_de_2027"
+        }
+      ],
+      "note": "Repris de Wikipedia : chiffres non revérifiés.",
+      "hypotheses": [
+        {
+          "id": "H1",
+          "scores": {
+            "arthaud": 0.5,
+            "melenchon": 16,
+            "roussel": 1,
+            "tondelier": 1,
+            "glucksmann": 13,
+            "attal": 4,
+            "philippe": 12,
+            "lisnard": 6,
+            "retailleau": 6,
+            "dupont-aignan": 1,
+            "lepen": 36,
+            "zemmour": 4,
+            "bouamrane": 0.5
+          }
+        }
+      ]
+    },
+    {
+      "id": "harris-interactive-toluna-20261021",
+      "origin": "wikipedia",
+      "institute": "Harris Interactive (Toluna)",
+      "sponsor": "Non indiqué",
+      "fieldwork": {
+        "start": "2026-10-19",
+        "end": "2026-10-21"
+      },
+      "sampleSize": 2094,
+      "sources": [
+        {
+          "label": "Synthèse de l’institut",
+          "url": "https://tolunacorporate.com/fr/intentions-de-vote-a-lelection-presidentielle-2027-5/",
+          "kind": "synthese"
+        },
+        {
+          "label": "Publication",
+          "url": "https://tolunacorporate.com/wp-content/uploads/2026/10/Rapport-Toluna-Barometre-Presidentielle-2027-Vague-8-M6-RTL-23-octobre-2026-1.pdf"
+        },
+        {
+          "label": "Wikipedia – liste des sondages",
+          "url": "https://fr.wikipedia.org/wiki/Liste_de_sondages_sur_l%27%C3%A9lection_pr%C3%A9sidentielle_fran%C3%A7aise_de_2027"
+        }
+      ],
+      "note": "Repris de Wikipedia : chiffres non revérifiés.",
+      "hypotheses": [
+        {
+          "id": "H1",
+          "label": "Philippe, Lisnard, Villepin",
+          "scores": {
+            "arthaud": 1,
+            "melenchon": 17,
+            "roussel": 2,
+            "tondelier": 2,
+            "glucksmann": 12,
+            "philippe": 15,
+            "lisnard": 7,
+            "retailleau": 4,
+            "dupont-aignan": 1,
+            "lepen": 33,
+            "zemmour": 5,
+            "villepin": 1
+          }
+        },
+        {
+          "id": "H2",
+          "label": "Attal, Lisnard, Villepin",
+          "scores": {
+            "arthaud": 1,
+            "melenchon": 17,
+            "roussel": 2,
+            "tondelier": 2,
+            "glucksmann": 14,
+            "attal": 10,
+            "lisnard": 8,
+            "retailleau": 5,
+            "dupont-aignan": 1,
+            "lepen": 33,
+            "zemmour": 5,
+            "villepin": 2
+          }
+        },
+        {
+          "id": "H3",
+          "label": "Attal, Philippe",
+          "scores": {
+            "arthaud": 1,
+            "melenchon": 17,
+            "roussel": 1,
+            "tondelier": 2,
+            "glucksmann": 12,
+            "attal": 5,
+            "philippe": 13,
+            "retailleau": 6,
+            "dupont-aignan": 2,
+            "lepen": 35,
+            "zemmour": 6
+          }
+        },
+        {
+          "id": "H4",
+          "label": "Philippe",
+          "scores": {
+            "arthaud": 1,
+            "melenchon": 17,
+            "roussel": 2,
+            "tondelier": 2,
+            "glucksmann": 13,
+            "philippe": 16,
+            "retailleau": 7,
+            "dupont-aignan": 2,
+            "lepen": 35,
+            "zemmour": 5
+          }
+        },
+        {
+          "id": "H5",
+          "label": "Attal",
+          "scores": {
+            "arthaud": 1,
+            "melenchon": 19,
+            "roussel": 2,
+            "tondelier": 2,
+            "glucksmann": 13,
+            "attal": 11,
+            "retailleau": 9,
+            "dupont-aignan": 2,
+            "lepen": 35,
+            "zemmour": 6
+          }
+        }
+      ]
+    },
+    {
       "id": "ifop-fiducial-20261019",
       "origin": "wikipedia",
       "institute": "Ifop-Fiducial",
@@ -1389,225 +1550,6 @@
       ]
     },
     {
-      "id": "opinionway-20261014",
-      "origin": "wikipedia",
-      "institute": "OpinionWay",
-      "sponsor": "CNews",
-      "fieldwork": {
-        "start": "2026-10-13",
-        "end": "2026-10-14"
-      },
-      "sampleSize": 1043,
-      "sources": [
-        {
-          "label": "Synthèse de l’institut",
-          "url": "https://www.opinion-way.com/fr/publications/les-intentions-de-vote-a-lelection-presidentielle-de-2027-4-2026-24539/",
-          "kind": "synthese"
-        },
-        {
-          "label": "Notice (Commission des sondages)",
-          "url": "https://www.commission-des-sondages.fr/notices/files/notices/2026/octobre/10319-pres-iv-opinionway-cnews-15-octobre.pdf",
-          "kind": "notice"
-        },
-        {
-          "label": "Notice (Commission des sondages)",
-          "url": "https://www.commission-des-sondages.fr/notices/files/notices/2026/octobre/10318-pres-presitrack-v3-opinionway-15-octobre.pdf",
-          "kind": "notice"
-        },
-        {
-          "label": "Wikipedia – liste des sondages",
-          "url": "https://fr.wikipedia.org/wiki/Liste_de_sondages_sur_l%27%C3%A9lection_pr%C3%A9sidentielle_fran%C3%A7aise_de_2027"
-        }
-      ],
-      "note": "Repris de Wikipedia : chiffres non revérifiés.",
-      "hypotheses": [
-        {
-          "id": "H1",
-          "scores": {
-            "arthaud": 1,
-            "melenchon": 15,
-            "roussel": 1,
-            "tondelier": 2,
-            "glucksmann": 13,
-            "attal": 5,
-            "philippe": 12,
-            "lisnard": 4,
-            "retailleau": 6,
-            "dupont-aignan": 1,
-            "lepen": 35,
-            "zemmour": 5,
-            "bouamrane": 0.5
-          }
-        },
-        {
-          "id": "H2",
-          "label": "Attal, Philippe",
-          "scores": {
-            "arthaud": 0.5,
-            "melenchon": 14,
-            "roussel": 3,
-            "tondelier": 3,
-            "glucksmann": 13,
-            "attal": 7,
-            "philippe": 12,
-            "retailleau": 7,
-            "dupont-aignan": 2,
-            "lepen": 35,
-            "zemmour": 4
-          }
-        },
-        {
-          "id": "H3",
-          "label": "Attal",
-          "scores": {
-            "arthaud": 1,
-            "melenchon": 15,
-            "roussel": 2,
-            "tondelier": 3,
-            "glucksmann": 16,
-            "attal": 11,
-            "retailleau": 9,
-            "dupont-aignan": 2,
-            "lepen": 37,
-            "zemmour": 4
-          }
-        },
-        {
-          "id": "H4",
-          "label": "Philippe",
-          "scores": {
-            "arthaud": 1,
-            "melenchon": 15,
-            "roussel": 2,
-            "tondelier": 3,
-            "glucksmann": 15,
-            "philippe": 15,
-            "retailleau": 8,
-            "dupont-aignan": 2,
-            "lepen": 35,
-            "zemmour": 4
-          }
-        }
-      ]
-    },
-    {
-      "id": "harris-20261008",
-      "origin": "wikipedia",
-      "institute": "Harris Interactive (Toluna)",
-      "sponsor": "Non indiqué",
-      "fieldwork": {
-        "start": "2026-10-05",
-        "end": "2026-10-08"
-      },
-      "sampleSize": 2004,
-      "sources": [
-        {
-          "label": "Synthèse de l’institut",
-          "url": "https://tolunacorporate.com/fr/intentions-de-vote-a-lelection-presidentielle-2027-4/",
-          "kind": "synthese"
-        },
-        {
-          "label": "Notice (Commission des sondages)",
-          "url": "https://www.commission-des-sondages.fr/notices/files/notices/2026/octobre/10305-pres-iv-toluna-harris-interactive-12-octobre.pdf",
-          "kind": "notice"
-        },
-        {
-          "label": "Wikipedia – liste des sondages",
-          "url": "https://fr.wikipedia.org/wiki/Liste_de_sondages_sur_l%27%C3%A9lection_pr%C3%A9sidentielle_fran%C3%A7aise_de_2027"
-        }
-      ],
-      "note": "Repris de Wikipedia : chiffres non revérifiés.",
-      "hypotheses": [
-        {
-          "id": "H1",
-          "label": "Hollande, Attal",
-          "scores": {
-            "arthaud": 1,
-            "melenchon": 19,
-            "roussel": 2,
-            "tondelier": 5,
-            "hollande": 7,
-            "attal": 12,
-            "retailleau": 10,
-            "dupont-aignan": 2,
-            "lepen": 37,
-            "zemmour": 5
-          },
-          "replacing": {
-            "hollande": "glucksmann"
-          }
-        },
-        {
-          "id": "H2",
-          "label": "Hollande, Philippe",
-          "scores": {
-            "arthaud": 1,
-            "melenchon": 18,
-            "roussel": 3,
-            "tondelier": 4,
-            "hollande": 7,
-            "philippe": 17,
-            "retailleau": 8,
-            "dupont-aignan": 2,
-            "lepen": 36,
-            "zemmour": 4
-          },
-          "replacing": {
-            "hollande": "glucksmann"
-          }
-        },
-        {
-          "id": "H3",
-          "label": "Glucksmann, Attal",
-          "scores": {
-            "arthaud": 1,
-            "melenchon": 18,
-            "roussel": 2,
-            "tondelier": 3,
-            "glucksmann": 11,
-            "attal": 12,
-            "retailleau": 10,
-            "dupont-aignan": 2,
-            "lepen": 36,
-            "zemmour": 5
-          }
-        },
-        {
-          "id": "H4",
-          "label": "Glucksmann, Philippe",
-          "scores": {
-            "arthaud": 1,
-            "melenchon": 18,
-            "roussel": 2,
-            "tondelier": 3,
-            "glucksmann": 10,
-            "philippe": 17,
-            "retailleau": 7,
-            "dupont-aignan": 2,
-            "lepen": 36,
-            "zemmour": 4
-          }
-        },
-        {
-          "id": "H5",
-          "label": "Glucksmann, Attal, Philippe",
-          "scores": {
-            "arthaud": 1,
-            "melenchon": 18,
-            "roussel": 2,
-            "tondelier": 2,
-            "glucksmann": 10,
-            "attal": 5,
-            "philippe": 13,
-            "retailleau": 7,
-            "dupont-aignan": 2,
-            "lepen": 35,
-            "zemmour": 5
-          }
-        }
-      ]
-    },
-    {
       "id": "odoxa-20261007",
       "origin": "wikipedia",
       "institute": "Odoxa",
@@ -1671,6 +1613,36 @@
     }
   ],
   "secondRoundPolls": [
+    {
+      "origin": "wikipedia",
+      "institute": "OpinionWay",
+      "sponsor": "Non indiqué",
+      "fieldwork": {
+        "start": "2026-10-21",
+        "end": "2026-10-22"
+      },
+      "sampleSize": 973,
+      "url": "https://www.cnews.fr/france/2026-10-22/sondage-marine-le-pen-conforte-son-avance-au-premier-tour-de-lelection",
+      "scores": {
+        "glucksmann": 44,
+        "lepen": 56
+      }
+    },
+    {
+      "origin": "wikipedia",
+      "institute": "OpinionWay",
+      "sponsor": "Non indiqué",
+      "fieldwork": {
+        "start": "2026-10-21",
+        "end": "2026-10-22"
+      },
+      "sampleSize": 973,
+      "url": "https://www.cnews.fr/france/2026-10-22/sondage-marine-le-pen-conforte-son-avance-au-premier-tour-de-lelection",
+      "scores": {
+        "melenchon": 31,
+        "lepen": 69
+      }
+    },
     {
       "origin": "wikipedia",
       "institute": "Ifop-Fiducial",
@@ -1849,36 +1821,6 @@
       "scores": {
         "melenchon": 34,
         "philippe": 66
-      }
-    },
-    {
-      "origin": "wikipedia",
-      "institute": "OpinionWay",
-      "sponsor": "CNews",
-      "fieldwork": {
-        "start": "2026-10-13",
-        "end": "2026-10-14"
-      },
-      "sampleSize": 1043,
-      "url": "https://www.commission-des-sondages.fr/notices/files/notices/2026/octobre/10319-pres-iv-opinionway-cnews-15-octobre.pdf",
-      "scores": {
-        "glucksmann": 44,
-        "lepen": 56
-      }
-    },
-    {
-      "origin": "wikipedia",
-      "institute": "OpinionWay",
-      "sponsor": "CNews",
-      "fieldwork": {
-        "start": "2026-10-13",
-        "end": "2026-10-14"
-      },
-      "sampleSize": 1043,
-      "url": "https://www.commission-des-sondages.fr/notices/files/notices/2026/octobre/10319-pres-iv-opinionway-cnews-15-octobre.pdf",
-      "scores": {
-        "melenchon": 32,
-        "lepen": 68
       }
     },
     {
