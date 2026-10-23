@@ -7,8 +7,10 @@ import {
   availableAlliances,
   campRivals,
   comboWith,
+  insertMinor,
   scenarioFilter,
   scenarioSet,
+  testedShare,
 } from './alliances'
 import { defaultSettings, simulate } from './simulate'
 import type { Alliance, Hypothesis, Poll, PollsData } from './types'
@@ -304,5 +306,50 @@ describe('petits candidats : alliances lues dans les hypothèses', () => {
     expect(leader.pollUsage[0]!.matchedHypotheses).toEqual(['H3'])
     expect(leader.entrants.map((e) => e.id)).toContain('lisnard')
     expect(leader.entrants.map((e) => e.id)).not.toContain('retailleau')
+  })
+})
+
+describe('petit candidat testé seulement avec un rallié', () => {
+  // Ruffin n'est testé qu'avec Attal (H1) ; H2 mesure « Attal rejoint Philippe », sans Ruffin.
+  const withRuffin: PollsData = {
+    ...liveData.polls,
+    asOf: '2026-10-20',
+    period: { label: 'Octobre-décembre 2026', start: '2026-10-01' },
+    polls: [poll('a', 'Elabe', [{ id: 'H1', scores: { ...FULL, melenchon: 15, ruffin: 2 } }, without('H2', ['attal'], 'philippe')])],
+  }
+  const ruffinData = { ...liveData, polls: withRuffin }
+
+  it('sa part : moyenne des hypothèses qui le testent (0 si aucune)', () => {
+    expect(testedShare(withRuffin, 'ruffin')).toBeCloseTo(2, 8)
+    expect(testedShare(withRuffin, 'bouamrane')).toBe(0)
+    // Aucun sondage coché ne le teste : tous les sondages disponibles sont retenus, comme pour la base.
+    expect(testedShare(withRuffin, 'ruffin', new Set(['a']))).toBeCloseTo(2, 8)
+  })
+
+  it('sa part est prise aux candidats vers lesquels vont ses électeurs, au prorata de ceux en lice', () => {
+    const donors = [
+      { id: 'a', weight: 0.6 },
+      { id: 'b', weight: 0.2 },
+      { id: 'absent', weight: 0.2 },
+    ]
+    expect(insertMinor({ a: 30, b: 20, c: 50 }, 'm', 4, donors)).toEqual({ a: 27, b: 19, c: 50, m: 4 })
+    // Aucun donneur en lice : prélèvement sur tous, au prorata de leur score.
+    expect(insertMinor({ a: 50, c: 50 }, 'm', 4, [{ id: 'x', weight: 1 }])).toEqual({ a: 48, c: 48, m: 4 })
+  })
+
+  it('simulation : son ralliement est estimé (reports 2024) même quand Attal rejoint Philippe', () => {
+    const settings = { ...defaultSettings(), untestedAlliances: true }
+    const alone = simulate(ruffinData, { ...settings, alliances: { 'attal-philippe': true } })
+    expect(alone.firstRound.map((r) => r.candidateId)).not.toContain('ruffin')
+
+    const res = simulate(ruffinData, { ...settings, alliances: { 'attal-philippe': true, 'ruffin-melenchon': true } })
+    expect(res.allianceIds).toEqual(['attal-philippe'])
+    expect(res.estimatedAllianceIds).toEqual(['ruffin-melenchon'])
+    // 2 % de H1, prélevés sur Mélenchon (ses électeurs votent comme les siens en son absence).
+    expect(res.firstRound.find((r) => r.candidateId === 'ruffin')!.base).toBeCloseTo(2, 8)
+    const melenchon = res.entrants.find((e) => e.id === 'melenchon')!
+    const ruffin = melenchon.members.find((m) => m.candidateId === 'ruffin')!
+    expect(ruffin.rate).toBeGreaterThan(0)
+    expect(res.warnings.some((w) => w.startsWith('Aucune hypothèse retenue ne teste François Ruffin'))).toBe(true)
   })
 })

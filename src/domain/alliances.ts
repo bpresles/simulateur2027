@@ -1,5 +1,15 @@
-import { hypothesisMatches, latestPerInstitute, windowDaysOf } from './pollAverage'
-import type { Alliance, AllianceLeak, Bloc, CandidateId, Entrant, EntrantMember, HypothesisSet, PollsData } from './types'
+import { averagePolls, hypothesisMatches, latestPerInstitute, normalize, windowDaysOf } from './pollAverage'
+import type {
+  Alliance,
+  AllianceLeak,
+  Bloc,
+  CandidateId,
+  Entrant,
+  EntrantMember,
+  HypothesisSet,
+  PollsData,
+  ReferencePart,
+} from './types'
 
 /*
  * Une alliance retire son candidat rallié du 1er tour : on ne garde que les hypothèses des sondages qui
@@ -142,6 +152,31 @@ export function scenarioSet(data: PollsData, alliances: Alliance[], name: (id: C
 export interface AllianceSplit {
   leader: number
   rn: number
+}
+
+/** Part d'un candidat dans les hypothèses qui le testent (dernier sondage de chaque institut, hors exclus). */
+export function testedShare(data: PollsData, id: CandidateId, excluded: ReadonlySet<string> = new Set()): number {
+  return averagePolls(data, { require: [id], exclude: [] }, excluded).average[id] ?? 0
+}
+
+/**
+ * Ajoute à une moyenne un petit candidat qu'aucune de ses hypothèses ne teste (Ruffin, testé seulement avec
+ * Attal, quand Attal rejoint Philippe), pour estimer son ralliement : sa part, reprise des hypothèses qui le
+ * testent, est prélevée sur les candidats vers lesquels vont ses électeurs en son absence (`donors`, au
+ * prorata de ceux qui sont en lice ; à défaut, sur tous au prorata de leur score). Total ramené à 100.
+ */
+export function insertMinor(
+  average: Record<CandidateId, number>,
+  id: CandidateId,
+  share: number,
+  donors: ReferencePart[],
+): Record<CandidateId, number> {
+  const present = donors.filter((p) => (average[p.id] ?? 0) > 0)
+  const from = present.length > 0 ? present : Object.entries(average).map(([k, v]) => ({ id: k, weight: v }))
+  const total = from.reduce((s, p) => s + p.weight, 0)
+  const scores = { ...average }
+  for (const p of from) scores[p.id] = Math.max(0, scores[p.id]! - (share * p.weight) / total)
+  return normalize({ ...scores, [id]: share })
 }
 
 export interface AllianceResult {
