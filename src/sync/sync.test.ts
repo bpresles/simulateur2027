@@ -62,6 +62,19 @@ describe('syncPolls', () => {
     ])
   })
 
+  it('garde la part sans intention de vote saisie pour un duel resté sur la page et signale les autres', () => {
+    expect(report.missingNoIntention).toEqual(['YouGov 2026-10-15 (philippe-lepen)'])
+    const noIntention = {
+      share: 32.5,
+      base: 'inscrits' as const,
+      source: { label: 'Notice (Commission des sondages)', url: 'https://example.org/notice.pdf' },
+    }
+    const entered = { ...data, secondRoundPolls: data.secondRoundPolls.map((d) => ({ ...d, noIntention })) }
+    const again = syncPolls(entered, WIKITEXT, '2026-10-21')!
+    expect(again.report).toMatchObject({ changed: false, missingNoIntention: [] })
+    expect(again.data.secondRoundPolls).toEqual([expect.objectContaining({ institute: 'YouGov', noIntention })])
+  })
+
   it('une seconde synchronisation sans changement de la page ne modifie rien (ni la date)', () => {
     const again = syncPolls(data, WIKITEXT, '2026-10-21')!
     expect(again.report.changed).toBe(false)

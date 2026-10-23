@@ -51,7 +51,7 @@ src/
 
 | Fichier | Contenu |
 |---|---|
-| `src/data/polls-2027.json` | Candidats (dont les petits candidats, `minor`, avec leurs répartitions de reports au 2nd tour), jeux d'hypothèses, alliances, sondages de 1er tour (toutes les hypothèses de chaque sondage), sondages directs de 2nd tour (repères). |
+| `src/data/polls-2027.json` | Candidats (dont les petits candidats, `minor`, avec leurs répartitions de reports au 2nd tour), jeux d'hypothèses, alliances, sondages de 1er tour (toutes les hypothèses de chaque sondage), sondages directs de 2nd tour (repères), avec la part des personnes interrogées sans intention de vote (`noIntention`). |
 | `src/data/reference-2022.json` | Voix officielles des deux tours de 2022 (Conseil constitutionnel), dernier sondage de chaque institut avant le 1er tour, et sondages de l'automne 2021 (progression). |
 | `src/data/transfers-legislatives-2024.json` | Taux de report par type de duel et par électorat. Chaque valeur indique sa provenance : `franceinfo`, `publicsenat`, `lcp`, `derive` (complété par règle), `transpose` (taux 2024 d'un autre duel), `camp` (rattaché au camp RN) ou `hypothese`. |
 
@@ -64,7 +64,7 @@ Le script :
 1. lit les tableaux du 1er tour et retient la **période la plus récente** (actuellement « Octobre-décembre 2026 ») : celle dont un sondage se termine le plus tard, quel que soit son titre, pour s'adapter à l'ouverture d'une nouvelle période. La section « Autres » (vote blanc compté comme exprimé) est ignorée ;
 2. lit chaque ligne comme une **hypothèse** : colonnes des candidats, candidat nommé dans la colonne d'un autre (Hollande dans la colonne de Glucksmann : il le remplace, ce qui est noté dans `replacing`), colonne « Autres » à plusieurs candidats, « <1 » compté pour 0,5 ; les lignes au total éloigné de 100 (± 3 points, ± 1 au 2nd tour), décalées ou d'un institut inconnu sont écartées et signalées ;
 3. réunit les blocs d'un même sondage (même institut, même fin de terrain, par exemple un bloc par commanditaire) et ne garde que le **dernier sondage de chaque institut** sur la période ; le commanditaire est lu dans le nom de la notice. Un sondage déjà présent garde son identifiant (les sondages décochés le restent). Une saisie manuelle de la période est conservée si elle est plus récente que le sondage de son institut sur la page ;
-4. reprend les duels de 2nd tour de la période entre candidats simulés, le dernier par institut et par duel ;
+4. reprend les duels de 2nd tour de la période entre candidats simulés, le dernier par institut et par duel, en gardant la part sans intention de vote saisie pour un duel resté sur la page, et liste les duels où elle manque ;
 5. associe à chaque sondage la **synthèse de l'institut** (`kind: "synthese"`), lue dans le flux RSS d'Elabe, Ifop, OpinionWay, Toluna-Harris, Cluster17 ou Odoxa : la publication d'intentions de vote la plus proche après la fin du terrain, dans les 10 jours. Si la page ne donne pas sa **notice** (`kind: "notice"`), il la cherche dans la [liste des notices de la Commission des sondages](https://www.commission-des-sondages.fr/notices/) : notice d'intentions de vote (« Pres IV … ») de l'institut publiée dans les 10 jours. Ces sites sont facultatifs : injoignables, ils ne donnent qu'un avertissement et les liens déjà trouvés sont gardés, comme une synthèse saisie à la main (YouGov n'a pas de flux) ;
 6. remplace les sondages des données par cette sélection, et la période (`period`) remplace la fenêtre glissante de `windowDays` ; le fichier (et la date de référence `asOf`) ne change que si la page ou un lien change ;
 7. valide le résultat avec le même schéma que l'application, et échoue sans rien modifier si la page est injoignable ou si son format n'est plus reconnu.
@@ -86,6 +86,8 @@ Les tests qui vérifient des chiffres précis utilisent un instantané figé (`s
 3. Mettez à jour `asOf` (date de référence).
 4. Lancez `bun run test` : la validation détecte un candidat inconnu, une date incohérente ou une ligne de reports qui ne totalise pas 100.
 5. Redéployez.
+
+La page Wikipedia ne donne pas la part des personnes interrogées sans intention de vote pour un duel de 2nd tour (indécis, vote blanc ou nul, abstention), affichée sous le résultat et dont la fourchette est citée en introduction. Pour chaque duel que la synchronisation signale, renseignez `noIntention` d'après la notice ou le rapport de l'institut : `share` (en %), `base` (`inscrits`, ou `votants` si seuls les inscrits comptant voter sont interrogés), `undecided` si l'institut distingue les indécis, `calculation` si la part n'est pas publiée telle quelle (détail du calcul, par exemple à partir des effectifs) et `source`.
 
 Une saisie manuelle (sans `origin`) reste en place tant qu'elle est plus récente que le sondage de son institut sur la page Wikipedia ; la synchronisation la remplace ensuite, et la retire quand une nouvelle période commence.
 

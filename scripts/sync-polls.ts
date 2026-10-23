@@ -70,6 +70,7 @@ const lines = [
   `Sondages mis à jour : ${list(report.replaced, 'aucun')}`,
   `Sondages retirés : ${list(report.removed, 'aucun')}`,
   `Duels de 2nd tour : ${report.secondRound}`,
+  `Duels sans part sans intention de vote (à saisir d'après la notice) : ${list(report.missingNoIntention, 'aucun')}`,
   `Liens ajoutés : ${list(report.newLinks, 'aucun')}`,
   `Nouveaux candidats non simulés : ${list(report.newCandidates, 'aucun')}`,
   `Lignes écartées : ${report.skipped.length ? report.skipped.join(' ; ') : 'aucune'}`,

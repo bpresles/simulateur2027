@@ -1,7 +1,7 @@
 import { frozenData as simulationData } from '../test/frozenData'
-import { computeSecondRound, secondRoundDropout2022 } from './secondRound'
+import { computeSecondRound, noIntentionRange, secondRoundDropout2022 } from './secondRound'
 import { blendProfiles, effectiveProfiles, fallbackSplit, resolveDuel } from './transfers'
-import type { Candidate, Entrant } from './types'
+import type { Candidate, Entrant, SecondRoundPoll } from './types'
 
 const { transfers, reference2022 } = simulationData
 const profiles = effectiveProfiles(transfers, {}, 1)
@@ -170,6 +170,28 @@ describe('secondRoundDropout2022', () => {
   it('vaut 1 − exprimés du 2nd tour ÷ exprimés du 1er tour (2022)', () => {
     expect(secondRoundDropout2022(reference2022)).toBeCloseTo(100 * (1 - 32_057_325 / 35_132_947), 10)
     expect(secondRoundDropout2022(reference2022)).toBeCloseTo(8.754, 3)
+  })
+})
+
+describe('noIntentionRange', () => {
+  const source = { label: 'Notice', url: 'https://example.org/notice.pdf' }
+  const duel = (scores: Record<string, number>, share?: number): SecondRoundPoll => ({
+    institute: 'Institut',
+    sponsor: 'Non indiqué',
+    fieldwork: { start: '2026-10-01', end: '2026-10-02' },
+    sampleSize: 1000,
+    url: source.url,
+    scores,
+    ...(share === undefined ? {} : { noIntention: { share, base: 'inscrits' as const, source } }),
+  })
+
+  it('va de la part la plus basse à la plus haute, tous duels confondus, sans les duels non renseignés', () => {
+    const polls = [duel({ a: 31, rn: 69 }, 33), duel({ b: 44, rn: 56 }, 19), duel({ a: 34, b: 66 }, 49.5), duel({ c: 40, rn: 60 })]
+    expect(noIntentionRange(polls)).toEqual({ min: 19, max: 49.5, polls: polls.slice(0, 3) })
+  })
+
+  it('est indéfinie si aucun duel ne la renseigne', () => {
+    expect(noIntentionRange([duel({ a: 31, rn: 69 })])).toBeUndefined()
   })
 })
 

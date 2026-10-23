@@ -28,6 +28,13 @@ describe('données', () => {
     }
   })
 
+  it('rejette plus d’indécis que de personnes sans intention de vote dans un duel', () => {
+    const broken = structuredClone(simulationData)
+    const duel = broken.polls.secondRoundPolls[0]!
+    duel.noIntention = { share: 20, base: 'votants', undecided: 25, source: { label: 'Notice', url: duel.url } }
+    expect(validateData(broken)).toEqual([expect.stringMatching(/plus d'indécis/)])
+  })
+
   it('rejette un candidat inconnu dans un sondage', () => {
     const broken = structuredClone(pollsJson)
     broken.polls[0]!.hypotheses[0]!.scores = { ...broken.polls[0]!.hypotheses[0]!.scores, inconnu: 1 } as never

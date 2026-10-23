@@ -125,6 +125,25 @@ export interface Alliance {
   estimatedOnly?: boolean
 }
 
+/**
+ * Personnes interrogées qui n'expriment d'intention de vote pour aucun des deux candidats d'un duel
+ * (indécis, vote blanc ou nul, abstention), écartées des pourcentages publiés.
+ */
+export interface NoIntention {
+  /** En % de la base. */
+  share: number
+  /** Ensemble des inscrits interrogés, ou seulement ceux qui comptent voter (les autres ne sont pas interrogés). */
+  base: 'inscrits' | 'votants'
+  /** Dont indécis (« ne sait pas »), quand l'institut les distingue du vote blanc ou nul. */
+  undecided?: number
+  /**
+   * Part non publiée telle quelle, calculée d'après la notice (effectifs, ou vote blanc ou nul et abstention
+   * publiés séparément) : détail du calcul.
+   */
+  calculation?: string
+  source: SourceLink
+}
+
 export interface SecondRoundPoll {
   /** « wikipedia » pour une reprise provisoire ; absent : Mieux Voter ou saisie manuelle. */
   origin?: PollOrigin
@@ -134,6 +153,11 @@ export interface SecondRoundPoll {
   sampleSize: number
   url: string
   scores: Record<CandidateId, number>
+  /**
+   * Saisie à la main d'après la notice ou le rapport de l'institut (la page Wikipedia ne la donne pas) ;
+   * la synchronisation la garde tant que le duel reste sur la page.
+   */
+  noIntention?: NoIntention
 }
 
 export interface PollsData {

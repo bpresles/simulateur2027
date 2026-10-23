@@ -1,6 +1,6 @@
 import { simulationData } from '../data/schema'
 import { defaultSettings, simulate } from '../domain/simulate'
-import { roundToTotal, shownScore } from './format'
+import { noIntentionLabel, range, roundToTotal, shownScore } from './format'
 
 const total = (values: number[]) => Math.round(values.reduce((s, v) => s + v, 0) * 10) / 10
 
@@ -24,5 +24,23 @@ describe('arrondi des parts au dixième', () => {
       expect(total(shown)).toBe(100)
       result.entrants.forEach((e, i) => expect(Math.abs(shown[i]! - e.score)).toBeLessThan(0.1 + 1e-9))
     }
+  })
+})
+
+describe('part sans intention de vote', () => {
+  const source = { label: 'Notice', url: 'https://example.org/notice.pdf' }
+
+  it('précise la base, les indécis et signale une part calculée', () => {
+    expect(noIntentionLabel({ share: 33, base: 'inscrits', source })).toBe('33\u202f% des inscrits')
+    expect(noIntentionLabel({ share: 35.7, base: 'inscrits', calculation: '1 − 1 240 ÷ 1 928', source })).toBe(
+      '≈ 36\u202f% des inscrits',
+    )
+    expect(noIntentionLabel({ share: 37, base: 'votants', undecided: 14, source })).toBe(
+      '37\u202f% des inscrits comptant voter, dont 14\u202f% d’indécis',
+    )
+  })
+
+  it('arrondit la fourchette au point', () => {
+    expect(range(19, 49.5)).toBe('de 19 à 50\u202f%')
   })
 })
