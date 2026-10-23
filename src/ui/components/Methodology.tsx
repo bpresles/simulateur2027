@@ -706,6 +706,14 @@ export function Methodology({ result }: { result: SimulationResult }) {
               modifiée dans les réglages garde, pour le reste, la répartition RN / abstention de 2024.
             </p>
             <p>
+              Un petit candidat rallié peut manquer aux hypothèses retenues (Ruffin n’est testé qu’avec Attal :
+              absent quand Attal rejoint Philippe). Pour estimer son ralliement, son score est repris des
+              hypothèses qui le testent dans les sondages retenus, puis prélevé sur les candidats vers lesquels
+              se reportent ses électeurs en son absence (répartition choisie pour ce petit candidat, au prorata
+              de ceux qui sont en lice) ; ses électeurs suivent ensuite le leader selon les reports de 2024. Si
+              aucun sondage retenu ne le teste, son ralliement ne peut pas être estimé.
+            </p>
+            <p>
               Les hypothèses testées gardent la priorité, sondage par sondage : chaque sondage utilise la plus
               grande combinaison d’alliances actives qu’il teste (par exemple « Philippe seul » quand il ne teste
               pas aussi le retrait de Retailleau), et seules les alliances qu’il ne teste pas y sont estimées. Les

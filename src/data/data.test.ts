@@ -1,4 +1,5 @@
-import { acceptAlliances, availableAlliances, comboWith } from '../domain/alliances'
+import { acceptAlliances, alliancesConflict, availableAlliances, comboWith, testedShare } from '../domain/alliances'
+import type { Alliance } from '../domain/types'
 import { averagePolls } from '../domain/pollAverage'
 import { defaultSettings, simulate } from '../domain/simulate'
 import pollsJson from './polls-2027.json'
@@ -25,6 +26,17 @@ describe('données', () => {
       const active = Object.fromEntries(combo.map((b) => [b.id, true]))
       expect(acceptAlliances(simulationData.polls, active)).toEqual(combo)
       expect(simulate(simulationData, { ...defaultSettings(), alliances: active }).institutesUsed).toBeGreaterThan(0)
+    }
+  })
+
+  it('alliances non évaluées : une alliance compatible avec une alliance active est appliquée (lue ou estimée)', () => {
+    const { polls } = simulationData
+    const testable = (a: Alliance) => a.members.every((id) => testedShare(polls, id) > 0)
+    for (const a of polls.alliances) {
+      for (const b of polls.alliances.filter((x) => x !== a && testable(x) && !alliancesConflict(a, x))) {
+        const res = simulate(simulationData, { ...defaultSettings(), untestedAlliances: true, alliances: { [a.id]: true, [b.id]: true } })
+        expect([...res.allianceIds, ...res.estimatedAllianceIds], `${b.id} avec ${a.id}`).toContain(b.id)
+      }
     }
   })
 

@@ -1,5 +1,5 @@
 import { simulationData } from '../../data/schema'
-import { acceptAlliances, alliancesConflict, availableAlliances, comboWith } from '../../domain/alliances'
+import { acceptAlliances, alliancesConflict, availableAlliances, comboWith, testedShare } from '../../domain/alliances'
 import type { Alliance, SimulationResult } from '../../domain/types'
 import { useSettings } from '../../state/settingsStore'
 import { cand, colorVars } from '../candidates'
@@ -56,6 +56,10 @@ export function AllianceSwitches({
   const tested = acceptAlliances(polls, active)
   const estimated = polls.alliances.filter((a) => result.estimatedAllianceIds.includes(a.id))
   const applied = [...tested, ...estimated]
+  const excludedPolls = useSettings((s) => s.excludedPolls)
+  const simulated = new Set(result.firstRound.map((r) => r.candidateId))
+  // Petit candidat absent du 1er tour simulé : son ralliement s'estime s'il est testé dans une hypothèse.
+  const untestable = (id: string) => !simulated.has(id) && testedShare(polls, id, new Set(excludedPolls)) <= 0
   const list = untested ? polls.alliances : proposed
 
   if (list.length === 0) {
@@ -91,11 +95,15 @@ export function AllianceSwitches({
             result.hypothesisGroups.filter((g) => g[field].includes(a.id)).reduce((n, g) => n + g.pollIds.length, 0)
           const [read, guessed] = [pollsWhere('allianceIds'), pollsWhere('estimatedAllianceIds')]
           const isEstimated = checked ? estimated.includes(a) : !combo || partners.length > 0
-          disabled = !checked && blocker !== undefined
+          // Alliance à estimer dont un membre n'est testé par aucun sondage retenu : pas de score à reprendre.
+          const missing = combo ? undefined : a.members.find(untestable)
+          disabled = !checked && (blocker !== undefined || missing !== undefined)
           description =
             !checked && blocker
               ? `Incompatible avec « ${blocker.label} »`
-              : checked && read > 0 && guessed > 0
+              : !checked && missing
+                ? `Aucun sondage retenu ne teste ${cand(missing).name}`
+                : checked && read > 0 && guessed > 0
                 ? `Lue dans ${read} sondage${read > 1 ? 's' : ''}, estimée pour ${guessed} (reports 2024)`
                 : isEstimated
                   ? `Estimée (reports 2024)${partners.length > 0 ? ` ; testée par les sondeurs avec ${quoted(partners)}` : ' : non testée par les sondeurs'}`

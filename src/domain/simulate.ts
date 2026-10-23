@@ -4,9 +4,11 @@ import {
   alliancesConflict,
   applyAlliances,
   defaultSet,
+  insertMinor,
   ralliedOf,
   scenarioFilter,
   scenarioSet,
+  testedShare,
 } from './alliances'
 import type { AllianceSplit } from './alliances'
 import { applyCorrections, computeReference2022 } from './corrections'
@@ -21,6 +23,7 @@ import type {
   AllianceLeak,
   AllianceRate,
   Candidate,
+  CandidateId,
   Entrant,
   EntrantMember,
   FirstRoundRow,
@@ -63,6 +66,8 @@ interface Group {
   set: HypothesisSet
   rows: FirstRoundRow[]
   estimated: Alliance[]
+  /** Petits candidats ajoutés à la moyenne pour estimer leur ralliement. */
+  inserted: CandidateId[]
   entrants: Entrant[]
   leaks: AllianceLeak[]
 }
@@ -193,10 +198,26 @@ export function simulate(
     return { leader: override, rn: rest > 0 ? ((1 - override) * base.rn) / rest : 0 }
   }
 
+  const minorTransfers = minorTransferParts(polls.candidates, settings.minorTransfers)
+  // Petit candidat d'une alliance à estimer absent des hypothèses d'un groupe : sa part est reprise des
+  // hypothèses qui le testent dans les sondages retenus (0 si aucune ne le teste).
+  const minorShares = new Map<CandidateId, number>()
+  const minorShare = (id: CandidateId) => {
+    if (!minorShares.has(id)) minorShares.set(id, testedShare(polls, id, excluded))
+    return minorShares.get(id)!
+  }
+
   // Chaque groupe de sondages (même scénario) : moyenne, corrections, puis alliances estimées — celles
   // que ces sondages ne testent pas. Les électeurs des ralliés testés sont déjà répartis par les sondés.
   const groups: Group[] = selection.groups.map((g) => {
-    const rows = applyCorrections(g.average, polls.candidates, reference, settings, progression)
+    const inserted = [...new Set(retained.filter((a) => !g.key.includes(a)).flatMap((a) => a.members))].filter(
+      (id) => g.average[id] === undefined && candidatesById.get(id)?.minor && minorShare(id) > 0,
+    )
+    const average = inserted.reduce(
+      (avg, id) => insertMinor(avg, id, minorShare(id), minorTransfers[id] ?? []),
+      g.average,
+    )
+    const rows = applyCorrections(average, polls.candidates, reference, settings, progression)
     const corrected = Object.fromEntries(rows.map((r) => [r.candidateId, r.corrected]))
     const estimated = retained.filter((a) => !g.key.includes(a) && a.members.every((id) => corrected[id] !== undefined))
     return {
@@ -206,6 +227,7 @@ export function simulate(
       set: fallback ? defaultSet(polls) : scenarioSet(polls, g.key, name),
       rows,
       estimated,
+      inserted,
       ...applyAlliances(corrected, estimated, split, rnId),
     }
   })
@@ -231,6 +253,11 @@ export function simulate(
     }
     warnings.push(
       `Alliance${many} estimée${many} par les reports des législatives 2024, faute d’hypothèse de sondage : ${estimated.map(detail).join(', ')}.`,
+    )
+  }
+  for (const id of new Set(groups.flatMap((g) => g.inserted))) {
+    warnings.push(
+      `Aucune hypothèse retenue ne teste ${name(id)} : pour estimer son ralliement, score de ${minorShare(id).toFixed(1).replace('.', ',')} % repris des autres hypothèses des sondages retenus et prélevé sur les candidats vers lesquels se reportent ses électeurs en son absence.`,
     )
   }
   const allianceRates: AllianceRate[] = settings.untestedAlliances
@@ -264,7 +291,6 @@ export function simulate(
   const abstentionTarget = settings.abstentionCalibration
     ? (settings.abstentionTarget ?? secondRoundDropout2022(data.reference2022))
     : null
-  const minorTransfers = minorTransferParts(polls.candidates, settings.minorTransfers)
   const duelAgainst = (opponent: Entrant) =>
     computeSecondRound({
       electorate: corrected,
