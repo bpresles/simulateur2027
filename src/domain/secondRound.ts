@@ -22,6 +22,19 @@ export function secondRoundDropout2022(ref: Reference2022): number {
   return 100 * (1 - ref.secondRound.expressed / ref.expressed)
 }
 
+/**
+ * Fourchette de la part des personnes interrogées sans intention de vote : la plus basse et la plus haute
+ * de tous les duels qui la renseignent, tous instituts et toutes bases confondus. Undefined si aucun.
+ */
+export function noIntentionRange(
+  polls: SecondRoundPoll[],
+): { min: number; max: number; polls: SecondRoundPoll[] } | undefined {
+  const measured = polls.filter((p) => p.noIntention)
+  if (measured.length === 0) return undefined
+  const shares = measured.map((p) => p.noIntention!.share)
+  return { min: Math.min(...shares), max: Math.max(...shares), polls: measured }
+}
+
 interface SecondRoundInput {
   /** Électorat de chaque candidat au 1er tour simulé, avant alliances (total 100). */
   electorate: Record<CandidateId, number>

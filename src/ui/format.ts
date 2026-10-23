@@ -1,4 +1,4 @@
-import type { CandidateId, Entrant, Fieldwork, SimulationResult } from '../domain/types'
+import type { CandidateId, Entrant, Fieldwork, NoIntention, SimulationResult } from '../domain/types'
 
 const formatters = new Map<number, Intl.NumberFormat>()
 function nf(digits: number): Intl.NumberFormat {
@@ -72,3 +72,17 @@ export function fieldwork({ start, end }: Fieldwork): string {
 }
 
 export const integer = (v: number) => new Intl.NumberFormat('fr-FR').format(v)
+
+export const NO_INTENTION_BASES: Record<NoIntention['base'], string> = {
+  inscrits: 'des inscrits',
+  votants: 'des inscrits comptant voter',
+}
+
+/** « 33 % des inscrits », « ≈ 36 % des inscrits » (part calculée), « 37 % des inscrits comptant voter, dont 14 % d’indécis ». */
+export function noIntentionLabel(n: NoIntention): string {
+  const undecided = n.undecided === undefined ? '' : `, dont ${pct(n.undecided, 0)} d’indécis`
+  return `${n.calculation ? '≈ ' : ''}${pct(n.share, 0)} ${NO_INTENTION_BASES[n.base]}${undecided}`
+}
+
+/** « de 19 à 50 % » */
+export const range = (min: number, max: number) => `de ${num(min, 0)} à ${pct(max, 0)}`

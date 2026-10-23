@@ -108,6 +108,15 @@ const pollsSchema: z.ZodType<PollsData> = z.object({
       sampleSize: z.number().int().positive(),
       url: z.url(),
       scores,
+      noIntention: z
+        .object({
+          share: percent,
+          base: z.enum(['inscrits', 'votants']),
+          undecided: percent.optional(),
+          calculation: z.string().optional(),
+          source: sourceLink,
+        })
+        .optional(),
     }),
   ),
 })
@@ -237,6 +246,9 @@ export function validateData(data: SimulationData): string[] {
   for (const p of polls.secondRoundPolls) {
     const ids = Object.keys(p.scores)
     if (ids.length !== 2 || ids.some((id) => !simulated.has(id))) errors.push(`Sondage de 2nd tour ${p.institute} invalide`)
+    if ((p.noIntention?.undecided ?? 0) > (p.noIntention?.share ?? 100)) {
+      errors.push(`Sondage de 2nd tour ${p.institute} : plus d'indécis que de personnes sans intention de vote`)
+    }
   }
 
   for (const poll of reference2022.polls) {

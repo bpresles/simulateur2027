@@ -1,9 +1,9 @@
 import { motion } from 'motion/react'
 import { simulationData } from '../../data/schema'
-import { secondRoundDropout2022 } from '../../domain/secondRound'
+import { noIntentionRange, secondRoundDropout2022 } from '../../domain/secondRound'
 import type { Entrant, SimulationResult } from '../../domain/types'
 import { cand, colorVars, entrantLabel, profileLabel } from '../candidates'
-import { fieldwork, pct, shownScore } from '../format'
+import { fieldwork, noIntentionLabel, pct, range, shownScore } from '../format'
 import { Link } from '../Link'
 import { AnimatedNumber } from './AnimatedNumber'
 
@@ -11,6 +11,7 @@ const spring = { type: 'spring', stiffness: 120, damping: 22 } as const
 /** Repères affichés : les plus récents. */
 const MAX_DIRECT_POLLS = 4
 const pct1 = (v: number) => pct(v)
+const NO_INTENTION = noIntentionRange(simulationData.polls.secondRoundPolls)
 
 export function SecondRoundDuel({ result }: { result: SimulationResult }) {
   const sr = result.secondRound
@@ -106,6 +107,7 @@ function SplitBar({ a, b, pctA }: { a: Entrant; b: Entrant; pctA: number }) {
 function MethodLine({ result }: { result: SimulationResult }) {
   const { duel, directPolls, a, b } = result.secondRound
   const withAlliance = result.entrants.some((e) => (e.id === a || e.id === b) && e.allianceIds.length > 0)
+  const shown = directPolls.slice(0, MAX_DIRECT_POLLS)
   return (
     <div className="mt-6 space-y-4 border-t border-rule pt-4">
       {duel.kind === 'sourced' ? (
@@ -131,15 +133,23 @@ function MethodLine({ result }: { result: SimulationResult }) {
       {directPolls.length > 0 && (
         <div>
           <p className="text-sm font-medium text-ink">Repère : sondages de 2nd tour publiés pour ce duel</p>
-          <ul className="mt-2 space-y-1.5">
-            {directPolls.slice(0, MAX_DIRECT_POLLS).map((p) => (
-              <li key={`${p.institute}-${p.fieldwork.end}`} className="grid grid-cols-[1fr_auto] items-center gap-3 text-sm">
+          <ul className="mt-2 space-y-2">
+            {shown.map((p) => (
+              <li key={`${p.institute}-${p.fieldwork.end}`} className="grid grid-cols-[1fr_auto] items-center gap-x-3 text-sm">
                 <span className="text-ink-2">
                   {p.institute} ({fieldwork(p.fieldwork)})
                 </span>
                 <span className="num font-medium">
                   {cand(a).shortName} {pct(p.scores[a] ?? 0, 0)} – {cand(b).shortName} {pct(p.scores[b] ?? 0, 0)}
                 </span>
+                {p.noIntention && (
+                  <span className="col-span-2 text-xs text-ink-3">
+                    Sans intention de vote :{' '}
+                    <a href={p.noIntention.source.url} className="link" target="_blank" rel="noreferrer">
+                      {noIntentionLabel(p.noIntention)}
+                    </a>
+                  </span>
+                )}
               </li>
             ))}
           </ul>
@@ -152,8 +162,12 @@ function MethodLine({ result }: { result: SimulationResult }) {
             {withAlliance && 'Ces sondages testent les candidats sans l’alliance estimée. '}
             L’écart avec la simulation s’explique par la part élevée de personnes interrogées qui n’expriment
             aucun choix entre les deux candidats : elles sont écartées des pourcentages publiés, qui ne portent
-            que sur les « votants décidés ». Selon les instituts et les duels, c’est 20 à 40 % des inscrits
-            interrogés (indécis, vote blanc ou nul et abstention compris). En 2022, seuls{' '}
+            que sur les « votants décidés ».{' '}
+            {NO_INTENTION &&
+              `Selon les instituts et les duels, c’est ${range(NO_INTENTION.min, NO_INTENTION.max)} des inscrits interrogés, ou des seuls inscrits comptant voter selon l’institut (indécis, vote blanc ou nul et abstention compris). `}
+            {shown.some((p) => p.noIntention?.calculation) &&
+              '≈ : part non publiée telle quelle, calculée d’après la notice de l’institut. '}
+            En 2022, seuls{' '}
             {pct(secondRoundDropout2022(simulationData.reference2022), 2)} des électeurs qui s’étaient exprimés
             au 1er tour ne se sont pas exprimés au 2nd (abstention, vote blanc ou nul).
           </p>

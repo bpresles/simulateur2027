@@ -84,6 +84,20 @@ export function selectDuels(duels: SecondRoundPoll[]): SecondRoundPoll[] {
     .sort((a, b) => b.fieldwork.end.localeCompare(a.fieldwork.end))
 }
 
+const duelKey = (d: SecondRoundPoll) => `${pollKey(d)}|${Object.keys(d.scores).sort().join('-')}`
+
+/**
+ * Part sans intention de vote : saisie à la main d'après la notice (la page ne la donne pas), elle est gardée
+ * tant que le duel (institut, fin de terrain, candidats) reste sur la page.
+ */
+export function keepNoIntention(current: SecondRoundPoll[], duels: SecondRoundPoll[]): SecondRoundPoll[] {
+  const known = new Map(current.flatMap((d) => (d.noIntention ? [[duelKey(d), d.noIntention] as const] : [])))
+  return duels.map((d) => {
+    const noIntention = known.get(duelKey(d))
+    return noIntention ? { ...d, noIntention } : d
+  })
+}
+
 export interface SyncReport {
   changed: boolean
   asOf: string
@@ -92,6 +106,8 @@ export interface SyncReport {
   replaced: string[]
   removed: string[]
   secondRound: number
+  /** Duels sans part sans intention de vote, à saisir d'après la notice. */
+  missingNoIntention: string[]
   /** Synthèses et notices nouvellement associées, par sondage. */
   newLinks: string[]
   newCandidates: string[]
@@ -119,7 +135,7 @@ export function syncPolls(
 
   const selected = selectPolls(current.polls, wiki.polls, wiki.period.start)
   const polls = addLinks(selected, current.polls, links)
-  const secondRoundPolls = selectDuels(wiki.secondRound)
+  const secondRoundPolls = keepNoIntention(current.secondRoundPolls, selectDuels(wiki.secondRound))
   const next: PollsData = {
     ...current,
     asOf: today,
@@ -154,6 +170,9 @@ export function syncPolls(
         .map((p) => p.id),
       removed: current.polls.filter((p) => !after.has(p.id)).map((p) => p.id),
       secondRound: secondRoundPolls.length,
+      missingNoIntention: secondRoundPolls
+        .filter((d) => !d.noIntention)
+        .map((d) => `${d.institute} ${d.fieldwork.end} (${Object.keys(d.scores).join('-')})`),
       // Liens ajoutés par cette synchronisation : ni sur la page, ni dans les données précédentes.
       newLinks: polls.flatMap((p, i) => {
         const known = new Set([...selected[i]!.sources.map((s) => s.url), ...(urlsBefore.get(p.id) ?? [])])

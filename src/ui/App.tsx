@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { simulationData } from '../data/schema'
+import { noIntentionRange } from '../domain/secondRound'
 import type { SimulationResult } from '../domain/types'
 import { useSimulation } from '../hooks/useSimulation'
 import { ElectedPresident } from './components/ElectedPresident'
@@ -10,7 +11,7 @@ import { ScenarioBar } from './components/ScenarioBar'
 import { SecondRoundDuel } from './components/SecondRoundDuel'
 import { SettingsSheet } from './components/SettingsSheet'
 import { VoteFlow } from './components/VoteFlow'
-import { date } from './format'
+import { date, range } from './format'
 import { Link } from './Link'
 import { useRoute } from './router'
 import type { Route } from './router'
@@ -19,6 +20,7 @@ import type { ThemePreference } from './theme'
 
 const THEME_LABELS: Record<ThemePreference, string> = { system: 'Thème auto', light: 'Thème clair', dark: 'Thème sombre' }
 const NEXT_THEME: Record<ThemePreference, ThemePreference> = { system: 'light', light: 'dark', dark: 'system' }
+const NO_INTENTION = noIntentionRange(simulationData.polls.secondRoundPolls)
 const NAV: { route: Route; label: string }[] = [
   { route: 'simulateur', label: 'Simulateur' },
   { route: 'methodologie', label: 'Méthodologie' },
@@ -101,21 +103,23 @@ function SimulatorPage({ result, onOpenSettings }: { result: SimulationResult; o
         <h2 className="text-[1.7rem]" >Simulateur des résultats de second tour</h2>
         <div className="mt-3 space-y-[1lh] text-[1.05rem] leading-relaxed text-ink-2">
           <p>
-            Cet outil a été développé suite au constat que, dans les sondages de second tour, 20 à 40 % des
-            inscrits interrogés n’expriment aucun choix entre les deux candidats selon les instituts et les duels
-            (indécis, vote blanc ou nul et abstention compris), réduisant de ce fait leur fiabilité. Les indécis ne
-            sont mesurés à part que par Odoxa : dans{' '}
-            <a
-              href="https://www.odoxa.fr/wp-content/uploads/2026/10/Odoxa-Backbone-pour-la-Presse-Regionale-Public-Senat-et-le-Nouvel-Obs-IV-a-lelection-presidentielle-de-2027.pdf"
-              className="link"
-              target="_blank"
-              rel="noreferrer"
-            >
-              son sondage du 24/09 au 07/10/2026
-            </a>
-            , au moins 14 % des électeurs comptant voter ne savent pas encore pour qui voter, que Marine Le Pen
-            affronte Jean-Luc Mélenchon ou Édouard Philippe (ceux qui pensent ne pas voter ne sont pas interrogés
-            sur leur choix).
+            Cet outil a été développé suite au constat que, dans les sondages de second tour,{' '}
+            {NO_INTENTION ? range(NO_INTENTION.min, NO_INTENTION.max) : 'une part importante'} des personnes
+            interrogées n’expriment aucun choix entre les deux candidats selon les instituts et les duels (indécis,
+            vote blanc ou nul et abstention compris), réduisant de ce fait leur fiabilité.
+            {NO_INTENTION && (
+              <>
+                {' '}
+                Cette fourchette va de la part la plus basse à la plus haute des {NO_INTENTION.polls.length} duels
+                publiés en dernier par chaque institut (
+                {new Set(NO_INTENTION.polls.map((p) => p.institute)).size} instituts) ; selon l’institut, elle porte
+                sur l’ensemble des inscrits ou sur les seuls inscrits comptant voter (
+                <Link to="methodologie" hash="limites" className="link">
+                  détail par sondage
+                </Link>
+                ).
+              </>
+            )}
           </p>
           <p>
             Pour tenter d’offrir une meilleure simulation du résultat du second tour pour les présidentielles de 2027, cet outil se base sur les hypothèses

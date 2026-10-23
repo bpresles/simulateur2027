@@ -1,22 +1,33 @@
 import type { ReactNode } from 'react'
 import { simulationData } from '../../data/schema'
 import { BLOCS } from '../../domain/types'
-import type { PollOrigin, PollStatus, SimulationResult } from '../../domain/types'
+import type { NoIntention, PollOrigin, PollStatus, SimulationResult } from '../../domain/types'
 import { allianceCombos, alliancesConflict, availableAlliances, comboWith, defaultSet } from '../../domain/alliances'
 import { windowDaysOf } from '../../domain/pollAverage'
 import { referenceParts } from '../../domain/references'
 import { minorTransfer } from '../../domain/transfers'
 import { TIGHT_QUALIFICATION_GAP } from '../../domain/simulate'
-import { secondRoundDropout2022 } from '../../domain/secondRound'
+import { noIntentionRange, secondRoundDropout2022 } from '../../domain/secondRound'
 import { progression2022Stats, reference2022Stats } from '../../hooks/useSimulation'
 import { useSettings } from '../../state/settingsStore'
 import { anyName, BLOC_LABELS, BLOC_VOTERS, cand, entrantLabel, profileLabel, transferLabel } from '../candidates'
-import { date, fieldwork, integer, num, pct, pts, ratio, shownScore } from '../format'
+import { date, fieldwork, integer, noIntentionLabel, num, pct, pts, range, ratio, shownScore } from '../format'
 import { Link } from '../Link'
 import { AllianceRates } from './AllianceRates'
 import { ProvenanceLegend, ProvenanceValue } from './Provenance'
 
 const { polls, reference2022, transfers } = simulationData
+
+/** Part sans intention de vote des duels de 2nd tour publiés : fourchette et détail. */
+const NO_INTENTION = noIntentionRange(polls.secondRoundPolls)
+const listFr = (items: string[]) => new Intl.ListFormat('fr', { type: 'conjunction' }).format(items)
+const institutesWith = (keep: (n: NoIntention) => boolean) => [
+  ...new Set((NO_INTENTION?.polls ?? []).filter((p) => keep(p.noIntention!)).map((p) => p.institute)),
+]
+/** Instituts dont la part porte sur cette base : « OpinionWay, Ifop-Fiducial et YouGov ». */
+const institutesOf = (base: NoIntention['base']) => listFr(institutesWith((n) => n.base === base)) || 'aucun'
+const COMPUTED = institutesWith((n) => n.calculation !== undefined)
+const UNDECIDED = institutesWith((n) => n.undecided !== undefined)
 
 const STEPS: [string, string][] = [
   ['sondages', 'Moyenne des sondages'],
@@ -1037,23 +1048,70 @@ export function Methodology({ result }: { result: SimulationResult }) {
               Les reports des législatives de 2024 ont été mesurés dans un contexte de désistements et de «
               front républicain » circonscription par circonscription. La simulation est nettement plus
               favorable aux adversaires du RN que les sondages directs de 2nd tour, affichés en repère à côté
-              du résultat. Ces sondages ne portent que sur les « votants décidés » : à six mois du scrutin, 20
-              à 40 % des inscrits interrogés, selon les instituts et les duels, n’expriment aucun choix entre
-              les deux candidats (indécis, vote blanc ou nul et abstention compris), alors qu’en 2022 seuls{' '}
+              du résultat. Ces sondages ne portent que sur les « votants décidés » : à six mois du scrutin,{' '}
+              {NO_INTENTION ? range(NO_INTENTION.min, NO_INTENTION.max) : 'une part importante'} des personnes
+              interrogées, selon les instituts et les duels, n’expriment aucun choix entre les deux candidats
+              (indécis, vote blanc ou nul et abstention compris), alors qu’en 2022 seuls{' '}
               {pct(secondRoundDropout2022(reference2022), 2)} des électeurs exprimés au 1er tour ne se sont pas
-              exprimés au 2nd. Les indécis ne sont mesurés à part que par Odoxa : dans{' '}
-              <a
-                href="https://www.odoxa.fr/wp-content/uploads/2026/10/Odoxa-Backbone-pour-la-Presse-Regionale-Public-Senat-et-le-Nouvel-Obs-IV-a-lelection-presidentielle-de-2027.pdf"
-                className="link"
-                target="_blank"
-                rel="noreferrer"
-              >
-                son sondage du 24/09 au 07/10/2026
-              </a>
-              , 14 % des électeurs comptant voter répondent qu’ils ne savent pas encore pour qui voter, que Marine
-              Le Pen affronte Jean-Luc Mélenchon ou Édouard Philippe, en plus de respectivement 23 % et 18 % qui
-              envisagent de voter blanc ou nul. C’est un minimum : ceux qui pensent probablement ne pas voter ne sont pas
-              interrogés sur leur choix, et aucun autre institut ne propose ou ne publie cette réponse à part.
+              exprimés au 2nd.
+              {NO_INTENTION && (
+                <>
+                  {' '}
+                  La fourchette va de la part la plus basse à la plus haute des {NO_INTENTION.polls.length} duels du
+                  tableau ci-dessous, lue dans la notice ou le rapport de chaque institut. La base diffère : l’ensemble
+                  des inscrits interrogés ({institutesOf('inscrits')}) ou les seuls inscrits comptant voter (
+                  {institutesOf('votants')}), les autres n’étant pas interrogés
+                  sur leur choix, ce qui abaisse la part.
+                  {COMPUTED.length > 0 &&
+                    ` ${listFr(COMPUTED)} ne ${COMPUTED.length > 1 ? 'publient' : 'publie'} pas cette part telle quelle : elle est calculée d’après la notice (≈, détail du calcul dans le tableau).`}
+                  {UNDECIDED.length > 0 &&
+                    ` Seul${UNDECIDED.length > 1 ? 's' : ''} ${listFr(UNDECIDED)} ${UNDECIDED.length > 1 ? 'distinguent' : 'distingue'} les indécis (« ne sait pas ») du vote blanc ou nul ; les autres instituts ne proposent pas cette réponse ou n’en publient pas le score à part.`}
+                  <details className="mt-2 font-sans text-sm">
+                    <summary className="cursor-pointer font-medium text-ballpoint">
+                      Part sans intention de vote, duel par duel
+                    </summary>
+                    <div className="mt-2">
+                      <Table>
+                        <thead>
+                          <tr className="border-b border-rule">
+                            <th className={th}>Institut</th>
+                            <th className={th}>Terrain</th>
+                            <th className={th}>Duel publié</th>
+                            <th className={th}>Sans intention de vote</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {NO_INTENTION.polls.map((p) => {
+                            const n = p.noIntention!
+                            return (
+                              <tr key={`${p.institute}-${p.fieldwork.end}-${Object.keys(p.scores).join('-')}`} className="border-b border-rule/60">
+                                <td className={td}>
+                                  <span className="font-medium text-ink">{p.institute}</span>
+                                  <a href={n.source.url} className="link mt-0.5 block text-xs" target="_blank" rel="noreferrer">
+                                    {n.source.label}
+                                  </a>
+                                </td>
+                                <td className={`${td} num whitespace-nowrap`}>{fieldwork(p.fieldwork)}</td>
+                                <td className={`${td} num`}>
+                                  {Object.entries(p.scores)
+                                    .map(([id, v]) => `${cand(id).shortName} ${pct(v, Number.isInteger(v) ? 0 : 1)}`)
+                                    .join(' – ')}
+                                </td>
+                                <td className={td}>
+                                  {noIntentionLabel(n)}
+                                  {n.calculation && (
+                                    <span className="mt-0.5 block text-xs text-ink-3">{n.calculation}</span>
+                                  )}
+                                </td>
+                              </tr>
+                            )
+                          })}
+                        </tbody>
+                      </Table>
+                    </div>
+                  </details>
+                </>
+              )}
             </li>
             <li>
               Chaque sondage a une marge d’erreur et décrit l’opinion au moment de son terrain, à six mois du

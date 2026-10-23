@@ -868,7 +868,7 @@
       "id": "opinionway-20261022",
       "origin": "wikipedia",
       "institute": "OpinionWay",
-      "sponsor": "Non indiqué",
+      "sponsor": "CNews",
       "fieldwork": {
         "start": "2026-10-21",
         "end": "2026-10-22"
@@ -881,8 +881,9 @@
           "kind": "synthese"
         },
         {
-          "label": "Publication",
-          "url": "https://www.cnews.fr/france/2026-10-22/sondage-marine-le-pen-conforte-son-avance-au-premier-tour-de-lelection"
+          "label": "Notice (Commission des sondages)",
+          "url": "https://www.commission-des-sondages.fr/notices/files/notices/2026/octobre/10333-pres-iv-opinionway-cnews-22-octobre.pdf",
+          "kind": "notice"
         },
         {
           "label": "Wikipedia – liste des sondages",
@@ -928,8 +929,9 @@
           "kind": "synthese"
         },
         {
-          "label": "Publication",
-          "url": "https://tolunacorporate.com/wp-content/uploads/2026/10/Rapport-Toluna-Barometre-Presidentielle-2027-Vague-8-M6-RTL-23-octobre-2026-1.pdf"
+          "label": "Notice (Commission des sondages)",
+          "url": "https://www.commission-des-sondages.fr/notices/files/notices/2026/octobre/10332-pres-iv-toluna-harris-interactive-23-octobre.pdf",
+          "kind": "notice"
         },
         {
           "label": "Wikipedia – liste des sondages",
@@ -1616,31 +1618,142 @@
     {
       "origin": "wikipedia",
       "institute": "OpinionWay",
-      "sponsor": "Non indiqué",
+      "sponsor": "CNews",
       "fieldwork": {
         "start": "2026-10-21",
         "end": "2026-10-22"
       },
       "sampleSize": 973,
-      "url": "https://www.cnews.fr/france/2026-10-22/sondage-marine-le-pen-conforte-son-avance-au-premier-tour-de-lelection",
+      "url": "https://www.commission-des-sondages.fr/notices/files/notices/2026/octobre/10333-pres-iv-opinionway-cnews-22-octobre.pdf",
       "scores": {
         "glucksmann": 44,
         "lepen": 56
+      },
+      "noIntention": {
+        "share": 24,
+        "base": "inscrits",
+        "source": {
+          "label": "Notice (Commission des sondages)",
+          "url": "https://www.commission-des-sondages.fr/notices/files/notices/2026/octobre/10333-pres-iv-opinionway-cnews-22-octobre.pdf"
+        }
       }
     },
     {
       "origin": "wikipedia",
       "institute": "OpinionWay",
-      "sponsor": "Non indiqué",
+      "sponsor": "CNews",
       "fieldwork": {
         "start": "2026-10-21",
         "end": "2026-10-22"
       },
       "sampleSize": 973,
-      "url": "https://www.cnews.fr/france/2026-10-22/sondage-marine-le-pen-conforte-son-avance-au-premier-tour-de-lelection",
+      "url": "https://www.commission-des-sondages.fr/notices/files/notices/2026/octobre/10333-pres-iv-opinionway-cnews-22-octobre.pdf",
       "scores": {
         "melenchon": 31,
         "lepen": 69
+      },
+      "noIntention": {
+        "share": 33,
+        "base": "inscrits",
+        "source": {
+          "label": "Notice (Commission des sondages)",
+          "url": "https://www.commission-des-sondages.fr/notices/files/notices/2026/octobre/10333-pres-iv-opinionway-cnews-22-octobre.pdf"
+        }
+      }
+    },
+    {
+      "origin": "wikipedia",
+      "institute": "OpinionWay",
+      "sponsor": "CNews",
+      "fieldwork": {
+        "start": "2026-10-21",
+        "end": "2026-10-22"
+      },
+      "sampleSize": 973,
+      "url": "https://www.commission-des-sondages.fr/notices/files/notices/2026/octobre/10333-pres-iv-opinionway-cnews-22-octobre.pdf",
+      "scores": {
+        "philippe": 44,
+        "lepen": 56
+      },
+      "noIntention": {
+        "share": 28,
+        "base": "inscrits",
+        "source": {
+          "label": "Notice (Commission des sondages)",
+          "url": "https://www.commission-des-sondages.fr/notices/files/notices/2026/octobre/10333-pres-iv-opinionway-cnews-22-octobre.pdf"
+        }
+      }
+    },
+    {
+      "origin": "wikipedia",
+      "institute": "Harris Interactive (Toluna)",
+      "sponsor": "Non indiqué",
+      "fieldwork": {
+        "start": "2026-10-19",
+        "end": "2026-10-21"
+      },
+      "sampleSize": 2094,
+      "url": "https://www.commission-des-sondages.fr/notices/files/notices/2026/octobre/10332-pres-iv-toluna-harris-interactive-23-octobre.pdf",
+      "scores": {
+        "glucksmann": 41,
+        "lepen": 59
+      },
+      "noIntention": {
+        "share": 25,
+        "base": "inscrits",
+        "calculation": "19 % de vote blanc ou nul + 6 % d’abstention, publiés séparément (« ne se prononce pas » : 0 %)",
+        "source": {
+          "label": "Notice (Commission des sondages)",
+          "url": "https://www.commission-des-sondages.fr/notices/files/notices/2026/octobre/10332-pres-iv-toluna-harris-interactive-23-octobre.pdf"
+        }
+      }
+    },
+    {
+      "origin": "wikipedia",
+      "institute": "Harris Interactive (Toluna)",
+      "sponsor": "Non indiqué",
+      "fieldwork": {
+        "start": "2026-10-19",
+        "end": "2026-10-21"
+      },
+      "sampleSize": 2094,
+      "url": "https://www.commission-des-sondages.fr/notices/files/notices/2026/octobre/10332-pres-iv-toluna-harris-interactive-23-octobre.pdf",
+      "scores": {
+        "melenchon": 30,
+        "lepen": 70
+      },
+      "noIntention": {
+        "share": 32,
+        "base": "inscrits",
+        "calculation": "25 % de vote blanc ou nul + 7 % d’abstention, publiés séparément (« ne se prononce pas » : 0 %)",
+        "source": {
+          "label": "Notice (Commission des sondages)",
+          "url": "https://www.commission-des-sondages.fr/notices/files/notices/2026/octobre/10332-pres-iv-toluna-harris-interactive-23-octobre.pdf"
+        }
+      }
+    },
+    {
+      "origin": "wikipedia",
+      "institute": "Harris Interactive (Toluna)",
+      "sponsor": "Non indiqué",
+      "fieldwork": {
+        "start": "2026-10-19",
+        "end": "2026-10-21"
+      },
+      "sampleSize": 2094,
+      "url": "https://www.commission-des-sondages.fr/notices/files/notices/2026/octobre/10332-pres-iv-toluna-harris-interactive-23-octobre.pdf",
+      "scores": {
+        "philippe": 43,
+        "lepen": 57
+      },
+      "noIntention": {
+        "share": 26,
+        "base": "inscrits",
+        "calculation": "19 % de vote blanc ou nul + 7 % d’abstention, publiés séparément (« ne se prononce pas » : 0 %)",
+        "source": {
+          "label": "Notice (Commission des sondages)",
+          "url": "https://www.commission-des-sondages.fr/notices/files/notices/2026/octobre/10332-pres-iv-toluna-harris-interactive-23-octobre.pdf"
+        }
       }
     },
     {
@@ -1656,6 +1769,15 @@
       "scores": {
         "attal": 42,
         "lepen": 58
+      },
+      "noIntention": {
+        "share": 31.8,
+        "base": "inscrits",
+        "calculation": "1 − 1 314 inscrits ayant exprimé une intention de vote ÷ 1 928 inscrits interrogés (effectifs bruts)",
+        "source": {
+          "label": "Notice (Commission des sondages)",
+          "url": "https://www.commission-des-sondages.fr/notices/files/notices/2026/octobre/10327-pres-barometre-election-v7-ifop-20-octobre.pdf"
+        }
       }
     },
     {
@@ -1671,6 +1793,15 @@
       "scores": {
         "glucksmann": 43,
         "lepen": 57
+      },
+      "noIntention": {
+        "share": 28.3,
+        "base": "inscrits",
+        "calculation": "1 − 1 383 inscrits ayant exprimé une intention de vote ÷ 1 928 inscrits interrogés (effectifs bruts)",
+        "source": {
+          "label": "Notice (Commission des sondages)",
+          "url": "https://www.commission-des-sondages.fr/notices/files/notices/2026/octobre/10327-pres-barometre-election-v7-ifop-20-octobre.pdf"
+        }
       }
     },
     {
@@ -1686,6 +1817,15 @@
       "scores": {
         "melenchon": 32,
         "lepen": 68
+      },
+      "noIntention": {
+        "share": 35.7,
+        "base": "inscrits",
+        "calculation": "1 − 1 240 inscrits ayant exprimé une intention de vote ÷ 1 928 inscrits interrogés (effectifs bruts)",
+        "source": {
+          "label": "Notice (Commission des sondages)",
+          "url": "https://www.commission-des-sondages.fr/notices/files/notices/2026/octobre/10327-pres-barometre-election-v7-ifop-20-octobre.pdf"
+        }
       }
     },
     {
@@ -1701,6 +1841,15 @@
       "scores": {
         "philippe": 44,
         "lepen": 56
+      },
+      "noIntention": {
+        "share": 30.2,
+        "base": "inscrits",
+        "calculation": "1 − 1 345 inscrits ayant exprimé une intention de vote ÷ 1 928 inscrits interrogés (effectifs bruts)",
+        "source": {
+          "label": "Notice (Commission des sondages)",
+          "url": "https://www.commission-des-sondages.fr/notices/files/notices/2026/octobre/10327-pres-barometre-election-v7-ifop-20-octobre.pdf"
+        }
       }
     },
     {
@@ -1716,6 +1865,14 @@
       "scores": {
         "glucksmann": 46.5,
         "lepen": 53.5
+      },
+      "noIntention": {
+        "share": 19,
+        "base": "votants",
+        "source": {
+          "label": "Notice (Commission des sondages)",
+          "url": "https://www.commission-des-sondages.fr/notices/files/notices/2026/octobre/10324-pres-iv-elabe-17-octobre.pdf"
+        }
       }
     },
     {
@@ -1731,6 +1888,14 @@
       "scores": {
         "melenchon": 31,
         "lepen": 69
+      },
+      "noIntention": {
+        "share": 30,
+        "base": "votants",
+        "source": {
+          "label": "Notice (Commission des sondages)",
+          "url": "https://www.commission-des-sondages.fr/notices/files/notices/2026/octobre/10324-pres-iv-elabe-17-octobre.pdf"
+        }
       }
     },
     {
@@ -1746,6 +1911,14 @@
       "scores": {
         "philippe": 47.5,
         "lepen": 52.5
+      },
+      "noIntention": {
+        "share": 22,
+        "base": "votants",
+        "source": {
+          "label": "Notice (Commission des sondages)",
+          "url": "https://www.commission-des-sondages.fr/notices/files/notices/2026/octobre/10324-pres-iv-elabe-17-octobre.pdf"
+        }
       }
     },
     {
@@ -1761,6 +1934,15 @@
       "scores": {
         "attal": 45,
         "lepen": 55
+      },
+      "noIntention": {
+        "share": 33.7,
+        "base": "inscrits",
+        "calculation": "(447 répondants non pris en compte − 118 non-inscrits) ÷ 976 inscrits interrogés (effectifs bruts)",
+        "source": {
+          "label": "Notice (Commission des sondages)",
+          "url": "https://www.commission-des-sondages.fr/notices/files/notices/2026/octobre/10323-pres-iv-yougov-le-huffpost-18-octobre.pdf"
+        }
       }
     },
     {
@@ -1776,6 +1958,15 @@
       "scores": {
         "glucksmann": 45,
         "lepen": 55
+      },
+      "noIntention": {
+        "share": 30.7,
+        "base": "inscrits",
+        "calculation": "(418 répondants non pris en compte − 118 non-inscrits) ÷ 976 inscrits interrogés (effectifs bruts)",
+        "source": {
+          "label": "Notice (Commission des sondages)",
+          "url": "https://www.commission-des-sondages.fr/notices/files/notices/2026/octobre/10323-pres-iv-yougov-le-huffpost-18-octobre.pdf"
+        }
       }
     },
     {
@@ -1791,6 +1982,15 @@
       "scores": {
         "melenchon": 32,
         "lepen": 68
+      },
+      "noIntention": {
+        "share": 37.6,
+        "base": "inscrits",
+        "calculation": "(485 répondants non pris en compte − 118 non-inscrits) ÷ 976 inscrits interrogés (effectifs bruts)",
+        "source": {
+          "label": "Notice (Commission des sondages)",
+          "url": "https://www.commission-des-sondages.fr/notices/files/notices/2026/octobre/10323-pres-iv-yougov-le-huffpost-18-octobre.pdf"
+        }
       }
     },
     {
@@ -1806,6 +2006,15 @@
       "scores": {
         "philippe": 48,
         "lepen": 52
+      },
+      "noIntention": {
+        "share": 32.5,
+        "base": "inscrits",
+        "calculation": "(435 répondants non pris en compte − 118 non-inscrits) ÷ 976 inscrits interrogés (effectifs bruts)",
+        "source": {
+          "label": "Notice (Commission des sondages)",
+          "url": "https://www.commission-des-sondages.fr/notices/files/notices/2026/octobre/10323-pres-iv-yougov-le-huffpost-18-octobre.pdf"
+        }
       }
     },
     {
@@ -1821,51 +2030,15 @@
       "scores": {
         "melenchon": 34,
         "philippe": 66
-      }
-    },
-    {
-      "origin": "wikipedia",
-      "institute": "OpinionWay",
-      "sponsor": "CNews",
-      "fieldwork": {
-        "start": "2026-10-13",
-        "end": "2026-10-14"
       },
-      "sampleSize": 1043,
-      "url": "https://www.commission-des-sondages.fr/notices/files/notices/2026/octobre/10319-pres-iv-opinionway-cnews-15-octobre.pdf",
-      "scores": {
-        "philippe": 44,
-        "lepen": 56
-      }
-    },
-    {
-      "origin": "wikipedia",
-      "institute": "Harris Interactive (Toluna)",
-      "sponsor": "Non indiqué",
-      "fieldwork": {
-        "start": "2026-10-05",
-        "end": "2026-10-08"
-      },
-      "sampleSize": 2004,
-      "url": "https://www.commission-des-sondages.fr/notices/files/notices/2026/octobre/10305-pres-iv-toluna-harris-interactive-12-octobre.pdf",
-      "scores": {
-        "melenchon": 33,
-        "lepen": 67
-      }
-    },
-    {
-      "origin": "wikipedia",
-      "institute": "Harris Interactive (Toluna)",
-      "sponsor": "Non indiqué",
-      "fieldwork": {
-        "start": "2026-10-05",
-        "end": "2026-10-08"
-      },
-      "sampleSize": 2004,
-      "url": "https://www.commission-des-sondages.fr/notices/files/notices/2026/octobre/10305-pres-iv-toluna-harris-interactive-12-octobre.pdf",
-      "scores": {
-        "philippe": 44,
-        "lepen": 56
+      "noIntention": {
+        "share": 49.5,
+        "base": "inscrits",
+        "calculation": "(601 répondants non pris en compte − 118 non-inscrits) ÷ 976 inscrits interrogés (effectifs bruts)",
+        "source": {
+          "label": "Notice (Commission des sondages)",
+          "url": "https://www.commission-des-sondages.fr/notices/files/notices/2026/octobre/10323-pres-iv-yougov-le-huffpost-18-octobre.pdf"
+        }
       }
     },
     {
@@ -1881,6 +2054,15 @@
       "scores": {
         "melenchon": 32,
         "lepen": 68
+      },
+      "noIntention": {
+        "share": 37,
+        "base": "votants",
+        "undecided": 14,
+        "source": {
+          "label": "Rapport de l’institut",
+          "url": "https://www.odoxa.fr/wp-content/uploads/2026/10/Odoxa-Backbone-pour-la-Presse-Regionale-Public-Senat-et-le-Nouvel-Obs-IV-a-lelection-presidentielle-de-2027.pdf"
+        }
       }
     },
     {
@@ -1896,6 +2078,15 @@
       "scores": {
         "philippe": 47,
         "lepen": 53
+      },
+      "noIntention": {
+        "share": 32,
+        "base": "votants",
+        "undecided": 14,
+        "source": {
+          "label": "Rapport de l’institut",
+          "url": "https://www.odoxa.fr/wp-content/uploads/2026/10/Odoxa-Backbone-pour-la-Presse-Regionale-Public-Senat-et-le-Nouvel-Obs-IV-a-lelection-presidentielle-de-2027.pdf"
+        }
       }
     }
   ],
