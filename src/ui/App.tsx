@@ -153,8 +153,8 @@ function SimulatorPage({ result, onOpenSettings }: { result: SimulationResult; o
             En option, désactivée par défaut, vous pouvez aussi tester des alliances qu’aucun sondeur n’a
             évaluées : elles sont alors estimées en appliquant aux sondages les reports de voix des législatives
             2024. Une estimation reste moins fiable qu’une hypothèse testée, qui garde toujours la priorité :
-            chaque sondage utilise l’hypothèse la plus proche qu’il teste, et seules les alliances qu’il ne teste
-            pas y sont estimées, avant la moyenne entre instituts.
+            l’option ne change ni les sondages retenus ni les alliances testées, elle ajoute seulement, sur ces
+            mêmes sondages, les alliances qu’aucune hypothèse ne permet.
           </p>
           <p>
             Les résultats et reports de voix des élections passées ne présagent pas des résultats futurs réels : il ne faut donc pas

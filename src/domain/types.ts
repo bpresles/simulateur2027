@@ -447,8 +447,8 @@ export interface SecondRoundResult {
 export interface SimulationResult {
   hypothesisSet: HypothesisSet
   /**
-   * Hypothèses retenues par groupe de sondages : un seul groupe, sauf avec l'option des alliances non
-   * évaluées quand certains sondages ne testent qu'une partie des alliances (les autres y sont estimées).
+   * Hypothèses retenues par groupe de sondages (même scénario) : un seul groupe, celui de la combinaison
+   * testée, avec ou sans l'option des alliances non évaluées.
    */
   hypothesisGroups: {
     set: HypothesisSet

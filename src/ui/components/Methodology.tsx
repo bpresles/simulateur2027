@@ -721,12 +721,11 @@ export function Methodology({ result }: { result: SimulationResult }) {
               aucun sondage retenu ne le teste, son ralliement ne peut pas être estimé.
             </p>
             <p>
-              Les hypothèses testées gardent la priorité, sondage par sondage : chaque sondage utilise la plus
-              grande combinaison d’alliances actives qu’il teste (par exemple « Philippe seul » quand il ne teste
-              pas aussi le retrait de Retailleau), et seules les alliances qu’il ne teste pas y sont estimées. Les
-              sondages qui utilisent la même hypothèse sont moyennés, corrigés et leurs alliances estimées, puis
-              les groupes sont moyennés au prorata de leur nombre d’instituts : aucun sondage n’est écarté parce
-              qu’il ne teste qu’une partie des alliances.{' '}
+              Les hypothèses testées gardent la priorité : l’option ne change pas les sondages retenus. Ce sont
+              ceux qui testent la plus grande combinaison d’alliances actives testée par les sondeurs, comme sans
+              l’option (par exemple « Philippe seul » pour Attal rejoint Philippe) ; seules les autres alliances
+              actives, qu’aucune de leurs hypothèses ne permet, y sont estimées, après la moyenne et les
+              corrections.{' '}
               {settings.untestedAlliances
                 ? 'L’option est activée dans le scénario en cours.'
                 : 'L’option n’est pas activée dans le scénario en cours.'}
