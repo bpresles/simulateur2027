@@ -206,11 +206,23 @@ describe('alliances estimées (option) : reports de 2024', () => {
     expect(conflict).toMatchObject({ allianceIds: ['attal-philippe'], estimatedAllianceIds: [] })
   })
 
-  it('simulation avec l’option : chaque sondage prend la plus grande combinaison testée qu’il contient', () => {
+  it('simulation avec l’option : une alliance testée garde les mêmes sondages et le même résultat', () => {
+    const alliances = { 'attal-philippe': true }
+    const without = simulate(data, { ...defaultSettings(), alliances })
+    const withOption = simulate(data, { ...defaultSettings(), untestedAlliances: true, alliances })
+    expect(withOption.pollUsage).toEqual(without.pollUsage)
+    expect(withOption.hypothesisGroups).toEqual(without.hypothesisGroups)
+    expect(withOption.entrants).toEqual(without.entrants)
+    expect(withOption.secondRound.pct).toEqual(without.secondRound.pct)
+    expect(withOption.estimatedAllianceIds).toEqual([])
+  })
+
+  it('simulation avec l’option : les sondages de la combinaison testée, les autres alliances y sont estimées', () => {
     const settings = { ...defaultSettings(), untestedAlliances: true }
     const alliances = { 'attal-philippe': true, 'retailleau-philippe': true, 'tondelier-melenchon': true }
     const res = simulate(data, { ...settings, alliances })
-    // Cluster17 teste les deux ralliements ; Elabe seulement Attal rejoint Philippe : Retailleau y est estimé.
+    // Cluster17 teste les deux ralliements, Elabe seulement Attal rejoint Philippe : seul Cluster17 est retenu,
+    // comme sans l'option, et Tondelier rejoint Mélenchon, testée nulle part, y est estimée.
     expect(res.hypothesisGroups).toEqual([
       {
         set: expect.objectContaining({ label: 'Sans Gabriel Attal, Bruno Retailleau' }),
@@ -218,29 +230,17 @@ describe('alliances estimées (option) : reports de 2024', () => {
         estimatedAllianceIds: ['tondelier-melenchon'],
         pollIds: ['b'],
       },
-      {
-        set: expect.objectContaining({ label: 'Philippe seul' }),
-        allianceIds: ['attal-philippe'],
-        estimatedAllianceIds: ['tondelier-melenchon', 'retailleau-philippe'],
-        pollIds: ['a'],
-      },
     ])
     expect(res).toMatchObject({
-      institutesUsed: 2,
+      institutesUsed: 1,
       allianceIds: ['attal-philippe', 'retailleau-philippe'],
-      estimatedAllianceIds: ['tondelier-melenchon', 'retailleau-philippe'],
+      estimatedAllianceIds: ['tondelier-melenchon'],
     })
-    expect(res.pollUsage.map((u) => [u.poll.id, u.matchedHypotheses])).toEqual([
-      ['a', ['H2']],
-      ['b', ['H1']],
-    ])
-    // Moyenne des deux groupes : les électeurs de Retailleau suivent Philippe pour la moitié des sondages.
     const philippe = res.entrants.find((e) => e.id === 'philippe')!
-    expect(philippe.members.map((m) => m.candidateId)).toEqual(['philippe', 'retailleau'])
+    expect(philippe.members.map((m) => m.candidateId)).toEqual(['philippe'])
     expect(res.entrants.reduce((sum, e) => sum + e.score, 0)).toBeCloseTo(100, 8)
-    expect(res.firstRound.reduce((sum, r) => sum + r.corrected, 0)).toBeCloseTo(100, 8)
     expect(res.warnings).toContain(
-      'Alliances estimées par les reports des législatives 2024, faute d’hypothèse de sondage : Tondelier rejoint Mélenchon, Retailleau rejoint Philippe (pour 1 sondage sur 2).',
+      'Alliance estimée par les reports des législatives 2024, faute d’hypothèse de sondage : Tondelier rejoint Mélenchon.',
     )
   })
 

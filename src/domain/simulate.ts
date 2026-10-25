@@ -1,6 +1,5 @@
 import {
   acceptAlliances,
-  allianceCombos,
   alliancesConflict,
   applyAlliances,
   defaultSet,
@@ -169,17 +168,9 @@ export function simulate(
     : tested
   const retained = polls.alliances.filter((a) => retainedSet.includes(a))
 
-  // Scénarios essayés pour chaque sondage, du plus complet au moins complet. Sans l'option, seule la
-  // combinaison testée compte ; avec, un sondage qui ne la teste pas prend la plus grande combinaison
-  // testée qu'il contient, et les alliances restantes y sont estimées.
-  const scenarios: Alliance[][] = settings.untestedAlliances
-    ? [
-        ...allianceCombos(polls)
-          .filter((c) => c.every((a) => retained.includes(a)))
-          .sort((x, y) => y.length - x.length),
-        [],
-      ]
-    : [tested]
+  // Les sondages retenus sont ceux qui testent la combinaison testée, avec ou sans l'option : celle-ci
+  // n'ajoute que les alliances qu'aucune hypothèse ne permet, estimées sur ces mêmes sondages.
+  const scenarios: Alliance[][] = [tested]
   const excluded = new Set(settings.excludedPolls)
   let selection = averagePollsByScenario(
     polls,
