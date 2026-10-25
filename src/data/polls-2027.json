@@ -1,5 +1,5 @@
 {
-  "asOf": "2026-10-23",
+  "asOf": "2026-10-25",
   "electionDate": "2027-04-18",
   "windowDays": 21,
   "collection": {
@@ -864,6 +864,96 @@
     }
   ],
   "polls": [
+    {
+      "id": "ipsos-bva-20261022",
+      "origin": "wikipedia",
+      "institute": "Ipsos BVA",
+      "sponsor": "Non indiqué",
+      "fieldwork": {
+        "start": "2026-10-21",
+        "end": "2026-10-22"
+      },
+      "sampleSize": 1500,
+      "sources": [
+        {
+          "label": "Publication",
+          "url": "https://www.ipsos.com/fr-fr/presidentielle-2027-melenchon-progresse-le-pen-reste-en-tete"
+        },
+        {
+          "label": "Wikipedia – liste des sondages",
+          "url": "https://fr.wikipedia.org/wiki/Liste_de_sondages_sur_l%27%C3%A9lection_pr%C3%A9sidentielle_fran%C3%A7aise_de_2027"
+        }
+      ],
+      "note": "Repris de Wikipedia : chiffres non revérifiés.",
+      "hypotheses": [
+        {
+          "id": "H1",
+          "label": "Attal, Philippe",
+          "scores": {
+            "arthaud": 0.5,
+            "melenchon": 17,
+            "roussel": 2,
+            "tondelier": 3.5,
+            "glucksmann": 13,
+            "attal": 4,
+            "philippe": 13,
+            "retailleau": 7.5,
+            "dupont-aignan": 1.5,
+            "lepen": 33.5,
+            "zemmour": 4.5
+          }
+        },
+        {
+          "id": "H2",
+          "label": "Philippe",
+          "scores": {
+            "arthaud": 0.5,
+            "melenchon": 17,
+            "roussel": 2,
+            "tondelier": 3.5,
+            "glucksmann": 14,
+            "philippe": 15,
+            "retailleau": 8,
+            "dupont-aignan": 2,
+            "lepen": 33.5,
+            "zemmour": 4.5
+          }
+        },
+        {
+          "id": "H3",
+          "label": "Attal",
+          "scores": {
+            "arthaud": 0.5,
+            "melenchon": 17,
+            "roussel": 2.5,
+            "tondelier": 3.5,
+            "glucksmann": 15.5,
+            "attal": 9.5,
+            "retailleau": 11.5,
+            "dupont-aignan": 2,
+            "lepen": 33.5,
+            "zemmour": 4.5
+          }
+        },
+        {
+          "id": "H4",
+          "label": "Philippe, Lisnard",
+          "scores": {
+            "arthaud": 0.5,
+            "melenchon": 17,
+            "roussel": 2.5,
+            "tondelier": 3.5,
+            "glucksmann": 13,
+            "philippe": 14,
+            "lisnard": 6.5,
+            "retailleau": 5.5,
+            "dupont-aignan": 1.5,
+            "lepen": 32,
+            "zemmour": 4
+          }
+        }
+      ]
+    },
     {
       "id": "opinionway-20261022",
       "origin": "wikipedia",
