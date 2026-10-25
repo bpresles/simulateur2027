@@ -89,11 +89,22 @@ function mergeGroups(groups: Group[], candidates: Candidate[]) {
   const leaks = new Map<string, AllianceLeak>()
   for (const g of groups) {
     for (const r of g.rows) {
-      const acc = rows.get(r.candidateId) ?? { ...r, base: 0, projected: 0, defaultCorrection: 0, appliedCorrection: 0, corrected: 0 }
+      const acc = rows.get(r.candidateId) ?? {
+        ...r,
+        base: 0,
+        projected: 0,
+        defaultCorrection: 0,
+        appliedCorrection: 0,
+        cededBase: 0,
+        ceded: 0,
+        corrected: 0,
+      }
       acc.base += g.weight * r.base
       acc.projected += g.weight * r.projected
       acc.defaultCorrection += g.weight * r.defaultCorrection
       acc.appliedCorrection += g.weight * r.appliedCorrection
+      acc.cededBase += g.weight * r.cededBase
+      acc.ceded += g.weight * r.ceded
       acc.corrected += g.weight * r.corrected
       rows.set(r.candidateId, acc)
     }
@@ -213,12 +224,20 @@ export function simulate(
     const inserted = [...new Set(retained.filter((a) => !g.key.includes(a)).flatMap((a) => a.members))].filter(
       (id) => g.average[id] === undefined && candidatesById.get(id)?.minor && minorShare(id) > 0,
     )
-    const average = inserted.reduce(
-      (avg, id) => insertMinor(avg, id, minorShare(id), minorTransfers[id] ?? []),
-      g.average,
-    )
-    const rows = applyCorrections(average, polls.candidates, reference, settings, progression)
-    const corrected = Object.fromEntries(rows.map((r) => [r.candidateId, r.corrected]))
+    // Le petit candidat est ajouté après les corrections : sa part est prélevée sur les scores déjà
+    // corrigés de ses donneurs, qui gardent ainsi leur correction 2022 sur les électeurs qu'ils cèdent.
+    const insert = (scores: Record<CandidateId, number>) =>
+      inserted.reduce((acc, id) => insertMinor(acc, id, minorShare(id), minorTransfers[id] ?? []), scores)
+    const without = applyCorrections(g.average, polls.candidates, reference, settings, progression)
+    const base = insert(g.average)
+    const corrected = insert(Object.fromEntries(without.map((r) => [r.candidateId, r.corrected])))
+    const minorRows = applyCorrections(base, polls.candidates, reference, settings, progression)
+    const rows = polls.candidates.flatMap((c): FirstRoundRow[] => {
+      const r = without.find((w) => w.candidateId === c.id)
+      if (r) return [{ ...r, cededBase: r.base - base[c.id]!, ceded: r.corrected - corrected[c.id]!, corrected: corrected[c.id]! }]
+      const m = minorRows.find((w) => w.candidateId === c.id)
+      return m ? [{ ...m, base: base[c.id]!, projected: base[c.id]!, corrected: corrected[c.id]! }] : []
+    })
     const estimated = retained.filter((a) => !g.key.includes(a) && a.members.every((id) => corrected[id] !== undefined))
     return {
       key: g.key,

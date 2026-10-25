@@ -352,4 +352,18 @@ describe('petit candidat testé seulement avec un rallié', () => {
     expect(ruffin.rate).toBeGreaterThan(0)
     expect(res.warnings.some((w) => w.startsWith('Aucune hypothèse retenue ne teste François Ruffin'))).toBe(true)
   })
+
+  it('sa part est prélevée après les corrections : ses donneurs gardent leur correction 2022', () => {
+    const settings = { ...defaultSettings(), untestedAlliances: true, progressionEnabled: true }
+    const alone = simulate(ruffinData, { ...settings, alliances: { 'attal-philippe': true } })
+    const res = simulate(ruffinData, { ...settings, alliances: { 'attal-philippe': true, 'ruffin-melenchon': true } })
+    const rows = new Map(res.firstRound.map((r) => [r.candidateId, r]))
+    for (const r of alone.firstRound) {
+      expect(rows.get(r.candidateId)!.corrected + rows.get(r.candidateId)!.ceded).toBeCloseTo(r.corrected, 8)
+      expect(rows.get(r.candidateId)!.base).toBeCloseTo(r.base, 8)
+    }
+    const ruffin = rows.get('ruffin')!
+    expect(ruffin.corrected).toBeCloseTo(2, 8)
+    expect(res.firstRound.reduce((s, r) => s + r.ceded, 0)).toBeCloseTo(ruffin.corrected, 8)
+  })
 })

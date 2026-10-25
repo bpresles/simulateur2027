@@ -625,7 +625,12 @@ export function Methodology({ result }: { result: SimulationResult }) {
                     {pts(r.appliedCorrection, 2)}
                     {r.isOverride && <span className="ml-1 text-xs text-ballpoint">manuelle</span>}
                   </td>
-                  <td className={`${td} num text-right font-medium`}>{pct(r.corrected, 2)}</td>
+                  <td className={`${td} num text-right font-medium`}>
+                    {pct(r.corrected, 2)}
+                    {r.ceded > 1e-9 && (
+                      <span className="ml-1 text-xs font-normal text-ink-3">dont cession {pts(-r.ceded, 2)}</span>
+                    )}
+                  </td>
                 </tr>
               ))}
             </tbody>
@@ -708,9 +713,11 @@ export function Methodology({ result }: { result: SimulationResult }) {
             <p>
               Un petit candidat rallié peut manquer aux hypothèses retenues (Ruffin n’est testé qu’avec Attal :
               absent quand Attal rejoint Philippe). Pour estimer son ralliement, son score est repris des
-              hypothèses qui le testent dans les sondages retenus, puis prélevé sur les candidats vers lesquels
-              se reportent ses électeurs en son absence (répartition choisie pour ce petit candidat, au prorata
-              de ceux qui sont en lice) ; ses électeurs suivent ensuite le leader selon les reports de 2024. Si
+              hypothèses qui le testent dans les sondages retenus, puis prélevé, après les corrections, sur les
+              candidats vers lesquels se reportent ses électeurs en son absence (répartition choisie pour ce
+              petit candidat, au prorata de ceux qui sont en lice). Sans référence 2022, il ne reçoit ni
+              progression ni correction : le prélever avant aurait privé ses donneurs de leur correction sur ces
+              électeurs. Ses électeurs suivent ensuite le leader selon les reports de 2024. Si
               aucun sondage retenu ne le teste, son ralliement ne peut pas être estimé.
             </p>
             <p>

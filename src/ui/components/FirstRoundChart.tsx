@@ -13,7 +13,9 @@ const spring = { type: 'spring', stiffness: 170, damping: 26 } as const
 
 export function FirstRoundChart({ result }: { result: SimulationResult }) {
   const rows = new Map(result.firstRound.map((r) => [r.candidateId, r]))
-  const baseOf = (e: Entrant) => e.members.reduce((s, m) => s + (rows.get(m.candidateId)?.base ?? 0), 0)
+  // Part prélevée pour un petit candidat ajouté : déjà comptée dans sa propre moyenne.
+  const baseOf = (e: Entrant) =>
+    e.members.reduce((s, m) => s + (rows.get(m.candidateId)?.base ?? 0) - (rows.get(m.candidateId)?.cededBase ?? 0), 0)
   const scaleMax = Math.max(...result.entrants.map((e) => Math.max(e.score, baseOf(e)))) * 1.04
   const w = (v: number) => `${(v / scaleMax) * 100}%`
   const threshold = result.entrants[1]!.score
@@ -221,6 +223,12 @@ function RowDetails({
             )}
             <dt className="text-ink-3">Correction{r.isOverride ? ' (manuelle)' : ''}</dt>
             <dd className="num text-right">{pts(r.appliedCorrection)}</dd>
+            {r.ceded > 1e-9 && (
+              <>
+                <dt className="text-ink-3">Cédé aux petits candidats ajoutés</dt>
+                <dd className="num text-right">{pts(-r.ceded)}</dd>
+              </>
+            )}
             <dt className="text-ink-3">Après correction</dt>
             <dd className="num text-right">{pct(r.corrected)}</dd>
             {entrant.members.length > 1 && m.rate < 1 && (

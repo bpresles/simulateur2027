@@ -85,6 +85,8 @@ export function applyCorrections(
     defaultCorrection: d.def,
     appliedCorrection: d.applied,
     isOverride: d.isOverride,
+    cededBase: 0,
+    ceded: 0,
     corrected: corrected[d.c.id] ?? 0,
   }))
 }
