@@ -1,6 +1,6 @@
 import { AnimatePresence, motion } from 'motion/react'
 import { simulationData } from '../../data/schema'
-import type { SimulationResult } from '../../domain/types'
+import type { CandidateId, SimulationResult } from '../../domain/types'
 import { useSettings } from '../../state/settingsStore'
 import { cand, colorVars } from '../candidates'
 import { num, pct } from '../format'
@@ -9,9 +9,12 @@ import { AnimatedNumber } from './AnimatedNumber'
 /** Écart (en points) en dessous duquel le 2nd tour est présenté comme une égalité. */
 const TIE_MARGIN = 0.05
 
+const list = new Intl.ListFormat('fr', { type: 'conjunction' })
+
 export function ElectedPresident({ result }: { result: SimulationResult }) {
   const sr = result.secondRound
-  const { correctionsEnabled, correctionIntensity, progressionEnabled, progressionIntensity } = useSettings()
+  const settings = useSettings()
+  const { correctionsEnabled, correctionIntensity, progressionEnabled, progressionIntensity } = settings
   const aWins = sr.pct.a >= sr.pct.b
   const winnerId = aWins ? sr.a : sr.b
   const loserId = aWins ? sr.b : sr.a
@@ -50,11 +53,47 @@ export function ElectedPresident({ result }: { result: SimulationResult }) {
     alliances.length > 0 ? alliances.join(', ') : 'sans alliance',
   ].join(' ; ')
 
+  // Lecture du résultat : les hypothèses retenues, dans l'ordre chronologique jusqu'au 2nd tour.
+  const share = (intensity: number) => (intensity === 1 ? '' : `, à ${pct(intensity * 100, 0)} de leur ampleur`)
+  const transfersAdjusted =
+    Object.keys(settings.transferOverrides).length > 0 ||
+    Object.keys(settings.minorTransfers).length > 0 ||
+    settings.fidelity !== null
+  // Ralliements retenus, regroupés par tête de liste : « Tondelier et Roussel se rangent derrière Mélenchon ».
+  const rallies = [
+    ...simulationData.polls.alliances
+      .filter((a) => result.allianceIds.includes(a.id) || result.estimatedAllianceIds.includes(a.id))
+      .reduce((byLeader, a) => {
+        const members = a.members.filter((id) => id !== a.leader)
+        return byLeader.set(a.leader, [...(byLeader.get(a.leader) ?? []), ...members])
+      }, new Map<CandidateId, CandidateId[]>()),
+  ].map(([leader, members], i) => {
+    const names = list.format(members.filter((id, j) => members.indexOf(id) === j).map((id) => cand(id).shortName))
+    const verb = i > 0 ? '' : members.length > 1 ? ' se rangent' : ' se range'
+    return `${names}${verb} derrière ${cand(leader).shortName}`
+  })
+  const conditions = [
+    ...(rallies.length > 0 ? [`${list.format(rallies)} dès le 1er tour`] : []),
+    progressionEnabled
+      ? `les intentions de vote évoluent d’ici au scrutin comme en 2022 à la même distance de l’élection${share(progressionIntensity)}`
+      : 'les intentions de vote n’évoluent plus d’ici au scrutin',
+    correctionsEnabled
+      ? `les sondages se trompent sur le 1er tour comme en 2022${share(correctionIntensity)}${Object.keys(settings.correctionOverrides).length > 0 ? ' (avec vos ajustements par candidat)' : ''}`
+      : 'les sondages donnent exactement le résultat du 1er tour',
+    transfersAdjusted
+      ? 'les reports de voix entre les deux tours suivent vos réglages, à partir de ceux des législatives 2024'
+      : 'les reports de voix entre les deux tours ressemblent à ceux des législatives 2024',
+  ]
+  const reading = `${tie ? 'Ce duel serait indécis' : `${winner.shortName} l’emporterait`} si ${conditions
+    .slice(0, -1)
+    .join(', si ')} et si ${conditions.at(-1)}.`
+
   return (
     <section aria-labelledby="elected-title" className="mt-10">
       <h2 id="elected-title" className="text-2xl font-bold tracking-tight">
         Président élu
       </h2>
+      <p className="mt-2 text-ink-2">{reading}</p>
 
       <div aria-live="polite" className="mt-4">
         <AnimatePresence mode="wait" initial={false}>
