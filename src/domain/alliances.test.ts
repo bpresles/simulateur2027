@@ -211,7 +211,7 @@ describe('alliances estimées (option) : reports de 2024', () => {
     const without = simulate(data, { ...defaultSettings(), alliances })
     const withOption = simulate(data, { ...defaultSettings(), untestedAlliances: true, alliances })
     expect(withOption.pollUsage).toEqual(without.pollUsage)
-    expect(withOption.hypothesisGroups).toEqual(without.hypothesisGroups)
+    expect(withOption.hypothesisSet).toEqual(without.hypothesisSet)
     expect(withOption.entrants).toEqual(without.entrants)
     expect(withOption.secondRound.pct).toEqual(without.secondRound.pct)
     expect(withOption.estimatedAllianceIds).toEqual([])
@@ -223,14 +223,8 @@ describe('alliances estimées (option) : reports de 2024', () => {
     const res = simulate(data, { ...settings, alliances })
     // Cluster17 teste les deux ralliements, Elabe seulement Attal rejoint Philippe : seul Cluster17 est retenu,
     // comme sans l'option, et Tondelier rejoint Mélenchon, testée nulle part, y est estimée.
-    expect(res.hypothesisGroups).toEqual([
-      {
-        set: expect.objectContaining({ label: 'Sans Gabriel Attal, Bruno Retailleau' }),
-        allianceIds: ['attal-philippe', 'retailleau-philippe'],
-        estimatedAllianceIds: ['tondelier-melenchon'],
-        pollIds: ['b'],
-      },
-    ])
+    expect(res.hypothesisSet).toMatchObject({ label: 'Sans Gabriel Attal, Bruno Retailleau' })
+    expect(res.pollUsage.filter((u) => u.status === 'used').map((u) => u.poll.id)).toEqual(['b'])
     expect(res).toMatchObject({
       institutesUsed: 1,
       allianceIds: ['attal-philippe', 'retailleau-philippe'],

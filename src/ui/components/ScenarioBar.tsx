@@ -8,26 +8,10 @@ import { Checkbox, Slider, Switch } from './controls'
 
 const allianceLabel = new Map(simulationData.polls.alliances.map((a) => [a.id, a.label]))
 
-/**
- * Candidats testés : hypothèses retenues (les alliances testées y retirent leurs ralliés), par groupe de
- * sondages quand certains ne testent qu'une partie des alliances, suivies des alliances estimées.
- */
+/** Candidats testés : hypothèse retenue (les alliances testées y retirent leurs ralliés), puis alliances estimées. */
 function firstRoundSummary(result: SimulationResult): string {
-  const groups = result.hypothesisGroups
-  const label = (id: string) => allianceLabel.get(id) ?? id
-  // Alliances estimées pour tous les sondages ; les autres sont précisées groupe par groupe.
-  const everywhere = result.estimatedAllianceIds.filter((id) => groups.every((g) => g.estimatedAllianceIds.includes(id)))
-  const estimated = everywhere.map((id) => `${label(id)} (estimée)`)
-  if (groups.length <= 1) return [result.hypothesisSet.description.replace(/\.$/, ''), ...estimated].join(', ') + '.'
-  const institute = new Map(result.pollUsage.map((u) => [u.poll.id, u.poll.institute]))
-  const parts = groups.map((g) => {
-    const extra = g.estimatedAllianceIds.filter((id) => !everywhere.includes(id)).map(label)
-    const many = extra.length > 1 ? 's' : ''
-    return `« ${g.set.label} » pour ${g.pollIds.map((id) => institute.get(id)).join(', ')}${
-      extra.length > 0 ? ` (${extra.join(', ')} y ${extra.length > 1 ? 'sont' : 'est'} estimée${many})` : ''
-    }`
-  })
-  return `Hypothèses ${parts.join(' ; ')}${estimated.length > 0 ? ` ; ${estimated.join(', ')}` : ''}.`
+  const estimated = result.estimatedAllianceIds.map((id) => `${allianceLabel.get(id) ?? id} (estimée)`)
+  return [result.hypothesisSet.description.replace(/\.$/, ''), ...estimated].join(', ') + '.'
 }
 
 export function ScenarioBar({ result }: { result: SimulationResult }) {

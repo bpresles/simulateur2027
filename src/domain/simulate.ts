@@ -12,22 +12,17 @@ import {
 import type { AllianceSplit } from './alliances'
 import { applyCorrections, computeReference2022 } from './corrections'
 import type { Reference2022Stats } from './corrections'
-import { averagePollsByScenario } from './pollAverage'
+import { averagePolls } from './pollAverage'
 import { computeProgression2022 } from './progression'
 import type { ProgressionStats } from './progression'
 import { computeSecondRound, secondRoundDropout2022 } from './secondRound'
 import { allianceSplit2024, effectiveProfiles, minorTransferParts, resolveDuel } from './transfers'
 import type {
   Alliance,
-  AllianceLeak,
   AllianceRate,
-  Candidate,
   CandidateId,
   Entrant,
-  EntrantMember,
   FirstRoundRow,
-  HypothesisSet,
-  Poll,
   Settings,
   SimulationData,
   SimulationResult,
@@ -54,92 +49,6 @@ export function defaultSettings(): Settings {
     abstentionCalibration: true,
     abstentionTarget: null,
     qualificationPick: 'second',
-  }
-}
-
-interface Group {
-  key: Alliance[]
-  polls: Poll[]
-  /** Part des instituts retenus dans ce groupe. */
-  weight: number
-  set: HypothesisSet
-  rows: FirstRoundRow[]
-  estimated: Alliance[]
-  /** Petits candidats ajoutés à la moyenne pour estimer leur ralliement. */
-  inserted: CandidateId[]
-  entrants: Entrant[]
-  leaks: AllianceLeak[]
-}
-
-/**
- * Réunit les groupes de sondages, pondérés par leur nombre d'instituts : moyenne des lignes du 1er tour,
- * des apports de chaque membre aux entrants et des électeurs ralliés partis au RN (0 quand un candidat est
- * absent d'un groupe, ses électeurs y étant répartis entre les autres). Un seul groupe : inchangé.
- */
-function mergeGroups(groups: Group[], candidates: Candidate[]) {
-  const [only] = groups
-  const correctedOf = (rows: FirstRoundRow[]) => Object.fromEntries(rows.map((r) => [r.candidateId, r.corrected]))
-  if (groups.length <= 1) {
-    const rows = only?.rows ?? []
-    return { firstRound: rows, corrected: correctedOf(rows), entrants: only?.entrants ?? [], leaks: only?.leaks ?? [] }
-  }
-  const rows = new Map<string, FirstRoundRow>()
-  const members = new Map<string, { allianceIds: Set<string>; members: Map<string, EntrantMember> }>()
-  const leaks = new Map<string, AllianceLeak>()
-  for (const g of groups) {
-    for (const r of g.rows) {
-      const acc = rows.get(r.candidateId) ?? {
-        ...r,
-        base: 0,
-        projected: 0,
-        defaultCorrection: 0,
-        appliedCorrection: 0,
-        cededBase: 0,
-        ceded: 0,
-        corrected: 0,
-      }
-      acc.base += g.weight * r.base
-      acc.projected += g.weight * r.projected
-      acc.defaultCorrection += g.weight * r.defaultCorrection
-      acc.appliedCorrection += g.weight * r.appliedCorrection
-      acc.cededBase += g.weight * r.cededBase
-      acc.ceded += g.weight * r.ceded
-      acc.corrected += g.weight * r.corrected
-      rows.set(r.candidateId, acc)
-    }
-    for (const e of g.entrants) {
-      const acc = members.get(e.id) ?? { allianceIds: new Set<string>(), members: new Map<string, EntrantMember>() }
-      e.allianceIds.forEach((id) => acc.allianceIds.add(id))
-      for (const m of e.members) {
-        const mm = acc.members.get(m.candidateId) ?? { ...m, contribution: 0 }
-        mm.contribution += g.weight * m.contribution
-        acc.members.set(m.candidateId, mm)
-      }
-      members.set(e.id, acc)
-    }
-    for (const l of g.leaks) {
-      const key = `${l.from}|${l.to}`
-      const acc = leaks.get(key) ?? { ...l, points: 0 }
-      acc.points += g.weight * l.points
-      leaks.set(key, acc)
-    }
-  }
-  const firstRound = candidates.flatMap((c) => rows.get(c.id) ?? [])
-  const entrants: Entrant[] = [...members].map(([id, acc]) => {
-    const list = [...acc.members.values()]
-    const score = list.reduce((sum, m) => sum + m.contribution, 0)
-    return {
-      id,
-      allianceIds: [...acc.allianceIds],
-      members: list.map((m) => ({ ...m, weight: score > 0 ? m.contribution / score : 0 })),
-      score,
-    }
-  })
-  return {
-    firstRound,
-    corrected: correctedOf(firstRound),
-    entrants: entrants.sort((a, b) => b.score - a.score),
-    leaks: [...leaks.values()],
   }
 }
 
@@ -170,20 +79,16 @@ export function simulate(
 
   // Les sondages retenus sont ceux qui testent la combinaison testée, avec ou sans l'option : celle-ci
   // n'ajoute que les alliances qu'aucune hypothèse ne permet, estimées sur ces mêmes sondages.
-  const scenarios: Alliance[][] = [tested]
   const excluded = new Set(settings.excludedPolls)
-  let selection = averagePollsByScenario(
-    polls,
-    scenarios.map((key) => ({ key, filter: scenarioFilter(polls, key) })),
-    excluded,
-  )
+  let selection = averagePolls(polls, scenarioFilter(polls, tested), excluded)
+  let hypothesisSet = scenarioSet(polls, tested, name)
   // Si aucun sondage ne teste tous les candidats simulés, la base se contente des candidats principaux.
-  const fallback = selection.institutesUsed === 0 && scenarios.some((s) => s.length === 0)
-  if (fallback) {
-    selection = averagePollsByScenario(polls, [{ key: [] as Alliance[], filter: defaultSet(polls) }], excluded)
+  if (selection.institutesUsed === 0 && tested.length === 0) {
+    selection = averagePolls(polls, defaultSet(polls), excluded)
+    hypothesisSet = defaultSet(polls)
     warnings.push('Aucun sondage ne teste tous les candidats simulés : hypothèses des seuls candidats principaux.')
   }
-  const { usage, institutesUsed } = selection
+  const { usage, average, institutesUsed } = selection
 
   const fidelity = settings.fidelity ?? transfers.defaultFidelity
   const profiles = effectiveProfiles(transfers, settings.transferOverrides, fidelity)
@@ -201,7 +106,7 @@ export function simulate(
   }
 
   const minorTransfers = minorTransferParts(polls.candidates, settings.minorTransfers)
-  // Petit candidat d'une alliance à estimer absent des hypothèses d'un groupe : sa part est reprise des
+  // Petit candidat d'une alliance à estimer absent des hypothèses retenues : sa part est reprise des
   // hypothèses qui le testent dans les sondages retenus (0 si aucune ne le teste).
   const minorShares = new Map<CandidateId, number>()
   const minorShare = (id: CandidateId) => {
@@ -209,43 +114,31 @@ export function simulate(
     return minorShares.get(id)!
   }
 
-  // Chaque groupe de sondages (même scénario) : moyenne, corrections, puis alliances estimées — celles
-  // que ces sondages ne testent pas. Les électeurs des ralliés testés sont déjà répartis par les sondés.
-  const groups: Group[] = selection.groups.map((g) => {
-    const inserted = [...new Set(retained.filter((a) => !g.key.includes(a)).flatMap((a) => a.members))].filter(
-      (id) => g.average[id] === undefined && candidatesById.get(id)?.minor && minorShare(id) > 0,
-    )
-    // Le petit candidat est ajouté après les corrections : sa part est prélevée sur les scores déjà
-    // corrigés de ses donneurs, qui gardent ainsi leur correction 2022 sur les électeurs qu'ils cèdent.
-    const insert = (scores: Record<CandidateId, number>) =>
-      inserted.reduce((acc, id) => insertMinor(acc, id, minorShare(id), minorTransfers[id] ?? []), scores)
-    const without = applyCorrections(g.average, polls.candidates, reference, settings, progression)
-    const base = insert(g.average)
-    const corrected = insert(Object.fromEntries(without.map((r) => [r.candidateId, r.corrected])))
-    const minorRows = applyCorrections(base, polls.candidates, reference, settings, progression)
-    const rows = polls.candidates.flatMap((c): FirstRoundRow[] => {
-      const r = without.find((w) => w.candidateId === c.id)
-      if (r) return [{ ...r, cededBase: r.base - base[c.id]!, ceded: r.corrected - corrected[c.id]!, corrected: corrected[c.id]! }]
-      const m = minorRows.find((w) => w.candidateId === c.id)
-      return m ? [{ ...m, base: base[c.id]!, projected: base[c.id]!, corrected: corrected[c.id]! }] : []
-    })
-    const estimated = retained.filter((a) => !g.key.includes(a) && a.members.every((id) => corrected[id] !== undefined))
-    return {
-      key: g.key,
-      polls: g.polls,
-      weight: g.institutes / institutesUsed,
-      set: fallback ? defaultSet(polls) : scenarioSet(polls, g.key, name),
-      rows,
-      estimated,
-      inserted,
-      ...applyAlliances(corrected, estimated, split, rnId),
-    }
+  // Moyenne, corrections, puis alliances estimées — celles que les sondages retenus ne testent pas. Les
+  // électeurs des ralliés testés sont déjà répartis par les sondés.
+  const untested = retained.filter((a) => !tested.includes(a))
+  const inserted = [...new Set(untested.flatMap((a) => a.members))].filter(
+    (id) => institutesUsed > 0 && average[id] === undefined && candidatesById.get(id)?.minor && minorShare(id) > 0,
+  )
+  // Le petit candidat est ajouté après les corrections : sa part est prélevée sur les scores déjà
+  // corrigés de ses donneurs, qui gardent ainsi leur correction 2022 sur les électeurs qu'ils cèdent.
+  const insert = (scores: Record<CandidateId, number>) =>
+    inserted.reduce((acc, id) => insertMinor(acc, id, minorShare(id), minorTransfers[id] ?? []), scores)
+  const without = applyCorrections(average, polls.candidates, reference, settings, progression)
+  const base = insert(average)
+  const corrected = insert(Object.fromEntries(without.map((r) => [r.candidateId, r.corrected])))
+  const minorRows = applyCorrections(base, polls.candidates, reference, settings, progression)
+  const firstRound = polls.candidates.flatMap((c): FirstRoundRow[] => {
+    const r = without.find((w) => w.candidateId === c.id)
+    if (r) return [{ ...r, cededBase: r.base - base[c.id]!, ceded: r.corrected - corrected[c.id]!, corrected: corrected[c.id]! }]
+    const m = minorRows.find((w) => w.candidateId === c.id)
+    return m ? [{ ...m, base: base[c.id]!, projected: base[c.id]!, corrected: corrected[c.id]! }] : []
   })
-  const { firstRound, corrected, entrants, leaks } = mergeGroups(groups, polls.candidates)
-  const hypothesisSet = groups[0]?.set ?? scenarioSet(polls, tested, name)
+  const estimated = untested.filter((a) => a.members.every((id) => corrected[id] !== undefined))
+  const { entrants, leaks } = applyAlliances(corrected, estimated, split, rnId)
+  const allianceIds = institutesUsed > 0 ? tested.map((a) => a.id) : []
 
-  const labels = groups.map((g) => `« ${g.set.label} »`).join(', ') || `« ${hypothesisSet.label} »`
-  const hypothesis = groups.length > 1 ? `les hypothèses ${labels}` : `l’hypothèse ${labels}`
+  const hypothesis = `l’hypothèse « ${hypothesisSet.label} »`
   if (usage.some((u) => u.status === 'used' && excluded.has(u.poll.id))) {
     warnings.push(`Aucun des sondages cochés ne teste ${hypothesis} : tous les sondages disponibles sont retenus.`)
   } else if (!usage.some((u) => u.status === 'excluded') && institutesUsed < 3) {
@@ -254,18 +147,13 @@ export function simulate(
       `Seulement ${institutesUsed} institut${institutesUsed > 1 ? 's' : ''} (${institutes.join(', ')}) pour ${hypothesis} : moyenne fragile.`,
     )
   }
-  const estimated = retained.filter((a) => groups.some((g) => g.estimated.includes(a)))
   if (estimated.length > 0) {
     const many = estimated.length > 1 ? 's' : ''
-    const detail = (a: Alliance) => {
-      const n = groups.filter((g) => g.estimated.includes(a)).reduce((sum, g) => sum + g.polls.length, 0)
-      return n < institutesUsed ? `${a.label} (pour ${n} sondage${n > 1 ? 's' : ''} sur ${institutesUsed})` : a.label
-    }
     warnings.push(
-      `Alliance${many} estimée${many} par les reports des législatives 2024, faute d’hypothèse de sondage : ${estimated.map(detail).join(', ')}.`,
+      `Alliance${many} estimée${many} par les reports des législatives 2024, faute d’hypothèse de sondage : ${estimated.map((a) => a.label).join(', ')}.`,
     )
   }
-  for (const id of new Set(groups.flatMap((g) => g.inserted))) {
+  for (const id of inserted) {
     warnings.push(
       `Aucune hypothèse retenue ne teste ${name(id)} : pour estimer son ralliement, score de ${minorShare(id).toFixed(1).replace('.', ',')} % repris des autres hypothèses des sondages retenus et prélevé sur les candidats vers lesquels se reportent ses électeurs en son absence.`,
     )
@@ -274,7 +162,7 @@ export function simulate(
     ? polls.alliances
         .filter(
           (al) =>
-            !(groups.length > 0 && groups.every((g) => g.key.includes(al))) &&
+            !allianceIds.includes(al.id) &&
             al.members.every((id) => corrected[id] !== undefined),
         )
         .map((al) => {
@@ -329,13 +217,7 @@ export function simulate(
 
   return {
     hypothesisSet,
-    hypothesisGroups: groups.map((g) => ({
-      set: g.set,
-      allianceIds: g.key.map((a) => a.id),
-      estimatedAllianceIds: g.estimated.map((a) => a.id),
-      pollIds: g.polls.map((p) => p.id),
-    })),
-    allianceIds: retained.filter((a) => groups.some((g) => g.key.includes(a))).map((a) => a.id),
+    allianceIds,
     estimatedAllianceIds: estimated.map((a) => a.id),
     allianceRates,
     allianceLeaks: leaks,

@@ -38,9 +38,8 @@ export function ElectedPresident({ result }: { result: SimulationResult }) {
   const [firstName, ...lastName] = winner.name.split(' ')
 
   const alliances = simulationData.polls.alliances.flatMap((a) => {
-    const [read, estimated] = [result.allianceIds.includes(a.id), result.estimatedAllianceIds.includes(a.id)]
-    if (!read && !estimated) return []
-    return [`${a.label}${estimated ? (read ? ' (en partie estimée)' : ' (estimée)') : ''}`]
+    if (result.allianceIds.includes(a.id)) return [a.label]
+    return result.estimatedAllianceIds.includes(a.id) ? [`${a.label} (estimée)`] : []
   })
   const third = result.qualification.picked === 'third'
   const scenario = [
