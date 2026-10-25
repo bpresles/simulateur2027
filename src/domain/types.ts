@@ -347,6 +347,10 @@ export interface FirstRoundRow {
   defaultCorrection: number
   appliedCorrection: number
   isOverride: boolean
+  /** Points de la moyenne brute prélevés pour les petits candidats ajoutés (0 sinon). */
+  cededBase: number
+  /** Points cédés après correction aux petits candidats ajoutés, déjà déduits de `corrected`. */
+  ceded: number
   /** Score après corrections, normalisé à 100. */
   corrected: number
 }
