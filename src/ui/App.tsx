@@ -7,6 +7,7 @@ import { ElectedPresident } from './components/ElectedPresident'
 import { FirstRoundChart } from './components/FirstRoundChart'
 import { Methodology } from './components/Methodology'
 import { QualificationSwitch } from './components/QualificationSwitch'
+import { RetainedPolls } from './components/RetainedPolls'
 import { ScenarioBar } from './components/ScenarioBar'
 import { SecondRoundDuel } from './components/SecondRoundDuel'
 import { SettingsSheet } from './components/SettingsSheet'
@@ -181,6 +182,8 @@ function SimulatorPage({ result, onOpenSettings }: { result: SimulationResult; o
       )}
 
       <QualificationSwitch result={result} />
+
+      <RetainedPolls result={result} />
 
       <ElectedPresident result={result} />
 
