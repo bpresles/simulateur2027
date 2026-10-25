@@ -230,29 +230,6 @@ export function Methodology({ result }: { result: SimulationResult }) {
                 instituts ({result.institutesUsed} ici), enfin on ramène le total à 100 %.
               </p>
             )}
-            {result.hypothesisGroups.length > 1 && (
-              <p>
-                Avec l’option des alliances non évaluées (étape 4), chaque sondage utilise l’hypothèse la plus
-                complète qu’il teste, les alliances restantes y étant estimées :{' '}
-                {result.hypothesisGroups
-                  .map(
-                    (g) =>
-                      `« ${g.set.label} » pour ${g.pollIds
-                        .map((id) => result.pollUsage.find((u) => u.poll.id === id)?.poll.institute)
-                        .join(', ')}${
-                        g.estimatedAllianceIds.length > 0
-                          ? ` (estimées : ${polls.alliances
-                              .filter((al) => g.estimatedAllianceIds.includes(al.id))
-                              .map((al) => al.label)
-                              .join(', ')})`
-                          : ''
-                      }`,
-                  )
-                  .join(' ; ')}
-                . Chaque groupe est moyenné et corrigé, puis les groupes sont moyennés au prorata de leur nombre
-                d’instituts.
-              </p>
-            )}
           </div>
           <Table caption={polls.collection.description}>
             <thead>
