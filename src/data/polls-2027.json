@@ -1,5 +1,5 @@
 {
-  "asOf": "2026-10-25",
+  "asOf": "2026-10-26",
   "electionDate": "2027-04-18",
   "windowDays": 21,
   "collection": {
@@ -868,7 +868,7 @@
       "id": "ipsos-bva-20261022",
       "origin": "wikipedia",
       "institute": "Ipsos BVA",
-      "sponsor": "Non indiqué",
+      "sponsor": "Le Parisien",
       "fieldwork": {
         "start": "2026-10-21",
         "end": "2026-10-22"
@@ -876,8 +876,9 @@
       "sampleSize": 1500,
       "sources": [
         {
-          "label": "Publication",
-          "url": "https://www.ipsos.com/fr-fr/presidentielle-2027-melenchon-progresse-le-pen-reste-en-tete"
+          "label": "Notice (Commission des sondages)",
+          "url": "https://www.commission-des-sondages.fr/notices/files/notices/2026/octobre/10338-pres-iv-ipsos-bva-le-parisien-24-octobre.pdf",
+          "kind": "notice"
         },
         {
           "label": "Wikipedia – liste des sondages",
