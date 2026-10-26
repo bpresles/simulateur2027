@@ -882,7 +882,7 @@
         },
         {
           "label": "Publication",
-          "url": "https://www.politico.eu/article/sondage-exclusif-2027-la-chute-de-philippe-relegue-derriere-melenchon/"
+          "url": "https://cluster17.com/wp-content/uploads/2026/10/ITV-Politico-Octobre-C17.pdf"
         },
         {
           "label": "Wikipedia – liste des sondages",
@@ -893,6 +893,39 @@
       "hypotheses": [
         {
           "id": "H1",
+          "label": "Glucksmann, Philippe",
+          "scores": {
+            "arthaud": 0.5,
+            "melenchon": 18.5,
+            "roussel": 2,
+            "tondelier": 2,
+            "glucksmann": 13,
+            "philippe": 16,
+            "retailleau": 8,
+            "dupont-aignan": 3,
+            "lepen": 33,
+            "zemmour": 4
+          }
+        },
+        {
+          "id": "H2",
+          "label": "Glucksmann, Attal",
+          "scores": {
+            "arthaud": 0.5,
+            "melenchon": 19.5,
+            "roussel": 2,
+            "tondelier": 2,
+            "glucksmann": 14,
+            "attal": 12,
+            "retailleau": 10,
+            "dupont-aignan": 3.5,
+            "lepen": 32.5,
+            "zemmour": 4
+          }
+        },
+        {
+          "id": "H3",
+          "label": "Hollande, Philippe, Lisnard",
           "scores": {
             "arthaud": 0.5,
             "melenchon": 19.5,
