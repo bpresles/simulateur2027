@@ -865,6 +865,54 @@
   ],
   "polls": [
     {
+      "id": "cluster17-20261022",
+      "origin": "wikipedia",
+      "institute": "Cluster17",
+      "sponsor": "Non indiqué",
+      "fieldwork": {
+        "start": "2026-10-19",
+        "end": "2026-10-22"
+      },
+      "sampleSize": 3000,
+      "sources": [
+        {
+          "label": "Synthèse de l’institut",
+          "url": "https://cluster17.com/presidentielle-2027-marine-le-pen-conforte-son-avance-jean-luc-melenchon-devance-desormais-edouard-philippe-philippe/",
+          "kind": "synthese"
+        },
+        {
+          "label": "Publication",
+          "url": "https://www.politico.eu/article/sondage-exclusif-2027-la-chute-de-philippe-relegue-derriere-melenchon/"
+        },
+        {
+          "label": "Wikipedia – liste des sondages",
+          "url": "https://fr.wikipedia.org/wiki/Liste_de_sondages_sur_l%27%C3%A9lection_pr%C3%A9sidentielle_fran%C3%A7aise_de_2027"
+        }
+      ],
+      "note": "Repris de Wikipedia : chiffres non revérifiés.",
+      "hypotheses": [
+        {
+          "id": "H1",
+          "scores": {
+            "arthaud": 0.5,
+            "melenchon": 19.5,
+            "roussel": 2,
+            "tondelier": 2.5,
+            "hollande": 6.5,
+            "philippe": 17,
+            "lisnard": 8,
+            "retailleau": 7,
+            "dupont-aignan": 3,
+            "lepen": 30.5,
+            "zemmour": 3.5
+          },
+          "replacing": {
+            "hollande": "glucksmann"
+          }
+        }
+      ]
+    },
+    {
       "id": "ipsos-bva-20261022",
       "origin": "wikipedia",
       "institute": "Ipsos BVA",
@@ -1413,113 +1461,6 @@
             "lepen": 33.5,
             "zemmour": 3,
             "polony": 1.5
-          }
-        }
-      ]
-    },
-    {
-      "id": "cluster17-20261015",
-      "origin": "wikipedia",
-      "institute": "Cluster17",
-      "sponsor": "Le Point",
-      "fieldwork": {
-        "start": "2026-10-14",
-        "end": "2026-10-15"
-      },
-      "sampleSize": 1263,
-      "sources": [
-        {
-          "label": "Synthèse de l’institut",
-          "url": "https://cluster17.com/presidentielle-2027-le-pen-en-tete-dans-tous-les-scenarios-lisnard-a-egalite-avec-retailleau/",
-          "kind": "synthese"
-        },
-        {
-          "label": "Notice (Commission des sondages)",
-          "url": "https://www.commission-des-sondages.fr/notices/files/notices/2026/octobre/10325-pres-focus-droite-et-centre-cluster17-le-point-18-octobre.pdf",
-          "kind": "notice"
-        },
-        {
-          "label": "Wikipedia – liste des sondages",
-          "url": "https://fr.wikipedia.org/wiki/Liste_de_sondages_sur_l%27%C3%A9lection_pr%C3%A9sidentielle_fran%C3%A7aise_de_2027"
-        }
-      ],
-      "note": "Repris de Wikipedia : chiffres non revérifiés.",
-      "hypotheses": [
-        {
-          "id": "H1",
-          "label": "Philippe, Lisnard, Retailleau",
-          "scores": {
-            "arthaud": 0.5,
-            "melenchon": 18,
-            "roussel": 1.5,
-            "tondelier": 2,
-            "glucksmann": 11,
-            "philippe": 17,
-            "lisnard": 7,
-            "retailleau": 7,
-            "dupont-aignan": 2,
-            "lepen": 31,
-            "zemmour": 3
-          }
-        },
-        {
-          "id": "H2",
-          "label": "Philippe",
-          "scores": {
-            "arthaud": 0.5,
-            "melenchon": 20,
-            "roussel": 2,
-            "tondelier": 2,
-            "glucksmann": 12,
-            "philippe": 20,
-            "dupont-aignan": 3,
-            "lepen": 35.5,
-            "zemmour": 5
-          }
-        },
-        {
-          "id": "H3",
-          "label": "Retailleau",
-          "scores": {
-            "arthaud": 1,
-            "melenchon": 20,
-            "roussel": 2,
-            "tondelier": 2,
-            "glucksmann": 16,
-            "retailleau": 17.5,
-            "dupont-aignan": 3,
-            "lepen": 34.5,
-            "zemmour": 4
-          }
-        },
-        {
-          "id": "H4",
-          "label": "Lisnard",
-          "scores": {
-            "arthaud": 1,
-            "melenchon": 20.5,
-            "roussel": 2,
-            "tondelier": 2,
-            "glucksmann": 16,
-            "lisnard": 17,
-            "dupont-aignan": 2,
-            "lepen": 35.5,
-            "zemmour": 4
-          }
-        },
-        {
-          "id": "H5",
-          "label": "Attal",
-          "scores": {
-            "arthaud": 1,
-            "melenchon": 20,
-            "roussel": 2,
-            "tondelier": 2,
-            "glucksmann": 13.5,
-            "attal": 17,
-            "dupont-aignan": 3.5,
-            "lepen": 35.5,
-            "zemmour": 5.5
           }
         }
       ]
