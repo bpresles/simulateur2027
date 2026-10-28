@@ -1,5 +1,5 @@
 {
-  "asOf": "2026-10-26",
+  "asOf": "2026-10-28",
   "electionDate": "2027-04-18",
   "windowDays": 21,
   "collection": {
@@ -868,12 +868,12 @@
       "id": "cluster17-20261022",
       "origin": "wikipedia",
       "institute": "Cluster17",
-      "sponsor": "Non indiqué",
+      "sponsor": "Politico",
       "fieldwork": {
         "start": "2026-10-19",
         "end": "2026-10-22"
       },
-      "sampleSize": 3000,
+      "sampleSize": 2817,
       "sources": [
         {
           "label": "Synthèse de l’institut",
@@ -881,8 +881,9 @@
           "kind": "synthese"
         },
         {
-          "label": "Publication",
-          "url": "https://cluster17.com/wp-content/uploads/2026/10/ITV-Politico-Octobre-C17.pdf"
+          "label": "Notice (Commission des sondages)",
+          "url": "https://www.commission-des-sondages.fr/notices/files/notices/2026/octobre/10339-pres-iv-cluster17-politico-26-octobre.pdf",
+          "kind": "notice"
         },
         {
           "label": "Wikipedia – liste des sondages",
