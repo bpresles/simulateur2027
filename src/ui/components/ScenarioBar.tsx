@@ -3,7 +3,7 @@ import type { SimulationResult } from '../../domain/types'
 import { useSettings } from '../../state/settingsStore'
 import { fieldwork, num } from '../format'
 import { simulationData } from '../../data/schema'
-import { AllianceSwitches, UntestedAlliancesSwitch } from './AllianceSwitches'
+import { AllianceSwitches, GroupedAlliancesSwitch, UntestedAlliancesSwitch } from './AllianceSwitches'
 import { Checkbox, Slider, Switch } from './controls'
 
 const allianceLabel = new Map(simulationData.polls.alliances.map((a) => [a.id, a.label]))
@@ -47,11 +47,21 @@ export function ScenarioBar({ result }: { result: SimulationResult }) {
             <AllianceSwitches idPrefix="alliance" result={result} columns />
           </fieldset>
 
+          {s.groupedAlliances && (
+            <fieldset className="md:col-span-2">
+              <legend className="mb-2 text-lg font-medium text-ink-2">Alliances groupées</legend>
+              <AllianceSwitches idPrefix="grouped" result={result} columns grouped />
+            </fieldset>
+          )}
+
           {/* À droite des sondages sur grand écran ; sous les alliances sur mobile. */}
           <fieldset className="md:col-start-2 md:row-start-1">
             <legend className="mb-2 text-lg font-medium text-ink-2">Ajustements de la simulation</legend>
             <div className="mb-4">
               <UntestedAlliancesSwitch id="untested-alliances" />
+            </div>
+            <div className="mb-4">
+              <GroupedAlliancesSwitch id="grouped-alliances" />
             </div>
             <div className="mb-4">
               <Switch

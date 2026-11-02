@@ -7,11 +7,15 @@ import {
   availableAlliances,
   campRivals,
   comboWith,
+  defaultSet,
+  groupedLeader,
   insertMinor,
+  ralliedOf,
   scenarioFilter,
   scenarioSet,
   testedShare,
 } from './alliances'
+import { averagePolls } from './pollAverage'
 import { defaultSettings, simulate } from './simulate'
 import type { Alliance, Hypothesis, Poll, PollsData } from './types'
 
@@ -359,5 +363,46 @@ describe('petit candidat testé seulement avec un rallié', () => {
     const ruffin = rows.get('ruffin')!
     expect(ruffin.corrected).toBeCloseTo(2, 8)
     expect(res.firstRound.reduce((s, r) => s + r.ceded, 0)).toBeCloseTo(ruffin.corrected, 8)
+  })
+})
+
+describe('alliances groupées', () => {
+  const { polls: live } = liveData
+  const grouped = live.alliances.filter((a) => a.grouped)
+
+  it('leader : le membre en tête de la moyenne des sondages (jeu par défaut)', () => {
+    expect(grouped).toHaveLength(5)
+    for (const a of grouped) {
+      expect(a.estimatedOnly).toBe(true)
+      expect(groupedLeader(live, a.members)).toBe(a.leader)
+    }
+    const { average } = averagePolls(live, defaultSet(live))
+    const byId = Object.fromEntries(grouped.map((a) => [a.id, a]))
+    // Chaque leader a un score au moins égal à celui des autres membres testés dans le jeu par défaut.
+    for (const a of grouped) {
+      for (const id of a.members) expect(average[a.leader] ?? 0).toBeGreaterThanOrEqual(average[id] ?? 0)
+    }
+    expect(byId['groupe-droites']!.leader).toBe('lepen')
+    expect(byId['groupe-gauche-sans-ps']!.leader).toBe('melenchon')
+  })
+
+  it('estimées seulement avec leur option, appliquées avec tous leurs ralliés', () => {
+    const a = grouped.find((x) => x.id === 'groupe-droites')!
+    const active = { [a.id]: true }
+    const off = simulate(liveData, { ...defaultSettings(), alliances: active })
+    expect(off.estimatedAllianceIds).toEqual([])
+    const on = simulate(liveData, { ...defaultSettings(), groupedAlliances: true, alliances: active })
+    expect(on.estimatedAllianceIds).toEqual([a.id])
+    expect(on.entrants.find((e) => e.id === a.leader)!.members.map((m) => m.candidateId).sort()).toEqual(
+      [...a.members].sort(),
+    )
+    expect(on.entrants.reduce((s, e) => s + e.score, 0)).toBeCloseTo(100)
+  })
+
+  it('« Attal rejoint Glucksmann » : alliance simple de leader Glucksmann', () => {
+    const a = live.alliances.find((x) => x.id === 'attal-glucksmann')!
+    expect(a.leader).toBe('glucksmann')
+    expect(ralliedOf(a)).toEqual(['attal'])
+    expect(alliancesConflict(a, live.alliances.find((x) => x.id === 'attal-philippe')!)).toBe(true)
   })
 })

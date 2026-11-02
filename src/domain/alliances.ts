@@ -9,6 +9,7 @@ import type {
   HypothesisSet,
   PollsData,
   ReferencePart,
+  Settings,
 } from './types'
 
 /*
@@ -31,6 +32,33 @@ export function alliancesConflict(a: Alliance, b: Alliance): boolean {
   if (a.id === b.id) return false
   return a.members.some((id) => b.members.includes(id) && !(a.leader === id && b.leader === id))
 }
+
+/**
+ * Alliances groupées : plusieurs candidats rassemblés derrière celui qui a le plus d'intentions de vote au
+ * 1er tour, selon la moyenne des sondages du jeu par défaut (le score parmi les hypothèses qui le testent
+ * pour un petit candidat, absent de ce jeu). À égalité, le premier membre.
+ */
+export function groupedLeader(data: PollsData, members: CandidateId[]): CandidateId {
+  const { average } = averagePolls(data, defaultSet(data))
+  const score = (id: CandidateId) => average[id] ?? testedShare(data, id)
+  return members.reduce((best, id) => (score(id) > score(best) ? id : best))
+}
+
+/** Données dont les alliances groupées ont leur leader : à appeler une fois, au chargement. */
+export function resolveGroupedLeaders(data: PollsData): PollsData {
+  if (!data.alliances.some((a) => a.grouped)) return data
+  return {
+    ...data,
+    alliances: data.alliances.map((a) => (a.grouped ? { ...a, leader: groupedLeader(data, a.members) } : a)),
+  }
+}
+
+/**
+ * Alliance estimée par les reports de 2024 dans ce scénario : toute alliance avec l'option des alliances
+ * non évaluées, les seules alliances groupées avec l'option des alliances groupées.
+ */
+export const isEstimable = (a: Alliance, settings: Pick<Settings, 'untestedAlliances' | 'groupedAlliances'>) =>
+  settings.untestedAlliances || (!!a.grouped && settings.groupedAlliances)
 
 export const defaultSet = (data: Pick<PollsData, 'hypothesisSets'>): HypothesisSet =>
   data.hypothesisSets.find((s) => s.default) ?? data.hypothesisSets[0]!

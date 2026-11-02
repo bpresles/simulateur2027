@@ -119,6 +119,11 @@ export interface Alliance {
   /** Candidat que rejoignent les autres membres : il doit être testé dans les hypothèses retenues. */
   leader: CandidateId
   /**
+   * Alliance groupée (option) : le leader n'est pas fixé dans les données mais déduit au chargement, c'est
+   * le membre en tête de la moyenne des sondages au 1er tour. Toujours estimée (`estimatedOnly`).
+   */
+  grouped?: boolean
+  /**
    * Jamais lue dans les hypothèses des sondages, dont la lecture serait ambiguë (sans Retailleau, ses
    * électeurs ne vont pas tous vers Le Pen) : toujours estimée, avec l'option des alliances non évaluées.
    */
@@ -301,6 +306,8 @@ export interface Settings {
   alliances: Record<string, boolean>
   /** Option : permettre des alliances qu'aucun sondage ne teste, estimées par les reports de 2024. */
   untestedAlliances: boolean
+  /** Option : proposer les alliances groupées (plusieurs candidats derrière le mieux placé), estimées. */
+  groupedAlliances: boolean
   /**
    * Alliance estimée : part des électeurs du candidat rallié qui suit le leader (0 à 1).
    * Absente = taux constaté aux législatives 2024.

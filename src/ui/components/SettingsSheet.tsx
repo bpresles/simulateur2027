@@ -11,7 +11,7 @@ import { referenceParts } from '../../domain/references'
 import { secondRoundDropout2022 } from '../../domain/secondRound'
 import { minorTransfer } from '../../domain/transfers'
 import { AllianceRates } from './AllianceRates'
-import { AllianceSwitches, UntestedAlliancesSwitch } from './AllianceSwitches'
+import { AllianceSwitches, GroupedAlliancesSwitch, UntestedAlliancesSwitch } from './AllianceSwitches'
 import { Segmented, Slider, Switch, TextButton } from './controls'
 import { provenanceClass } from '../provenance'
 import { ProvenanceLegend } from './Provenance'
@@ -218,10 +218,18 @@ function CorrectionsPanel({ result }: { result: SimulationResult }) {
 
 function AlliancesPanel({ result }: { result: SimulationResult }) {
   const untested = useSettings((s) => s.untestedAlliances)
+  const grouped = useSettings((s) => s.groupedAlliances)
   return (
     <div className="space-y-6">
       <UntestedAlliancesSwitch id="sheet-untested-alliances" />
+      <GroupedAlliancesSwitch id="sheet-grouped-alliances" />
       <AllianceSwitches idPrefix="sheet-alliance" result={result} />
+      {grouped && (
+        <div className="space-y-3">
+          <p className="text-[0.95rem] font-medium">Alliances groupées</p>
+          <AllianceSwitches idPrefix="sheet-grouped" result={result} grouped />
+        </div>
+      )}
       <p className="text-sm text-ink-3">
         Une alliance testée par les sondeurs retire le candidat rallié du 1er tour : on ne retient que les
         hypothèses de sondage qui testent tous les autres candidats sans lui, et seuls les sondages qui en ont
@@ -229,7 +237,7 @@ function AlliancesPanel({ result }: { result: SimulationResult }) {
         alliance testée seulement avec une autre active les deux. Un candidat ne peut rallier qu’une alliance,
         et un candidat rallié ne peut pas en mener une autre.
       </p>
-      {untested && (
+      {(untested || grouped) && (
         <div className="space-y-4 border-t border-rule pt-5">
           <div>
             <p className="text-[0.95rem] font-medium">Report des voix du candidat rallié (alliances estimées)</p>
