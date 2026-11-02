@@ -4,6 +4,7 @@ import {
   applyAlliances,
   defaultSet,
   insertMinor,
+  isEstimable,
   ralliedOf,
   scenarioFilter,
   scenarioSet,
@@ -42,6 +43,7 @@ export function defaultSettings(): Settings {
     referenceBlend: {},
     alliances: {},
     untestedAlliances: false,
+    groupedAlliances: false,
     allianceOverrides: {},
     transferOverrides: {},
     minorTransfers: {},
@@ -66,15 +68,16 @@ export function simulate(
   // Alliances testées par les sondeurs : leurs ralliés sont absents des hypothèses retenues. Avec l'option
   // des alliances non évaluées, les autres alliances activées compatibles sont retenues aussi.
   const tested = acceptAlliances(polls, settings.alliances)
-  const retainedSet = settings.untestedAlliances
-    ? polls.alliances.reduce<Alliance[]>(
-        (kept, a) =>
-          settings.alliances[a.id] && !kept.includes(a) && !kept.some((b) => alliancesConflict(a, b))
-            ? [...kept, a]
-            : kept,
-        tested,
-      )
-    : tested
+  const retainedSet = polls.alliances.reduce<Alliance[]>(
+    (kept, a) =>
+      isEstimable(a, settings) &&
+      settings.alliances[a.id] &&
+      !kept.includes(a) &&
+      !kept.some((b) => alliancesConflict(a, b))
+        ? [...kept, a]
+        : kept,
+    tested,
+  )
   const retained = polls.alliances.filter((a) => retainedSet.includes(a))
 
   // Les sondages retenus sont ceux qui testent la combinaison testée, avec ou sans l'option : celle-ci
@@ -158,28 +161,25 @@ export function simulate(
       `Aucune hypothèse retenue ne teste ${name(id)} : pour estimer son ralliement, score de ${minorShare(id).toFixed(1).replace('.', ',')} % repris des autres hypothèses des sondages retenus et prélevé sur les candidats vers lesquels se reportent ses électeurs en son absence.`,
     )
   }
-  const allianceRates: AllianceRate[] = settings.untestedAlliances
-    ? polls.alliances
-        .filter(
-          (al) =>
-            !allianceIds.includes(al.id) &&
-            al.members.every((id) => corrected[id] !== undefined),
-        )
-        .map((al) => {
-          const leaderProfile = candidatesById.get(al.leader)!.duelProfile
-          return {
-            allianceId: al.id,
-            leaderId: al.leader,
-            joining: ralliedOf(al).map((id) => ({
-              candidateId: id,
-              ...split(al.id, al.leader, id),
-              default2024: split2024(al.leader, id),
-              source: leaderProfile ? { profileId: leaderProfile, bloc: candidatesById.get(id)!.bloc } : null,
-              isOverride: settings.allianceOverrides[al.id] !== undefined,
-            })),
-          }
-        })
-    : []
+  const allianceRates: AllianceRate[] = polls.alliances
+    .filter(
+      (al) =>
+        isEstimable(al, settings) && !allianceIds.includes(al.id) && al.members.every((id) => corrected[id] !== undefined),
+    )
+    .map((al) => {
+      const leaderProfile = candidatesById.get(al.leader)!.duelProfile
+      return {
+        allianceId: al.id,
+        leaderId: al.leader,
+        joining: ralliedOf(al).map((id) => ({
+          candidateId: id,
+          ...split(al.id, al.leader, id),
+          default2024: split2024(al.leader, id),
+          source: leaderProfile ? { profileId: leaderProfile, bloc: candidatesById.get(id)!.bloc } : null,
+          isOverride: settings.allianceOverrides[al.id] !== undefined,
+        })),
+      }
+    })
 
   const [first, second, third] = entrants
   if (!first || !second) throw new Error('Moins de deux candidats au 1er tour')

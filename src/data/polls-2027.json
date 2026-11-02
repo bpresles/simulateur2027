@@ -709,6 +709,15 @@
       "leader": "attal"
     },
     {
+      "id": "attal-glucksmann",
+      "label": "Attal rejoint Glucksmann",
+      "members": [
+        "glucksmann",
+        "attal"
+      ],
+      "leader": "glucksmann"
+    },
+    {
       "id": "retailleau-philippe",
       "label": "Retailleau rejoint Philippe",
       "members": [
@@ -861,6 +870,72 @@
         "retailleau"
       ],
       "leader": "lisnard"
+    },
+    {
+      "id": "groupe-droite-centre",
+      "label": "Alliance de la droite et du centre large",
+      "description": "Glucksmann, Attal, Philippe, Retailleau, Lisnard",
+      "members": [
+        "glucksmann",
+        "attal",
+        "philippe",
+        "retailleau",
+        "lisnard"
+      ],
+      "grouped": true,
+      "estimatedOnly": true
+    },
+    {
+      "id": "groupe-centre",
+      "label": "Alliance du centre",
+      "description": "Glucksmann, Attal, Philippe",
+      "members": [
+        "glucksmann",
+        "attal",
+        "philippe"
+      ],
+      "grouped": true,
+      "estimatedOnly": true
+    },
+    {
+      "id": "groupe-droites",
+      "label": "Alliance de la droite et de l’extrême droite",
+      "description": "Retailleau, Lisnard, Le Pen, Zemmour",
+      "members": [
+        "retailleau",
+        "lisnard",
+        "lepen",
+        "zemmour"
+      ],
+      "grouped": true,
+      "estimatedOnly": true
+    },
+    {
+      "id": "groupe-gauche-sans-ps",
+      "label": "Alliance de la gauche sans PS/Place Publique",
+      "description": "Mélenchon, Tondelier, Roussel, Ruffin, Arthaud",
+      "members": [
+        "melenchon",
+        "tondelier",
+        "roussel",
+        "ruffin",
+        "arthaud"
+      ],
+      "grouped": true,
+      "estimatedOnly": true
+    },
+    {
+      "id": "groupe-gauche-sans-lfi",
+      "label": "Alliance de la gauche sans LFI",
+      "description": "Tondelier, Roussel, Ruffin, Glucksmann",
+      "members": [
+        "tondelier",
+        "roussel",
+        "ruffin",
+        "glucksmann"
+      ],
+      "grouped": true,
+      "estimatedOnly": true
     }
   ],
   "polls": [

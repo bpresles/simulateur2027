@@ -697,6 +697,21 @@ export function Methodology({ result }: { result: SimulationResult }) {
               électeurs. Ses électeurs suivent ensuite le leader selon les reports de 2024. Si
               aucun sondage retenu ne le teste, son ralliement ne peut pas être estimé.
             </p>
+            <h3>Option : alliances groupées</h3>
+            <p>
+              Désactivée par défaut, l’option « Alliances groupées » propose des alliances de plusieurs
+              candidats d’un même camp :{' '}
+              {polls.alliances
+                .filter((al) => al.grouped)
+                .map((al) => `« ${al.label} » (${al.description}, autour de ${cand(al.leader).name})`)
+                .join(' ; ')}
+              . Le candidat derrière lequel l’alliance se rassemble est celui qui a le plus d’intentions de vote
+              au 1er tour dans la moyenne des sondages (jeu d’hypothèses par défaut, avant corrections) ; il est
+              recalculé à chaque synchronisation. Aucun sondage ne teste ces alliances : elles sont toujours
+              estimées, comme les alliances non évaluées (reports des législatives 2024), pour chaque candidat
+              rallié. Un candidat ne rallie qu’une alliance : elles sont incompatibles avec une alliance qui
+              partage l’un de leurs membres sans le même leader.
+            </p>
             <p>
               Les hypothèses testées gardent la priorité : l’option ne change pas les sondages retenus. Ce sont
               ceux qui testent la plus grande combinaison d’alliances actives testée par les sondeurs, comme sans
@@ -708,7 +723,7 @@ export function Methodology({ result }: { result: SimulationResult }) {
                 : 'L’option n’est pas activée dans le scénario en cours.'}
             </p>
           </div>
-          {settings.untestedAlliances && <AllianceRates result={result} />}
+          {(settings.untestedAlliances || settings.groupedAlliances) && <AllianceRates result={result} />}
           <div className="prose-method">
             {result.allianceLeaks.length > 0 && (
               <p>

@@ -17,6 +17,7 @@ interface SettingsActions {
   /** Remplace les alliances actives (celles qu'aucun sondage ne permet plus sont retirées). */
   setAlliances: (alliances: Record<string, boolean>) => void
   setUntestedAlliances: (enabled: boolean) => void
+  setGroupedAlliances: (enabled: boolean) => void
   /** `undefined` rétablit le taux constaté en 2024 pour cette alliance estimée. */
   setAllianceOverride: (allianceId: string, share: number | undefined) => void
   setTransferOverride: (profile: ProfileId, bloc: Bloc, values: TransferValues | undefined) => void
@@ -63,6 +64,7 @@ export const useSettings = create<SettingsStore>()(
         }),
       setAlliances: (alliances) => set({ alliances }),
       setUntestedAlliances: (untestedAlliances) => set({ untestedAlliances }),
+      setGroupedAlliances: (groupedAlliances) => set({ groupedAlliances }),
       setAllianceOverride: (allianceId, share) =>
         set((s) => {
           const { [allianceId]: _, ...rest } = s.allianceOverrides
@@ -112,6 +114,7 @@ export const useSettings = create<SettingsStore>()(
         referenceBlend: s.referenceBlend,
         alliances: s.alliances,
         untestedAlliances: s.untestedAlliances,
+        groupedAlliances: s.groupedAlliances,
         allianceOverrides: s.allianceOverrides,
         transferOverrides: s.transferOverrides,
         minorTransfers: s.minorTransfers,
@@ -161,6 +164,7 @@ export function selectSettings(s: SettingsStore): Settings {
     referenceBlend: s.referenceBlend,
     alliances: s.alliances,
     untestedAlliances: s.untestedAlliances,
+    groupedAlliances: s.groupedAlliances,
     allianceOverrides: s.allianceOverrides,
     transferOverrides: s.transferOverrides,
     minorTransfers: s.minorTransfers,

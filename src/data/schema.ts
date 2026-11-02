@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { resolveGroupedLeaders } from '../domain/alliances'
 import { referenceIds } from '../domain/references'
 import { BLOCS } from '../domain/types'
 import type { PollsData, Reference2022, SimulationData, TransfersData } from '../domain/types'
@@ -72,7 +73,9 @@ const pollsSchema: z.ZodType<PollsData> = z.object({
       label: z.string(),
       description: z.string().optional(),
       members: z.array(z.string()).min(2),
-      leader: z.string(),
+      // Absent d'une alliance groupée : déduit au chargement (voir `resolveGroupedLeaders`).
+      leader: z.string().default(''),
+      grouped: z.boolean().optional(),
       estimatedOnly: z.boolean().optional(),
     }),
   ),
@@ -233,6 +236,7 @@ export function validateData(data: SimulationData): string[] {
       if (!simulated.has(id)) errors.push(`Alliance ${a.id} : candidat non simulé « ${id} »`)
     }
     if (!a.members.includes(a.leader)) errors.push(`Alliance ${a.id} : le leader n'est pas membre`)
+    if (a.grouped && !a.estimatedOnly) errors.push(`Alliance ${a.id} : une alliance groupée est toujours estimée`)
   }
 
   for (const poll of polls.polls) {
@@ -286,7 +290,7 @@ export function validateData(data: SimulationData): string[] {
 
 export function parseData(raw: { polls: unknown; reference2022: unknown; transfers: unknown }): SimulationData {
   const data: SimulationData = {
-    polls: pollsSchema.parse(raw.polls),
+    polls: resolveGroupedLeaders(pollsSchema.parse(raw.polls)),
     reference2022: referenceSchema.parse(raw.reference2022),
     transfers: transfersSchema.parse(raw.transfers),
   }

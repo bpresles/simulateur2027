@@ -1,5 +1,12 @@
 import { simulationData } from '../../data/schema'
-import { acceptAlliances, alliancesConflict, availableAlliances, comboWith, testedShare } from '../../domain/alliances'
+import {
+  acceptAlliances,
+  alliancesConflict,
+  availableAlliances,
+  comboWith,
+  isEstimable,
+  testedShare,
+} from '../../domain/alliances'
 import type { Alliance, SimulationResult } from '../../domain/types'
 import { useSettings } from '../../state/settingsStore'
 import { cand, colorVars } from '../candidates'
@@ -10,6 +17,9 @@ const { polls } = simulationData
 const proposed = availableAlliances(polls)
 
 const ids = (alliances: Alliance[]) => Object.fromEntries(alliances.map((a) => [a.id, true]))
+/** Alliances que l'option désactivée ne permet plus d'estimer sont retirées ; les autres sont conservées. */
+const stillAllowed = (active: Record<string, boolean>, untested: boolean, grouped: boolean) =>
+  polls.alliances.filter((a) => active[a.id] && isEstimable(a, { untestedAlliances: untested, groupedAlliances: grouped }))
 const quoted = (alliances: Alliance[]) => alliances.map((a) => `« ${a.label} »`).join(', ')
 
 /**
@@ -18,6 +28,7 @@ const quoted = (alliances: Alliance[]) => alliances.map((a) => `« ${a.label} »
  */
 export function UntestedAlliancesSwitch({ id }: { id: string }) {
   const untested = useSettings((s) => s.untestedAlliances)
+  const grouped = useSettings((s) => s.groupedAlliances)
   const active = useSettings((s) => s.alliances)
   const setUntested = useSettings((s) => s.setUntestedAlliances)
   const setAlliances = useSettings((s) => s.setAlliances)
@@ -27,10 +38,35 @@ export function UntestedAlliancesSwitch({ id }: { id: string }) {
       checked={untested}
       onCheckedChange={(v) => {
         setUntested(v)
-        if (!v) setAlliances(ids(acceptAlliances(polls, active)))
+        // Les alliances groupées estimées restent actives tant que leur option l'est.
+        if (!v) setAlliances(ids([...acceptAlliances(polls, active), ...stillAllowed(active, false, grouped)]))
       }}
       label="Permettre de tester des alliances non évaluées par les sondeurs"
       description="Estimées par les reports de voix des législatives 2024, faute d’hypothèse de sondage"
+    />
+  )
+}
+
+/**
+ * Option « alliances groupées » (désactivée par défaut) : plusieurs candidats d'un camp rassemblés derrière
+ * celui qui a le plus d'intentions de vote. La désactiver retire les alliances groupées actives.
+ */
+export function GroupedAlliancesSwitch({ id }: { id: string }) {
+  const grouped = useSettings((s) => s.groupedAlliances)
+  const untested = useSettings((s) => s.untestedAlliances)
+  const active = useSettings((s) => s.alliances)
+  const setGrouped = useSettings((s) => s.setGroupedAlliances)
+  const setAlliances = useSettings((s) => s.setAlliances)
+  return (
+    <Switch
+      id={id}
+      checked={grouped}
+      onCheckedChange={(v) => {
+        setGrouped(v)
+        if (!v) setAlliances(ids([...acceptAlliances(polls, active), ...stillAllowed(active, untested, false)]))
+      }}
+      label="Alliances groupées"
+      description="Plusieurs candidats d’un camp derrière celui qui a le plus d’intentions de vote, estimées par les reports de 2024"
     />
   )
 }
@@ -44,14 +80,18 @@ export function AllianceSwitches({
   idPrefix,
   result,
   columns = false,
+  grouped: onlyGrouped = false,
 }: {
   idPrefix: string
   result: SimulationResult
   /** Deux colonnes quand la largeur le permet. */
   columns?: boolean
+  /** Section des alliances groupées (option) au lieu des alliances simples. */
+  grouped?: boolean
 }) {
   const active = useSettings((s) => s.alliances)
   const untested = useSettings((s) => s.untestedAlliances)
+  const grouped = useSettings((s) => s.groupedAlliances)
   const setAlliances = useSettings((s) => s.setAlliances)
   const tested = acceptAlliances(polls, active)
   const estimated = polls.alliances.filter((a) => result.estimatedAllianceIds.includes(a.id))
@@ -60,9 +100,15 @@ export function AllianceSwitches({
   const simulated = new Set(result.firstRound.map((r) => r.candidateId))
   // Petit candidat absent du 1er tour simulé : son ralliement s'estime s'il est testé dans une hypothèse.
   const untestable = (id: string) => !simulated.has(id) && testedShare(polls, id, new Set(excludedPolls)) <= 0
-  const list = untested ? polls.alliances : proposed
+  const options = { untestedAlliances: untested, groupedAlliances: grouped }
+  const list = onlyGrouped
+    ? polls.alliances.filter((a) => a.grouped && grouped)
+    : untested
+      ? polls.alliances.filter((a) => !a.grouped)
+      : proposed
 
   if (list.length === 0) {
+    if (onlyGrouped) return null
     return <p className="text-sm text-ink-3">Aucun sondage de la période ne teste de ralliement.</p>
   }
   return (
@@ -75,7 +121,7 @@ export function AllianceSwitches({
         let disabled: boolean
         let description: string | undefined
         let onCheckedChange: (v: boolean) => void
-        if (!untested) {
+        if (!isEstimable(a, options)) {
           disabled = !checked && !combo
           description = checked
             ? a.description
@@ -87,8 +133,11 @@ export function AllianceSwitches({
                 ? `Incompatible avec « ${blocker.label} »`
                 : 'Non testée avec les alliances actives'
           // Désactiver une alliance retire aussi celles qui ne sont testées qu'avec elle.
-          onCheckedChange = (v) =>
-            setAlliances(ids(v ? (combo ?? tested) : acceptAlliances(polls, ids(tested.filter((b) => b !== a)))))
+          // Les alliances groupées estimées compatibles restent actives.
+          onCheckedChange = (v) => {
+            const next = v ? (combo ?? tested) : acceptAlliances(polls, ids(tested.filter((b) => b !== a)))
+            setAlliances(ids([...next, ...estimated.filter((e) => !next.some((b) => alliancesConflict(e, b)))]))
+          }
         } else {
           const isEstimated = checked ? estimated.includes(a) : !combo || partners.length > 0
           // Alliance à estimer dont un membre n'est testé par aucun sondage retenu : pas de score à reprendre.
@@ -100,7 +149,7 @@ export function AllianceSwitches({
               : !checked && missing
                 ? `Aucun sondage retenu ne teste ${cand(missing).name}`
                 : isEstimated
-                  ? `Estimée (reports 2024)${partners.length > 0 ? ` ; testée par les sondeurs avec ${quoted(partners)}` : ' : non testée par les sondeurs'}`
+                  ? `${a.grouped ? `${a.description}. ` : ''}Estimée (reports 2024)${partners.length > 0 ? ` ; testée par les sondeurs avec ${quoted(partners)}` : ' : non testée par les sondeurs'}${a.grouped ? `, autour de ${cand(a.leader).name} (en tête de la moyenne des sondages)` : ''}`
                   : a.description
           onCheckedChange = (v) => setAlliances(ids(v ? [...applied, a] : applied.filter((b) => b !== a)))
         }
