@@ -97,6 +97,13 @@
   [data-theme='dark'] .cand-fill {
     background-color: var(--c-dark);
   }
+  /* Même couleur pour un tracé SVG (rubans et nœuds du diagramme des reports). */
+  .cand-svg {
+    fill: var(--c);
+  }
+  [data-theme='dark'] .cand-svg {
+    fill: var(--c-dark);
+  }
   .cand-ghost {
     background-color: color-mix(in oklab, var(--c) 22%, var(--surface));
   }
