@@ -1,6 +1,6 @@
 import { simulationData } from '../data/schema'
 import { defaultSettings, simulate } from '../domain/simulate'
-import { noIntentionLabel, range, roundToTotal, shownScore } from './format'
+import { noIntentionLabel, points, range, roundToTotal, shownScore } from './format'
 
 const total = (values: number[]) => Math.round(values.reduce((s, v) => s + v, 0) * 10) / 10
 
@@ -42,5 +42,15 @@ describe('part sans intention de vote', () => {
 
   it('arrondit la fourchette au point', () => {
     expect(range(19, 49.5)).toBe('de 19 à 50\u202f%')
+  })
+})
+
+describe('points des électeurs du 1er tour', () => {
+  it('accorde « point » au singulier sous 2, sans signe', () => {
+    expect(points(8.75)).toBe('8,8\u202fpts')
+    expect(points(1.94)).toBe('1,9\u202fpt')
+    expect(points(1.96)).toBe('2,0\u202fpts')
+    expect(points(0.3, 1, true)).toBe('0,3\u202fpoint')
+    expect(points(12.75, 1, true)).toBe('12,8\u202fpoints')
   })
 })

@@ -1,10 +1,19 @@
+import { useState } from 'react'
 import type { SimulationResult, VoteFlow as Flow } from '../../domain/types'
 import { cand, colorVars, transferLabel } from '../candidates'
 import { num, pct } from '../format'
+import { Segmented } from './controls'
 import { InfoTip } from './InfoTip'
+import { VoteFlowSankey } from './VoteFlowSankey'
 
-/** Composition des voix de chaque finaliste et taux de report de chaque électorat. */
+type View = 'table' | 'chart'
+
+/**
+ * Composition des voix de chaque finaliste et taux de report de chaque électorat, en tableau ou en
+ * diagramme de Sankey. Le choix d'affichage reste local : ce n'est pas un réglage de la simulation.
+ */
 export function VoteFlow({ result }: { result: SimulationResult }) {
+  const [view, setView] = useState<View>('chart')
   const sr = result.secondRound
   const flows = [...sr.flows].sort((x, y) => y.share - x.share)
   const transfers = flows.filter((f) => !f.isFinalistVoter)
@@ -14,46 +23,76 @@ export function VoteFlow({ result }: { result: SimulationResult }) {
 
   return (
     <section aria-labelledby="flow-title" className="mt-12">
-      <h2 id="flow-title" className="text-2xl font-bold tracking-tight">
-        Reports vers le second tour
-      </h2>
+      <div className="flex flex-wrap items-end justify-between gap-x-6 gap-y-2">
+        <h2 id="flow-title" className="text-2xl font-bold tracking-tight">
+          Reports vers le second tour
+        </h2>
+        <Segmented
+          value={view}
+          onValueChange={setView}
+          label="Affichage des reports"
+          options={[
+            { value: 'chart', label: 'Graphique', hint: 'Diagramme de Sankey' },
+            { value: 'table', label: 'Tableau' },
+          ]}
+        />
+      </div>
       <p className="mt-1 text-ink-2">
         D’où viennent les voix de {a.shortName} et de {b.shortName}, en points des électeurs du 1er tour.
       </p>
 
-      <div className="mt-4 space-y-3">
-        <Composition label={a.shortName} flows={flows} pick={(f) => f.toA} total={sr.votes.a} />
-        <Composition label={b.shortName} flows={flows} pick={(f) => f.toB} total={sr.votes.b} />
-      </div>
-
-      <div className="mt-5 overflow-x-auto">
-        <table className="w-full min-w-[22rem] text-sm">
-          <caption className="mb-2 text-left text-ink-3">
-            Électorat de chaque candidat au 1er tour simulé (avant alliances) et son report au 2nd tour. Une
-            alliance entre candidats éliminés ne change pas ces reports.
-          </caption>
-          <thead>
-            <tr className="border-b border-rule text-left text-ink-3">
-              <th className="py-1.5 pr-2 font-medium">Électeurs de</th>
-              <th className="py-1.5 pr-2 text-right font-medium">Électorat</th>
-              <th className="py-1.5 pr-2 text-right font-medium">{a.shortName}</th>
-              <th className="py-1.5 pr-2 text-right font-medium">{b.shortName}</th>
-              <th className="py-1.5 text-right font-medium">Blanc, abst.</th>
-            </tr>
-          </thead>
-          <tbody>
-            {[...allies, ...transfers].map((f) => (
-              <FlowRow key={f.candidateId} flow={f} />
-            ))}
-          </tbody>
-        </table>
-      </div>
+      {view === 'chart' ? (
+        <figure className="mt-4">
+          <figcaption className="mb-2 text-sm text-ink-3">
+            À gauche, l’électorat de chaque candidat au 1er tour simulé (avant alliances) ; à droite, les voix
+            des finalistes (en % des exprimés) et les blancs, nuls et abstentions. L’épaisseur d’un ruban est
+            proportionnelle aux électeurs du 1er tour qui se reportent. Une alliance entre candidats éliminés
+            ne change pas ces reports.
+          </figcaption>
+          <VoteFlowSankey sr={sr} flows={[...allies, ...transfers]} />
+        </figure>
+      ) : (
+        <>
+          <div className="mt-4 space-y-3">
+            <Composition label={a.shortName} flows={flows} pick={(f) => f.toA} total={sr.votes.a} />
+            <Composition label={b.shortName} flows={flows} pick={(f) => f.toB} total={sr.votes.b} />
+          </div>
+          <TransferTable flows={[...allies, ...transfers]} a={a.shortName} b={b.shortName} />
+        </>
+      )}
       <p className="mt-2 text-sm text-ink-3">
         Les électeurs des finalistes et de leurs alliés leur restent fidèles à {pct(sr.fidelity * 100, 0)}.
         {flows.some((f) => f.like) &&
           ' Ceux d’un petit candidat se reportent comme les électorats indiqués, selon leurs poids (réglages).'}
       </p>
     </section>
+  )
+}
+
+function TransferTable({ flows, a, b }: { flows: Flow[]; a: string; b: string }) {
+  return (
+    <div className="mt-5 overflow-x-auto">
+      <table className="w-full min-w-[22rem] text-sm">
+        <caption className="mb-2 text-left text-ink-3">
+          Électorat de chaque candidat au 1er tour simulé (avant alliances) et son report au 2nd tour. Une
+          alliance entre candidats éliminés ne change pas ces reports.
+        </caption>
+        <thead>
+          <tr className="border-b border-rule text-left text-ink-3">
+            <th className="py-1.5 pr-2 font-medium">Électeurs de</th>
+            <th className="py-1.5 pr-2 text-right font-medium">Électorat</th>
+            <th className="py-1.5 pr-2 text-right font-medium">{a}</th>
+            <th className="py-1.5 pr-2 text-right font-medium">{b}</th>
+            <th className="py-1.5 text-right font-medium">Blanc, abst.</th>
+          </tr>
+        </thead>
+        <tbody>
+          {flows.map((f) => (
+            <FlowRow key={f.candidateId} flow={f} />
+          ))}
+        </tbody>
+      </table>
+    </div>
   )
 }
 

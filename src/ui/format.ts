@@ -25,6 +25,12 @@ export const pts = (v: number, digits = 1) => {
   return `${sign}${nf(digits).format(Math.abs(rounded))}${NNBSP}pt${Math.abs(rounded) >= 2 ? 's' : ''}`
 }
 
+/** 8,8 pts, ou 8,8 points en toutes lettres : points des électeurs du 1er tour, sans signe (singulier sous 2). */
+export const points = (v: number, digits = 1, long = false) => {
+  const plural = Math.abs(Number(v.toFixed(digits))) >= 2
+  return `${num(v, digits)}${NNBSP}${long ? 'point' : 'pt'}${plural ? 's' : ''}`
+}
+
 export const ratio = (v: number) => `×${num(v, 2)}`
 
 /**
