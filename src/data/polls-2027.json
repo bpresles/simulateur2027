@@ -1,5 +1,5 @@
 {
-  "asOf": "2026-10-28",
+  "asOf": "2026-11-03",
   "electionDate": "2027-04-18",
   "windowDays": 21,
   "collection": {
@@ -940,6 +940,97 @@
   ],
   "polls": [
     {
+      "id": "ifop-fiducial-20261029",
+      "origin": "wikipedia",
+      "institute": "Ifop-Fiducial",
+      "sponsor": "Non indiqué",
+      "fieldwork": {
+        "start": "2026-10-27",
+        "end": "2026-10-29"
+      },
+      "sampleSize": 1501,
+      "sources": [
+        {
+          "label": "Publication",
+          "url": "https://www.tf1info.fr/politique/elections/presidentielle/sondage-lci-a-six-mois-de-la-presidentielle-2027-marine-le-pen-et-jean-luc-melenchon-sans-adversaires-au-premier-tour-philippe-attal-retailleau-lisnard-2473663.html"
+        },
+        {
+          "label": "Wikipedia – liste des sondages",
+          "url": "https://fr.wikipedia.org/wiki/Liste_de_sondages_sur_l%27%C3%A9lection_pr%C3%A9sidentielle_fran%C3%A7aise_de_2027"
+        }
+      ],
+      "note": "Repris de Wikipedia : chiffres non revérifiés.",
+      "hypotheses": [
+        {
+          "id": "H1",
+          "label": "Attal, Philippe, Lisnard, Retailleau",
+          "scores": {
+            "arthaud": 0.5,
+            "melenchon": 18,
+            "roussel": 2,
+            "tondelier": 3,
+            "glucksmann": 10,
+            "attal": 5,
+            "philippe": 9.5,
+            "lisnard": 7,
+            "retailleau": 4,
+            "dupont-aignan": 1.5,
+            "lepen": 35,
+            "zemmour": 4.5
+          }
+        },
+        {
+          "id": "H2",
+          "label": "Attal, Lisnard, Retailleau",
+          "scores": {
+            "arthaud": 0.5,
+            "melenchon": 17.5,
+            "roussel": 2,
+            "tondelier": 3,
+            "glucksmann": 13,
+            "attal": 9,
+            "lisnard": 7.5,
+            "retailleau": 5,
+            "dupont-aignan": 2,
+            "lepen": 36,
+            "zemmour": 4.5
+          }
+        },
+        {
+          "id": "H3",
+          "label": "Philippe, Retailleau",
+          "scores": {
+            "arthaud": 1,
+            "melenchon": 17.5,
+            "roussel": 1.5,
+            "tondelier": 3.5,
+            "glucksmann": 11.5,
+            "philippe": 15,
+            "retailleau": 7,
+            "dupont-aignan": 2,
+            "lepen": 37,
+            "zemmour": 4
+          }
+        },
+        {
+          "id": "H4",
+          "label": "Philippe, Lisnard",
+          "scores": {
+            "arthaud": 0.5,
+            "melenchon": 17.5,
+            "roussel": 2,
+            "tondelier": 3,
+            "glucksmann": 11,
+            "philippe": 15,
+            "lisnard": 9,
+            "dupont-aignan": 2,
+            "lepen": 36,
+            "zemmour": 4
+          }
+        }
+      ]
+    },
+    {
       "id": "cluster17-20261022",
       "origin": "wikipedia",
       "institute": "Cluster17",
@@ -1271,173 +1362,6 @@
             "dupont-aignan": 2,
             "lepen": 35,
             "zemmour": 6
-          }
-        }
-      ]
-    },
-    {
-      "id": "ifop-fiducial-20261019",
-      "origin": "wikipedia",
-      "institute": "Ifop-Fiducial",
-      "sponsor": "Non indiqué",
-      "fieldwork": {
-        "start": "2026-10-17",
-        "end": "2026-10-19"
-      },
-      "sampleSize": 1928,
-      "sources": [
-        {
-          "label": "Synthèse de l’institut",
-          "url": "https://www.ifopgroup.com/article/barometre-de-lelection-presidentielle-vague-7-2",
-          "kind": "synthese"
-        },
-        {
-          "label": "Notice (Commission des sondages)",
-          "url": "https://www.commission-des-sondages.fr/notices/files/notices/2026/octobre/10327-pres-barometre-election-v7-ifop-20-octobre.pdf",
-          "kind": "notice"
-        },
-        {
-          "label": "Wikipedia – liste des sondages",
-          "url": "https://fr.wikipedia.org/wiki/Liste_de_sondages_sur_l%27%C3%A9lection_pr%C3%A9sidentielle_fran%C3%A7aise_de_2027"
-        }
-      ],
-      "note": "Repris de Wikipedia : chiffres non revérifiés.",
-      "hypotheses": [
-        {
-          "id": "H1",
-          "label": "Roussel, Tondelier, Glucksmann, Attal, Philippe, Retailleau",
-          "scores": {
-            "arthaud": 0.5,
-            "melenchon": 16.5,
-            "roussel": 3,
-            "tondelier": 3,
-            "glucksmann": 13.5,
-            "attal": 5,
-            "philippe": 12,
-            "retailleau": 5,
-            "dupont-aignan": 2,
-            "lepen": 36,
-            "zemmour": 3.5
-          }
-        },
-        {
-          "id": "H2",
-          "label": "Roussel, Tondelier, Glucksmann, Philippe, Retailleau",
-          "scores": {
-            "arthaud": 0.5,
-            "melenchon": 16.5,
-            "roussel": 2.5,
-            "tondelier": 3,
-            "glucksmann": 14,
-            "philippe": 15,
-            "retailleau": 7.5,
-            "dupont-aignan": 1.5,
-            "lepen": 36,
-            "zemmour": 3.5
-          }
-        },
-        {
-          "id": "H3",
-          "label": "Roussel, Tondelier, Glucksmann, Attal, Retailleau",
-          "scores": {
-            "arthaud": 0.5,
-            "melenchon": 16,
-            "roussel": 2,
-            "tondelier": 3,
-            "glucksmann": 16,
-            "attal": 13,
-            "retailleau": 7,
-            "dupont-aignan": 1.5,
-            "lepen": 38,
-            "zemmour": 3
-          }
-        },
-        {
-          "id": "H4",
-          "label": "Glucksmann, Philippe, Retailleau",
-          "scores": {
-            "arthaud": 0.5,
-            "melenchon": 18,
-            "glucksmann": 16,
-            "philippe": 16,
-            "retailleau": 6.5,
-            "dupont-aignan": 2.5,
-            "lepen": 37,
-            "zemmour": 3.5
-          }
-        },
-        {
-          "id": "H5",
-          "label": "Hollande, Attal, Philippe, Retailleau",
-          "scores": {
-            "arthaud": 0.5,
-            "melenchon": 20,
-            "hollande": 10,
-            "attal": 6.5,
-            "philippe": 14,
-            "retailleau": 6,
-            "dupont-aignan": 2,
-            "lepen": 38,
-            "zemmour": 3
-          },
-          "replacing": {
-            "hollande": "glucksmann"
-          }
-        },
-        {
-          "id": "H6",
-          "label": "Roussel, Tondelier, Glucksmann, Attal, Philippe, Lisnard, Retailleau, Ruffin, Villepin",
-          "scores": {
-            "arthaud": 0,
-            "melenchon": 15,
-            "roussel": 2,
-            "tondelier": 2.5,
-            "glucksmann": 12,
-            "attal": 4,
-            "philippe": 12,
-            "lisnard": 5.5,
-            "retailleau": 5.5,
-            "dupont-aignan": 1.5,
-            "lepen": 34,
-            "zemmour": 3,
-            "ruffin": 1.5,
-            "villepin": 1.5
-          }
-        },
-        {
-          "id": "H7",
-          "label": "Roussel, Tondelier, Glucksmann, Attal, Philippe, Lisnard",
-          "scores": {
-            "arthaud": 0.5,
-            "melenchon": 15.5,
-            "roussel": 2,
-            "tondelier": 3,
-            "glucksmann": 13,
-            "attal": 5,
-            "philippe": 13,
-            "lisnard": 7,
-            "dupont-aignan": 2,
-            "lepen": 36,
-            "zemmour": 3
-          }
-        },
-        {
-          "id": "H8",
-          "label": "Roussel, Tondelier, Glucksmann, Attal, Philippe, Retailleau, Polony, Ruffin",
-          "scores": {
-            "arthaud": 0.5,
-            "melenchon": 15,
-            "roussel": 2,
-            "tondelier": 3,
-            "glucksmann": 12,
-            "attal": 6,
-            "philippe": 12,
-            "retailleau": 6,
-            "dupont-aignan": 2,
-            "lepen": 35,
-            "zemmour": 3.5,
-            "polony": 1,
-            "ruffin": 2
           }
         }
       ]
