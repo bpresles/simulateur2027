@@ -76,7 +76,40 @@
   },
   "legislatives2024": {
     "description": "Duels de 2nd tour des législatives de 2024 opposant un candidat RN (ou UXD) à un candidat d’un autre camp, dans les 501 circonscriptions qui avaient un 2nd tour. Seules les circonscriptions où le même duel a été classé dans un profil sont retenues ; les exprimés sont ceux des mêmes circonscriptions aux deux tours.",
-    "method": "Pour chaque profil de reports : somme des exprimés du 1er tour et du 2nd tour dans ses circonscriptions, puis 1 − exprimés du 2nd tour ÷ exprimés du 1er tour. Le profil se déduit de la nuance du candidat non RN (ministère de l’Intérieur) ; la nuance « UG » (ou DVG) ne distinguant pas LFI des autres partis de gauche, le parti du candidat de gauche vient des pages Wikipédia « Élections législatives de 2024 dans … » du département.",
+    "method": "Pour chaque profil de reports : somme des exprimés du 1er tour et du 2nd tour dans ses circonscriptions, puis 1 − exprimés du 2nd tour ÷ exprimés du 1er tour. Le profil se déduit de la nuance du candidat non RN (ministère de l’Intérieur) ; la nuance « UG » (ou DVG) ne distinguant pas LFI des autres partis de gauche, le parti du candidat de gauche vient des pages Wikipédia « Élections législatives de 2024 dans … » du département. Le vote du 1er tour de chaque circonscription est ventilé par bloc d'après la nuance des candidats (table nuanceBlocs ; DSV classé à l'extrême droite, nuances non classées comptées avec la droite, moins de 1 % des voix). Les blocs des deux finalistes d'un type de duel (finalistBlocs) sont ceux du candidat RN et de son adversaire.",
+    "nuanceBlocs": {
+      "gauche": [
+        "EXG",
+        "COM",
+        "FI",
+        "SOC",
+        "RDG",
+        "VEC",
+        "DVG",
+        "UG",
+        "ECO"
+      ],
+      "centre": [
+        "REN",
+        "MDM",
+        "HOR",
+        "ENS",
+        "DVC",
+        "UDI"
+      ],
+      "droite": [
+        "LR",
+        "DVD",
+        "autres nuances (DIV, REG, etc.)"
+      ],
+      "extreme_droite": [
+        "DSV",
+        "RN",
+        "REC",
+        "UXD",
+        "EXD"
+      ]
+    },
     "sources": [
       {
         "label": "Ministère de l’Intérieur – législatives 2024, résultats définitifs du 1er tour par circonscription (data.gouv.fr)",
@@ -94,58 +127,540 @@
     "profiles": {
       "lfi_rn": {
         "label": "RN contre un candidat LFI",
-        "constituencies": [
-          "0105",
-          "0402",
-          "0602",
-          "1202",
-          "1305",
-          "1315",
-          "2204",
-          "2401",
-          "2602",
-          "3001",
-          "3005",
-          "3107",
-          "3312",
-          "3404",
-          "3408",
-          "3409",
-          "3504",
-          "3803",
-          "3806",
-          "3809",
-          "3810",
-          "4408",
-          "5403",
-          "5406",
-          "5708",
-          "5901",
-          "5908",
-          "6003",
-          "6501",
-          "6601",
-          "6603",
-          "6914",
-          "7204",
-          "7304",
-          "7604",
-          "7706",
-          "7707",
-          "7710",
-          "8001",
-          "8102",
-          "8202",
-          "8404",
-          "9002",
-          "9102",
-          "9110",
-          "9303",
-          "9509",
-          "9510"
+        "finalistBlocs": [
+          "gauche",
+          "extreme_droite"
         ],
-        "firstRoundExpressed": 2660391,
-        "secondRoundExpressed": 2435772,
+        "constituencies": [
+          {
+            "code": "0105",
+            "firstRoundExpressed": 51532,
+            "secondRoundExpressed": 47004,
+            "firstRoundVotesByBloc": {
+              "gauche": 13632,
+              "centre": 6036,
+              "droite": 11274,
+              "extreme_droite": 20590
+            }
+          },
+          {
+            "code": "0402",
+            "firstRoundExpressed": 44785,
+            "secondRoundExpressed": 42489,
+            "firstRoundVotesByBloc": {
+              "gauche": 15212,
+              "centre": 10162,
+              "droite": 512,
+              "extreme_droite": 18899
+            }
+          },
+          {
+            "code": "0602",
+            "firstRoundExpressed": 59641,
+            "secondRoundExpressed": 52166,
+            "firstRoundVotesByBloc": {
+              "gauche": 14016,
+              "centre": 9856,
+              "droite": 6162,
+              "extreme_droite": 29607
+            }
+          },
+          {
+            "code": "1202",
+            "firstRoundExpressed": 48087,
+            "secondRoundExpressed": 43243,
+            "firstRoundVotesByBloc": {
+              "gauche": 16333,
+              "centre": 14690,
+              "droite": 0,
+              "extreme_droite": 17064
+            }
+          },
+          {
+            "code": "1305",
+            "firstRoundExpressed": 50206,
+            "secondRoundExpressed": 45925,
+            "firstRoundVotesByBloc": {
+              "gauche": 25106,
+              "centre": 8985,
+              "droite": 2579,
+              "extreme_droite": 13536
+            }
+          },
+          {
+            "code": "1315",
+            "firstRoundExpressed": 75769,
+            "secondRoundExpressed": 67113,
+            "firstRoundVotesByBloc": {
+              "gauche": 15931,
+              "centre": 12202,
+              "droite": 8729,
+              "extreme_droite": 38907
+            }
+          },
+          {
+            "code": "2204",
+            "firstRoundExpressed": 57440,
+            "secondRoundExpressed": 51567,
+            "firstRoundVotesByBloc": {
+              "gauche": 19331,
+              "centre": 17555,
+              "droite": 0,
+              "extreme_droite": 20554
+            }
+          },
+          {
+            "code": "2401",
+            "firstRoundExpressed": 52815,
+            "secondRoundExpressed": 48269,
+            "firstRoundVotesByBloc": {
+              "gauche": 16291,
+              "centre": 12835,
+              "droite": 2918,
+              "extreme_droite": 20771
+            }
+          },
+          {
+            "code": "2602",
+            "firstRoundExpressed": 64200,
+            "secondRoundExpressed": 57914,
+            "firstRoundVotesByBloc": {
+              "gauche": 15346,
+              "centre": 12158,
+              "droite": 8479,
+              "extreme_droite": 28217
+            }
+          },
+          {
+            "code": "3001",
+            "firstRoundExpressed": 56698,
+            "secondRoundExpressed": 52115,
+            "firstRoundVotesByBloc": {
+              "gauche": 17334,
+              "centre": 11394,
+              "droite": 3076,
+              "extreme_droite": 24894
+            }
+          },
+          {
+            "code": "3005",
+            "firstRoundExpressed": 67305,
+            "secondRoundExpressed": 63264,
+            "firstRoundVotesByBloc": {
+              "gauche": 23189,
+              "centre": 10362,
+              "droite": 6151,
+              "extreme_droite": 27603
+            }
+          },
+          {
+            "code": "3107",
+            "firstRoundExpressed": 74408,
+            "secondRoundExpressed": 69373,
+            "firstRoundVotesByBloc": {
+              "gauche": 25904,
+              "centre": 18462,
+              "droite": 0,
+              "extreme_droite": 30042
+            }
+          },
+          {
+            "code": "3312",
+            "firstRoundExpressed": 62529,
+            "secondRoundExpressed": 56548,
+            "firstRoundVotesByBloc": {
+              "gauche": 19063,
+              "centre": 17270,
+              "droite": 2180,
+              "extreme_droite": 24016
+            }
+          },
+          {
+            "code": "3404",
+            "firstRoundExpressed": 85354,
+            "secondRoundExpressed": 79594,
+            "firstRoundVotesByBloc": {
+              "gauche": 29057,
+              "centre": 19260,
+              "droite": 0,
+              "extreme_droite": 37038
+            }
+          },
+          {
+            "code": "3408",
+            "firstRoundExpressed": 64381,
+            "secondRoundExpressed": 59287,
+            "firstRoundVotesByBloc": {
+              "gauche": 23613,
+              "centre": 10854,
+              "droite": 4083,
+              "extreme_droite": 25831
+            }
+          },
+          {
+            "code": "3409",
+            "firstRoundExpressed": 59666,
+            "secondRoundExpressed": 54786,
+            "firstRoundVotesByBloc": {
+              "gauche": 17922,
+              "centre": 14918,
+              "droite": 3611,
+              "extreme_droite": 23215
+            }
+          },
+          {
+            "code": "3504",
+            "firstRoundExpressed": 68965,
+            "secondRoundExpressed": 62866,
+            "firstRoundVotesByBloc": {
+              "gauche": 23007,
+              "centre": 16595,
+              "droite": 6103,
+              "extreme_droite": 23260
+            }
+          },
+          {
+            "code": "3803",
+            "firstRoundExpressed": 39530,
+            "secondRoundExpressed": 35681,
+            "firstRoundVotesByBloc": {
+              "gauche": 20909,
+              "centre": 8278,
+              "droite": 1103,
+              "extreme_droite": 9240
+            }
+          },
+          {
+            "code": "3806",
+            "firstRoundExpressed": 61335,
+            "secondRoundExpressed": 54884,
+            "firstRoundVotesByBloc": {
+              "gauche": 13640,
+              "centre": 10712,
+              "droite": 7816,
+              "extreme_droite": 29167
+            }
+          },
+          {
+            "code": "3809",
+            "firstRoundExpressed": 70825,
+            "secondRoundExpressed": 63491,
+            "firstRoundVotesByBloc": {
+              "gauche": 21423,
+              "centre": 19307,
+              "droite": 5592,
+              "extreme_droite": 24503
+            }
+          },
+          {
+            "code": "3810",
+            "firstRoundExpressed": 66186,
+            "secondRoundExpressed": 60317,
+            "firstRoundVotesByBloc": {
+              "gauche": 17832,
+              "centre": 14688,
+              "droite": 5318,
+              "extreme_droite": 28348
+            }
+          },
+          {
+            "code": "4408",
+            "firstRoundExpressed": 59115,
+            "secondRoundExpressed": 53376,
+            "firstRoundVotesByBloc": {
+              "gauche": 27534,
+              "centre": 11991,
+              "droite": 2525,
+              "extreme_droite": 17065
+            }
+          },
+          {
+            "code": "5403",
+            "firstRoundExpressed": 45875,
+            "secondRoundExpressed": 43356,
+            "firstRoundVotesByBloc": {
+              "gauche": 14090,
+              "centre": 8248,
+              "droite": 3599,
+              "extreme_droite": 19938
+            }
+          },
+          {
+            "code": "5406",
+            "firstRoundExpressed": 54168,
+            "secondRoundExpressed": 51288,
+            "firstRoundVotesByBloc": {
+              "gauche": 16330,
+              "centre": 8353,
+              "droite": 4700,
+              "extreme_droite": 24785
+            }
+          },
+          {
+            "code": "5708",
+            "firstRoundExpressed": 50813,
+            "secondRoundExpressed": 48582,
+            "firstRoundVotesByBloc": {
+              "gauche": 15973,
+              "centre": 7986,
+              "droite": 3296,
+              "extreme_droite": 23558
+            }
+          },
+          {
+            "code": "5901",
+            "firstRoundExpressed": 40268,
+            "secondRoundExpressed": 35918,
+            "firstRoundVotesByBloc": {
+              "gauche": 22937,
+              "centre": 7055,
+              "droite": 2978,
+              "extreme_droite": 7298
+            }
+          },
+          {
+            "code": "5908",
+            "firstRoundExpressed": 35885,
+            "secondRoundExpressed": 34330,
+            "firstRoundVotesByBloc": {
+              "gauche": 18057,
+              "centre": 5766,
+              "droite": 0,
+              "extreme_droite": 12062
+            }
+          },
+          {
+            "code": "6003",
+            "firstRoundExpressed": 45218,
+            "secondRoundExpressed": 42221,
+            "firstRoundVotesByBloc": {
+              "gauche": 14671,
+              "centre": 10487,
+              "droite": 573,
+              "extreme_droite": 19487
+            }
+          },
+          {
+            "code": "6501",
+            "firstRoundExpressed": 59474,
+            "secondRoundExpressed": 53182,
+            "firstRoundVotesByBloc": {
+              "gauche": 18097,
+              "centre": 0,
+              "droite": 20449,
+              "extreme_droite": 20928
+            }
+          },
+          {
+            "code": "6601",
+            "firstRoundExpressed": 47821,
+            "secondRoundExpressed": 43675,
+            "firstRoundVotesByBloc": {
+              "gauche": 12558,
+              "centre": 10048,
+              "droite": 2882,
+              "extreme_droite": 22333
+            }
+          },
+          {
+            "code": "6603",
+            "firstRoundExpressed": 55660,
+            "secondRoundExpressed": 51741,
+            "firstRoundVotesByBloc": {
+              "gauche": 16215,
+              "centre": 11367,
+              "droite": 1780,
+              "extreme_droite": 26298
+            }
+          },
+          {
+            "code": "6914",
+            "firstRoundExpressed": 44798,
+            "secondRoundExpressed": 41482,
+            "firstRoundVotesByBloc": {
+              "gauche": 22669,
+              "centre": 6996,
+              "droite": 2059,
+              "extreme_droite": 13074
+            }
+          },
+          {
+            "code": "7204",
+            "firstRoundExpressed": 52424,
+            "secondRoundExpressed": 48047,
+            "firstRoundVotesByBloc": {
+              "gauche": 14196,
+              "centre": 13565,
+              "droite": 4079,
+              "extreme_droite": 20584
+            }
+          },
+          {
+            "code": "7304",
+            "firstRoundExpressed": 55082,
+            "secondRoundExpressed": 49667,
+            "firstRoundVotesByBloc": {
+              "gauche": 20794,
+              "centre": 15359,
+              "droite": 1194,
+              "extreme_droite": 17735
+            }
+          },
+          {
+            "code": "7604",
+            "firstRoundExpressed": 53091,
+            "secondRoundExpressed": 49887,
+            "firstRoundVotesByBloc": {
+              "gauche": 18487,
+              "centre": 13120,
+              "droite": 0,
+              "extreme_droite": 21484
+            }
+          },
+          {
+            "code": "7706",
+            "firstRoundExpressed": 51448,
+            "secondRoundExpressed": 46403,
+            "firstRoundVotesByBloc": {
+              "gauche": 16715,
+              "centre": 0,
+              "droite": 13739,
+              "extreme_droite": 20994
+            }
+          },
+          {
+            "code": "7707",
+            "firstRoundExpressed": 56489,
+            "secondRoundExpressed": 51200,
+            "firstRoundVotesByBloc": {
+              "gauche": 19144,
+              "centre": 15831,
+              "droite": 0,
+              "extreme_droite": 21514
+            }
+          },
+          {
+            "code": "7710",
+            "firstRoundExpressed": 51341,
+            "secondRoundExpressed": 46742,
+            "firstRoundVotesByBloc": {
+              "gauche": 23246,
+              "centre": 10152,
+              "droite": 5722,
+              "extreme_droite": 12221
+            }
+          },
+          {
+            "code": "8001",
+            "firstRoundExpressed": 52625,
+            "secondRoundExpressed": 51191,
+            "firstRoundVotesByBloc": {
+              "gauche": 18503,
+              "centre": 12709,
+              "droite": 0,
+              "extreme_droite": 21413
+            }
+          },
+          {
+            "code": "8102",
+            "firstRoundExpressed": 76040,
+            "secondRoundExpressed": 69872,
+            "firstRoundVotesByBloc": {
+              "gauche": 24560,
+              "centre": 16501,
+              "droite": 5140,
+              "extreme_droite": 29839
+            }
+          },
+          {
+            "code": "8202",
+            "firstRoundExpressed": 66252,
+            "secondRoundExpressed": 60181,
+            "firstRoundVotesByBloc": {
+              "gauche": 23029,
+              "centre": 10335,
+              "droite": 310,
+              "extreme_droite": 32578
+            }
+          },
+          {
+            "code": "8404",
+            "firstRoundExpressed": 60516,
+            "secondRoundExpressed": 54799,
+            "firstRoundVotesByBloc": {
+              "gauche": 12443,
+              "centre": 12342,
+              "droite": 3414,
+              "extreme_droite": 32317
+            }
+          },
+          {
+            "code": "9002",
+            "firstRoundExpressed": 31399,
+            "secondRoundExpressed": 28755,
+            "firstRoundVotesByBloc": {
+              "gauche": 9296,
+              "centre": 4794,
+              "droite": 5422,
+              "extreme_droite": 11887
+            }
+          },
+          {
+            "code": "9102",
+            "firstRoundExpressed": 61064,
+            "secondRoundExpressed": 55091,
+            "firstRoundVotesByBloc": {
+              "gauche": 19867,
+              "centre": 13490,
+              "droite": 2054,
+              "extreme_droite": 25653
+            }
+          },
+          {
+            "code": "9110",
+            "firstRoundExpressed": 37763,
+            "secondRoundExpressed": 34617,
+            "firstRoundVotesByBloc": {
+              "gauche": 17875,
+              "centre": 7137,
+              "droite": 2594,
+              "extreme_droite": 10157
+            }
+          },
+          {
+            "code": "9303",
+            "firstRoundExpressed": 49537,
+            "secondRoundExpressed": 44023,
+            "firstRoundVotesByBloc": {
+              "gauche": 21100,
+              "centre": 10683,
+              "droite": 7215,
+              "extreme_droite": 10539
+            }
+          },
+          {
+            "code": "9509",
+            "firstRoundExpressed": 42126,
+            "secondRoundExpressed": 39682,
+            "firstRoundVotesByBloc": {
+              "gauche": 17778,
+              "centre": 6149,
+              "droite": 4946,
+              "extreme_droite": 13253
+            }
+          },
+          {
+            "code": "9510",
+            "firstRoundExpressed": 42442,
+            "secondRoundExpressed": 38568,
+            "firstRoundVotesByBloc": {
+              "gauche": 18802,
+              "centre": 9236,
+              "droite": 4249,
+              "extreme_droite": 10155
+            }
+          }
+        ],
         "leftParty": {
           "0105": "LFI",
           "0402": "LFI",
@@ -199,114 +714,1156 @@
       },
       "ecolo_ps_pcf_rn": {
         "label": "RN contre un autre candidat de gauche (PS, écologistes, PCF…)",
-        "constituencies": [
-          "0301",
-          "0401",
-          "0501",
-          "0502",
-          "0603",
-          "0701",
-          "0702",
-          "0902",
-          "1003",
-          "1101",
-          "1102",
-          "1103",
-          "1301",
-          "1302",
-          "1303",
-          "1306",
-          "1309",
-          "1311",
-          "1313",
-          "1316",
-          "1402",
-          "1603",
-          "1701",
-          "1702",
-          "1703",
-          "1802",
-          "2102",
-          "2103",
-          "2402",
-          "2403",
-          "2404",
-          "2502",
-          "2504",
-          "2601",
-          "2603",
-          "2702",
-          "2704",
-          "2906",
-          "3003",
-          "3004",
-          "3006",
-          "3106",
-          "3108",
-          "3110",
-          "3202",
-          "3304",
-          "3305",
-          "3401",
-          "3403",
-          "3405",
-          "3704",
-          "3802",
-          "3804",
-          "3805",
-          "3808",
-          "4003",
-          "4201",
-          "4502",
-          "4504",
-          "4702",
-          "5004",
-          "5301",
-          "5401",
-          "5405",
-          "5802",
-          "5911",
-          "5917",
-          "6005",
-          "6101",
-          "6205",
-          "6208",
-          "6305",
-          "6403",
-          "6405",
-          "6502",
-          "6604",
-          "6913",
-          "7104",
-          "7202",
-          "7603",
-          "7605",
-          "7606",
-          "7608",
-          "7709",
-          "7808",
-          "7809",
-          "7902",
-          "8201",
-          "8401",
-          "8402",
-          "8405",
-          "8702",
-          "8901",
-          "9103",
-          "9106",
-          "9109",
-          "9308",
-          "9312",
-          "9502",
-          "9503",
-          "9507",
-          "97102",
-          "97103",
-          "97401"
+        "finalistBlocs": [
+          "gauche",
+          "extreme_droite"
         ],
-        "firstRoundExpressed": 5890643,
-        "secondRoundExpressed": 5583167,
+        "constituencies": [
+          {
+            "code": "0301",
+            "firstRoundExpressed": 59100,
+            "secondRoundExpressed": 56250,
+            "firstRoundVotesByBloc": {
+              "gauche": 17679,
+              "centre": 10114,
+              "droite": 7889,
+              "extreme_droite": 23418
+            }
+          },
+          {
+            "code": "0401",
+            "firstRoundExpressed": 42026,
+            "secondRoundExpressed": 39742,
+            "firstRoundVotesByBloc": {
+              "gauche": 11853,
+              "centre": 8133,
+              "droite": 2956,
+              "extreme_droite": 19084
+            }
+          },
+          {
+            "code": "0501",
+            "firstRoundExpressed": 41247,
+            "secondRoundExpressed": 39197,
+            "firstRoundVotesByBloc": {
+              "gauche": 13211,
+              "centre": 9312,
+              "droite": 2950,
+              "extreme_droite": 15774
+            }
+          },
+          {
+            "code": "0502",
+            "firstRoundExpressed": 38714,
+            "secondRoundExpressed": 36403,
+            "firstRoundVotesByBloc": {
+              "gauche": 13055,
+              "centre": 10338,
+              "droite": 2206,
+              "extreme_droite": 13115
+            }
+          },
+          {
+            "code": "0603",
+            "firstRoundExpressed": 57837,
+            "secondRoundExpressed": 53781,
+            "firstRoundVotesByBloc": {
+              "gauche": 18301,
+              "centre": 14670,
+              "droite": 0,
+              "extreme_droite": 24866
+            }
+          },
+          {
+            "code": "0701",
+            "firstRoundExpressed": 54412,
+            "secondRoundExpressed": 53722,
+            "firstRoundVotesByBloc": {
+              "gauche": 21801,
+              "centre": 6651,
+              "droite": 3067,
+              "extreme_droite": 22893
+            }
+          },
+          {
+            "code": "0702",
+            "firstRoundExpressed": 68290,
+            "secondRoundExpressed": 64298,
+            "firstRoundVotesByBloc": {
+              "gauche": 17660,
+              "centre": 11904,
+              "droite": 12919,
+              "extreme_droite": 25807
+            }
+          },
+          {
+            "code": "0902",
+            "firstRoundExpressed": 41268,
+            "secondRoundExpressed": 41368,
+            "firstRoundVotesByBloc": {
+              "gauche": 21763,
+              "centre": 0,
+              "droite": 2023,
+              "extreme_droite": 17482
+            }
+          },
+          {
+            "code": "1003",
+            "firstRoundExpressed": 41731,
+            "secondRoundExpressed": 39224,
+            "firstRoundVotesByBloc": {
+              "gauche": 11497,
+              "centre": 6994,
+              "droite": 5156,
+              "extreme_droite": 18084
+            }
+          },
+          {
+            "code": "1101",
+            "firstRoundExpressed": 66725,
+            "secondRoundExpressed": 60300,
+            "firstRoundVotesByBloc": {
+              "gauche": 21265,
+              "centre": 11717,
+              "droite": 4,
+              "extreme_droite": 33739
+            }
+          },
+          {
+            "code": "1102",
+            "firstRoundExpressed": 60702,
+            "secondRoundExpressed": 57665,
+            "firstRoundVotesByBloc": {
+              "gauche": 16213,
+              "centre": 11727,
+              "droite": 2581,
+              "extreme_droite": 30181
+            }
+          },
+          {
+            "code": "1103",
+            "firstRoundExpressed": 62516,
+            "secondRoundExpressed": 60518,
+            "firstRoundVotesByBloc": {
+              "gauche": 21011,
+              "centre": 10023,
+              "droite": 2855,
+              "extreme_droite": 28627
+            }
+          },
+          {
+            "code": "1301",
+            "firstRoundExpressed": 53312,
+            "secondRoundExpressed": 50671,
+            "firstRoundVotesByBloc": {
+              "gauche": 14742,
+              "centre": 12585,
+              "droite": 0,
+              "extreme_droite": 25985
+            }
+          },
+          {
+            "code": "1302",
+            "firstRoundExpressed": 58752,
+            "secondRoundExpressed": 53466,
+            "firstRoundVotesByBloc": {
+              "gauche": 17816,
+              "centre": 15870,
+              "droite": 5100,
+              "extreme_droite": 19966
+            }
+          },
+          {
+            "code": "1303",
+            "firstRoundExpressed": 46643,
+            "secondRoundExpressed": 44903,
+            "firstRoundVotesByBloc": {
+              "gauche": 17687,
+              "centre": 5417,
+              "droite": 2664,
+              "extreme_droite": 20875
+            }
+          },
+          {
+            "code": "1306",
+            "firstRoundExpressed": 50037,
+            "secondRoundExpressed": 47282,
+            "firstRoundVotesByBloc": {
+              "gauche": 14645,
+              "centre": 12578,
+              "droite": 2797,
+              "extreme_droite": 20017
+            }
+          },
+          {
+            "code": "1309",
+            "firstRoundExpressed": 66786,
+            "secondRoundExpressed": 62118,
+            "firstRoundVotesByBloc": {
+              "gauche": 17976,
+              "centre": 12465,
+              "droite": 5178,
+              "extreme_droite": 31167
+            }
+          },
+          {
+            "code": "1311",
+            "firstRoundExpressed": 63095,
+            "secondRoundExpressed": 58869,
+            "firstRoundVotesByBloc": {
+              "gauche": 17756,
+              "centre": 16581,
+              "droite": 2562,
+              "extreme_droite": 26196
+            }
+          },
+          {
+            "code": "1313",
+            "firstRoundExpressed": 58717,
+            "secondRoundExpressed": 58791,
+            "firstRoundVotesByBloc": {
+              "gauche": 21760,
+              "centre": 7239,
+              "droite": 0,
+              "extreme_droite": 29718
+            }
+          },
+          {
+            "code": "1316",
+            "firstRoundExpressed": 59805,
+            "secondRoundExpressed": 57655,
+            "firstRoundVotesByBloc": {
+              "gauche": 18797,
+              "centre": 8900,
+              "droite": 3217,
+              "extreme_droite": 28891
+            }
+          },
+          {
+            "code": "1402",
+            "firstRoundExpressed": 46436,
+            "secondRoundExpressed": 43584,
+            "firstRoundVotesByBloc": {
+              "gauche": 20209,
+              "centre": 6503,
+              "droite": 7159,
+              "extreme_droite": 12565
+            }
+          },
+          {
+            "code": "1603",
+            "firstRoundExpressed": 60484,
+            "secondRoundExpressed": 57658,
+            "firstRoundVotesByBloc": {
+              "gauche": 16497,
+              "centre": 17122,
+              "droite": 0,
+              "extreme_droite": 26865
+            }
+          },
+          {
+            "code": "1701",
+            "firstRoundExpressed": 76297,
+            "secondRoundExpressed": 72749,
+            "firstRoundVotesByBloc": {
+              "gauche": 57874,
+              "centre": 0,
+              "droite": 170,
+              "extreme_droite": 18253
+            }
+          },
+          {
+            "code": "1702",
+            "firstRoundExpressed": 78062,
+            "secondRoundExpressed": 71140,
+            "firstRoundVotesByBloc": {
+              "gauche": 21776,
+              "centre": 19773,
+              "droite": 9651,
+              "extreme_droite": 26862
+            }
+          },
+          {
+            "code": "1703",
+            "firstRoundExpressed": 55715,
+            "secondRoundExpressed": 52819,
+            "firstRoundVotesByBloc": {
+              "gauche": 17420,
+              "centre": 15536,
+              "droite": 0,
+              "extreme_droite": 22759
+            }
+          },
+          {
+            "code": "1802",
+            "firstRoundExpressed": 42517,
+            "secondRoundExpressed": 40959,
+            "firstRoundVotesByBloc": {
+              "gauche": 13201,
+              "centre": 8857,
+              "droite": 2705,
+              "extreme_droite": 17754
+            }
+          },
+          {
+            "code": "2102",
+            "firstRoundExpressed": 49598,
+            "secondRoundExpressed": 45680,
+            "firstRoundVotesByBloc": {
+              "gauche": 15467,
+              "centre": 12225,
+              "droite": 3982,
+              "extreme_droite": 17924
+            }
+          },
+          {
+            "code": "2103",
+            "firstRoundExpressed": 49113,
+            "secondRoundExpressed": 46199,
+            "firstRoundVotesByBloc": {
+              "gauche": 16402,
+              "centre": 11695,
+              "droite": 3611,
+              "extreme_droite": 17405
+            }
+          },
+          {
+            "code": "2402",
+            "firstRoundExpressed": 57068,
+            "secondRoundExpressed": 54283,
+            "firstRoundVotesByBloc": {
+              "gauche": 16947,
+              "centre": 11173,
+              "droite": 4574,
+              "extreme_droite": 24374
+            }
+          },
+          {
+            "code": "2403",
+            "firstRoundExpressed": 47581,
+            "secondRoundExpressed": 45103,
+            "firstRoundVotesByBloc": {
+              "gauche": 14281,
+              "centre": 11103,
+              "droite": 3104,
+              "extreme_droite": 19093
+            }
+          },
+          {
+            "code": "2404",
+            "firstRoundExpressed": 63216,
+            "secondRoundExpressed": 59934,
+            "firstRoundVotesByBloc": {
+              "gauche": 22458,
+              "centre": 12425,
+              "droite": 4836,
+              "extreme_droite": 23497
+            }
+          },
+          {
+            "code": "2502",
+            "firstRoundExpressed": 56084,
+            "secondRoundExpressed": 51802,
+            "firstRoundVotesByBloc": {
+              "gauche": 19948,
+              "centre": 15026,
+              "droite": 4215,
+              "extreme_droite": 16895
+            }
+          },
+          {
+            "code": "2504",
+            "firstRoundExpressed": 41712,
+            "secondRoundExpressed": 40607,
+            "firstRoundVotesByBloc": {
+              "gauche": 13322,
+              "centre": 8527,
+              "droite": 0,
+              "extreme_droite": 19863
+            }
+          },
+          {
+            "code": "2601",
+            "firstRoundExpressed": 51948,
+            "secondRoundExpressed": 48792,
+            "firstRoundVotesByBloc": {
+              "gauche": 17325,
+              "centre": 8635,
+              "droite": 9292,
+              "extreme_droite": 16696
+            }
+          },
+          {
+            "code": "2603",
+            "firstRoundExpressed": 80650,
+            "secondRoundExpressed": 76844,
+            "firstRoundVotesByBloc": {
+              "gauche": 31526,
+              "centre": 15396,
+              "droite": 6855,
+              "extreme_droite": 26873
+            }
+          },
+          {
+            "code": "2702",
+            "firstRoundExpressed": 52636,
+            "secondRoundExpressed": 49477,
+            "firstRoundVotesByBloc": {
+              "gauche": 11799,
+              "centre": 9467,
+              "droite": 7860,
+              "extreme_droite": 23510
+            }
+          },
+          {
+            "code": "2704",
+            "firstRoundExpressed": 61698,
+            "secondRoundExpressed": 60409,
+            "firstRoundVotesByBloc": {
+              "gauche": 21837,
+              "centre": 13635,
+              "droite": 0,
+              "extreme_droite": 26227
+            }
+          },
+          {
+            "code": "2906",
+            "firstRoundExpressed": 65116,
+            "secondRoundExpressed": 61498,
+            "firstRoundVotesByBloc": {
+              "gauche": 26585,
+              "centre": 18223,
+              "droite": 0,
+              "extreme_droite": 20308
+            }
+          },
+          {
+            "code": "3003",
+            "firstRoundExpressed": 66265,
+            "secondRoundExpressed": 60818,
+            "firstRoundVotesByBloc": {
+              "gauche": 15886,
+              "centre": 12727,
+              "droite": 6187,
+              "extreme_droite": 31465
+            }
+          },
+          {
+            "code": "3004",
+            "firstRoundExpressed": 64421,
+            "secondRoundExpressed": 60976,
+            "firstRoundVotesByBloc": {
+              "gauche": 18587,
+              "centre": 10538,
+              "droite": 3930,
+              "extreme_droite": 31366
+            }
+          },
+          {
+            "code": "3006",
+            "firstRoundExpressed": 55584,
+            "secondRoundExpressed": 52219,
+            "firstRoundVotesByBloc": {
+              "gauche": 16369,
+              "centre": 11521,
+              "droite": 4312,
+              "extreme_droite": 23382
+            }
+          },
+          {
+            "code": "3106",
+            "firstRoundExpressed": 85317,
+            "secondRoundExpressed": 78926,
+            "firstRoundVotesByBloc": {
+              "gauche": 32578,
+              "centre": 25256,
+              "droite": 0,
+              "extreme_droite": 27483
+            }
+          },
+          {
+            "code": "3108",
+            "firstRoundExpressed": 58943,
+            "secondRoundExpressed": 57478,
+            "firstRoundVotesByBloc": {
+              "gauche": 22287,
+              "centre": 9484,
+              "droite": 1805,
+              "extreme_droite": 25367
+            }
+          },
+          {
+            "code": "3110",
+            "firstRoundExpressed": 79014,
+            "secondRoundExpressed": 73578,
+            "firstRoundVotesByBloc": {
+              "gauche": 29712,
+              "centre": 23638,
+              "droite": 548,
+              "extreme_droite": 25116
+            }
+          },
+          {
+            "code": "3202",
+            "firstRoundExpressed": 52806,
+            "secondRoundExpressed": 52066,
+            "firstRoundVotesByBloc": {
+              "gauche": 24666,
+              "centre": 0,
+              "droite": 8722,
+              "extreme_droite": 19418
+            }
+          },
+          {
+            "code": "3304",
+            "firstRoundExpressed": 63960,
+            "secondRoundExpressed": 60407,
+            "firstRoundVotesByBloc": {
+              "gauche": 27826,
+              "centre": 11045,
+              "droite": 4387,
+              "extreme_droite": 20702
+            }
+          },
+          {
+            "code": "3305",
+            "firstRoundExpressed": 83781,
+            "secondRoundExpressed": 80321,
+            "firstRoundVotesByBloc": {
+              "gauche": 27489,
+              "centre": 18617,
+              "droite": 2218,
+              "extreme_droite": 35457
+            }
+          },
+          {
+            "code": "3401",
+            "firstRoundExpressed": 61248,
+            "secondRoundExpressed": 57732,
+            "firstRoundVotesByBloc": {
+              "gauche": 21342,
+              "centre": 13806,
+              "droite": 4105,
+              "extreme_droite": 21995
+            }
+          },
+          {
+            "code": "3403",
+            "firstRoundExpressed": 67755,
+            "secondRoundExpressed": 63239,
+            "firstRoundVotesByBloc": {
+              "gauche": 25376,
+              "centre": 19714,
+              "droite": 0,
+              "extreme_droite": 22665
+            }
+          },
+          {
+            "code": "3405",
+            "firstRoundExpressed": 67066,
+            "secondRoundExpressed": 65343,
+            "firstRoundVotesByBloc": {
+              "gauche": 22449,
+              "centre": 9369,
+              "droite": 1121,
+              "extreme_droite": 34127
+            }
+          },
+          {
+            "code": "3704",
+            "firstRoundExpressed": 61812,
+            "secondRoundExpressed": 57794,
+            "firstRoundVotesByBloc": {
+              "gauche": 19105,
+              "centre": 17092,
+              "droite": 5287,
+              "extreme_droite": 20328
+            }
+          },
+          {
+            "code": "3802",
+            "firstRoundExpressed": 52607,
+            "secondRoundExpressed": 49709,
+            "firstRoundVotesByBloc": {
+              "gauche": 22846,
+              "centre": 10114,
+              "droite": 3064,
+              "extreme_droite": 16583
+            }
+          },
+          {
+            "code": "3804",
+            "firstRoundExpressed": 64787,
+            "secondRoundExpressed": 61997,
+            "firstRoundVotesByBloc": {
+              "gauche": 28167,
+              "centre": 7751,
+              "droite": 7219,
+              "extreme_droite": 21650
+            }
+          },
+          {
+            "code": "3805",
+            "firstRoundExpressed": 76896,
+            "secondRoundExpressed": 72195,
+            "firstRoundVotesByBloc": {
+              "gauche": 28623,
+              "centre": 23152,
+              "droite": 0,
+              "extreme_droite": 25121
+            }
+          },
+          {
+            "code": "3808",
+            "firstRoundExpressed": 57232,
+            "secondRoundExpressed": 53596,
+            "firstRoundVotesByBloc": {
+              "gauche": 14644,
+              "centre": 11727,
+              "droite": 8014,
+              "extreme_droite": 22847
+            }
+          },
+          {
+            "code": "4003",
+            "firstRoundExpressed": 70706,
+            "secondRoundExpressed": 68028,
+            "firstRoundVotesByBloc": {
+              "gauche": 26748,
+              "centre": 12451,
+              "droite": 5529,
+              "extreme_droite": 25978
+            }
+          },
+          {
+            "code": "4201",
+            "firstRoundExpressed": 41588,
+            "secondRoundExpressed": 39794,
+            "firstRoundVotesByBloc": {
+              "gauche": 17251,
+              "centre": 9864,
+              "droite": 1177,
+              "extreme_droite": 13296
+            }
+          },
+          {
+            "code": "4502",
+            "firstRoundExpressed": 57602,
+            "secondRoundExpressed": 53309,
+            "firstRoundVotesByBloc": {
+              "gauche": 20139,
+              "centre": 13263,
+              "droite": 4527,
+              "extreme_droite": 19673
+            }
+          },
+          {
+            "code": "4504",
+            "firstRoundExpressed": 46785,
+            "secondRoundExpressed": 43051,
+            "firstRoundVotesByBloc": {
+              "gauche": 10440,
+              "centre": 7029,
+              "droite": 5550,
+              "extreme_droite": 23766
+            }
+          },
+          {
+            "code": "4702",
+            "firstRoundExpressed": 51271,
+            "secondRoundExpressed": 49306,
+            "firstRoundVotesByBloc": {
+              "gauche": 14716,
+              "centre": 11272,
+              "droite": 0,
+              "extreme_droite": 25283
+            }
+          },
+          {
+            "code": "5004",
+            "firstRoundExpressed": 58259,
+            "secondRoundExpressed": 54914,
+            "firstRoundVotesByBloc": {
+              "gauche": 20840,
+              "centre": 10417,
+              "droite": 8637,
+              "extreme_droite": 18365
+            }
+          },
+          {
+            "code": "5301",
+            "firstRoundExpressed": 49533,
+            "secondRoundExpressed": 46517,
+            "firstRoundVotesByBloc": {
+              "gauche": 22948,
+              "centre": 9957,
+              "droite": 2467,
+              "extreme_droite": 14161
+            }
+          },
+          {
+            "code": "5401",
+            "firstRoundExpressed": 54722,
+            "secondRoundExpressed": 50865,
+            "firstRoundVotesByBloc": {
+              "gauche": 21386,
+              "centre": 14435,
+              "droite": 3518,
+              "extreme_droite": 15383
+            }
+          },
+          {
+            "code": "5405",
+            "firstRoundExpressed": 51565,
+            "secondRoundExpressed": 51290,
+            "firstRoundVotesByBloc": {
+              "gauche": 23207,
+              "centre": 0,
+              "droite": 7464,
+              "extreme_droite": 20894
+            }
+          },
+          {
+            "code": "5802",
+            "firstRoundExpressed": 52383,
+            "secondRoundExpressed": 50208,
+            "firstRoundVotesByBloc": {
+              "gauche": 14636,
+              "centre": 10708,
+              "droite": 2757,
+              "extreme_droite": 24282
+            }
+          },
+          {
+            "code": "5911",
+            "firstRoundExpressed": 59263,
+            "secondRoundExpressed": 55087,
+            "firstRoundVotesByBloc": {
+              "gauche": 24054,
+              "centre": 16559,
+              "droite": 0,
+              "extreme_droite": 18650
+            }
+          },
+          {
+            "code": "5917",
+            "firstRoundExpressed": 45495,
+            "secondRoundExpressed": 42786,
+            "firstRoundVotesByBloc": {
+              "gauche": 14326,
+              "centre": 5739,
+              "droite": 3627,
+              "extreme_droite": 21803
+            }
+          },
+          {
+            "code": "6005",
+            "firstRoundExpressed": 47611,
+            "secondRoundExpressed": 44244,
+            "firstRoundVotesByBloc": {
+              "gauche": 10994,
+              "centre": 7232,
+              "droite": 8427,
+              "extreme_droite": 20958
+            }
+          },
+          {
+            "code": "6101",
+            "firstRoundExpressed": 44869,
+            "secondRoundExpressed": 42315,
+            "firstRoundVotesByBloc": {
+              "gauche": 12740,
+              "centre": 15063,
+              "droite": 263,
+              "extreme_droite": 16803
+            }
+          },
+          {
+            "code": "6205",
+            "firstRoundExpressed": 55564,
+            "secondRoundExpressed": 53863,
+            "firstRoundVotesByBloc": {
+              "gauche": 17393,
+              "centre": 11601,
+              "droite": 2596,
+              "extreme_droite": 23974
+            }
+          },
+          {
+            "code": "6208",
+            "firstRoundExpressed": 58485,
+            "secondRoundExpressed": 56961,
+            "firstRoundVotesByBloc": {
+              "gauche": 19896,
+              "centre": 9824,
+              "droite": 984,
+              "extreme_droite": 27781
+            }
+          },
+          {
+            "code": "6305",
+            "firstRoundExpressed": 71835,
+            "secondRoundExpressed": 69286,
+            "firstRoundVotesByBloc": {
+              "gauche": 27920,
+              "centre": 11166,
+              "droite": 6154,
+              "extreme_droite": 26595
+            }
+          },
+          {
+            "code": "6403",
+            "firstRoundExpressed": 59181,
+            "secondRoundExpressed": 57833,
+            "firstRoundVotesByBloc": {
+              "gauche": 34038,
+              "centre": 0,
+              "droite": 6473,
+              "extreme_droite": 18670
+            }
+          },
+          {
+            "code": "6405",
+            "firstRoundExpressed": 70109,
+            "secondRoundExpressed": 64828,
+            "firstRoundVotesByBloc": {
+              "gauche": 24687,
+              "centre": 18667,
+              "droite": 6776,
+              "extreme_droite": 19979
+            }
+          },
+          {
+            "code": "6502",
+            "firstRoundExpressed": 60709,
+            "secondRoundExpressed": 56740,
+            "firstRoundVotesByBloc": {
+              "gauche": 17747,
+              "centre": 15121,
+              "droite": 4670,
+              "extreme_droite": 23171
+            }
+          },
+          {
+            "code": "6604",
+            "firstRoundExpressed": 69231,
+            "secondRoundExpressed": 65440,
+            "firstRoundVotesByBloc": {
+              "gauche": 18538,
+              "centre": 11454,
+              "droite": 5120,
+              "extreme_droite": 34119
+            }
+          },
+          {
+            "code": "6913",
+            "firstRoundExpressed": 61671,
+            "secondRoundExpressed": 55666,
+            "firstRoundVotesByBloc": {
+              "gauche": 17500,
+              "centre": 14933,
+              "droite": 6211,
+              "extreme_droite": 23027
+            }
+          },
+          {
+            "code": "7104",
+            "firstRoundExpressed": 54743,
+            "secondRoundExpressed": 53555,
+            "firstRoundVotesByBloc": {
+              "gauche": 17518,
+              "centre": 0,
+              "droite": 12222,
+              "extreme_droite": 25003
+            }
+          },
+          {
+            "code": "7202",
+            "firstRoundExpressed": 51811,
+            "secondRoundExpressed": 50009,
+            "firstRoundVotesByBloc": {
+              "gauche": 21476,
+              "centre": 11962,
+              "droite": 91,
+              "extreme_droite": 18282
+            }
+          },
+          {
+            "code": "7603",
+            "firstRoundExpressed": 43173,
+            "secondRoundExpressed": 40862,
+            "firstRoundVotesByBloc": {
+              "gauche": 21705,
+              "centre": 5951,
+              "droite": 2757,
+              "extreme_droite": 12760
+            }
+          },
+          {
+            "code": "7605",
+            "firstRoundExpressed": 63789,
+            "secondRoundExpressed": 61902,
+            "firstRoundVotesByBloc": {
+              "gauche": 22244,
+              "centre": 14259,
+              "droite": 0,
+              "extreme_droite": 27286
+            }
+          },
+          {
+            "code": "7606",
+            "firstRoundExpressed": 71784,
+            "secondRoundExpressed": 70852,
+            "firstRoundVotesByBloc": {
+              "gauche": 25624,
+              "centre": 0,
+              "droite": 12916,
+              "extreme_droite": 33244
+            }
+          },
+          {
+            "code": "7608",
+            "firstRoundExpressed": 37849,
+            "secondRoundExpressed": 36525,
+            "firstRoundVotesByBloc": {
+              "gauche": 16709,
+              "centre": 8040,
+              "droite": 1245,
+              "extreme_droite": 11855
+            }
+          },
+          {
+            "code": "7709",
+            "firstRoundExpressed": 55727,
+            "secondRoundExpressed": 51684,
+            "firstRoundVotesByBloc": {
+              "gauche": 16947,
+              "centre": 12023,
+              "droite": 6354,
+              "extreme_droite": 20403
+            }
+          },
+          {
+            "code": "7808",
+            "firstRoundExpressed": 45452,
+            "secondRoundExpressed": 43749,
+            "firstRoundVotesByBloc": {
+              "gauche": 20942,
+              "centre": 9028,
+              "droite": 1398,
+              "extreme_droite": 14084
+            }
+          },
+          {
+            "code": "7809",
+            "firstRoundExpressed": 62493,
+            "secondRoundExpressed": 57519,
+            "firstRoundVotesByBloc": {
+              "gauche": 20901,
+              "centre": 13340,
+              "droite": 5899,
+              "extreme_droite": 22353
+            }
+          },
+          {
+            "code": "7902",
+            "firstRoundExpressed": 65945,
+            "secondRoundExpressed": 63856,
+            "firstRoundVotesByBloc": {
+              "gauche": 26042,
+              "centre": 10536,
+              "droite": 6107,
+              "extreme_droite": 23260
+            }
+          },
+          {
+            "code": "8201",
+            "firstRoundExpressed": 63220,
+            "secondRoundExpressed": 63207,
+            "firstRoundVotesByBloc": {
+              "gauche": 24449,
+              "centre": 10230,
+              "droite": 769,
+              "extreme_droite": 27772
+            }
+          },
+          {
+            "code": "8401",
+            "firstRoundExpressed": 45051,
+            "secondRoundExpressed": 41622,
+            "firstRoundVotesByBloc": {
+              "gauche": 19745,
+              "centre": 7264,
+              "droite": 1850,
+              "extreme_droite": 16192
+            }
+          },
+          {
+            "code": "8402",
+            "firstRoundExpressed": 58029,
+            "secondRoundExpressed": 54746,
+            "firstRoundVotesByBloc": {
+              "gauche": 15011,
+              "centre": 11260,
+              "droite": 4092,
+              "extreme_droite": 27666
+            }
+          },
+          {
+            "code": "8405",
+            "firstRoundExpressed": 56444,
+            "secondRoundExpressed": 53560,
+            "firstRoundVotesByBloc": {
+              "gauche": 15329,
+              "centre": 11454,
+              "droite": 3512,
+              "extreme_droite": 26149
+            }
+          },
+          {
+            "code": "8702",
+            "firstRoundExpressed": 69286,
+            "secondRoundExpressed": 65430,
+            "firstRoundVotesByBloc": {
+              "gauche": 26810,
+              "centre": 16937,
+              "droite": 0,
+              "extreme_droite": 25539
+            }
+          },
+          {
+            "code": "8901",
+            "firstRoundExpressed": 50707,
+            "secondRoundExpressed": 46196,
+            "firstRoundVotesByBloc": {
+              "gauche": 13505,
+              "centre": 8871,
+              "droite": 7303,
+              "extreme_droite": 21028
+            }
+          },
+          {
+            "code": "9103",
+            "firstRoundExpressed": 67526,
+            "secondRoundExpressed": 62360,
+            "firstRoundVotesByBloc": {
+              "gauche": 21587,
+              "centre": 20189,
+              "droite": 2535,
+              "extreme_droite": 23215
+            }
+          },
+          {
+            "code": "9106",
+            "firstRoundExpressed": 55983,
+            "secondRoundExpressed": 52506,
+            "firstRoundVotesByBloc": {
+              "gauche": 35139,
+              "centre": 0,
+              "droite": 8119,
+              "extreme_droite": 12725
+            }
+          },
+          {
+            "code": "9109",
+            "firstRoundExpressed": 51296,
+            "secondRoundExpressed": 47518,
+            "firstRoundVotesByBloc": {
+              "gauche": 20119,
+              "centre": 13908,
+              "droite": 1820,
+              "extreme_droite": 15449
+            }
+          },
+          {
+            "code": "9308",
+            "firstRoundExpressed": 38934,
+            "secondRoundExpressed": 35777,
+            "firstRoundVotesByBloc": {
+              "gauche": 19729,
+              "centre": 0,
+              "droite": 9194,
+              "extreme_droite": 10011
+            }
+          },
+          {
+            "code": "9312",
+            "firstRoundExpressed": 38937,
+            "secondRoundExpressed": 35570,
+            "firstRoundVotesByBloc": {
+              "gauche": 18342,
+              "centre": 4893,
+              "droite": 5016,
+              "extreme_droite": 10686
+            }
+          },
+          {
+            "code": "9502",
+            "firstRoundExpressed": 51453,
+            "secondRoundExpressed": 47623,
+            "firstRoundVotesByBloc": {
+              "gauche": 17677,
+              "centre": 13044,
+              "droite": 4653,
+              "extreme_droite": 16079
+            }
+          },
+          {
+            "code": "9503",
+            "firstRoundExpressed": 63827,
+            "secondRoundExpressed": 58349,
+            "firstRoundVotesByBloc": {
+              "gauche": 24507,
+              "centre": 15013,
+              "droite": 5862,
+              "extreme_droite": 18445
+            }
+          },
+          {
+            "code": "9507",
+            "firstRoundExpressed": 44271,
+            "secondRoundExpressed": 40801,
+            "firstRoundVotesByBloc": {
+              "gauche": 17375,
+              "centre": 10241,
+              "droite": 3891,
+              "extreme_droite": 12764
+            }
+          },
+          {
+            "code": "97102",
+            "firstRoundExpressed": 26380,
+            "secondRoundExpressed": 27358,
+            "firstRoundVotesByBloc": {
+              "gauche": 12682,
+              "centre": 698,
+              "droite": 8437,
+              "extreme_droite": 4563
+            }
+          },
+          {
+            "code": "97103",
+            "firstRoundExpressed": 29474,
+            "secondRoundExpressed": 31402,
+            "firstRoundVotesByBloc": {
+              "gauche": 18959,
+              "centre": 601,
+              "droite": 2088,
+              "extreme_droite": 7826
+            }
+          },
+          {
+            "code": "97401",
+            "firstRoundExpressed": 41482,
+            "secondRoundExpressed": 42144,
+            "firstRoundVotesByBloc": {
+              "gauche": 21762,
+              "centre": 0,
+              "droite": 6576,
+              "extreme_droite": 13144
+            }
+          }
+        ],
         "leftParty": {
           "0301": "PCF",
           "0401": "EELV",
@@ -416,207 +1973,2111 @@
       },
       "ensemble_rn": {
         "label": "RN contre un candidat du centre (ENS, HOR, DVC, UDI)",
-        "constituencies": [
-          "0102",
-          "0103",
-          "0104",
-          "0801",
-          "1201",
-          "1203",
-          "1308",
-          "1310",
-          "1403",
-          "1404",
-          "1405",
-          "1406",
-          "1602",
-          "1704",
-          "1705",
-          "1801",
-          "1803",
-          "2105",
-          "2202",
-          "2503",
-          "2701",
-          "2703",
-          "2705",
-          "2801",
-          "2803",
-          "2804",
-          "2903",
-          "2905",
-          "2908",
-          "2A01",
-          "3105",
-          "3201",
-          "3308",
-          "3309",
-          "3310",
-          "3505",
-          "3506",
-          "3601",
-          "3702",
-          "3703",
-          "3705",
-          "3901",
-          "4001",
-          "4002",
-          "4101",
-          "4103",
-          "4203",
-          "4407",
-          "4501",
-          "4505",
-          "4506",
-          "4701",
-          "4904",
-          "4906",
-          "5002",
-          "5003",
-          "5101",
-          "5102",
-          "5103",
-          "5104",
-          "5105",
-          "5201",
-          "5302",
-          "5303",
-          "5601",
-          "5602",
-          "5603",
-          "5606",
-          "5701",
-          "5702",
-          "5703",
-          "5709",
-          "5801",
-          "5906",
-          "5910",
-          "5921",
-          "6004",
-          "6006",
-          "6202",
-          "6204",
-          "6209",
-          "6304",
-          "6401",
-          "6402",
-          "6704",
-          "6705",
-          "6706",
-          "6708",
-          "6709",
-          "6801",
-          "6802",
-          "6803",
-          "6805",
-          "6806",
-          "6910",
-          "6911",
-          "7001",
-          "7101",
-          "7103",
-          "7201",
-          "7203",
-          "7205",
-          "7301",
-          "7401",
-          "7402",
-          "7405",
-          "7406",
-          "7514",
-          "7602",
-          "7607",
-          "7609",
-          "7610",
-          "7702",
-          "7705",
-          "7802",
-          "7803",
-          "7903",
-          "8004",
-          "8101",
-          "8103",
-          "8301",
-          "8303",
-          "8307",
-          "8501",
-          "8502",
-          "8503",
-          "8505",
-          "8603",
-          "8604",
-          "8802",
-          "8902",
-          "9104"
+        "finalistBlocs": [
+          "centre",
+          "extreme_droite"
         ],
-        "firstRoundExpressed": 7983096,
-        "secondRoundExpressed": 7794117
+        "constituencies": [
+          {
+            "code": "0102",
+            "firstRoundExpressed": 71918,
+            "secondRoundExpressed": 70739,
+            "firstRoundVotesByBloc": {
+              "gauche": 17715,
+              "centre": 17414,
+              "droite": 6737,
+              "extreme_droite": 30052
+            }
+          },
+          {
+            "code": "0103",
+            "firstRoundExpressed": 53720,
+            "secondRoundExpressed": 52317,
+            "firstRoundVotesByBloc": {
+              "gauche": 13952,
+              "centre": 17420,
+              "droite": 4327,
+              "extreme_droite": 18021
+            }
+          },
+          {
+            "code": "0104",
+            "firstRoundExpressed": 65687,
+            "secondRoundExpressed": 64623,
+            "firstRoundVotesByBloc": {
+              "gauche": 13818,
+              "centre": 14367,
+              "droite": 7281,
+              "extreme_droite": 30221
+            }
+          },
+          {
+            "code": "0801",
+            "firstRoundExpressed": 46480,
+            "secondRoundExpressed": 45642,
+            "firstRoundVotesByBloc": {
+              "gauche": 9469,
+              "centre": 12157,
+              "droite": 2780,
+              "extreme_droite": 22074
+            }
+          },
+          {
+            "code": "1201",
+            "firstRoundExpressed": 55866,
+            "secondRoundExpressed": 53254,
+            "firstRoundVotesByBloc": {
+              "gauche": 13120,
+              "centre": 24349,
+              "droite": 811,
+              "extreme_droite": 17586
+            }
+          },
+          {
+            "code": "1203",
+            "firstRoundExpressed": 50891,
+            "secondRoundExpressed": 49257,
+            "firstRoundVotesByBloc": {
+              "gauche": 16333,
+              "centre": 16514,
+              "droite": 0,
+              "extreme_droite": 18044
+            }
+          },
+          {
+            "code": "1308",
+            "firstRoundExpressed": 69434,
+            "secondRoundExpressed": 68209,
+            "firstRoundVotesByBloc": {
+              "gauche": 16162,
+              "centre": 18563,
+              "droite": 3105,
+              "extreme_droite": 31604
+            }
+          },
+          {
+            "code": "1310",
+            "firstRoundExpressed": 77149,
+            "secondRoundExpressed": 74332,
+            "firstRoundVotesByBloc": {
+              "gauche": 18977,
+              "centre": 16619,
+              "droite": 2850,
+              "extreme_droite": 38703
+            }
+          },
+          {
+            "code": "1403",
+            "firstRoundExpressed": 52502,
+            "secondRoundExpressed": 52107,
+            "firstRoundVotesByBloc": {
+              "gauche": 10691,
+              "centre": 19144,
+              "droite": 12,
+              "extreme_droite": 22655
+            }
+          },
+          {
+            "code": "1404",
+            "firstRoundExpressed": 72013,
+            "secondRoundExpressed": 70503,
+            "firstRoundVotesByBloc": {
+              "gauche": 14689,
+              "centre": 23622,
+              "droite": 7847,
+              "extreme_droite": 25855
+            }
+          },
+          {
+            "code": "1405",
+            "firstRoundExpressed": 65913,
+            "secondRoundExpressed": 63894,
+            "firstRoundVotesByBloc": {
+              "gauche": 16612,
+              "centre": 16208,
+              "droite": 10655,
+              "extreme_droite": 22438
+            }
+          },
+          {
+            "code": "1406",
+            "firstRoundExpressed": 66402,
+            "secondRoundExpressed": 63813,
+            "firstRoundVotesByBloc": {
+              "gauche": 16254,
+              "centre": 24293,
+              "droite": 0,
+              "extreme_droite": 25855
+            }
+          },
+          {
+            "code": "1602",
+            "firstRoundExpressed": 55105,
+            "secondRoundExpressed": 54003,
+            "firstRoundVotesByBloc": {
+              "gauche": 12497,
+              "centre": 15091,
+              "droite": 4829,
+              "extreme_droite": 22686
+            }
+          },
+          {
+            "code": "1704",
+            "firstRoundExpressed": 63065,
+            "secondRoundExpressed": 61803,
+            "firstRoundVotesByBloc": {
+              "gauche": 11679,
+              "centre": 17625,
+              "droite": 5251,
+              "extreme_droite": 28510
+            }
+          },
+          {
+            "code": "1705",
+            "firstRoundExpressed": 82815,
+            "secondRoundExpressed": 81984,
+            "firstRoundVotesByBloc": {
+              "gauche": 19395,
+              "centre": 27124,
+              "droite": 0,
+              "extreme_droite": 36296
+            }
+          },
+          {
+            "code": "1801",
+            "firstRoundExpressed": 45322,
+            "secondRoundExpressed": 45047,
+            "firstRoundVotesByBloc": {
+              "gauche": 12112,
+              "centre": 14961,
+              "droite": 149,
+              "extreme_droite": 18100
+            }
+          },
+          {
+            "code": "1803",
+            "firstRoundExpressed": 54461,
+            "secondRoundExpressed": 54180,
+            "firstRoundVotesByBloc": {
+              "gauche": 9902,
+              "centre": 16991,
+              "droite": 3178,
+              "extreme_droite": 24390
+            }
+          },
+          {
+            "code": "2105",
+            "firstRoundExpressed": 58520,
+            "secondRoundExpressed": 57310,
+            "firstRoundVotesByBloc": {
+              "gauche": 12114,
+              "centre": 18361,
+              "droite": 1531,
+              "extreme_droite": 26514
+            }
+          },
+          {
+            "code": "2202",
+            "firstRoundExpressed": 76563,
+            "secondRoundExpressed": 74054,
+            "firstRoundVotesByBloc": {
+              "gauche": 20321,
+              "centre": 25730,
+              "droite": 6805,
+              "extreme_droite": 23707
+            }
+          },
+          {
+            "code": "2503",
+            "firstRoundExpressed": 42381,
+            "secondRoundExpressed": 42444,
+            "firstRoundVotesByBloc": {
+              "gauche": 9891,
+              "centre": 12806,
+              "droite": 0,
+              "extreme_droite": 19684
+            }
+          },
+          {
+            "code": "2701",
+            "firstRoundExpressed": 55556,
+            "secondRoundExpressed": 54875,
+            "firstRoundVotesByBloc": {
+              "gauche": 13000,
+              "centre": 15837,
+              "droite": 0,
+              "extreme_droite": 26719
+            }
+          },
+          {
+            "code": "2703",
+            "firstRoundExpressed": 57310,
+            "secondRoundExpressed": 55308,
+            "firstRoundVotesByBloc": {
+              "gauche": 10110,
+              "centre": 18497,
+              "droite": 0,
+              "extreme_droite": 28703
+            }
+          },
+          {
+            "code": "2705",
+            "firstRoundExpressed": 58776,
+            "secondRoundExpressed": 57371,
+            "firstRoundVotesByBloc": {
+              "gauche": 13177,
+              "centre": 14333,
+              "droite": 4663,
+              "extreme_droite": 26603
+            }
+          },
+          {
+            "code": "2801",
+            "firstRoundExpressed": 61131,
+            "secondRoundExpressed": 59157,
+            "firstRoundVotesByBloc": {
+              "gauche": 15364,
+              "centre": 20105,
+              "droite": 4388,
+              "extreme_droite": 21274
+            }
+          },
+          {
+            "code": "2803",
+            "firstRoundExpressed": 45223,
+            "secondRoundExpressed": 45293,
+            "firstRoundVotesByBloc": {
+              "gauche": 3107,
+              "centre": 16439,
+              "droite": 5748,
+              "extreme_droite": 19929
+            }
+          },
+          {
+            "code": "2804",
+            "firstRoundExpressed": 43698,
+            "secondRoundExpressed": 43567,
+            "firstRoundVotesByBloc": {
+              "gauche": 6791,
+              "centre": 17236,
+              "droite": 0,
+              "extreme_droite": 19671
+            }
+          },
+          {
+            "code": "2903",
+            "firstRoundExpressed": 67160,
+            "secondRoundExpressed": 64297,
+            "firstRoundVotesByBloc": {
+              "gauche": 18816,
+              "centre": 26139,
+              "droite": 2101,
+              "extreme_droite": 20104
+            }
+          },
+          {
+            "code": "2905",
+            "firstRoundExpressed": 71168,
+            "secondRoundExpressed": 67974,
+            "firstRoundVotesByBloc": {
+              "gauche": 19924,
+              "centre": 21969,
+              "droite": 9750,
+              "extreme_droite": 19525
+            }
+          },
+          {
+            "code": "2908",
+            "firstRoundExpressed": 64942,
+            "secondRoundExpressed": 62086,
+            "firstRoundVotesByBloc": {
+              "gauche": 26908,
+              "centre": 18031,
+              "droite": 0,
+              "extreme_droite": 20003
+            }
+          },
+          {
+            "code": "2A01",
+            "firstRoundExpressed": 33259,
+            "secondRoundExpressed": 33057,
+            "firstRoundVotesByBloc": {
+              "gauche": 3258,
+              "centre": 10210,
+              "droite": 9414,
+              "extreme_droite": 10377
+            }
+          },
+          {
+            "code": "3105",
+            "firstRoundExpressed": 75653,
+            "secondRoundExpressed": 73871,
+            "firstRoundVotesByBloc": {
+              "gauche": 21925,
+              "centre": 22267,
+              "droite": 121,
+              "extreme_droite": 31340
+            }
+          },
+          {
+            "code": "3201",
+            "firstRoundExpressed": 52009,
+            "secondRoundExpressed": 49905,
+            "firstRoundVotesByBloc": {
+              "gauche": 15800,
+              "centre": 16072,
+              "droite": 975,
+              "extreme_droite": 19162
+            }
+          },
+          {
+            "code": "3308",
+            "firstRoundExpressed": 84776,
+            "secondRoundExpressed": 82893,
+            "firstRoundVotesByBloc": {
+              "gauche": 16747,
+              "centre": 26881,
+              "droite": 8810,
+              "extreme_droite": 32338
+            }
+          },
+          {
+            "code": "3309",
+            "firstRoundExpressed": 72301,
+            "secondRoundExpressed": 70527,
+            "firstRoundVotesByBloc": {
+              "gauche": 21531,
+              "centre": 21714,
+              "droite": 0,
+              "extreme_droite": 29056
+            }
+          },
+          {
+            "code": "3310",
+            "firstRoundExpressed": 57167,
+            "secondRoundExpressed": 55515,
+            "firstRoundVotesByBloc": {
+              "gauche": 15002,
+              "centre": 17128,
+              "droite": 0,
+              "extreme_droite": 25037
+            }
+          },
+          {
+            "code": "3505",
+            "firstRoundExpressed": 78138,
+            "secondRoundExpressed": 74224,
+            "firstRoundVotesByBloc": {
+              "gauche": 21693,
+              "centre": 33147,
+              "droite": 0,
+              "extreme_droite": 23298
+            }
+          },
+          {
+            "code": "3506",
+            "firstRoundExpressed": 64509,
+            "secondRoundExpressed": 61639,
+            "firstRoundVotesByBloc": {
+              "gauche": 17179,
+              "centre": 27370,
+              "droite": 0,
+              "extreme_droite": 19960
+            }
+          },
+          {
+            "code": "3601",
+            "firstRoundExpressed": 49141,
+            "secondRoundExpressed": 48749,
+            "firstRoundVotesByBloc": {
+              "gauche": 11414,
+              "centre": 17256,
+              "droite": 0,
+              "extreme_droite": 20471
+            }
+          },
+          {
+            "code": "3702",
+            "firstRoundExpressed": 63837,
+            "secondRoundExpressed": 62249,
+            "firstRoundVotesByBloc": {
+              "gauche": 15829,
+              "centre": 20801,
+              "droite": 4123,
+              "extreme_droite": 23084
+            }
+          },
+          {
+            "code": "3703",
+            "firstRoundExpressed": 67453,
+            "secondRoundExpressed": 65924,
+            "firstRoundVotesByBloc": {
+              "gauche": 18300,
+              "centre": 22174,
+              "droite": 4252,
+              "extreme_droite": 22727
+            }
+          },
+          {
+            "code": "3705",
+            "firstRoundExpressed": 59914,
+            "secondRoundExpressed": 58610,
+            "firstRoundVotesByBloc": {
+              "gauche": 15157,
+              "centre": 16025,
+              "droite": 6805,
+              "extreme_droite": 21927
+            }
+          },
+          {
+            "code": "3901",
+            "firstRoundExpressed": 44886,
+            "secondRoundExpressed": 44147,
+            "firstRoundVotesByBloc": {
+              "gauche": 11138,
+              "centre": 16231,
+              "droite": 0,
+              "extreme_droite": 17517
+            }
+          },
+          {
+            "code": "4001",
+            "firstRoundExpressed": 75576,
+            "secondRoundExpressed": 73504,
+            "firstRoundVotesByBloc": {
+              "gauche": 21318,
+              "centre": 22077,
+              "droite": 3343,
+              "extreme_droite": 28838
+            }
+          },
+          {
+            "code": "4002",
+            "firstRoundExpressed": 86700,
+            "secondRoundExpressed": 84231,
+            "firstRoundVotesByBloc": {
+              "gauche": 25484,
+              "centre": 26051,
+              "droite": 5983,
+              "extreme_droite": 29182
+            }
+          },
+          {
+            "code": "4101",
+            "firstRoundExpressed": 54153,
+            "secondRoundExpressed": 53717,
+            "firstRoundVotesByBloc": {
+              "gauche": 10139,
+              "centre": 21578,
+              "droite": 3362,
+              "extreme_droite": 19074
+            }
+          },
+          {
+            "code": "4103",
+            "firstRoundExpressed": 55225,
+            "secondRoundExpressed": 54932,
+            "firstRoundVotesByBloc": {
+              "gauche": 11781,
+              "centre": 20014,
+              "droite": 0,
+              "extreme_droite": 23430
+            }
+          },
+          {
+            "code": "4203",
+            "firstRoundExpressed": 55791,
+            "secondRoundExpressed": 55238,
+            "firstRoundVotesByBloc": {
+              "gauche": 16735,
+              "centre": 16243,
+              "droite": 0,
+              "extreme_droite": 22813
+            }
+          },
+          {
+            "code": "4407",
+            "firstRoundExpressed": 82439,
+            "secondRoundExpressed": 80956,
+            "firstRoundVotesByBloc": {
+              "gauche": 21109,
+              "centre": 23489,
+              "droite": 11610,
+              "extreme_droite": 26231
+            }
+          },
+          {
+            "code": "4501",
+            "firstRoundExpressed": 53079,
+            "secondRoundExpressed": 51576,
+            "firstRoundVotesByBloc": {
+              "gauche": 17145,
+              "centre": 20395,
+              "droite": 0,
+              "extreme_droite": 15539
+            }
+          },
+          {
+            "code": "4505",
+            "firstRoundExpressed": 48177,
+            "secondRoundExpressed": 47334,
+            "firstRoundVotesByBloc": {
+              "gauche": 9953,
+              "centre": 10604,
+              "droite": 6076,
+              "extreme_droite": 21544
+            }
+          },
+          {
+            "code": "4506",
+            "firstRoundExpressed": 51090,
+            "secondRoundExpressed": 50129,
+            "firstRoundVotesByBloc": {
+              "gauche": 15704,
+              "centre": 15635,
+              "droite": 2239,
+              "extreme_droite": 17512
+            }
+          },
+          {
+            "code": "4701",
+            "firstRoundExpressed": 60389,
+            "secondRoundExpressed": 59160,
+            "firstRoundVotesByBloc": {
+              "gauche": 16179,
+              "centre": 17155,
+              "droite": 1021,
+              "extreme_droite": 26034
+            }
+          },
+          {
+            "code": "4904",
+            "firstRoundExpressed": 51621,
+            "secondRoundExpressed": 50765,
+            "firstRoundVotesByBloc": {
+              "gauche": 11382,
+              "centre": 18001,
+              "droite": 3455,
+              "extreme_droite": 18783
+            }
+          },
+          {
+            "code": "4906",
+            "firstRoundExpressed": 67389,
+            "secondRoundExpressed": 65180,
+            "firstRoundVotesByBloc": {
+              "gauche": 17806,
+              "centre": 23776,
+              "droite": 5142,
+              "extreme_droite": 20665
+            }
+          },
+          {
+            "code": "5002",
+            "firstRoundExpressed": 66541,
+            "secondRoundExpressed": 64342,
+            "firstRoundVotesByBloc": {
+              "gauche": 12340,
+              "centre": 26555,
+              "droite": 5739,
+              "extreme_droite": 21907
+            }
+          },
+          {
+            "code": "5003",
+            "firstRoundExpressed": 75904,
+            "secondRoundExpressed": 74629,
+            "firstRoundVotesByBloc": {
+              "gauche": 16209,
+              "centre": 25232,
+              "droite": 6951,
+              "extreme_droite": 27512
+            }
+          },
+          {
+            "code": "5101",
+            "firstRoundExpressed": 47446,
+            "secondRoundExpressed": 45584,
+            "firstRoundVotesByBloc": {
+              "gauche": 13691,
+              "centre": 16058,
+              "droite": 17697,
+              "extreme_droite": 0
+            }
+          },
+          {
+            "code": "5102",
+            "firstRoundExpressed": 48553,
+            "secondRoundExpressed": 47370,
+            "firstRoundVotesByBloc": {
+              "gauche": 12281,
+              "centre": 14756,
+              "droite": 3425,
+              "extreme_droite": 18091
+            }
+          },
+          {
+            "code": "5103",
+            "firstRoundExpressed": 49936,
+            "secondRoundExpressed": 49643,
+            "firstRoundVotesByBloc": {
+              "gauche": 10166,
+              "centre": 15942,
+              "droite": 0,
+              "extreme_droite": 23828
+            }
+          },
+          {
+            "code": "5104",
+            "firstRoundExpressed": 49208,
+            "secondRoundExpressed": 48928,
+            "firstRoundVotesByBloc": {
+              "gauche": 9535,
+              "centre": 15245,
+              "droite": 3383,
+              "extreme_droite": 21045
+            }
+          },
+          {
+            "code": "5105",
+            "firstRoundExpressed": 50981,
+            "secondRoundExpressed": 52340,
+            "firstRoundVotesByBloc": {
+              "gauche": 5276,
+              "centre": 21751,
+              "droite": 0,
+              "extreme_droite": 23954
+            }
+          },
+          {
+            "code": "5201",
+            "firstRoundExpressed": 44672,
+            "secondRoundExpressed": 44107,
+            "firstRoundVotesByBloc": {
+              "gauche": 9973,
+              "centre": 12529,
+              "droite": 355,
+              "extreme_droite": 21815
+            }
+          },
+          {
+            "code": "5302",
+            "firstRoundExpressed": 53301,
+            "secondRoundExpressed": 51984,
+            "firstRoundVotesByBloc": {
+              "gauche": 12525,
+              "centre": 18746,
+              "droite": 5086,
+              "extreme_droite": 16944
+            }
+          },
+          {
+            "code": "5303",
+            "firstRoundExpressed": 47848,
+            "secondRoundExpressed": 45540,
+            "firstRoundVotesByBloc": {
+              "gauche": 9670,
+              "centre": 23294,
+              "droite": 0,
+              "extreme_droite": 14884
+            }
+          },
+          {
+            "code": "5601",
+            "firstRoundExpressed": 84561,
+            "secondRoundExpressed": 80401,
+            "firstRoundVotesByBloc": {
+              "gauche": 26214,
+              "centre": 35627,
+              "droite": 1266,
+              "extreme_droite": 21454
+            }
+          },
+          {
+            "code": "5602",
+            "firstRoundExpressed": 82978,
+            "secondRoundExpressed": 79679,
+            "firstRoundVotesByBloc": {
+              "gauche": 22304,
+              "centre": 26667,
+              "droite": 9087,
+              "extreme_droite": 24920
+            }
+          },
+          {
+            "code": "5603",
+            "firstRoundExpressed": 68573,
+            "secondRoundExpressed": 65630,
+            "firstRoundVotesByBloc": {
+              "gauche": 15630,
+              "centre": 18222,
+              "droite": 9418,
+              "extreme_droite": 25303
+            }
+          },
+          {
+            "code": "5606",
+            "firstRoundExpressed": 65525,
+            "secondRoundExpressed": 63329,
+            "firstRoundVotesByBloc": {
+              "gauche": 16774,
+              "centre": 21675,
+              "droite": 3513,
+              "extreme_droite": 23563
+            }
+          },
+          {
+            "code": "5701",
+            "firstRoundExpressed": 56689,
+            "secondRoundExpressed": 56587,
+            "firstRoundVotesByBloc": {
+              "gauche": 15740,
+              "centre": 15640,
+              "droite": 1712,
+              "extreme_droite": 23597
+            }
+          },
+          {
+            "code": "5702",
+            "firstRoundExpressed": 48963,
+            "secondRoundExpressed": 48355,
+            "firstRoundVotesByBloc": {
+              "gauche": 13489,
+              "centre": 14795,
+              "droite": 2327,
+              "extreme_droite": 18352
+            }
+          },
+          {
+            "code": "5703",
+            "firstRoundExpressed": 47986,
+            "secondRoundExpressed": 48004,
+            "firstRoundVotesByBloc": {
+              "gauche": 14407,
+              "centre": 16631,
+              "droite": 0,
+              "extreme_droite": 16948
+            }
+          },
+          {
+            "code": "5709",
+            "firstRoundExpressed": 63949,
+            "secondRoundExpressed": 63770,
+            "firstRoundVotesByBloc": {
+              "gauche": 15412,
+              "centre": 22460,
+              "droite": 413,
+              "extreme_droite": 25664
+            }
+          },
+          {
+            "code": "5801",
+            "firstRoundExpressed": 46238,
+            "secondRoundExpressed": 45883,
+            "firstRoundVotesByBloc": {
+              "gauche": 10665,
+              "centre": 13593,
+              "droite": 2482,
+              "extreme_droite": 19498
+            }
+          },
+          {
+            "code": "5906",
+            "firstRoundExpressed": 67807,
+            "secondRoundExpressed": 65445,
+            "firstRoundVotesByBloc": {
+              "gauche": 13930,
+              "centre": 25831,
+              "droite": 4265,
+              "extreme_droite": 23781
+            }
+          },
+          {
+            "code": "5910",
+            "firstRoundExpressed": 48601,
+            "secondRoundExpressed": 46604,
+            "firstRoundVotesByBloc": {
+              "gauche": 12600,
+              "centre": 17512,
+              "droite": 1565,
+              "extreme_droite": 16924
+            }
+          },
+          {
+            "code": "5921",
+            "firstRoundExpressed": 48922,
+            "secondRoundExpressed": 47459,
+            "firstRoundVotesByBloc": {
+              "gauche": 12016,
+              "centre": 14280,
+              "droite": 709,
+              "extreme_droite": 21917
+            }
+          },
+          {
+            "code": "6004",
+            "firstRoundExpressed": 62378,
+            "secondRoundExpressed": 60200,
+            "firstRoundVotesByBloc": {
+              "gauche": 11488,
+              "centre": 20803,
+              "droite": 3942,
+              "extreme_droite": 26145
+            }
+          },
+          {
+            "code": "6006",
+            "firstRoundExpressed": 48879,
+            "secondRoundExpressed": 47783,
+            "firstRoundVotesByBloc": {
+              "gauche": 10647,
+              "centre": 11207,
+              "droite": 2766,
+              "extreme_droite": 24259
+            }
+          },
+          {
+            "code": "6202",
+            "firstRoundExpressed": 59603,
+            "secondRoundExpressed": 56670,
+            "firstRoundVotesByBloc": {
+              "gauche": 13346,
+              "centre": 21141,
+              "droite": 2180,
+              "extreme_droite": 22936
+            }
+          },
+          {
+            "code": "6204",
+            "firstRoundExpressed": 59718,
+            "secondRoundExpressed": 59465,
+            "firstRoundVotesByBloc": {
+              "gauche": 9236,
+              "centre": 19244,
+              "droite": 5507,
+              "extreme_droite": 25731
+            }
+          },
+          {
+            "code": "6209",
+            "firstRoundExpressed": 52558,
+            "secondRoundExpressed": 49992,
+            "firstRoundVotesByBloc": {
+              "gauche": 9505,
+              "centre": 17379,
+              "droite": 0,
+              "extreme_droite": 25674
+            }
+          },
+          {
+            "code": "6304",
+            "firstRoundExpressed": 70483,
+            "secondRoundExpressed": 68043,
+            "firstRoundVotesByBloc": {
+              "gauche": 19906,
+              "centre": 19299,
+              "droite": 8419,
+              "extreme_droite": 22859
+            }
+          },
+          {
+            "code": "6401",
+            "firstRoundExpressed": 48244,
+            "secondRoundExpressed": 46397,
+            "firstRoundVotesByBloc": {
+              "gauche": 17511,
+              "centre": 12939,
+              "droite": 4304,
+              "extreme_droite": 13490
+            }
+          },
+          {
+            "code": "6402",
+            "firstRoundExpressed": 60718,
+            "secondRoundExpressed": 58589,
+            "firstRoundVotesByBloc": {
+              "gauche": 18110,
+              "centre": 17972,
+              "droite": 5726,
+              "extreme_droite": 18910
+            }
+          },
+          {
+            "code": "6704",
+            "firstRoundExpressed": 68325,
+            "secondRoundExpressed": 67759,
+            "firstRoundVotesByBloc": {
+              "gauche": 14641,
+              "centre": 22107,
+              "droite": 8307,
+              "extreme_droite": 23270
+            }
+          },
+          {
+            "code": "6705",
+            "firstRoundExpressed": 71159,
+            "secondRoundExpressed": 70902,
+            "firstRoundVotesByBloc": {
+              "gauche": 13292,
+              "centre": 22993,
+              "droite": 6210,
+              "extreme_droite": 28664
+            }
+          },
+          {
+            "code": "6706",
+            "firstRoundExpressed": 65657,
+            "secondRoundExpressed": 65228,
+            "firstRoundVotesByBloc": {
+              "gauche": 10438,
+              "centre": 18228,
+              "droite": 10588,
+              "extreme_droite": 26403
+            }
+          },
+          {
+            "code": "6708",
+            "firstRoundExpressed": 59584,
+            "secondRoundExpressed": 60299,
+            "firstRoundVotesByBloc": {
+              "gauche": 6477,
+              "centre": 14006,
+              "droite": 11549,
+              "extreme_droite": 27552
+            }
+          },
+          {
+            "code": "6709",
+            "firstRoundExpressed": 62264,
+            "secondRoundExpressed": 62976,
+            "firstRoundVotesByBloc": {
+              "gauche": 10086,
+              "centre": 18206,
+              "droite": 8095,
+              "extreme_droite": 25877
+            }
+          },
+          {
+            "code": "6801",
+            "firstRoundExpressed": 49165,
+            "secondRoundExpressed": 48760,
+            "firstRoundVotesByBloc": {
+              "gauche": 9068,
+              "centre": 14945,
+              "droite": 7554,
+              "extreme_droite": 17598
+            }
+          },
+          {
+            "code": "6802",
+            "firstRoundExpressed": 60959,
+            "secondRoundExpressed": 60370,
+            "firstRoundVotesByBloc": {
+              "gauche": 9671,
+              "centre": 19785,
+              "droite": 8298,
+              "extreme_droite": 23205
+            }
+          },
+          {
+            "code": "6803",
+            "firstRoundExpressed": 56074,
+            "secondRoundExpressed": 55911,
+            "firstRoundVotesByBloc": {
+              "gauche": 9701,
+              "centre": 13980,
+              "droite": 9371,
+              "extreme_droite": 23022
+            }
+          },
+          {
+            "code": "6805",
+            "firstRoundExpressed": 47680,
+            "secondRoundExpressed": 47415,
+            "firstRoundVotesByBloc": {
+              "gauche": 13938,
+              "centre": 17749,
+              "droite": 1353,
+              "extreme_droite": 14640
+            }
+          },
+          {
+            "code": "6806",
+            "firstRoundExpressed": 58490,
+            "secondRoundExpressed": 59095,
+            "firstRoundVotesByBloc": {
+              "gauche": 14224,
+              "centre": 17660,
+              "droite": 1983,
+              "extreme_droite": 24623
+            }
+          },
+          {
+            "code": "6910",
+            "firstRoundExpressed": 73642,
+            "secondRoundExpressed": 71661,
+            "firstRoundVotesByBloc": {
+              "gauche": 17963,
+              "centre": 23964,
+              "droite": 7985,
+              "extreme_droite": 23730
+            }
+          },
+          {
+            "code": "6911",
+            "firstRoundExpressed": 68932,
+            "secondRoundExpressed": 67283,
+            "firstRoundVotesByBloc": {
+              "gauche": 18289,
+              "centre": 18564,
+              "droite": 6708,
+              "extreme_droite": 25371
+            }
+          },
+          {
+            "code": "7001",
+            "firstRoundExpressed": 60337,
+            "secondRoundExpressed": 59856,
+            "firstRoundVotesByBloc": {
+              "gauche": 11178,
+              "centre": 18093,
+              "droite": 906,
+              "extreme_droite": 30160
+            }
+          },
+          {
+            "code": "7101",
+            "firstRoundExpressed": 50798,
+            "secondRoundExpressed": 49781,
+            "firstRoundVotesByBloc": {
+              "gauche": 14446,
+              "centre": 15546,
+              "droite": 2368,
+              "extreme_droite": 18438
+            }
+          },
+          {
+            "code": "7103",
+            "firstRoundExpressed": 54201,
+            "secondRoundExpressed": 52981,
+            "firstRoundVotesByBloc": {
+              "gauche": 11105,
+              "centre": 13606,
+              "droite": 5577,
+              "extreme_droite": 23913
+            }
+          },
+          {
+            "code": "7201",
+            "firstRoundExpressed": 49003,
+            "secondRoundExpressed": 47696,
+            "firstRoundVotesByBloc": {
+              "gauche": 12968,
+              "centre": 15111,
+              "droite": 4459,
+              "extreme_droite": 16465
+            }
+          },
+          {
+            "code": "7203",
+            "firstRoundExpressed": 55558,
+            "secondRoundExpressed": 55191,
+            "firstRoundVotesByBloc": {
+              "gauche": 11204,
+              "centre": 16209,
+              "droite": 2819,
+              "extreme_droite": 25326
+            }
+          },
+          {
+            "code": "7205",
+            "firstRoundExpressed": 57213,
+            "secondRoundExpressed": 56108,
+            "firstRoundVotesByBloc": {
+              "gauche": 16160,
+              "centre": 17898,
+              "droite": 0,
+              "extreme_droite": 23155
+            }
+          },
+          {
+            "code": "7301",
+            "firstRoundExpressed": 66349,
+            "secondRoundExpressed": 64814,
+            "firstRoundVotesByBloc": {
+              "gauche": 17955,
+              "centre": 23381,
+              "droite": 0,
+              "extreme_droite": 25013
+            }
+          },
+          {
+            "code": "7401",
+            "firstRoundExpressed": 78796,
+            "secondRoundExpressed": 76547,
+            "firstRoundVotesByBloc": {
+              "gauche": 18655,
+              "centre": 28079,
+              "droite": 6625,
+              "extreme_droite": 25437
+            }
+          },
+          {
+            "code": "7402",
+            "firstRoundExpressed": 71476,
+            "secondRoundExpressed": 68553,
+            "firstRoundVotesByBloc": {
+              "gauche": 19765,
+              "centre": 23783,
+              "droite": 6473,
+              "extreme_droite": 21455
+            }
+          },
+          {
+            "code": "7405",
+            "firstRoundExpressed": 67973,
+            "secondRoundExpressed": 66968,
+            "firstRoundVotesByBloc": {
+              "gauche": 16469,
+              "centre": 21124,
+              "droite": 7595,
+              "extreme_droite": 22785
+            }
+          },
+          {
+            "code": "7406",
+            "firstRoundExpressed": 54232,
+            "secondRoundExpressed": 53550,
+            "firstRoundVotesByBloc": {
+              "gauche": 12653,
+              "centre": 18805,
+              "droite": 3135,
+              "extreme_droite": 19639
+            }
+          },
+          {
+            "code": "7514",
+            "firstRoundExpressed": 55235,
+            "secondRoundExpressed": 48004,
+            "firstRoundVotesByBloc": {
+              "gauche": 7816,
+              "centre": 26765,
+              "droite": 9775,
+              "extreme_droite": 10879
+            }
+          },
+          {
+            "code": "7602",
+            "firstRoundExpressed": 68499,
+            "secondRoundExpressed": 66348,
+            "firstRoundVotesByBloc": {
+              "gauche": 17630,
+              "centre": 18996,
+              "droite": 7429,
+              "extreme_droite": 24444
+            }
+          },
+          {
+            "code": "7607",
+            "firstRoundExpressed": 56651,
+            "secondRoundExpressed": 54473,
+            "firstRoundVotesByBloc": {
+              "gauche": 18113,
+              "centre": 19734,
+              "droite": 1489,
+              "extreme_droite": 17315
+            }
+          },
+          {
+            "code": "7609",
+            "firstRoundExpressed": 63998,
+            "secondRoundExpressed": 62670,
+            "firstRoundVotesByBloc": {
+              "gauche": 12968,
+              "centre": 20920,
+              "droite": 0,
+              "extreme_droite": 30110
+            }
+          },
+          {
+            "code": "7610",
+            "firstRoundExpressed": 76018,
+            "secondRoundExpressed": 74721,
+            "firstRoundVotesByBloc": {
+              "gauche": 14287,
+              "centre": 19420,
+              "droite": 6089,
+              "extreme_droite": 36222
+            }
+          },
+          {
+            "code": "7702",
+            "firstRoundExpressed": 53872,
+            "secondRoundExpressed": 52497,
+            "firstRoundVotesByBloc": {
+              "gauche": 15663,
+              "centre": 18171,
+              "droite": 152,
+              "extreme_droite": 19886
+            }
+          },
+          {
+            "code": "7705",
+            "firstRoundExpressed": 57029,
+            "secondRoundExpressed": 55213,
+            "firstRoundVotesByBloc": {
+              "gauche": 14996,
+              "centre": 17923,
+              "droite": 288,
+              "extreme_droite": 23822
+            }
+          },
+          {
+            "code": "7802",
+            "firstRoundExpressed": 64265,
+            "secondRoundExpressed": 59990,
+            "firstRoundVotesByBloc": {
+              "gauche": 17379,
+              "centre": 22500,
+              "droite": 9480,
+              "extreme_droite": 14906
+            }
+          },
+          {
+            "code": "7803",
+            "firstRoundExpressed": 60221,
+            "secondRoundExpressed": 56472,
+            "firstRoundVotesByBloc": {
+              "gauche": 14519,
+              "centre": 20768,
+              "droite": 10211,
+              "extreme_droite": 14723
+            }
+          },
+          {
+            "code": "7903",
+            "firstRoundExpressed": 55584,
+            "secondRoundExpressed": 54757,
+            "firstRoundVotesByBloc": {
+              "gauche": 11198,
+              "centre": 17310,
+              "droite": 7491,
+              "extreme_droite": 19585
+            }
+          },
+          {
+            "code": "8004",
+            "firstRoundExpressed": 57558,
+            "secondRoundExpressed": 54744,
+            "firstRoundVotesByBloc": {
+              "gauche": 10609,
+              "centre": 10631,
+              "droite": 7759,
+              "extreme_droite": 28559
+            }
+          },
+          {
+            "code": "8101",
+            "firstRoundExpressed": 58776,
+            "secondRoundExpressed": 57851,
+            "firstRoundVotesByBloc": {
+              "gauche": 17418,
+              "centre": 17352,
+              "droite": 0,
+              "extreme_droite": 24006
+            }
+          },
+          {
+            "code": "8103",
+            "firstRoundExpressed": 72970,
+            "secondRoundExpressed": 70849,
+            "firstRoundVotesByBloc": {
+              "gauche": 19292,
+              "centre": 20870,
+              "droite": 965,
+              "extreme_droite": 31843
+            }
+          },
+          {
+            "code": "8301",
+            "firstRoundExpressed": 45492,
+            "secondRoundExpressed": 43736,
+            "firstRoundVotesByBloc": {
+              "gauche": 10792,
+              "centre": 14270,
+              "droite": 0,
+              "extreme_droite": 20430
+            }
+          },
+          {
+            "code": "8303",
+            "firstRoundExpressed": 69544,
+            "secondRoundExpressed": 67273,
+            "firstRoundVotesByBloc": {
+              "gauche": 15127,
+              "centre": 14057,
+              "droite": 6648,
+              "extreme_droite": 33712
+            }
+          },
+          {
+            "code": "8307",
+            "firstRoundExpressed": 67807,
+            "secondRoundExpressed": 64587,
+            "firstRoundVotesByBloc": {
+              "gauche": 14535,
+              "centre": 14437,
+              "droite": 5129,
+              "extreme_droite": 33706
+            }
+          },
+          {
+            "code": "8501",
+            "firstRoundExpressed": 81155,
+            "secondRoundExpressed": 79598,
+            "firstRoundVotesByBloc": {
+              "gauche": 19871,
+              "centre": 33743,
+              "droite": 0,
+              "extreme_droite": 27541
+            }
+          },
+          {
+            "code": "8502",
+            "firstRoundExpressed": 78115,
+            "secondRoundExpressed": 76777,
+            "firstRoundVotesByBloc": {
+              "gauche": 19315,
+              "centre": 30262,
+              "droite": 0,
+              "extreme_droite": 28538
+            }
+          },
+          {
+            "code": "8503",
+            "firstRoundExpressed": 94261,
+            "secondRoundExpressed": 93026,
+            "firstRoundVotesByBloc": {
+              "gauche": 16283,
+              "centre": 32889,
+              "droite": 8221,
+              "extreme_droite": 36868
+            }
+          },
+          {
+            "code": "8505",
+            "firstRoundExpressed": 56270,
+            "secondRoundExpressed": 55806,
+            "firstRoundVotesByBloc": {
+              "gauche": 11980,
+              "centre": 19606,
+              "droite": 2633,
+              "extreme_droite": 22051
+            }
+          },
+          {
+            "code": "8603",
+            "firstRoundExpressed": 48716,
+            "secondRoundExpressed": 47968,
+            "firstRoundVotesByBloc": {
+              "gauche": 14125,
+              "centre": 14704,
+              "droite": 0,
+              "extreme_droite": 19887
+            }
+          },
+          {
+            "code": "8604",
+            "firstRoundExpressed": 46951,
+            "secondRoundExpressed": 46620,
+            "firstRoundVotesByBloc": {
+              "gauche": 10592,
+              "centre": 16339,
+              "droite": 0,
+              "extreme_droite": 20020
+            }
+          },
+          {
+            "code": "8802",
+            "firstRoundExpressed": 47315,
+            "secondRoundExpressed": 47470,
+            "firstRoundVotesByBloc": {
+              "gauche": 7808,
+              "centre": 15517,
+              "droite": 1202,
+              "extreme_droite": 22788
+            }
+          },
+          {
+            "code": "8902",
+            "firstRoundExpressed": 47173,
+            "secondRoundExpressed": 47078,
+            "firstRoundVotesByBloc": {
+              "gauche": 10824,
+              "centre": 13837,
+              "droite": 0,
+              "extreme_droite": 22512
+            }
+          },
+          {
+            "code": "9104",
+            "firstRoundExpressed": 68148,
+            "secondRoundExpressed": 65658,
+            "firstRoundVotesByBloc": {
+              "gauche": 21800,
+              "centre": 23108,
+              "droite": 919,
+              "extreme_droite": 22321
+            }
+          }
+        ]
       },
       "lr_rn": {
         "label": "RN contre un candidat de droite (LR, DVD)",
-        "constituencies": [
-          "0101",
-          "0202",
-          "0303",
-          "0607",
-          "0608",
-          "0609",
-          "0802",
-          "0803",
-          "1002",
-          "1501",
-          "1502",
-          "1902",
-          "2104",
-          "2203",
-          "2505",
-          "2802",
-          "3507",
-          "3602",
-          "3807",
-          "3902",
-          "3903",
-          "4102",
-          "4204",
-          "4206",
-          "4301",
-          "4302",
-          "4409",
-          "4503",
-          "4703",
-          "4903",
-          "5001",
-          "5404",
-          "5501",
-          "5704",
-          "5705",
-          "5905",
-          "5914",
-          "5915",
-          "6001",
-          "6102",
-          "6103",
-          "6207",
-          "6707",
-          "6804",
-          "6909",
-          "7102",
-          "7302",
-          "7303",
-          "7403",
-          "7404",
-          "7703",
-          "7704",
-          "8003",
-          "8801",
-          "8803",
-          "8804",
-          "9001",
-          "97602"
+        "finalistBlocs": [
+          "droite",
+          "extreme_droite"
         ],
-        "firstRoundExpressed": 3155869,
-        "secondRoundExpressed": 3110201
+        "constituencies": [
+          {
+            "code": "0101",
+            "firstRoundExpressed": 60495,
+            "secondRoundExpressed": 60005,
+            "firstRoundVotesByBloc": {
+              "gauche": 14607,
+              "centre": 7063,
+              "droite": 14495,
+              "extreme_droite": 24330
+            }
+          },
+          {
+            "code": "0202",
+            "firstRoundExpressed": 45675,
+            "secondRoundExpressed": 45342,
+            "firstRoundVotesByBloc": {
+              "gauche": 7330,
+              "centre": 0,
+              "droite": 16288,
+              "extreme_droite": 22057
+            }
+          },
+          {
+            "code": "0303",
+            "firstRoundExpressed": 53592,
+            "secondRoundExpressed": 52603,
+            "firstRoundVotesByBloc": {
+              "gauche": 11858,
+              "centre": 0,
+              "droite": 21464,
+              "extreme_droite": 20270
+            }
+          },
+          {
+            "code": "0607",
+            "firstRoundExpressed": 65866,
+            "secondRoundExpressed": 64627,
+            "firstRoundVotesByBloc": {
+              "gauche": 12889,
+              "centre": 11510,
+              "droite": 16614,
+              "extreme_droite": 24853
+            }
+          },
+          {
+            "code": "0608",
+            "firstRoundExpressed": 53836,
+            "secondRoundExpressed": 53290,
+            "firstRoundVotesByBloc": {
+              "gauche": 8968,
+              "centre": 6508,
+              "droite": 15350,
+              "extreme_droite": 23010
+            }
+          },
+          {
+            "code": "0609",
+            "firstRoundExpressed": 54178,
+            "secondRoundExpressed": 53613,
+            "firstRoundVotesByBloc": {
+              "gauche": 12023,
+              "centre": 0,
+              "droite": 18334,
+              "extreme_droite": 23821
+            }
+          },
+          {
+            "code": "0802",
+            "firstRoundExpressed": 36971,
+            "secondRoundExpressed": 36695,
+            "firstRoundVotesByBloc": {
+              "gauche": 7260,
+              "centre": 3467,
+              "droite": 11147,
+              "extreme_droite": 15097
+            }
+          },
+          {
+            "code": "0803",
+            "firstRoundExpressed": 35263,
+            "secondRoundExpressed": 35827,
+            "firstRoundVotesByBloc": {
+              "gauche": 4605,
+              "centre": 0,
+              "droite": 15362,
+              "extreme_droite": 15296
+            }
+          },
+          {
+            "code": "1002",
+            "firstRoundExpressed": 49780,
+            "secondRoundExpressed": 48726,
+            "firstRoundVotesByBloc": {
+              "gauche": 8859,
+              "centre": 4703,
+              "droite": 13902,
+              "extreme_droite": 22316
+            }
+          },
+          {
+            "code": "1501",
+            "firstRoundExpressed": 44114,
+            "secondRoundExpressed": 42998,
+            "firstRoundVotesByBloc": {
+              "gauche": 10351,
+              "centre": 3377,
+              "droite": 16615,
+              "extreme_droite": 13771
+            }
+          },
+          {
+            "code": "1502",
+            "firstRoundExpressed": 36110,
+            "secondRoundExpressed": 35552,
+            "firstRoundVotesByBloc": {
+              "gauche": 5217,
+              "centre": 3019,
+              "droite": 15731,
+              "extreme_droite": 12143
+            }
+          },
+          {
+            "code": "1902",
+            "firstRoundExpressed": 64078,
+            "secondRoundExpressed": 62314,
+            "firstRoundVotesByBloc": {
+              "gauche": 18372,
+              "centre": 0,
+              "droite": 22456,
+              "extreme_droite": 23250
+            }
+          },
+          {
+            "code": "2104",
+            "firstRoundExpressed": 46968,
+            "secondRoundExpressed": 46659,
+            "firstRoundVotesByBloc": {
+              "gauche": 10556,
+              "centre": 0,
+              "droite": 16531,
+              "extreme_droite": 19881
+            }
+          },
+          {
+            "code": "2203",
+            "firstRoundExpressed": 64211,
+            "secondRoundExpressed": 61235,
+            "firstRoundVotesByBloc": {
+              "gauche": 15168,
+              "centre": 9127,
+              "droite": 21571,
+              "extreme_droite": 18345
+            }
+          },
+          {
+            "code": "2505",
+            "firstRoundExpressed": 57831,
+            "secondRoundExpressed": 56749,
+            "firstRoundVotesByBloc": {
+              "gauche": 10297,
+              "centre": 7176,
+              "droite": 20853,
+              "extreme_droite": 19505
+            }
+          },
+          {
+            "code": "2802",
+            "firstRoundExpressed": 46723,
+            "secondRoundExpressed": 46149,
+            "firstRoundVotesByBloc": {
+              "gauche": 12848,
+              "centre": 3381,
+              "droite": 12109,
+              "extreme_droite": 18385
+            }
+          },
+          {
+            "code": "3507",
+            "firstRoundExpressed": 75114,
+            "secondRoundExpressed": 72397,
+            "firstRoundVotesByBloc": {
+              "gauche": 17716,
+              "centre": 3665,
+              "droite": 32549,
+              "extreme_droite": 21184
+            }
+          },
+          {
+            "code": "3602",
+            "firstRoundExpressed": 58762,
+            "secondRoundExpressed": 57665,
+            "firstRoundVotesByBloc": {
+              "gauche": 14714,
+              "centre": 0,
+              "droite": 19536,
+              "extreme_droite": 24512
+            }
+          },
+          {
+            "code": "3807",
+            "firstRoundExpressed": 67773,
+            "secondRoundExpressed": 67057,
+            "firstRoundVotesByBloc": {
+              "gauche": 14057,
+              "centre": 6507,
+              "droite": 18678,
+              "extreme_droite": 28531
+            }
+          },
+          {
+            "code": "3902",
+            "firstRoundExpressed": 37595,
+            "secondRoundExpressed": 35929,
+            "firstRoundVotesByBloc": {
+              "gauche": 9689,
+              "centre": 0,
+              "droite": 14507,
+              "extreme_droite": 13399
+            }
+          },
+          {
+            "code": "3903",
+            "firstRoundExpressed": 48711,
+            "secondRoundExpressed": 47737,
+            "firstRoundVotesByBloc": {
+              "gauche": 12630,
+              "centre": 0,
+              "droite": 16727,
+              "extreme_droite": 19354
+            }
+          },
+          {
+            "code": "4102",
+            "firstRoundExpressed": 51516,
+            "secondRoundExpressed": 52047,
+            "firstRoundVotesByBloc": {
+              "gauche": 10993,
+              "centre": 2803,
+              "droite": 10386,
+              "extreme_droite": 27334
+            }
+          },
+          {
+            "code": "4204",
+            "firstRoundExpressed": 70470,
+            "secondRoundExpressed": 69323,
+            "firstRoundVotesByBloc": {
+              "gauche": 20068,
+              "centre": 0,
+              "droite": 21649,
+              "extreme_droite": 28753
+            }
+          },
+          {
+            "code": "4206",
+            "firstRoundExpressed": 78105,
+            "secondRoundExpressed": 77248,
+            "firstRoundVotesByBloc": {
+              "gauche": 15174,
+              "centre": 9721,
+              "droite": 21724,
+              "extreme_droite": 31486
+            }
+          },
+          {
+            "code": "4301",
+            "firstRoundExpressed": 73398,
+            "secondRoundExpressed": 69512,
+            "firstRoundVotesByBloc": {
+              "gauche": 14362,
+              "centre": 6932,
+              "droite": 27013,
+              "extreme_droite": 25091
+            }
+          },
+          {
+            "code": "4302",
+            "firstRoundExpressed": 55758,
+            "secondRoundExpressed": 53662,
+            "firstRoundVotesByBloc": {
+              "gauche": 11693,
+              "centre": 4607,
+              "droite": 21573,
+              "extreme_droite": 17885
+            }
+          },
+          {
+            "code": "4409",
+            "firstRoundExpressed": 91804,
+            "secondRoundExpressed": 89130,
+            "firstRoundVotesByBloc": {
+              "gauche": 28044,
+              "centre": 0,
+              "droite": 31074,
+              "extreme_droite": 32686
+            }
+          },
+          {
+            "code": "4503",
+            "firstRoundExpressed": 46943,
+            "secondRoundExpressed": 46690,
+            "firstRoundVotesByBloc": {
+              "gauche": 9737,
+              "centre": 0,
+              "droite": 15041,
+              "extreme_droite": 22165
+            }
+          },
+          {
+            "code": "4703",
+            "firstRoundExpressed": 51528,
+            "secondRoundExpressed": 51153,
+            "firstRoundVotesByBloc": {
+              "gauche": 17482,
+              "centre": 0,
+              "droite": 12876,
+              "extreme_droite": 21170
+            }
+          },
+          {
+            "code": "4903",
+            "firstRoundExpressed": 48481,
+            "secondRoundExpressed": 46820,
+            "firstRoundVotesByBloc": {
+              "gauche": 10397,
+              "centre": 8168,
+              "droite": 11572,
+              "extreme_droite": 18344
+            }
+          },
+          {
+            "code": "5001",
+            "firstRoundExpressed": 58778,
+            "secondRoundExpressed": 57577,
+            "firstRoundVotesByBloc": {
+              "gauche": 11620,
+              "centre": 4723,
+              "droite": 22684,
+              "extreme_droite": 19751
+            }
+          },
+          {
+            "code": "5404",
+            "firstRoundExpressed": 63194,
+            "secondRoundExpressed": 63343,
+            "firstRoundVotesByBloc": {
+              "gauche": 13873,
+              "centre": 0,
+              "droite": 20984,
+              "extreme_droite": 28337
+            }
+          },
+          {
+            "code": "5501",
+            "firstRoundExpressed": 49384,
+            "secondRoundExpressed": 50329,
+            "firstRoundVotesByBloc": {
+              "gauche": 7547,
+              "centre": 0,
+              "droite": 17449,
+              "extreme_droite": 24388
+            }
+          },
+          {
+            "code": "5704",
+            "firstRoundExpressed": 52190,
+            "secondRoundExpressed": 53414,
+            "firstRoundVotesByBloc": {
+              "gauche": 6594,
+              "centre": 4191,
+              "droite": 18676,
+              "extreme_droite": 22729
+            }
+          },
+          {
+            "code": "5705",
+            "firstRoundExpressed": 43950,
+            "secondRoundExpressed": 44803,
+            "firstRoundVotesByBloc": {
+              "gauche": 5892,
+              "centre": 0,
+              "droite": 16173,
+              "extreme_droite": 21885
+            }
+          },
+          {
+            "code": "5905",
+            "firstRoundExpressed": 68394,
+            "secondRoundExpressed": 66037,
+            "firstRoundVotesByBloc": {
+              "gauche": 17473,
+              "centre": 0,
+              "droite": 23510,
+              "extreme_droite": 27411
+            }
+          },
+          {
+            "code": "5914",
+            "firstRoundExpressed": 65122,
+            "secondRoundExpressed": 64417,
+            "firstRoundVotesByBloc": {
+              "gauche": 9967,
+              "centre": 0,
+              "droite": 23928,
+              "extreme_droite": 31227
+            }
+          },
+          {
+            "code": "5915",
+            "firstRoundExpressed": 65031,
+            "secondRoundExpressed": 64198,
+            "firstRoundVotesByBloc": {
+              "gauche": 12931,
+              "centre": 0,
+              "droite": 22206,
+              "extreme_droite": 29894
+            }
+          },
+          {
+            "code": "6001",
+            "firstRoundExpressed": 53298,
+            "secondRoundExpressed": 51894,
+            "firstRoundVotesByBloc": {
+              "gauche": 10499,
+              "centre": 4790,
+              "droite": 13049,
+              "extreme_droite": 24960
+            }
+          },
+          {
+            "code": "6102",
+            "firstRoundExpressed": 43739,
+            "secondRoundExpressed": 43054,
+            "firstRoundVotesByBloc": {
+              "gauche": 7806,
+              "centre": 3060,
+              "droite": 14460,
+              "extreme_droite": 18413
+            }
+          },
+          {
+            "code": "6103",
+            "firstRoundExpressed": 47398,
+            "secondRoundExpressed": 46008,
+            "firstRoundVotesByBloc": {
+              "gauche": 10845,
+              "centre": 0,
+              "droite": 20701,
+              "extreme_droite": 15852
+            }
+          },
+          {
+            "code": "6207",
+            "firstRoundExpressed": 56408,
+            "secondRoundExpressed": 56459,
+            "firstRoundVotesByBloc": {
+              "gauche": 9885,
+              "centre": 0,
+              "droite": 19036,
+              "extreme_droite": 27487
+            }
+          },
+          {
+            "code": "6707",
+            "firstRoundExpressed": 55633,
+            "secondRoundExpressed": 56544,
+            "firstRoundVotesByBloc": {
+              "gauche": 7326,
+              "centre": 4734,
+              "droite": 19795,
+              "extreme_droite": 23778
+            }
+          },
+          {
+            "code": "6804",
+            "firstRoundExpressed": 67435,
+            "secondRoundExpressed": 67702,
+            "firstRoundVotesByBloc": {
+              "gauche": 12688,
+              "centre": 0,
+              "droite": 23582,
+              "extreme_droite": 31165
+            }
+          },
+          {
+            "code": "6909",
+            "firstRoundExpressed": 69098,
+            "secondRoundExpressed": 67708,
+            "firstRoundVotesByBloc": {
+              "gauche": 16530,
+              "centre": 9935,
+              "droite": 18167,
+              "extreme_droite": 24466
+            }
+          },
+          {
+            "code": "7102",
+            "firstRoundExpressed": 52144,
+            "secondRoundExpressed": 51337,
+            "firstRoundVotesByBloc": {
+              "gauche": 9801,
+              "centre": 5094,
+              "droite": 17511,
+              "extreme_droite": 19738
+            }
+          },
+          {
+            "code": "7302",
+            "firstRoundExpressed": 50468,
+            "secondRoundExpressed": 49710,
+            "firstRoundVotesByBloc": {
+              "gauche": 11940,
+              "centre": 0,
+              "droite": 19837,
+              "extreme_droite": 18691
+            }
+          },
+          {
+            "code": "7303",
+            "firstRoundExpressed": 52877,
+            "secondRoundExpressed": 51391,
+            "firstRoundVotesByBloc": {
+              "gauche": 12249,
+              "centre": 0,
+              "droite": 21605,
+              "extreme_droite": 19023
+            }
+          },
+          {
+            "code": "7403",
+            "firstRoundExpressed": 60936,
+            "secondRoundExpressed": 60047,
+            "firstRoundVotesByBloc": {
+              "gauche": 15286,
+              "centre": 0,
+              "droite": 21468,
+              "extreme_droite": 24182
+            }
+          },
+          {
+            "code": "7404",
+            "firstRoundExpressed": 56019,
+            "secondRoundExpressed": 54363,
+            "firstRoundVotesByBloc": {
+              "gauche": 15702,
+              "centre": 2265,
+              "droite": 21893,
+              "extreme_droite": 16159
+            }
+          },
+          {
+            "code": "7703",
+            "firstRoundExpressed": 50230,
+            "secondRoundExpressed": 48810,
+            "firstRoundVotesByBloc": {
+              "gauche": 15163,
+              "centre": 0,
+              "droite": 15914,
+              "extreme_droite": 19153
+            }
+          },
+          {
+            "code": "7704",
+            "firstRoundExpressed": 57340,
+            "secondRoundExpressed": 56321,
+            "firstRoundVotesByBloc": {
+              "gauche": 13056,
+              "centre": 0,
+              "droite": 16060,
+              "extreme_droite": 28224
+            }
+          },
+          {
+            "code": "8003",
+            "firstRoundExpressed": 55777,
+            "secondRoundExpressed": 55259,
+            "firstRoundVotesByBloc": {
+              "gauche": 8974,
+              "centre": 3490,
+              "droite": 15449,
+              "extreme_droite": 27864
+            }
+          },
+          {
+            "code": "8801",
+            "firstRoundExpressed": 49478,
+            "secondRoundExpressed": 49830,
+            "firstRoundVotesByBloc": {
+              "gauche": 9392,
+              "centre": 0,
+              "droite": 21200,
+              "extreme_droite": 18886
+            }
+          },
+          {
+            "code": "8803",
+            "firstRoundExpressed": 42733,
+            "secondRoundExpressed": 42275,
+            "firstRoundVotesByBloc": {
+              "gauche": 7794,
+              "centre": 0,
+              "droite": 20652,
+              "extreme_droite": 14287
+            }
+          },
+          {
+            "code": "8804",
+            "firstRoundExpressed": 42755,
+            "secondRoundExpressed": 42870,
+            "firstRoundVotesByBloc": {
+              "gauche": 7525,
+              "centre": 519,
+              "droite": 13644,
+              "extreme_droite": 21067
+            }
+          },
+          {
+            "code": "9001",
+            "firstRoundExpressed": 32015,
+            "secondRoundExpressed": 31620,
+            "firstRoundVotesByBloc": {
+              "gauche": 7659,
+              "centre": 3608,
+              "droite": 7679,
+              "extreme_droite": 13069
+            }
+          },
+          {
+            "code": "97602",
+            "firstRoundExpressed": 22396,
+            "secondRoundExpressed": 24127,
+            "firstRoundVotesByBloc": {
+              "gauche": 552,
+              "centre": 7030,
+              "droite": 6717,
+              "extreme_droite": 8097
+            }
+          }
+        ]
       }
     },
     "unclassified": [

@@ -45,13 +45,7 @@ export function SecondRoundDuel({ result }: { result: SimulationResult }) {
       <p className="mt-3 text-sm text-ink-3">
         En % des suffrages exprimés. Blancs, nuls et abstention : {pct(abstentionShare)} des électeurs du 1er
         tour,{' '}
-        {sr.abstention.target === null
-          ? 'selon les taux bruts des législatives 2024.'
-          : `${pct(sr.abstention.target, 2)} attendus : ${
-              settings.abstentionTarget === null
-                ? `estimation pour ce duel (${dropoutBasis(sr.duel)})`
-                : 'niveau choisi dans les réglages'
-            }.`}
+        {abstentionBasis(sr, settings.abstentionTarget !== null)}
       </p>
       <SensitivityLine result={result} />
 
@@ -61,17 +55,38 @@ export function SecondRoundDuel({ result }: { result: SimulationResult }) {
 }
 
 /** Signale les abandons (2017, 2022) qui changeraient le vainqueur : seuls ceux-là sont cités. */
+/** Origine et répartition de l'abandon : « abandon estimé pour ce duel : 2,0 % des électeurs des camps… ». */
+function abstentionBasis(sr: SimulationResult['secondRound'], chosen: boolean): string {
+  const { mode, camps, factor, total, target } = sr.abstention
+  if (mode === 'none') return 'selon les taux bruts des législatives 2024.'
+  if (mode === 'uniform') {
+    return `${pct(target!, 2)} attendus : ${chosen ? 'niveau choisi dans les réglages' : `estimation pour ce duel (${dropoutBasis(sr.duel)})`}.`
+  }
+  const split = `${pct(camps!.rates.camp * factor)} des électeurs des camps des finalistes, ${pct(camps!.rates.others * factor)} des autres`
+  return chosen
+    ? `total choisi dans les réglages (${pct(total)}), réparti comme aux législatives 2024 : ${split}.`
+    : `abandon estimé pour ce duel : ${split} (${dropoutBasis(sr.duel)}), soit ${pct(total)} au total.`
+}
+
 function SensitivityLine({ result }: { result: SimulationResult }) {
   const sens = result.secondRoundSensitivity
   if (!sens?.winnerChanges) return null
   const sr = result.secondRound
-  const parts = ([2017, 2022] as const)
-    .filter((year) => sens.variants[year].winnerChanges)
-    .map((year) => {
-      const v = sens.variants[year]
-      const winner = cand(v.pct.a >= v.pct.b ? sr.a : sr.b).shortName
-      return `avec l’abandon de ${year} (${pct(v.target, 2)}), ${winner} l’emporterait (${pct(Math.max(v.pct.a, v.pct.b))})`
-    })
+  const name = (r: { pct: { a: number; b: number } }) => cand(r.pct.a >= r.pct.b ? sr.a : sr.b).shortName
+  const score = (r: { pct: { a: number; b: number } }) => pct(Math.max(r.pct.a, r.pct.b))
+  const parts = [
+    ...([2017, 2022] as const)
+      .filter((year) => sens.variants[year].winnerChanges)
+      .map((year) => {
+        const v = sens.variants[year]
+        return `avec l’abandon de ${year} (${pct(v.target, 2)}), ${name(v)} l’emporterait (${score(v)})`
+      }),
+    ...(sens.structural?.winnerChanges
+      ? [
+          `si les électeurs des autres candidats du bloc d’un finaliste (hors extrême droite) s’abstenaient autant que ceux des autres blocs, ${name(sens.structural)} l’emporterait (${score(sens.structural)})`,
+        ]
+      : []),
+  ]
   return (
     <p className="mt-2 text-sm font-medium text-ink-2" role="status">
       2nd tour serré : {parts.join(' ; ')}.

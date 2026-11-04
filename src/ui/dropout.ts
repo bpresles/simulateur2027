@@ -1,5 +1,5 @@
 import { simulationData } from '../data/schema'
-import { noRnDropout, profileDropout } from '../domain/secondRound'
+import { campDropout, noRnDropout, profileDropout } from '../domain/secondRound'
 import type { ProfileId, ResolvedDuel } from '../domain/types'
 
 /** Type de duel de 2024 en toutes lettres courtes, pour les libellés de l'abandon. */
@@ -21,16 +21,21 @@ export function dropoutBasis(duel: ResolvedDuel): string {
     : `seconds tours présidentiels sans RN de ${noRnYears.join(' et ')}`
 }
 
-/** Abandon de chaque type de duel de 2024, puis du repli sans RN. */
+/** Abandon de chaque type de duel de 2024 (total, camps des finalistes, autres blocs), puis du repli sans RN. */
 export const DROPOUT_ROWS = [
-  ...(Object.keys(DUEL_KIND) as ProfileId[]).map((id) => ({
-    label: DUEL_KIND[id],
-    count: dropoutData.legislatives2024.profiles[id].constituencies.length,
-    dropout: profileDropout(dropoutData.legislatives2024.profiles[id]),
-  })),
+  ...(Object.keys(DUEL_KIND) as ProfileId[]).map((id) => {
+    const profile = dropoutData.legislatives2024.profiles[id]
+    return {
+      label: DUEL_KIND[id],
+      count: profile.constituencies.length as number | null,
+      dropout: profileDropout(profile),
+      camps: campDropout(profile) as ReturnType<typeof campDropout> | null,
+    }
+  }),
   {
     label: `duel sans RN (présidentielles ${noRnYears.join(' et ')})`,
-    count: null as number | null,
+    count: null,
     dropout: noRnDropout(dropoutData),
+    camps: null,
   },
 ]

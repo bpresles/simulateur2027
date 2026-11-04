@@ -8,7 +8,7 @@ import { useSettings } from '../../state/settingsStore'
 import { BLOC_VOTERS, MINOR_CANDIDATES, cand, colorVars, transferLabel } from '../candidates'
 import { num, pct, pts, ratio } from '../format'
 import { referenceParts } from '../../domain/references'
-import { duelDropout, secondRoundDropout } from '../../domain/secondRound'
+import { secondRoundDropout } from '../../domain/secondRound'
 import { minorTransfer } from '../../domain/transfers'
 import { AllianceRates } from './AllianceRates'
 import { AllianceSwitches, GroupedAlliancesSwitch, UntestedAlliancesSwitch } from './AllianceSwitches'
@@ -262,8 +262,7 @@ function AlliancesPanel({ result }: { result: SimulationResult }) {
 function SecondRoundPanel({ result }: { result: SimulationResult }) {
   const s = useSettings()
   const fidelity = s.fidelity ?? transfers.defaultFidelity
-  const reference = duelDropout(result.secondRound.duel, simulationData.secondRoundDropout)
-  const target = s.abstentionTarget ?? reference
+  const target = s.abstentionTarget ?? result.secondRound.abstention.total
   return (
     <div className="space-y-6 border-b border-rule pb-6">
       <div>
@@ -272,7 +271,7 @@ function SecondRoundPanel({ result }: { result: SimulationResult }) {
           checked={s.abstentionCalibration}
           onCheckedChange={s.setAbstentionCalibration}
           label={`Caler blancs, nuls et abstention : ${pct(target, 2)}`}
-          description={`Part des électeurs exprimés du 1er tour qui ne s’expriment pas au 2nd. Par défaut, estimation pour le duel en cours : ${pct(reference, 2)} (${dropoutBasis(result.secondRound.duel)}). Rappel : 2nd tour de 2017 ${pct(secondRoundDropout(simulationData.reference2017), 2)}, de 2022 ${pct(secondRoundDropout(simulationData.reference2022), 2)}. Désactivé : taux bruts des législatives 2024.`}
+          description={`Part des électeurs exprimés du 1er tour qui ne s’expriment pas au 2nd. Par défaut, estimation pour le duel en cours : ${pct(result.secondRound.abstention.total, 2)} (${dropoutBasis(result.secondRound.duel)}), répartie comme en 2024. Un total saisi ici est imposé et réparti de la même façon entre les électorats. Rappel : 2nd tour de 2017 ${pct(secondRoundDropout(simulationData.reference2017), 2)}, de 2022 ${pct(secondRoundDropout(simulationData.reference2022), 2)}. Désactivé : taux bruts des législatives 2024.`}
         />
         <div className="mt-3 pl-12">
           <Slider
@@ -292,13 +291,32 @@ function SecondRoundPanel({ result }: { result: SimulationResult }) {
         </div>
       </div>
       <table className="w-full text-sm">
-        <caption className="pb-1 text-left text-ink-3">Estimation par type de duel (abandon net, législatives 2024)</caption>
+        <caption className="pb-1 text-left text-ink-3">
+          Abandon net par type de duel (législatives 2024) : total, puis électeurs des blocs des finalistes et des
+          autres blocs (± erreur type)
+        </caption>
+        <thead>
+          <tr className="border-b border-rule text-ink-3">
+            <th className="py-1 text-left font-medium">Duel</th>
+            <th className="py-1 text-right font-medium">Total</th>
+            <th className="py-1 text-right font-medium">Camps</th>
+            <th className="py-1 text-right font-medium">Autres</th>
+          </tr>
+        </thead>
         <tbody>
           {DROPOUT_ROWS.map((row) => (
             <tr key={row.label} className="border-b border-rule/60">
-              <td className="py-1">{row.label}</td>
-              <td className="num py-1 text-right text-ink-3">{row.count === null ? '' : `${row.count} circ.`}</td>
+              <td className="py-1">
+                {row.label}
+                {row.count !== null && <span className="block text-xs text-ink-3">{row.count} circonscriptions</span>}
+              </td>
               <td className="num py-1 text-right font-medium">{pct(row.dropout, 2)}</td>
+              <td className="num py-1 text-right text-ink-3">
+                {row.camps ? `${pct(row.camps.camp.value)} ± ${num(row.camps.camp.se)}` : '—'}
+              </td>
+              <td className="num py-1 text-right text-ink-3">
+                {row.camps ? `${pct(row.camps.others.value)} ± ${num(row.camps.others.se)}` : '—'}
+              </td>
             </tr>
           ))}
         </tbody>

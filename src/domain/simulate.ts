@@ -16,7 +16,7 @@ import type { Calibration } from './calibration'
 import { applyCorrections } from './corrections'
 import { averagePolls } from './pollAverage'
 import { turnoutBalance, turnoutCoverage, turnoutWarnings } from './turnout'
-import { computeSecondRound, duelDropout, secondRoundDropout } from './secondRound'
+import { computeSecondRound, duelCampRates, duelDropout, secondRoundDropout } from './secondRound'
 import { allianceSplit2024, effectiveProfiles, minorTransferParts, resolveDuel } from './transfers'
 import type {
   Alliance,
@@ -199,9 +199,13 @@ export function simulate(
   const gap = third ? second.score - third.score : null
   const tight = gap !== null && gap < TIGHT_QUALIFICATION_GAP
 
-  // Cible d'abandon : celle saisie dans les réglages, sinon l'estimation propre au duel (législatives 2024).
-  const duelAgainst = (opponent: Entrant, override?: number) => {
+  // Abandon : un total saisi dans les réglages (ou imposé par une variante) est réparti comme en 2024 ; sinon
+  // l'abandon est celui des taux par camp du duel (législatives 2024). Un duel sans RN reste calé
+  // uniformément sur l'abandon des présidentielles sans RN.
+  const duelAgainst = (opponent: Entrant, override?: number, campScope?: 'bloc' | 'family') => {
     const duel = resolveDuel(first, opponent, candidatesById)
+    const campRates = settings.abstentionCalibration ? duelCampRates(duel, data.secondRoundDropout) : null
+    const imposed = override ?? settings.abstentionTarget
     return computeSecondRound({
       electorate: corrected,
       a: first,
@@ -211,9 +215,11 @@ export function simulate(
       fallback: transfers.fallback,
       candidatesById,
       fidelity,
-      abstentionTarget: settings.abstentionCalibration
-        ? (override ?? settings.abstentionTarget ?? duelDropout(duel, data.secondRoundDropout))
-        : null,
+      abstentionTarget: !settings.abstentionCalibration
+        ? null
+        : (imposed ?? (campRates ? null : duelDropout(duel, data.secondRoundDropout))),
+      campRates,
+      campScope,
       secondRoundPolls: polls.secondRoundPolls,
       minorTransfers,
     })
@@ -226,7 +232,7 @@ export function simulate(
 
   // Sensibilité : le duel affiché, seul l'abandon change (celui de 2017, puis celui de 2022).
   const sensitivity = (() => {
-    if (secondRound.abstention.target === null) return null
+    if (secondRound.abstention.mode === 'none') return null
     const opponent = picked === 'third' && withThird ? third! : second
     const leader = (r: { pct: { a: number; b: number } }) => r.pct.a >= r.pct.b
     const variant = (ref: SimulationData['reference2017']) => {
@@ -235,10 +241,15 @@ export function simulate(
       return { target, pct: r.pct, winnerChanges: leader(r) !== leader(secondRound) }
     }
     const variants = { 2017: variant(data.reference2017), 2022: variant(data.reference2022) }
+    const family = secondRound.abstention.mode === 'camps' ? duelAgainst(opponent, undefined, 'family') : null
+    const structural = family
+      ? { total: family.abstention.total, pct: family.pct, winnerChanges: leader(family) !== leader(secondRound) }
+      : null
     return {
-      shown: { target: secondRound.abstention.target, pct: secondRound.pct },
+      shown: { total: secondRound.abstention.total, pct: secondRound.pct },
       variants,
-      winnerChanges: variants[2017].winnerChanges || variants[2022].winnerChanges,
+      structural,
+      winnerChanges: variants[2017].winnerChanges || variants[2022].winnerChanges || !!structural?.winnerChanges,
     }
   })()
 

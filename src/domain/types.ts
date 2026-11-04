@@ -389,13 +389,28 @@ export interface PresidentialDuel {
   secondRound: PresidentialRound
 }
 
+/** Abandon net (%) des électeurs des camps des finalistes et des autres électorats. */
+export interface CampRates {
+  camp: number
+  others: number
+}
+
+/** Une circonscription d'un duel RN – autre camp de 2024 : exprimés des deux tours et vote du 1er tour par bloc. */
+export interface DropoutConstituency {
+  /** Code de la circonscription (ministère de l'Intérieur). */
+  code: string
+  firstRoundExpressed: number
+  secondRoundExpressed: number
+  /** Voix du 1er tour par bloc, d'après la nuance des candidats (`nuanceBlocs`). */
+  firstRoundVotesByBloc: Record<Bloc, number>
+}
+
 /** Duels RN – autre camp des législatives 2024 qui relèvent d'un même profil de reports. */
 export interface DropoutProfile {
   label: string
-  /** Codes des circonscriptions (ministère de l'Intérieur). */
-  constituencies: string[]
-  firstRoundExpressed: number
-  secondRoundExpressed: number
+  /** Blocs des deux finalistes : celui du RN et celui de son adversaire. */
+  finalistBlocs: Bloc[]
+  constituencies: DropoutConstituency[]
   /** Parti du candidat de gauche par circonscription (profils de gauche seulement). */
   leftParty?: Record<string, string>
 }
@@ -406,6 +421,8 @@ export interface SecondRoundDropoutData {
   legislatives2024: {
     description: string
     method: string
+    /** Nuances du ministère classées par bloc. */
+    nuanceBlocs: Record<Bloc, string[]>
     sources: SourceLink[]
     profiles: Record<ProfileId, DropoutProfile>
     /** Duels RN – gauche dont le profil n'a pas pu être établi, exclus. */
@@ -611,10 +628,22 @@ export interface SecondRoundResult {
   abstention: {
     /** Total avant calage, en points des électeurs du 1er tour (taux de report bruts). */
     uncalibrated: number
-    /** Cible du calage, null si le calage est désactivé. */
+    /** Total imposé (réglage, variante de sensibilité ou repli sans RN) ; null si rien n'est imposé. */
     target: number | null
-    /** Coefficient appliqué au taux d'abstention de chaque électorat. */
+    /**
+     * Coefficient appliqué : aux taux de 2024 des électorats non finalistes (mode « camps », 1 sans total
+     * imposé) ou au taux brut de chaque électorat (mode « uniform »).
+     */
     factor: number
+    /**
+     * camps : abandon réparti comme en 2024 entre blocs des finalistes et autres blocs ;
+     * uniform : même coefficient pour tous les électorats ; none : taux bruts, sans calage.
+     */
+    mode: 'camps' | 'uniform' | 'none'
+    /** Total de blancs, nuls et abstentions (points des électeurs du 1er tour) : un résultat en mode « camps ». */
+    total: number
+    /** Mode « camps » : candidats non finalistes pris au taux du camp (hors petits candidats), et taux (%) après bornage. */
+    camps: { members: CandidateId[]; rates: CampRates } | null
   }
   directPolls: SecondRoundPoll[]
 }
@@ -654,11 +683,16 @@ export interface SimulationResult {
    */
   secondRoundSensitivity: {
     /** Duel affiché : cible retenue (estimation du duel ou valeur saisie). */
-    shown: { target: number; pct: { a: number; b: number } }
+    shown: { total: number; pct: { a: number; b: number } }
     variants: Record<
       2017 | 2022,
       { target: number; pct: { a: number; b: number }; winnerChanges: boolean }
     >
+    /**
+     * Variante structurelle (mode « camps » seulement) : le taux du camp ne vaut que pour la famille d'un
+     * finaliste, les autres candidats du même bloc prennent le taux des autres blocs.
+     */
+    structural: { total: number; pct: { a: number; b: number }; winnerChanges: boolean } | null
     /** L'une des variantes change le vainqueur. */
     winnerChanges: boolean
   } | null

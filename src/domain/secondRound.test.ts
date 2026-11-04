@@ -1,5 +1,5 @@
 import { frozenData as simulationData } from '../test/frozenData'
-import { computeSecondRound, duelDropout, noIntentionRange, noRnDropout, presidentialDropout, profileDropout, secondRoundDropout } from './secondRound'
+import { computeSecondRound, campDropout, duelCampRates, duelDropout, noIntentionRange, noRnDropout, presidentialDropout, profileDropout, secondRoundDropout } from './secondRound'
 import { blendProfiles, effectiveProfiles, fallbackSplit, resolveDuel } from './transfers'
 import type { Candidate, Entrant, SecondRoundPoll } from './types'
 
@@ -23,7 +23,15 @@ const solo = (id: string, score: number): Entrant => ({
   score,
   members: [{ candidateId: id, contribution: score, weight: 1, rate: 1, rnRate: 0 }],
 })
-const run = (entrants: Entrant[], opts: { fidelity?: number; abstentionTarget?: number | null } = {}) =>
+const run = (
+  entrants: Entrant[],
+  opts: {
+    fidelity?: number
+    abstentionTarget?: number | null
+    campRates?: { camp: number; others: number } | null
+    campScope?: 'bloc' | 'family'
+  } = {},
+) =>
   computeSecondRound({
     electorate: Object.fromEntries(entrants.flatMap((e) => e.members.map((m) => [m.candidateId, m.contribution]))),
     a: entrants[0]!,
@@ -34,6 +42,8 @@ const run = (entrants: Entrant[], opts: { fidelity?: number; abstentionTarget?: 
     candidatesById: byId,
     fidelity: opts.fidelity ?? 1,
     abstentionTarget: opts.abstentionTarget ?? null,
+    campRates: opts.campRates,
+    campScope: opts.campScope,
     secondRoundPolls: [],
   })
 
@@ -174,6 +184,71 @@ describe('secondRoundDropout', () => {
   it('2017 : 12,96 % (Conseil constitutionnel, décision 2017-171 PDR)', () => {
     expect(secondRoundDropout(reference2017)).toBeCloseTo(100 * (1 - 31_381_603 / 36_054_394), 10)
     expect(secondRoundDropout(reference2017)).toBeCloseTo(12.96, 2)
+  })
+})
+
+describe('abandon par camp (régression écologique, législatives 2024)', () => {
+  const profiles = dropoutData.legislatives2024.profiles
+  it('taux et erreurs types par profil (± 0,01)', () => {
+    const expected = {
+      lfi_rn: [1.99, 1.58, 25.38, 4.17],
+      ecolo_ps_pcf_rn: [-1.05, 0.81, 22.6, 2.25],
+      ensemble_rn: [-0.68, 0.69, 9.29, 1.59],
+      lr_rn: [-1.65, 1.05, 9.53, 2.92],
+    } as const
+    for (const [id, [c, cse, o, ose]] of Object.entries(expected)) {
+      const e = campDropout(profiles[id as keyof typeof profiles])
+      expect(e.camp.value).toBeCloseTo(c, 1)
+      expect(e.camp.se).toBeCloseTo(cse, 1)
+      expect(e.others.value).toBeCloseTo(o, 1)
+      expect(e.others.se).toBeCloseTo(ose, 1)
+    }
+  })
+  it('les taux négatifs sont bornés à 0 pour le calcul', () => {
+    const duel = resolveDuel(solo('rn', 35), solo('ens', 20), byId)
+    expect(duelCampRates(duel, dropoutData)!.camp).toBe(0)
+    expect(duelCampRates(duel, dropoutData)!.others).toBeCloseTo(campDropout(profiles.ensemble_rn).others.value, 10)
+  })
+  it('duel sans RN : pas de taux par camp', () => {
+    const duel = resolveDuel(solo('lfi', 20), solo('ens', 20), byId)
+    expect(duelCampRates(duel, dropoutData)).toBeNull()
+  })
+
+  const entrants = [solo('rn', 40), solo('lfi', 20), solo('ens', 20), solo('eco', 10), solo('lr', 5), solo('rec', 5)]
+  const rates = { camp: 2, others: 25 }
+  const flow = (res: ReturnType<typeof run>, id: string) => res.flows.find((f) => f.candidateId === id)!
+
+  it('applique le taux du camp aux blocs des finalistes et celui des autres aux autres blocs', () => {
+    const res = run(entrants, { campRates: rates })
+    expect(res.abstention.mode).toBe('camps')
+    // Finalistes : inchangés. Gauche non LFI (eco) et extrême droite (rec) : camp ; centre, droite : autres.
+    expect(flow(res, 'eco').abstention).toBeCloseTo(10 * 0.02, 10)
+    expect(flow(res, 'rec').abstention).toBeCloseTo(5 * 0.02, 10)
+    expect(flow(res, 'ens').abstention).toBeCloseTo(20 * 0.25, 10)
+    expect(flow(res, 'lr').abstention).toBeCloseTo(5 * 0.25, 10)
+    expect(flow(res, 'lfi').abstention).toBeCloseTo(run(entrants).flows.find((f) => f.candidateId === 'lfi')!.abstention, 10)
+    // Le total est un résultat ; chaque électorat garde sa répartition toA / toB.
+    expect(res.abstention.total).toBeCloseTo(res.votes.abstention, 10)
+    expect(flow(res, 'ens').toB / flow(res, 'ens').toA).toBeCloseTo(43 / 19, 8)
+  })
+  it('variante famille : seul le camp du finaliste (même profil de duel, extrême droite) garde le taux du camp', () => {
+    const res = run(entrants, { campRates: rates, campScope: 'family' })
+    expect(flow(res, 'eco').abstention).toBeCloseTo(10 * 0.25, 10)
+    expect(flow(res, 'rec').abstention).toBeCloseTo(5 * 0.02, 10)
+  })
+  it('total imposé : mêmes rapports de taux, coefficient commun', () => {
+    const free = run(entrants, { campRates: rates })
+    const res = run(entrants, { campRates: rates, abstentionTarget: 12 })
+    expect(res.abstention.total).toBeCloseTo(12, 8)
+    expect(res.abstention.target).toBe(12)
+    const rate = (r: typeof res, id: string, share: number) => flow(r, id).abstention / share
+    expect(rate(res, 'ens', 20) / rate(res, 'eco', 10)).toBeCloseTo(rate(free, 'ens', 20) / rate(free, 'eco', 10), 8)
+    expect(res.abstention.factor).toBeGreaterThan(1)
+  })
+  it('sans taux par camp (repli) : calage uniforme inchangé', () => {
+    const res = run(entrants, { abstentionTarget: 8 })
+    expect(res.abstention.mode).toBe('uniform')
+    expect(res.abstention.camps).toBeNull()
   })
 })
 
