@@ -371,12 +371,55 @@ export interface TurnoutBalance {
   distances: { now: number; ref: number; asOf: number }
 }
 
+/** Chiffres d'un tour d'une présidentielle (Conseil constitutionnel). */
+export interface PresidentialRound {
+  registered: number
+  voters: number
+  expressed: number
+  source: SourceLink
+}
+
+/** Second tour présidentiel d'une année passée, avec son 1er tour (abandon net entre les deux). */
+export interface PresidentialDuel {
+  year: number
+  duel: string
+  /** Le 2nd tour opposait un candidat FN ou RN à un autre. */
+  rn: boolean
+  firstRound: PresidentialRound
+  secondRound: PresidentialRound
+}
+
+/** Duels RN – autre camp des législatives 2024 qui relèvent d'un même profil de reports. */
+export interface DropoutProfile {
+  label: string
+  /** Codes des circonscriptions (ministère de l'Intérieur). */
+  constituencies: string[]
+  firstRoundExpressed: number
+  secondRoundExpressed: number
+  /** Parti du candidat de gauche par circonscription (profils de gauche seulement). */
+  leftParty?: Record<string, string>
+}
+
+export interface SecondRoundDropoutData {
+  description: string
+  presidential: { description: string; elections: PresidentialDuel[] }
+  legislatives2024: {
+    description: string
+    method: string
+    sources: SourceLink[]
+    profiles: Record<ProfileId, DropoutProfile>
+    /** Duels RN – gauche dont le profil n'a pas pu être établi, exclus. */
+    unclassified: { code: string; dep: string; nuance: string; name: string }[]
+  }
+}
+
 export interface SimulationData {
   polls: PollsData
   reference2022: Reference2022
   reference2017: Reference2017
   transfers: TransfersData
   turnoutCertainty: TurnoutCertaintyData
+  secondRoundDropout: SecondRoundDropoutData
 }
 
 /** Réglages de l'utilisateur. Seules les surcharges sont stockées, les défauts restent calculés. */
@@ -605,13 +648,18 @@ export interface SimulationResult {
   /** Second tour affiché : 1er contre 2e, ou 1er contre 3e si la qualification est serrée et ce choix fait. */
   secondRound: SecondRoundResult
   /**
-   * Sensibilité du duel affiché à l'abandon (blancs, nuls, abstention) retenu : même duel avec celui de 2017
-   * et celui de 2022. Null si le calage est désactivé.
+   * Sensibilité du duel affiché à l'abandon (blancs, nuls, abstention) retenu : le même duel calé sur
+   * l'abandon des seconds tours de 2017 puis de 2022 (présidentielles récentes, à risque RN plus faible).
+   * Null si le calage est désactivé.
    */
   secondRoundSensitivity: {
-    2017: { target: number; pct: { a: number; b: number } }
-    2022: { target: number; pct: { a: number; b: number } }
-    /** Le vainqueur du duel diffère entre les deux abandons. */
+    /** Duel affiché : cible retenue (estimation du duel ou valeur saisie). */
+    shown: { target: number; pct: { a: number; b: number } }
+    variants: Record<
+      2017 | 2022,
+      { target: number; pct: { a: number; b: number }; winnerChanges: boolean }
+    >
+    /** L'une des variantes change le vainqueur. */
     winnerChanges: boolean
   } | null
   /** Bilan de participation du 1er tour (null si les mesures manquent). Calculé même option désactivée. */

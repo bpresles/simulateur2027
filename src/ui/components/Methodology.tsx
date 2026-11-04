@@ -18,7 +18,14 @@ import {
   TURNOUT_PROFILE_2022,
   TURNOUT_PROFILE_SOURCE,
 } from '../../domain/turnout'
-import { noIntentionRange, referenceDropout, secondRoundDropout } from '../../domain/secondRound'
+import {
+  duelDropout,
+  noIntentionRange,
+  noRnDropout,
+  presidentialDropout,
+  profileDropout,
+  secondRoundDropout,
+} from '../../domain/secondRound'
 import {
   calibration,
   progression2017Stats,
@@ -29,6 +36,7 @@ import {
 import { useSettings } from '../../state/settingsStore'
 import { anyName, BLOC_LABELS, BLOC_VOTERS, cand, entrantLabel, profileLabel, transferLabel } from '../candidates'
 import { date, distance, fieldwork, integer, noIntentionLabel, num, pct, pts, range, ratio, shownScore } from '../format'
+import { DUEL_KIND, dropoutBasis } from '../dropout'
 import { Link } from '../Link'
 import { AllianceRates } from './AllianceRates'
 import { ProvenanceLegend, ProvenanceValue } from './Provenance'
@@ -43,7 +51,29 @@ const pastName = (year: PastYear, id: string) => {
   return [...ref.candidates, ...ref.campaignPolls.otherCandidates].find((c) => c.id === id)?.name ?? id
 }
 /** Participation au 1er tour (% des inscrits). */
-const REFERENCE_DROPOUT = referenceDropout({ 2022: reference2022, 2017: reference2017 })
+const dropoutData = simulationData.secondRoundDropout
+const NO_RN_YEARS = dropoutData.presidential.elections.filter((e) => !e.rn).map((e) => e.year)
+/** Seconds tours présidentiels de 2002 à 2022 : ceux des données, plus 2017 et 2022 tirés des références. */
+const PRESIDENTIAL_ROWS = [
+  ...dropoutData.presidential.elections.map((e) => ({
+    year: e.year,
+    duel: e.duel,
+    turnout: (100 * e.firstRound.voters) / e.firstRound.registered,
+    first: e.firstRound.expressed,
+    second: e.secondRound.expressed,
+    dropout: presidentialDropout(e),
+    sources: [e.firstRound.source, e.secondRound.source],
+  })),
+  ...([reference2017, reference2022] as const).map((ref, i) => ({
+    year: i === 0 ? 2017 : 2022,
+    duel: 'Macron – Le Pen',
+    turnout: (100 * ref.voters) / ref.registered,
+    first: ref.expressed,
+    second: ref.secondRound.expressed,
+    dropout: secondRoundDropout(ref),
+    sources: [ref.resultsSource, ref.secondRound.source],
+  })),
+].sort((a, b) => a.year - b.year)
 const turnoutOf = (ref: Pick<PastElectionReference, 'registered' | 'voters'>) => (ref.voters * 100) / ref.registered
 /** Parts des blocs (sans Lassalle) chez l'ensemble des votants et chez ceux qui reviennent voter. */
 const TURNOUT_SHARES = {
@@ -1507,28 +1537,30 @@ export function Methodology({ result }: { result: SimulationResult }) {
         <Step id="abstention" n={7} title="Blancs, nuls et abstention au 2nd tour">
           <div className="prose-method">
             <p>
-              Le niveau global des votes blancs, nuls et de l’abstention au 2nd tour reprend celui, réel, des
-              2nds tours de 2017 et de 2022, combinés à poids égaux comme les autres corrections (étape 3).
-              Dans le modèle, il se mesure en part des électeurs exprimés du 1er tour qui ne s’expriment pas au
-              2nd :
+              Le niveau global des votes blancs, nuls et de l’abstention au 2nd tour est une hypothèse{' '}
+              <strong>propre à chaque duel</strong>. Il se mesure en part des électeurs exprimés du 1er tour qui
+              ne s’expriment pas au 2nd (« abandon ») :
             </p>
             <code className="formula">abandon = 1 − exprimés du 2nd tour ÷ exprimés du 1er tour</code>
-            <code className="formula">
-              cible = moyenne de l’abandon de 2017 ({pct(secondRoundDropout(reference2017), 2)}) et de 2022 (
-              {pct(secondRoundDropout(reference2022), 2)}) = {pct(REFERENCE_DROPOUT, 2)}
-            </code>
             <p>
-              Moyenne arithmétique pondérée, et non géométrique comme pour les écarts : l’abandon est un taux en
-              points, pas un ratio. Le taux d’abstention de chaque électorat, issu des reports de 2024, est
-              multiplié par un même coefficient pour atteindre cette cible ; les votes exprimés gardent la
-              répartition des reports de 2024. Seules les différences d’abstention entre électorats influent
-              sur le résultat en % des exprimés.
+              <strong>Règle de choix.</strong> Pour un duel que les reports de 2024 couvrent, la cible est
+              l’abandon constaté aux législatives de 2024 dans les duels équivalents (même profil que les reports
+              de l’étape 6), pondéré par les poids du profil quand une alliance en mêle plusieurs. Pour un duel
+              sans RN (repli), c’est la moyenne simple des seconds tours présidentiels sans FN ni RN, {listFr(NO_RN_YEARS.map(String))} :{' '}
+              {pct(noRnDropout(dropoutData), 2)}. Une valeur saisie dans les réglages l’emporte et vaut pour tous
+              les duels ; le calage peut aussi être désactivé (taux bruts de 2024).
+            </p>
+            <p>
+              Le taux d’abstention de chaque électorat, issu des reports de 2024, est multiplié par un même
+              coefficient pour atteindre cette cible ; les votes exprimés gardent la répartition des reports de
+              2024. Seules les différences d’abstention entre électorats influent sur le résultat en % des
+              exprimés.
             </p>
             <p>
               Scénario en cours :{' '}
               {sr.abstention.target === null
                 ? `calage désactivé, les taux bruts de 2024 donnent ${pct(sr.abstention.uncalibrated)} de blancs, nuls et abstentions.`
-                : `taux bruts de 2024 : ${pct(sr.abstention.uncalibrated)}, cible ${pct(sr.abstention.target, 2)}${settings.abstentionTarget === null ? ' (moyenne 2017-2022)' : ' (choisie dans les réglages)'}, coefficient ×${num(sr.abstention.factor, 2)}.`}{' '}
+                : `taux bruts de 2024 : ${pct(sr.abstention.uncalibrated)}, cible ${pct(sr.abstention.target, 2)} (${settings.abstentionTarget === null ? `estimation pour ce duel : ${dropoutBasis(sr.duel)}` : 'choisie dans les réglages'}${settings.abstentionTarget === null ? `, soit ${pct(duelDropout(sr.duel, dropoutData), 2)}` : ''}), coefficient ×${num(sr.abstention.factor, 2)}.`}{' '}
               {cand(sr.a).shortName} obtient {num(sr.votes.a)} points et {cand(sr.b).shortName}{' '}
               {num(sr.votes.b)} points sur 100 électeurs exprimés du 1er tour ; {num(sr.votes.abstention)}{' '}
               votent blanc, nul ou s’abstiennent. D’où{' '}
@@ -1541,116 +1573,135 @@ export function Methodology({ result }: { result: SimulationResult }) {
               </strong>
               .
             </p>
-            <p>
-              <strong>Sensibilité.</strong> Le calage compte beaucoup quand le duel est serré : le même duel est
-              donc aussi calculé avec l’abandon de 2017 seul et avec celui de 2022 seul, tout le reste égal. Si
-              le vainqueur diffère, une mention « 2nd tour serré » sous le duel donne les deux résultats, y compris
-              quand la cible est choisie dans les réglages : le résultat affiché ne doit pas être lu comme
-              acquis.
-              {result.secondRoundSensitivity &&
-                ` Scénario en cours : avec l’abandon de 2017 (${pct(result.secondRoundSensitivity[2017].target, 2)}), ${cand(sr.a).shortName} ${pct(result.secondRoundSensitivity[2017].pct.a)} et ${cand(sr.b).shortName} ${pct(result.secondRoundSensitivity[2017].pct.b)} ; avec celui de 2022 (${pct(result.secondRoundSensitivity[2022].target, 2)}), ${pct(result.secondRoundSensitivity[2022].pct.a)} et ${pct(result.secondRoundSensitivity[2022].pct.b)}. ${result.secondRoundSensitivity.winnerChanges ? 'Le vainqueur change.' : 'Le vainqueur ne change pas.'}`}
-            </p>
           </div>
-          <Table caption="2nds tours de 2017 et de 2022 (chiffres officiels)">
+          <Table caption="Législatives de 2024 : abandon net dans les duels RN – autre camp, par type de duel">
             <thead>
               <tr className="border-b border-rule">
-                <th className={th}>Scrutin</th>
-                <th className={`${th} text-right`}>Participation au 1er tour</th>
+                <th className={th}>Type de duel</th>
+                <th className={`${th} text-right`}>Circonscriptions</th>
                 <th className={`${th} text-right`}>Exprimés du 1er tour</th>
                 <th className={`${th} text-right`}>Exprimés du 2nd tour</th>
-                <th className={`${th} text-right`}>Blancs et nuls (% des votants)</th>
                 <th className={`${th} text-right`}>Abandon</th>
               </tr>
             </thead>
             <tbody>
-              {PAST_YEARS.map((year) => {
-                const ref = REFERENCES[year]
-                const t2 = ref.secondRound
+              {(Object.keys(DUEL_KIND) as (keyof typeof DUEL_KIND)[]).map((id) => {
+                const p = dropoutData.legislatives2024.profiles[id]
                 return (
-                  <tr key={year} className="border-b border-rule/60">
-                    <td className={td}>{year}</td>
-                    <td className={`${td} num text-right`}>{pct(turnoutOf(ref), 2)}</td>
-                    <td className={`${td} num text-right`}>{integer(ref.expressed)}</td>
-                    <td className={`${td} num text-right`}>{integer(t2.expressed)}</td>
-                    <td className={`${td} num text-right`}>{pct((100 * (t2.blank + t2.invalid)) / t2.voters, 1)}</td>
-                    <td className={`${td} num text-right font-medium`}>{pct(secondRoundDropout(ref), 2)}</td>
+                  <tr key={id} className="border-b border-rule/60">
+                    <td className={td}>
+                      {p.label}
+                      <span className="block text-xs text-ink-3">{DUEL_KIND[id]}</span>
+                    </td>
+                    <td className={`${td} num text-right`}>{integer(p.constituencies.length)}</td>
+                    <td className={`${td} num text-right`}>{integer(p.firstRoundExpressed)}</td>
+                    <td className={`${td} num text-right`}>{integer(p.secondRoundExpressed)}</td>
+                    <td className={`${td} num text-right font-medium`}>{pct(profileDropout(p), 2)}</td>
                   </tr>
                 )
               })}
             </tbody>
           </Table>
-          <Table caption="Détail du 2nd tour de 2017 et de 2022 (chiffres officiels)">
+          <div className="prose-method">
+            <p>
+              Le profil vient de la nuance du candidat non RN (ministère de l’Intérieur). La nuance « UG »
+              ne distinguant pas LFI des autres partis de gauche, le parti du candidat de gauche est lu sur les
+              pages Wikipédia « Élections législatives de 2024 dans… » de chaque département.{' '}
+              {dropoutData.legislatives2024.unclassified.length} duels RN – gauche, surtout à La Réunion, n’ont
+              pas pu être classés et sont exclus. {dropoutData.legislatives2024.method}
+            </p>
+          </div>
+          <Table caption="Seconds tours présidentiels de 2002 à 2022 : abandon net, pour comparaison">
             <thead>
               <tr className="border-b border-rule">
-                <th className={th}>Chiffre</th>
-                {PAST_YEARS.map((year) => (
-                  <th key={year} className={`${th} text-right`}>
-                    {year}
-                  </th>
-                ))}
+                <th className={th}>Scrutin</th>
+                <th className={th}>Duel</th>
+                <th className={`${th} text-right`}>Participation au 1er tour</th>
+                <th className={`${th} text-right`}>Exprimés du 1er tour</th>
+                <th className={`${th} text-right`}>Exprimés du 2nd tour</th>
+                <th className={`${th} text-right`}>Abandon</th>
               </tr>
             </thead>
             <tbody>
-              {(
-                [
-                  ['Électeurs inscrits', (r) => r.secondRound.registered],
-                  ['Votants', (r) => r.secondRound.voters],
-                  ['Bulletins blancs', (r) => r.secondRound.blank],
-                  ['Bulletins nuls', (r) => r.secondRound.invalid],
-                  ['Suffrages exprimés', (r) => r.secondRound.expressed],
-                ] as [string, (r: PastElectionReference & { secondRound: typeof reference2022.secondRound }) => number][]
-              ).map(([label, get]) => (
-                <tr key={label} className="border-b border-rule/60">
-                  <td className={td}>{label}</td>
-                  {PAST_YEARS.map((year) => (
-                    <td key={year} className={`${td} num text-right`}>
-                      {integer(get(REFERENCES[year]))}
-                    </td>
-                  ))}
+              {PRESIDENTIAL_ROWS.map((row) => (
+                <tr key={row.year} className="border-b border-rule/60">
+                  <td className={td}>{row.year}</td>
+                  <td className={td}>{row.duel}</td>
+                  <td className={`${td} num text-right`}>{pct(row.turnout, 1)}</td>
+                  <td className={`${td} num text-right`}>{integer(row.first)}</td>
+                  <td className={`${td} num text-right`}>{integer(row.second)}</td>
+                  <td className={`${td} num text-right font-medium`}>{pct(row.dropout, 2)}</td>
                 </tr>
               ))}
-              <tr>
-                <td className={td}>Abstention (en % des inscrits)</td>
-                {PAST_YEARS.map((year) => {
-                  const t2 = REFERENCES[year].secondRound
-                  return (
-                    <td key={year} className={`${td} num text-right`}>
-                      {pct(100 * (1 - t2.voters / t2.registered), 2)}
-                    </td>
-                  )
-                })}
-              </tr>
             </tbody>
           </Table>
           <p className="text-sm text-ink-3">
             Sources :{' '}
-            {PAST_YEARS.map((year) => (
-              <span key={year}>
-                <a href={REFERENCES[year].secondRound.source.url} className="link" target="_blank" rel="noreferrer">
-                  {REFERENCES[year].secondRound.source.label}
+            {[...dropoutData.legislatives2024.sources, ...PRESIDENTIAL_ROWS.flatMap((r) => r.sources)].map((src, i, all) => (
+              <span key={src.url}>
+                <a href={src.url} className="link" target="_blank" rel="noreferrer">
+                  {src.label}
                 </a>
-                {year === PAST_YEARS[PAST_YEARS.length - 1] ? '.' : ', '}
+                {i === all.length - 1 ? '.' : ', '}
               </span>
             ))}
           </p>
           <div className="prose-method">
             <p>
+              <strong>Pourquoi 2024.</strong> Les législatives de 2024 ont eu lieu dans un contexte de risque RN
+              élevé et de forte participation, comparable à celui d’un 2nd tour avec le RN en 2027. Les seconds
+              tours présidentiels entre candidats acceptables (
+              {PRESIDENTIAL_ROWS.filter((r) => NO_RN_YEARS.includes(r.year))
+                .map((r) => `${r.year} : ${pct(r.dropout, 1)}`)
+                .join(', ')}
+              ) sont du même ordre que les duels RN – centre ou droite de 2024 : une forte participation au 1er
+              tour ne crée pas à elle seule d’abandon.
+            </p>
+            <p>
+              <strong>Pourquoi pas 2002.</strong> Le 2nd tour de 2002 (
+              {pct(PRESIDENTIAL_ROWS.find((r) => r.year === 2002)?.dropout ?? 0, 1)}, un abandon négatif : plus
+              d’exprimés au 2nd tour qu’au 1er) partait d’un 1er tour à faible participation (
+              {pct(PRESIDENTIAL_ROWS.find((r) => r.year === 2002)?.turnout ?? 0, 1)}), un réservoir d’électeurs
+              que 2027 n’aura pas si la participation attendue est élevée.
+            </p>
+            <p>
+              <strong>Lecture.</strong> La mobilisation contre le RN fait baisser l’abandon face au centre, à la
+              droite ou à une gauche non LFI, mais pas face à LFI : {pct(profileDropout(dropoutData.legislatives2024.profiles.lfi_rn), 2)}, proche
+              des {pct(secondRoundDropout(reference2022), 2)} de 2022. Une partie des électeurs du centre et de la
+              droite refuse de choisir, ce qui concorde avec les profils de reports (étape 6) : 43 % des électeurs
+              Ensemble vers LFI contre 54 % vers un candidat PS ou écologiste.
+            </p>
+            <p>
+              <strong>Sensibilité.</strong> Le calage compte beaucoup quand le duel est serré. Le même duel est
+              donc aussi calculé avec l’abandon du 2nd tour de 2017 ({pct(secondRoundDropout(reference2017), 2)}) puis
+              de 2022 ({pct(secondRoundDropout(reference2022), 2)}), présidentielles récentes à risque RN plus faible, tout le reste égal.
+              Seule la mention « 2nd tour serré », sous le résultat, signale celles de ces variantes qui
+              changent le vainqueur, y compris quand la cible est saisie dans les réglages : le résultat
+              affiché ne doit pas être lu comme acquis.
+              {result.secondRoundSensitivity &&
+                ` Scénario en cours : avec 2017 (${pct(result.secondRoundSensitivity.variants[2017].target, 2)}), ${cand(sr.a).shortName} ${pct(result.secondRoundSensitivity.variants[2017].pct.a)} et ${cand(sr.b).shortName} ${pct(result.secondRoundSensitivity.variants[2017].pct.b)} ; avec 2022 (${pct(result.secondRoundSensitivity.variants[2022].target, 2)}), ${pct(result.secondRoundSensitivity.variants[2022].pct.a)} et ${pct(result.secondRoundSensitivity.variants[2022].pct.b)}. ${result.secondRoundSensitivity.winnerChanges ? 'Le vainqueur change.' : 'Le vainqueur ne change pas.'}`}
+            </p>
+            <p>
               <strong>Limites.</strong>
             </p>
             <ul>
-              <li>Deux scrutins seulement : la moyenne est fragile.</li>
               <li>
-                2017 a connu un record de blancs et nuls ({pct((100 * (reference2017.secondRound.blank + reference2017.secondRound.invalid)) / reference2017.secondRound.voters, 1)} des votants), ce qui
-                porte son abandon bien au-dessus de celui de 2022.
+                Une élection législative n’est pas une présidentielle : candidats locaux, désistements
+                circonscription par circonscription (le « front républicain »).
               </li>
               <li>
-                Les deux 2nds tours étaient des duels Macron – Le Pen ; celui de 2027 peut avoir une autre
-                dynamique d’abstention.
+                Le classement des partis de gauche s’appuie sur Wikipédia, et {dropoutData.legislatives2024.unclassified.length} duels
+                RN – gauche n’ont pas pu être classés.
               </li>
               <li>
-                L’abandon n’est pas relié à la participation du 1er tour : en 2017, participation et abandon
-                étaient plus élevés qu’en 2022, mais deux points ne font pas une relation et l’extrapolation
-                serait hasardeuse.
+                Les échantillons sont limités : {Object.values(dropoutData.legislatives2024.profiles).map((p) => p.constituencies.length).join(', ')}{' '}
+                circonscriptions selon le type de duel.
+              </li>
+              <li>L’estimation suppose que le contexte de 2024 se reproduise en 2027.</li>
+              <li>
+                2017 a connu un record de blancs et nuls (
+                {pct((100 * (reference2017.secondRound.blank + reference2017.secondRound.invalid)) / reference2017.secondRound.voters, 1)} des votants) :
+                son abandon, comme celui de 2022, sert seulement de variante de sensibilité.
               </li>
             </ul>
           </div>

@@ -1,5 +1,3 @@
-import { ELECTION_WEIGHTS, PAST_YEARS } from './pastElections'
-import type { PastYear } from './pastElections'
 import { blendProfiles, fallbackSplit } from './transfers'
 import type { ProfileTable } from './transfers'
 import type {
@@ -7,8 +5,11 @@ import type {
   Candidate,
   CandidateId,
   Entrant,
+  DropoutProfile,
+  PresidentialDuel,
   Reference2017,
   Reference2022,
+  SecondRoundDropoutData,
   ReferencePart,
   ResolvedDuel,
   SecondRoundPoll,
@@ -25,18 +26,36 @@ export function secondRoundDropout(ref: Reference2017 | Reference2022): number {
   return 100 * (1 - ref.secondRound.expressed / ref.expressed)
 }
 
+/** Abandon net d'un 2nd tour présidentiel d'une année passée (peut être négatif : 2002). */
+export function presidentialDropout(e: PresidentialDuel): number {
+  return 100 * (1 - e.secondRound.expressed / e.firstRound.expressed)
+}
+
+/** Abandon net des duels d'un profil aux législatives 2024, calculé depuis les sommes d'exprimés. */
+export function profileDropout(p: Pick<DropoutProfile, 'firstRoundExpressed' | 'secondRoundExpressed'>): number {
+  return 100 * (1 - p.secondRoundExpressed / p.firstRoundExpressed)
+}
+
 /**
- * Abandon de référence : moyenne arithmétique de 2017 et 2022, pondérée comme les écarts des autres
- * corrections (ELECTION_WEIGHTS). Moyenne simple, pas géométrique : c'est un taux en points, pas un ratio.
+ * Abandon des duels sans FN ni RN : moyenne simple des seconds tours présidentiels concernés (2007 et
+ * 2012). C'est l'estimation de repli, pour un duel que les reports de 2024 ne couvrent pas.
  */
-export function referenceDropout(refs: Record<PastYear, Reference2017 | Reference2022>): number {
-  let weights = 0
-  let sum = 0
-  for (const year of PAST_YEARS) {
-    weights += ELECTION_WEIGHTS[year]
-    sum += ELECTION_WEIGHTS[year] * secondRoundDropout(refs[year])
-  }
-  return sum / weights
+export function noRnDropout(data: SecondRoundDropoutData): number {
+  const rows = data.presidential.elections.filter((e) => !e.rn)
+  return rows.reduce((s, e) => s + presidentialDropout(e), 0) / rows.length
+}
+
+/**
+ * Abandon attendu pour un duel : celui de son profil de reports aux législatives 2024, pondéré par
+ * `profileWeights` quand l'alliance mêle plusieurs profils. Sans profil sourcé (duel de repli), c'est celui
+ * des seconds tours présidentiels sans RN.
+ */
+export function duelDropout(duel: ResolvedDuel, data: SecondRoundDropoutData): number {
+  const { profiles } = data.legislatives2024
+  const parts = duel.kind === 'sourced' ? duel.profileWeights.filter((w) => profiles[w.profileId]) : []
+  const total = parts.reduce((s, w) => s + w.weight, 0)
+  if (total <= 0) return noRnDropout(data)
+  return parts.reduce((s, w) => s + (w.weight * profileDropout(profiles[w.profileId])) / total, 0)
 }
 
 /**
