@@ -1,6 +1,6 @@
 import { motion } from 'motion/react'
 import { simulationData } from '../../data/schema'
-import { noIntentionRange, secondRoundDropout2022 } from '../../domain/secondRound'
+import { noIntentionRange, referenceDropout, secondRoundDropout } from '../../domain/secondRound'
 import type { Entrant, SimulationResult } from '../../domain/types'
 import { cand, colorVars, entrantLabel, profileLabel } from '../candidates'
 import { fieldwork, noIntentionLabel, pct, range, shownScore } from '../format'
@@ -44,13 +44,34 @@ export function SecondRoundDuel({ result }: { result: SimulationResult }) {
         tour,{' '}
         {sr.abstention.target === null
           ? 'selon les taux bruts des législatives 2024.'
-          : sr.abstention.target === secondRoundDropout2022(simulationData.reference2022)
-            ? 'comme au 2nd tour de 2022.'
+          : sr.abstention.target === DROPOUT_REFERENCE
+            ? 'moyenne des 2nds tours de 2017 et 2022.'
             : 'niveau choisi dans les réglages.'}
       </p>
+      <SensitivityLine result={result} />
 
       <MethodLine result={result} />
     </section>
+  )
+}
+
+/** Abandon de référence : moyenne de 2017 et 2022. */
+const DROPOUT_REFERENCE = referenceDropout({ 2022: simulationData.reference2022, 2017: simulationData.reference2017 })
+
+/** Signale un 2nd tour qui change de vainqueur selon l'abandon de 2017 ou celui de 2022. */
+function SensitivityLine({ result }: { result: SimulationResult }) {
+  const sens = result.secondRoundSensitivity
+  if (!sens?.winnerChanges) return null
+  const sr = result.secondRound
+  const line = (year: 2017 | 2022, verb: string) => {
+    const r = sens[year]
+    return `${cand(r.pct.a >= r.pct.b ? sr.a : sr.b).shortName}${verb} (${pct(Math.max(r.pct.a, r.pct.b))})`
+  }
+  return (
+    <p className="mt-2 text-sm font-medium text-ink-2" role="status">
+      2nd tour serré : avec l’abandon de 2017 ({pct(sens[2017].target, 2)}), {line(2017, ' l’emporte')} ; avec celui de
+      2022 ({pct(sens[2022].target, 2)}), {line(2022, '')}.
+    </p>
   )
 }
 
@@ -167,9 +188,9 @@ function MethodLine({ result }: { result: SimulationResult }) {
               `Selon les instituts et les duels, c’est ${range(NO_INTENTION.min, NO_INTENTION.max)} des inscrits interrogés, ou des seuls inscrits comptant voter selon l’institut (indécis, vote blanc ou nul et abstention compris). `}
             {shown.some((p) => p.noIntention?.calculation) &&
               '≈ : part non publiée telle quelle, calculée d’après la notice de l’institut. '}
-            En 2022, seuls{' '}
-            {pct(secondRoundDropout2022(simulationData.reference2022), 2)} des électeurs qui s’étaient exprimés
-            au 1er tour ne se sont pas exprimés au 2nd (abstention, vote blanc ou nul).
+            Au 2nd tour, {pct(secondRoundDropout(simulationData.reference2022), 2)} des électeurs qui s’étaient
+            exprimés au 1er tour en 2022, et {pct(secondRoundDropout(simulationData.reference2017), 2)} en 2017, ne
+            se sont pas exprimés (abstention, vote blanc ou nul).
           </p>
         </div>
       )}

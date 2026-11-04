@@ -1,3 +1,5 @@
+import { ELECTION_WEIGHTS, PAST_YEARS } from './pastElections'
+import type { PastYear } from './pastElections'
 import { blendProfiles, fallbackSplit } from './transfers'
 import type { ProfileTable } from './transfers'
 import type {
@@ -5,6 +7,7 @@ import type {
   Candidate,
   CandidateId,
   Entrant,
+  Reference2017,
   Reference2022,
   ReferencePart,
   ResolvedDuel,
@@ -16,10 +19,24 @@ import type {
 
 /**
  * Part des électeurs exprimés du 1er tour qui ne s'expriment pas au 2nd tour (blancs, nuls,
- * abstention), mesurée en 2022 : 1 − exprimés du 2nd tour ÷ exprimés du 1er tour.
+ * abstention) : 1 − exprimés du 2nd tour ÷ exprimés du 1er tour.
  */
-export function secondRoundDropout2022(ref: Reference2022): number {
+export function secondRoundDropout(ref: Reference2017 | Reference2022): number {
   return 100 * (1 - ref.secondRound.expressed / ref.expressed)
+}
+
+/**
+ * Abandon de référence : moyenne arithmétique de 2017 et 2022, pondérée comme les écarts des autres
+ * corrections (ELECTION_WEIGHTS). Moyenne simple, pas géométrique : c'est un taux en points, pas un ratio.
+ */
+export function referenceDropout(refs: Record<PastYear, Reference2017 | Reference2022>): number {
+  let weights = 0
+  let sum = 0
+  for (const year of PAST_YEARS) {
+    weights += ELECTION_WEIGHTS[year]
+    sum += ELECTION_WEIGHTS[year] * secondRoundDropout(refs[year])
+  }
+  return sum / weights
 }
 
 /**

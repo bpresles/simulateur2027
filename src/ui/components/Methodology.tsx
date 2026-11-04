@@ -18,7 +18,7 @@ import {
   TURNOUT_PROFILE_2022,
   TURNOUT_PROFILE_SOURCE,
 } from '../../domain/turnout'
-import { noIntentionRange, secondRoundDropout2022 } from '../../domain/secondRound'
+import { noIntentionRange, referenceDropout, secondRoundDropout } from '../../domain/secondRound'
 import {
   calibration,
   progression2017Stats,
@@ -43,6 +43,7 @@ const pastName = (year: PastYear, id: string) => {
   return [...ref.candidates, ...ref.campaignPolls.otherCandidates].find((c) => c.id === id)?.name ?? id
 }
 /** Participation au 1er tour (% des inscrits). */
+const REFERENCE_DROPOUT = referenceDropout({ 2022: reference2022, 2017: reference2017 })
 const turnoutOf = (ref: Pick<PastElectionReference, 'registered' | 'voters'>) => (ref.voters * 100) / ref.registered
 /** Parts des blocs (sans Lassalle) chez l'ensemble des votants et chez ceux qui reviennent voter. */
 const TURNOUT_SHARES = {
@@ -1506,26 +1507,28 @@ export function Methodology({ result }: { result: SimulationResult }) {
         <Step id="abstention" n={7} title="Blancs, nuls et abstention au 2nd tour">
           <div className="prose-method">
             <p>
-              Le niveau global des votes blancs, nuls et de l’abstention au 2nd tour reprend celui, réel, du
-              2nd tour de 2022. Dans le modèle, il se mesure en part des électeurs exprimés du 1er tour qui ne
-              s’expriment pas au 2nd :
+              Le niveau global des votes blancs, nuls et de l’abstention au 2nd tour reprend celui, réel, des
+              2nds tours de 2017 et de 2022, combinés à poids égaux comme les autres corrections (étape 3).
+              Dans le modèle, il se mesure en part des électeurs exprimés du 1er tour qui ne s’expriment pas au
+              2nd :
             </p>
+            <code className="formula">abandon = 1 − exprimés du 2nd tour ÷ exprimés du 1er tour</code>
             <code className="formula">
-              cible = 1 − exprimés du 2nd tour 2022 ÷ exprimés du 1er tour 2022 = 1 −{' '}
-              {integer(reference2022.secondRound.expressed)} ÷ {integer(reference2022.expressed)} ={' '}
-              {pct(secondRoundDropout2022(reference2022), 2)}
+              cible = moyenne de l’abandon de 2017 ({pct(secondRoundDropout(reference2017), 2)}) et de 2022 (
+              {pct(secondRoundDropout(reference2022), 2)}) = {pct(REFERENCE_DROPOUT, 2)}
             </code>
             <p>
-              Le taux d’abstention de chaque électorat, issu des reports de 2024, est multiplié par un même
-              coefficient pour atteindre cette cible ; les votes exprimés gardent la répartition des reports
-              de 2024. Seules les différences d’abstention entre électorats influent sur le résultat en % des
-              exprimés.
+              Moyenne arithmétique pondérée, et non géométrique comme pour les écarts : l’abandon est un taux en
+              points, pas un ratio. Le taux d’abstention de chaque électorat, issu des reports de 2024, est
+              multiplié par un même coefficient pour atteindre cette cible ; les votes exprimés gardent la
+              répartition des reports de 2024. Seules les différences d’abstention entre électorats influent
+              sur le résultat en % des exprimés.
             </p>
             <p>
               Scénario en cours :{' '}
               {sr.abstention.target === null
                 ? `calage désactivé, les taux bruts de 2024 donnent ${pct(sr.abstention.uncalibrated)} de blancs, nuls et abstentions.`
-                : `taux bruts de 2024 : ${pct(sr.abstention.uncalibrated)}, cible ${pct(sr.abstention.target, 2)}, coefficient ×${num(sr.abstention.factor, 2)}.`}{' '}
+                : `taux bruts de 2024 : ${pct(sr.abstention.uncalibrated)}, cible ${pct(sr.abstention.target, 2)}${settings.abstentionTarget === null ? ' (moyenne 2017-2022)' : ' (choisie dans les réglages)'}, coefficient ×${num(sr.abstention.factor, 2)}.`}{' '}
               {cand(sr.a).shortName} obtient {num(sr.votes.a)} points et {cand(sr.b).shortName}{' '}
               {num(sr.votes.b)} points sur 100 électeurs exprimés du 1er tour ; {num(sr.votes.abstention)}{' '}
               votent blanc, nul ou s’abstiennent. D’où{' '}
@@ -1538,40 +1541,119 @@ export function Methodology({ result }: { result: SimulationResult }) {
               </strong>
               .
             </p>
+            <p>
+              <strong>Sensibilité.</strong> Le calage compte beaucoup quand le duel est serré : le même duel est
+              donc aussi calculé avec l’abandon de 2017 seul et avec celui de 2022 seul, tout le reste égal. Si
+              le vainqueur diffère, une mention « 2nd tour serré » sous le duel donne les deux résultats, y compris
+              quand la cible est choisie dans les réglages : le résultat affiché ne doit pas être lu comme
+              acquis.
+              {result.secondRoundSensitivity &&
+                ` Scénario en cours : avec l’abandon de 2017 (${pct(result.secondRoundSensitivity[2017].target, 2)}), ${cand(sr.a).shortName} ${pct(result.secondRoundSensitivity[2017].pct.a)} et ${cand(sr.b).shortName} ${pct(result.secondRoundSensitivity[2017].pct.b)} ; avec celui de 2022 (${pct(result.secondRoundSensitivity[2022].target, 2)}), ${pct(result.secondRoundSensitivity[2022].pct.a)} et ${pct(result.secondRoundSensitivity[2022].pct.b)}. ${result.secondRoundSensitivity.winnerChanges ? 'Le vainqueur change.' : 'Le vainqueur ne change pas.'}`}
+            </p>
           </div>
-          <Table caption="2nd tour de 2022 (chiffres officiels)">
+          <Table caption="2nds tours de 2017 et de 2022 (chiffres officiels)">
+            <thead>
+              <tr className="border-b border-rule">
+                <th className={th}>Scrutin</th>
+                <th className={`${th} text-right`}>Participation au 1er tour</th>
+                <th className={`${th} text-right`}>Exprimés du 1er tour</th>
+                <th className={`${th} text-right`}>Exprimés du 2nd tour</th>
+                <th className={`${th} text-right`}>Blancs et nuls (% des votants)</th>
+                <th className={`${th} text-right`}>Abandon</th>
+              </tr>
+            </thead>
             <tbody>
-              {[
-                ['Électeurs inscrits', reference2022.secondRound.registered],
-                ['Votants', reference2022.secondRound.voters],
-                ['Bulletins blancs', reference2022.secondRound.blank],
-                ['Bulletins nuls', reference2022.secondRound.invalid],
-                ['Suffrages exprimés', reference2022.secondRound.expressed],
-                ['Pour mémoire : exprimés du 1er tour', reference2022.expressed],
-              ].map(([label, value]) => (
+              {PAST_YEARS.map((year) => {
+                const ref = REFERENCES[year]
+                const t2 = ref.secondRound
+                return (
+                  <tr key={year} className="border-b border-rule/60">
+                    <td className={td}>{year}</td>
+                    <td className={`${td} num text-right`}>{pct(turnoutOf(ref), 2)}</td>
+                    <td className={`${td} num text-right`}>{integer(ref.expressed)}</td>
+                    <td className={`${td} num text-right`}>{integer(t2.expressed)}</td>
+                    <td className={`${td} num text-right`}>{pct((100 * (t2.blank + t2.invalid)) / t2.voters, 1)}</td>
+                    <td className={`${td} num text-right font-medium`}>{pct(secondRoundDropout(ref), 2)}</td>
+                  </tr>
+                )
+              })}
+            </tbody>
+          </Table>
+          <Table caption="Détail du 2nd tour de 2017 et de 2022 (chiffres officiels)">
+            <thead>
+              <tr className="border-b border-rule">
+                <th className={th}>Chiffre</th>
+                {PAST_YEARS.map((year) => (
+                  <th key={year} className={`${th} text-right`}>
+                    {year}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {(
+                [
+                  ['Électeurs inscrits', (r) => r.secondRound.registered],
+                  ['Votants', (r) => r.secondRound.voters],
+                  ['Bulletins blancs', (r) => r.secondRound.blank],
+                  ['Bulletins nuls', (r) => r.secondRound.invalid],
+                  ['Suffrages exprimés', (r) => r.secondRound.expressed],
+                ] as [string, (r: PastElectionReference & { secondRound: typeof reference2022.secondRound }) => number][]
+              ).map(([label, get]) => (
                 <tr key={label} className="border-b border-rule/60">
                   <td className={td}>{label}</td>
-                  <td className={`${td} num text-right`}>{integer(value as number)}</td>
+                  {PAST_YEARS.map((year) => (
+                    <td key={year} className={`${td} num text-right`}>
+                      {integer(get(REFERENCES[year]))}
+                    </td>
+                  ))}
                 </tr>
               ))}
               <tr>
                 <td className={td}>Abstention (en % des inscrits)</td>
-                <td className={`${td} num text-right`}>
-                  {pct(
-                    100 * (1 - reference2022.secondRound.voters / reference2022.secondRound.registered),
-                    2,
-                  )}
-                </td>
+                {PAST_YEARS.map((year) => {
+                  const t2 = REFERENCES[year].secondRound
+                  return (
+                    <td key={year} className={`${td} num text-right`}>
+                      {pct(100 * (1 - t2.voters / t2.registered), 2)}
+                    </td>
+                  )
+                })}
               </tr>
             </tbody>
           </Table>
           <p className="text-sm text-ink-3">
-            Source :{' '}
-            <a href={reference2022.secondRound.source.url} className="link" target="_blank" rel="noreferrer">
-              {reference2022.secondRound.source.label}
-            </a>
-            .
+            Sources :{' '}
+            {PAST_YEARS.map((year) => (
+              <span key={year}>
+                <a href={REFERENCES[year].secondRound.source.url} className="link" target="_blank" rel="noreferrer">
+                  {REFERENCES[year].secondRound.source.label}
+                </a>
+                {year === PAST_YEARS[PAST_YEARS.length - 1] ? '.' : ', '}
+              </span>
+            ))}
           </p>
+          <div className="prose-method">
+            <p>
+              <strong>Limites.</strong>
+            </p>
+            <ul>
+              <li>Deux scrutins seulement : la moyenne est fragile.</li>
+              <li>
+                2017 a connu un record de blancs et nuls ({pct((100 * (reference2017.secondRound.blank + reference2017.secondRound.invalid)) / reference2017.secondRound.voters, 1)} des votants), ce qui
+                porte son abandon bien au-dessus de celui de 2022.
+              </li>
+              <li>
+                Les deux 2nds tours étaient des duels Macron – Le Pen ; celui de 2027 peut avoir une autre
+                dynamique d’abstention.
+              </li>
+              <li>
+                L’abandon n’est pas relié à la participation du 1er tour : en 2017, participation et abandon
+                étaient plus élevés qu’en 2022, mais deux points ne font pas une relation et l’extrapolation
+                serait hasardeuse.
+              </li>
+            </ul>
+          </div>
         </Step>
 
         <section
@@ -1594,9 +1676,9 @@ export function Methodology({ result }: { result: SimulationResult }) {
               du résultat. Ces sondages ne portent que sur les « votants décidés » : à six mois du scrutin,{' '}
               {NO_INTENTION ? range(NO_INTENTION.min, NO_INTENTION.max) : 'une part importante'} des personnes
               interrogées, selon les instituts et les duels, n’expriment aucun choix entre les deux candidats
-              (indécis, vote blanc ou nul et abstention compris), alors qu’en 2022 seuls{' '}
-              {pct(secondRoundDropout2022(reference2022), 2)} des électeurs exprimés au 1er tour ne se sont pas
-              exprimés au 2nd.
+              (indécis, vote blanc ou nul et abstention compris), alors qu’au 2nd tour de 2022 et de 2017, seuls{' '}
+              {pct(secondRoundDropout(reference2022), 2)} et {pct(secondRoundDropout(reference2017), 2)} des
+              électeurs exprimés au 1er tour ne se sont pas exprimés au 2nd.
               {NO_INTENTION && (
                 <>
                   {' '}
@@ -1676,7 +1758,7 @@ export function Methodology({ result }: { result: SimulationResult }) {
               </li>
             )}
             <li>
-              Le calage de l’abstention suppose une participation au 1er tour comparable à celle de 2022.
+              Le calage de l’abstention suppose une participation au 1er tour comparable à celle de 2017 et 2022.
               L’option de participation attendue ne modifie que le 1er tour, sur un profil d’électeurs mesuré
               par un seul sondage.
             </li>

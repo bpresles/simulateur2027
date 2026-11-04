@@ -54,4 +54,12 @@ describe('données', () => {
       parseData({ ...simulationData, polls: broken }),
     ).toThrow(/candidat inconnu/)
   })
+
+  it('le 2nd tour de 2017 est requis et cohérent (votants = blancs + nuls + exprimés)', () => {
+    const { secondRound: _omitted, ...without } = structuredClone(simulationData.reference2017)
+    expect(() => parseData({ ...simulationData, reference2017: without })).toThrow()
+    const broken = structuredClone(simulationData)
+    broken.reference2017.secondRound.blank += 1
+    expect(validateData(broken)).toEqual([expect.stringMatching(/2017 : 2nd tour incohérent/)])
+  })
 })

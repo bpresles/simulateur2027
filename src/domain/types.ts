@@ -235,20 +235,24 @@ export interface PastElectionReference {
   }
 }
 
-export interface Reference2022 extends PastElectionReference {
-  /** Chiffres officiels du 2nd tour, base du calage de l'abstention. */
-  secondRound: {
-    registered: number
-    voters: number
-    blank: number
-    invalid: number
-    expressed: number
-    source: SourceLink
-  }
+/** Chiffres officiels du 2nd tour, base du calage de l'abstention. */
+export interface SecondRoundOfficial {
+  registered: number
+  voters: number
+  blank: number
+  invalid: number
+  expressed: number
+  source: SourceLink
 }
 
-/** Présidentielle 2017 : second étalon des écarts entre sondages et résultat. */
-export type Reference2017 = PastElectionReference
+export interface Reference2022 extends PastElectionReference {
+  secondRound: SecondRoundOfficial
+}
+
+/** Présidentielle 2017 : second étalon des écarts entre sondages et résultat, et de l'abandon au 2nd tour. */
+export interface Reference2017 extends PastElectionReference {
+  secondRound: SecondRoundOfficial
+}
 
 export type ProvenanceId = 'franceinfo' | 'publicsenat' | 'lcp' | 'derive' | 'transpose' | 'camp' | 'hypothese'
 
@@ -600,6 +604,16 @@ export interface SimulationResult {
   }
   /** Second tour affiché : 1er contre 2e, ou 1er contre 3e si la qualification est serrée et ce choix fait. */
   secondRound: SecondRoundResult
+  /**
+   * Sensibilité du duel affiché à l'abandon (blancs, nuls, abstention) retenu : même duel avec celui de 2017
+   * et celui de 2022. Null si le calage est désactivé.
+   */
+  secondRoundSensitivity: {
+    2017: { target: number; pct: { a: number; b: number } }
+    2022: { target: number; pct: { a: number; b: number } }
+    /** Le vainqueur du duel diffère entre les deux abandons. */
+    winnerChanges: boolean
+  } | null
   /** Bilan de participation du 1er tour (null si les mesures manquent). Calculé même option désactivée. */
   turnoutBalance: TurnoutBalance | null
   warnings: string[]
