@@ -13,7 +13,7 @@ import { minorTransfer } from '../../domain/transfers'
 import { TIGHT_QUALIFICATION_GAP } from '../../domain/simulate'
 import {
   blocShares,
-  BLOG_TURNOUT_RISE,
+  certainShare,
   TURNOUT_BLOCS_2022,
   TURNOUT_PROFILE_2022,
   TURNOUT_PROFILE_SOURCE,
@@ -28,12 +28,12 @@ import {
 } from '../../hooks/useSimulation'
 import { useSettings } from '../../state/settingsStore'
 import { anyName, BLOC_LABELS, BLOC_VOTERS, cand, entrantLabel, profileLabel, transferLabel } from '../candidates'
-import { date, fieldwork, integer, noIntentionLabel, num, pct, pts, range, ratio, shownScore } from '../format'
+import { date, distance, fieldwork, integer, noIntentionLabel, num, pct, pts, range, ratio, shownScore } from '../format'
 import { Link } from '../Link'
 import { AllianceRates } from './AllianceRates'
 import { ProvenanceLegend, ProvenanceValue } from './Provenance'
 
-const { polls, reference2022, reference2017, transfers } = simulationData
+const { polls, reference2022, reference2017, transfers, turnoutCertainty } = simulationData
 const REFERENCES = { 2022: reference2022, 2017: reference2017 }
 const PROGRESSIONS = { 2022: progression2022Stats, 2017: progression2017Stats }
 
@@ -139,6 +139,7 @@ export function Methodology({ result }: { result: SimulationResult }) {
   const sr = result.secondRound
   const [a, b] = [result.entrants[0]!, result.entrants[1]!]
   const settings = useSettings()
+  const bal = result.turnoutBalance
   const inWindow = result.pollUsage.filter((u) => u.status !== 'out-of-window')
   const older = result.pollUsage.filter((u) => u.status === 'out-of-window')
   const singlePoll = result.institutesUsed === 1 ? result.pollUsage.find((u) => u.status === 'used')?.poll : undefined
@@ -885,22 +886,177 @@ export function Methodology({ result }: { result: SimulationResult }) {
               reçoivent toujours le facteur complet de leur bloc.
             </p>
 
-            <h3 id="participation">Option : hausse de participation annoncée par le billet</h3>
+            <h3 id="participation">Option : participation attendue au 1er tour</h3>
             <p>
-              Le billet annonce aussi une participation en hausse : la part des électeurs certains d’aller
-              voter atteindrait 77 % contre 70 % en 2021 selon l’Ifop (chiffres cités par le billet, non
-              revérifiés ici). L’option « Ajouter la hausse de participation annoncée par le billet » ajoute{' '}
-              {BLOG_TURNOUT_RISE} points d’inscrits aux votants (à 100 % d’intensité) et les fait voter comme
-              les électeurs qui reviennent aux urnes. Elle est{' '}
-              <strong>
-                {settings.turnoutEnabled
-                  ? `activée, à ${pct(settings.turnoutIntensity * 100, 0)} d’intensité`
-                  : 'désactivée'}
-              </strong>{' '}
-              dans le scénario en cours.
+              Les sondages de 2027 portent sur les électeurs certains d’aller voter, dont la part gagne déjà du
+              terrain : l’Ifop-Fiducial, avec les mêmes questions (« envisagez-vous d’aller voter ? » puis «
+              tout à fait certain », « pratiquement certain »…), mesure {pct(bal?.certainNow.share ?? 0, 1)} des
+              inscrits certains d’aller voter à {bal ? distance(bal.distances.now) : '…'} du scrutin, contre{' '}
+              {pct(bal?.certainRef.share ?? 0, 1)} à une distance proche en 2021. Cette hausse est donc{' '}
+              <strong>déjà dans les sondages</strong> : l’option « Participation attendue au 1er tour » ne la
+              compte pas une seconde fois. Elle est{' '}
+              <strong>{settings.turnoutEnabled ? 'activée' : 'désactivée'}</strong> dans le scénario en cours.
             </p>
             <p>
-              <strong>Pour qui votent les électeurs qui reviennent ?</strong> Le meilleur indice disponible
+              <strong>Parts parmi ceux qui envisagent de voter, parts des inscrits.</strong> Le billet cite «
+              77 % contre 69-70 % » : ce sont des parts <em>parmi ceux qui envisagent d’aller voter</em>, pas
+              des parts des inscrits. Rapportée aux inscrits (envisagent × tout à fait certains), la hausse est
+              de {bal ? pts(bal.certainNow.share - bal.certainRef.share, 1) : '…'}. Le billet ne donne aucune
+              prévision de participation.
+            </p>
+          </div>
+          <Table caption="Part des inscrits certains d’aller voter au 1er tour (Ifop-Fiducial, chiffres redressés)">
+            <thead>
+              <tr className="border-b border-rule">
+                <th className={th}>Terrain</th>
+                <th className={th}>Scrutin</th>
+                <th className={`${th} text-right`}>Envisagent d’aller voter</th>
+                <th className={`${th} text-right`}>Tout à fait certains, parmi eux</th>
+                <th className={`${th} text-right`}>Part des inscrits</th>
+                <th className={th}>Rôle dans le bilan</th>
+              </tr>
+            </thead>
+            <tbody>
+              {turnoutCertainty.measures.map((m) => {
+                const role = bal
+                  ? m === bal.certainNow.measure
+                    ? 'E2027 (dernière mesure)'
+                    : m === bal.certainRef.measure
+                      ? 'E2022 (même distance du scrutin)'
+                      : m === bal.finalRef.measure
+                        ? 'F2022 (dernière vague avant le vote)'
+                        : ''
+                  : ''
+                return (
+                  <tr key={m.id} className="border-b border-rule/60">
+                    <td className={td}>
+                      <a href={m.source.url} className="link" target="_blank" rel="noreferrer" title={m.source.label}>
+                        {fieldwork(m.fieldwork)}
+                      </a>
+                    </td>
+                    <td className={td}>{m.cycle}</td>
+                    <td className={`${td} num text-right`}>{m.envisage === undefined ? '—' : pct(m.envisage, 1)}</td>
+                    <td className={`${td} num text-right`}>{m.certain === undefined ? '—' : pct(m.certain, 1)}</td>
+                    <td className={`${td} num text-right font-medium`}>{pct(certainShare(m), 2)}</td>
+                    <td className={td}>{role}</td>
+                  </tr>
+                )
+              })}
+            </tbody>
+          </Table>
+          <div className="prose-method">
+            <p>
+              Le rolling du 05 au 08/04/2022 ne publie que l’indice de participation (73 % des inscrits,
+              abstention 27 %). La part des inscrits des autres mesures se calcule : elle n’est pas saisie.
+            </p>
+            <p>
+              <strong>Ce que la campagne ajoute, mesuré en 2022.</strong> Entre la mesure de 2021 et la dernière
+              vague avant le vote, la part des certains a gagné F2022 − E2022 ; entre cette dernière vague et la
+              participation réelle, P2022 − F2022. Ce sont les mobilisations que reproduisent déjà la
+              progression (ou le billet) pour la campagne, et « Corriger la moyenne » (ou le billet) pour les
+              derniers jours.
+            </p>
+          </div>
+          {bal && (
+            <Table caption="Décomposition de la mobilisation de 2022 et mesure de 2027 (en % des inscrits)">
+              <thead>
+                <tr className="border-b border-rule">
+                  <th className={th}>Grandeur</th>
+                  <th className={`${th} text-right`}>Valeur</th>
+                  <th className={th}>Origine</th>
+                </tr>
+              </thead>
+              <tbody>
+                {[
+                  ['E2022', pct(bal.certainRef.share, 2), `certains en 2021, ${date(bal.certainRef.measure.fieldwork.end)} (J−${bal.distances.ref})`],
+                  ['F2022', pct(bal.finalRef.share, 2), `dernière vague avant le vote, ${date(bal.finalRef.measure.fieldwork.end)}`],
+                  ['P2022', pct(bal.turnoutRef, 2), 'participation réelle au 1er tour 2022 (votants ÷ inscrits)'],
+                  ['Mobilisation de campagne', pts(bal.campaign, 2), 'F2022 − E2022'],
+                  ['Mobilisation de fin de campagne', pts(bal.late, 2), 'P2022 − F2022'],
+                  ['E2027', pct(bal.certainNow.share, 2), `certains aujourd’hui, ${date(bal.certainNow.measure.fieldwork.end)} (J−${bal.distances.now}), déjà dans les sondages`],
+                ].map(([label, value, origin]) => (
+                  <tr key={label} className="border-b border-rule/60">
+                    <td className={td}>{label}</td>
+                    <td className={`${td} num text-right font-medium`}>{value}</td>
+                    <td className={td}>{origin}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </Table>
+          )}
+          <div className="prose-method">
+            <p>
+              <strong>Contrôle : l’intention de participation à plusieurs mois n’est pas prédictive.</strong>{' '}
+              L’enquête Ipsos bva-CEVIPOF (note de 10 sur 10, base : tous les inscrits) le confirme : à
+              plusieurs mois du scrutin, elle reste nettement sous la participation réelle. Ipsos l’explique
+              ainsi : « L’intention de participation à plusieurs mois du scrutin n’est pas prédictive du niveau
+              réel de participation au premier tour car la campagne électorale a vocation à faire progresser la
+              mobilisation du corps électoral. »
+            </p>
+          </div>
+          <Table caption="Contrôle Ipsos bva-CEVIPOF : note de participation de 10/10 et participation réelle au 1er tour">
+            <thead>
+              <tr className="border-b border-rule">
+                <th className={th}>Terrain</th>
+                <th className={th}>Scrutin suivant</th>
+                <th className={`${th} text-right`}>Note 10/10</th>
+                <th className={`${th} text-right`}>Participation réelle</th>
+                <th className={`${th} text-right`}>Écart</th>
+              </tr>
+            </thead>
+            <tbody>
+              {turnoutCertainty.control.measures.map((m) => {
+                const real = m.election === null ? null : turnoutOf(REFERENCES[m.election])
+                return (
+                  <tr key={m.fieldwork.start} className="border-b border-rule/60">
+                    <td className={td}>
+                      <a href={turnoutCertainty.control.source.url} className="link" target="_blank" rel="noreferrer">
+                        {fieldwork(m.fieldwork)}
+                      </a>
+                    </td>
+                    <td className={td}>{m.election ?? '2027'}</td>
+                    <td className={`${td} num text-right`}>{pct(m.share, 0)}</td>
+                    <td className={`${td} num text-right`}>{real === null ? 'à venir' : pct(real, 2)}</td>
+                    <td className={`${td} num text-right`}>{real === null ? '—' : pts(real - m.share, 1)}</td>
+                  </tr>
+                )
+              })}
+            </tbody>
+          </Table>
+          <div className="prose-method">
+            <p>
+              <strong>Le bilan : un même électeur n’est compté qu’une fois.</strong> Les sondages représentent
+              d’abord les certains d’aller voter (E2027). Les options activées leur ajoutent la mobilisation de
+              2022 qu’elles reproduisent déjà, pour la part qu’elles couvrent (globalement, pas par candidat) :
+            </p>
+            <code className="formula">
+              couverture de campagne = max(progression, billet) ; couverture de fin de campagne = max(correction,
+              billet)
+            </code>
+            <code className="formula">
+              V₀ = E2027 + couverture de campagne × (F2022 − E2022) + couverture de fin de campagne × (P2022 −
+              F2022)
+            </code>
+            <code className="formula">ΔV = P2027 − V₀</code>
+            <p>
+              V₀ est l’électorat que représentent les sondages corrigés ; P2027 la participation attendue. Par
+              défaut, P2027 = P2022 + (E2027 − E2022) : la hausse de la part des certains est reportée point
+              pour point sur la participation. Avec le billet à 100 % et la participation par défaut, ΔV = 0 :
+              tout est déjà dans les sondages corrigés et l’option n’a aucun effet. Sans aucune correction, ΔV =
+              P2027 − E2027 : l’option ajoute toute la mobilisation de la campagne. ΔV peut être négatif (une
+              participation attendue inférieure à V₀ retire des votants).
+            </p>
+            {bal && (
+              <p>
+                <strong>Scénario en cours.</strong> Couverture : campagne {pct(bal.coverage.campaign * 100, 0)},
+                fin de campagne {pct(bal.coverage.late * 100, 0)}. V₀ = {pct(bal.v0, 2)} (E2027{' '}
+                {pct(bal.certainNow.share, 2)} + {pts(bal.covered, 2)}). P2027 = {pct(bal.expected, 2)}{' '}
+                ({settings.turnoutExpected === null ? 'défaut' : 'réglée'} ; défaut {pct(bal.defaultExpected, 2)}
+                ). ΔV = {pts(bal.delta, 2)}.
+              </p>
+            )}
+            <p>
+              <strong>Pour qui votent les électeurs en plus (ou en moins) ?</strong> Le meilleur indice disponible
               est le vote, au 1er tour de 2022, des électeurs qui s’étaient abstenus au 1er tour de 2017,
               mesuré par le sondage jour du vote d’Ifop-Fiducial. Pour chaque bloc, l’affinité k rapporte sa
               part chez ces électeurs à sa part chez l’ensemble des votants. Jean Lassalle (
@@ -939,30 +1095,36 @@ export function Methodology({ result }: { result: SimulationResult }) {
           <div className="prose-method">
             <code className="formula">facteur du candidat = (V₀ + ΔV × k ÷ K) ÷ (V₀ + ΔV)</code>
             <p>
-              V₀ = {pct(calibration.turnout.base, 1)} des inscrits : la participation au 1er tour que reflètent
-              les sondages corrigés, moyenne de 2022 ({pct(turnoutOf(reference2022), 1)}) et de 2017 (
-              {pct(turnoutOf(reference2017), 1)}) pondérée comme les écarts de l’étape 3. ΔV ={' '}
-              {BLOG_TURNOUT_RISE} points × intensité. k est l’affinité du bloc du candidat (1 sans bloc) et K
-              l’affinité moyenne des votants du scénario (moyenne des k pondérée par les scores) : les
-              nouveaux votants s’ajoutent sans changer le total. Le facteur s’applique après la correction et
-              le billet, puis les scores sont ramenés à 100 %. Il ne touche que le 1er tour.
+              k est l’affinité du bloc du candidat (1 sans bloc) et K l’affinité moyenne des votants du scénario
+              (moyenne des k pondérée par les scores) : les votants en plus ou en moins s’ajoutent sans changer
+              le total. Si ΔV est négatif, les blocs d’affinité supérieure à 1 perdent le plus ; le facteur est
+              borné à 0 et vaut 1 si ΔV = 0. Il s’applique après la correction et le billet, puis les scores
+              sont ramenés à 100 %. Il ne touche que le 1er tour.
             </p>
             <p>
               <strong>Limites.</strong>
             </p>
             <ul>
               <li>
-                Double comptage possible : les sondages de 2027 portent déjà sur les électeurs certains d’aller
-                voter, dont la hausse annoncée fait partie. L’option teste l’hypothèse d’électeurs que les
-                sondages ne captent pas ; pour une hausse en partie captée, baissez l’intensité. Activée par
-                défaut à 100 %, elle applique la hausse annoncée en entier.
+                La part des certains est mesurée sur un échantillon, la participation sur les inscrits. L’écart
+                entre les deux est supposé stable entre 2021 et 2026 (même institut, mêmes questions) ; rien ne
+                le garantit.
               </li>
               <li>
-                La sous-estimation habituelle de la participation par les sondages est déjà comprise dans les
-                écarts de l’étape 3, qui comparent les sondages au résultat réel.
+                Un seul institut (Ifop-Fiducial) fournit la série ; le contrôle Ipsos bva-CEVIPOF n’entre pas
+                dans le calcul.
               </li>
               <li>
-                Le profil repose sur une partie de l’échantillon d’un seul sondage (marge d’erreur de plusieurs
+                La mobilisation de référence est mesurée sur 2022 seul, alors que le billet combine 2017 et 2022
+                pour ses biais.
+              </li>
+              <li>
+                La couverture est traitée globalement, pas par candidat : le billet ne corrige que la gauche et
+                l’extrême droite, alors que la mobilisation de 2022 entre en entier dans V₀. La remise à 100 %
+                des facteurs de participation répercute cet écart sur l’ensemble des candidats.
+              </li>
+              <li>
+                Le profil des électeurs en plus ou en moins repose sur une partie de l’échantillon d’un seul sondage (marge d’erreur de plusieurs
                 points) et sur une seule élection : rien ne garantit que les électeurs qui reviendraient en
                 2027 votent comme ceux de 2022.
               </li>
@@ -1515,7 +1677,7 @@ export function Methodology({ result }: { result: SimulationResult }) {
             )}
             <li>
               Le calage de l’abstention suppose une participation au 1er tour comparable à celle de 2022.
-              L’option de hausse de participation ne modifie que le 1er tour, sur un profil d’électeurs mesuré
+              L’option de participation attendue ne modifie que le 1er tour, sur un profil d’électeurs mesuré
               par un seul sondage.
             </li>
             <li>

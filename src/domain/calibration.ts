@@ -4,7 +4,7 @@ import { computeReference } from './corrections'
 import { computeCorrectionReference } from './pastElections'
 import type { CorrectionReference } from './pastElections'
 import { computeProgression } from './progression'
-import { baseTurnout, turnoutAffinity } from './turnout'
+import { turnoutAffinity } from './turnout'
 import type { TurnoutModel } from './turnout'
 import type { PollsData, SimulationData } from './types'
 
@@ -16,12 +16,12 @@ export interface Calibration {
   correction: CorrectionReference
   /** Biais par bloc relevés par le billet, estimés sur 2022 et 2017. */
   blogBias: BlogBias
-  /** Participation de référence et affinité des blocs avec les électeurs qui reviennent voter. */
+  /** Mesures des électeurs certains d'aller voter, participation 2022 et affinité des blocs avec les électeurs qui reviennent voter. */
   turnout: TurnoutModel
 }
 
 export function computeCalibration(
-  data: Pick<SimulationData, 'reference2022' | 'reference2017'>,
+  data: Pick<SimulationData, 'reference2022' | 'reference2017' | 'turnoutCertainty'>,
   polls: Pick<PollsData, 'asOf' | 'electionDate'>,
 ): Calibration {
   const reference2022 = computeReference(data.reference2022)
@@ -38,7 +38,11 @@ export function computeCalibration(
     correction: computeCorrectionReference(reference2022, reference2017),
     blogBias: computeBlogBias({ 2022: y2022, 2017: y2017 }),
     turnout: {
-      base: baseTurnout({ 2022: data.reference2022, 2017: data.reference2017 }) ?? 0,
+      measures: data.turnoutCertainty.measures,
+      turnoutRef: (data.reference2022.voters * 100) / data.reference2022.registered,
+      asOf: polls.asOf,
+      electionDate: polls.electionDate,
+      electionDateRef: data.reference2022.electionDate,
       affinity: turnoutAffinity(),
     },
   }

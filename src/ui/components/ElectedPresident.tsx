@@ -1,10 +1,9 @@
 import { AnimatePresence, motion } from 'motion/react'
 import { simulationData } from '../../data/schema'
-import { BLOG_TURNOUT_RISE } from '../../domain/turnout'
 import type { CandidateId, SimulationResult } from '../../domain/types'
 import { useSettings } from '../../state/settingsStore'
 import { cand, colorVars } from '../candidates'
-import { num, pct } from '../format'
+import { num, pct, points } from '../format'
 import { AnimatedNumber } from './AnimatedNumber'
 
 /** Écart (en points) en dessous duquel le 2nd tour est présenté comme une égalité. */
@@ -16,7 +15,8 @@ export function ElectedPresident({ result }: { result: SimulationResult }) {
   const sr = result.secondRound
   const settings = useSettings()
   const { correctionsEnabled, correctionIntensity, progressionEnabled, progressionIntensity } = settings
-  const { blogBiasEnabled, blogBiasIntensity, turnoutEnabled, turnoutIntensity } = settings
+  const { blogBiasEnabled, blogBiasIntensity, turnoutEnabled, turnoutExpected } = settings
+  const balance = result.turnoutBalance
   const aWins = sr.pct.a >= sr.pct.b
   const winnerId = aWins ? sr.a : sr.b
   const loserId = aWins ? sr.b : sr.a
@@ -54,7 +54,9 @@ export function ElectedPresident({ result }: { result: SimulationResult }) {
       ? `correction 2017-2022 à ${pct(correctionIntensity * 100, 0)}`
       : 'sans correction 2017-2022',
     ...(blogBiasEnabled ? [`biais du billet à ${pct(blogBiasIntensity * 100, 0)}`] : []),
-    ...(turnoutEnabled ? [`hausse de participation à ${pct(turnoutIntensity * 100, 0)}`] : []),
+    ...(turnoutEnabled && balance
+      ? [`participation attendue de ${pct(balance.expected, 1)}${turnoutExpected === null ? ' (par défaut)' : ''}`]
+      : []),
     alliances.length > 0 ? alliances.join(', ') : 'sans alliance',
   ].join(' ; ')
 
@@ -99,9 +101,13 @@ export function ElectedPresident({ result }: { result: SimulationResult }) {
       : blogBiasEnabled
         ? `les sondages se trompent sur ${BLOG_BLOCS} au 1er tour comme en moyenne en 2017 et 2022${share(blogBiasIntensity)} (biais relevés par le billet)`
         : 'les sondages donnent exactement le résultat du 1er tour',
-    ...(turnoutEnabled
+    ...(turnoutEnabled && balance
       ? [
-          `la participation au 1er tour gagne ${num(BLOG_TURNOUT_RISE * turnoutIntensity, 1)} points d’électeurs que les sondages ne captent pas, votant comme les abstentionnistes de 2017 venus voter en 2022`,
+          `la participation au 1er tour atteint ${pct(balance.expected, 1)} des inscrits${
+            Math.abs(balance.delta) < 0.05
+              ? ', ce que représentent déjà les sondages corrigés'
+              : `, soit ${balance.delta > 0 ? `${points(balance.delta, 1, true)} d’électeurs de plus` : `${points(-balance.delta, 1, true)} d’électeurs de moins`} que ce qu’ils représentent, répartis comme les abstentionnistes de 2017 venus voter en 2022`
+          }`,
         ]
       : []),
     transfersAdjusted

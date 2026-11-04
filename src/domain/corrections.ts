@@ -3,7 +3,7 @@ import type { BlogBias, Coverage } from './blogBias'
 import type { CorrectionReference } from './pastElections'
 import { addDays, latestPerInstitute, meanByKey, normalize } from './pollAverage'
 import { blendedRatio, referenceParts } from './references'
-import { BLOG_TURNOUT_RISE, turnoutFactors } from './turnout'
+import { turnoutBalance, turnoutCoverage, turnoutFactors } from './turnout'
 import type { TurnoutModel } from './turnout'
 import type { Candidate, CandidateId, FirstRoundRow, PastElectionReference, Reference2022Poll, Settings } from './types'
 
@@ -52,8 +52,11 @@ export function defaultCorrection(base: number, ratio: number | null): number {
  * 3. biais du billet (optionnel) : écart par bloc (gauche, extrême droite) estimé sur 2022 et 2017, limité
  *    aux parts que les étapes 1 et 2 ne corrigent pas déjà pour ce candidat ; pour celles qu'elles
  *    corrigent, leur intensité est portée à celle du billet si elle est plus forte ;
- * 4. hausse de participation (optionnelle) : les électeurs supplémentaires annoncés par le billet, supposés
- *    absents des sondages, votent comme les abstentionnistes de 2017 venus voter en 2022.
+ * 4. participation attendue (optionnelle) : l'écart ΔV entre la participation attendue et l'électorat V₀ que
+ *    représentent les sondages corrigés (les certains d'aller voter, plus la mobilisation de 2022 que les
+ *    étapes 1 à 3 reproduisent déjà) est ajouté ou retranché, réparti comme le vote 2022 des
+ *    abstentionnistes de 2017 venus voter. Les sondages 2027 portant sur les certains, leur hausse n'est
+ *    pas recomptée : à participation par défaut et couverture complète, ΔV = 0.
  */
 export function applyCorrections(
   base: Record<CandidateId, number>,
@@ -68,7 +71,7 @@ export function applyCorrections(
     blogBiasEnabled?: Settings['blogBiasEnabled']
     blogBiasIntensity?: Settings['blogBiasIntensity']
     turnoutEnabled?: Settings['turnoutEnabled']
-    turnoutIntensity?: Settings['turnoutIntensity']
+    turnoutExpected?: Settings['turnoutExpected']
   },
   progression: { ratio: Record<string, number> } | null = null,
   blogBias: BlogBias | null = null,
@@ -122,10 +125,15 @@ export function applyCorrections(
   })
   const raw = Object.fromEntries(draft.map((d) => [d.c.id, d.raw]))
   const blocs = new Map(present.map((c) => [c.id, c.bloc]))
-  const turnoutOf =
+  const balance =
     settings.turnoutEnabled && turnout
-      ? turnoutFactors(raw, (id) => blocs.get(id), turnout, BLOG_TURNOUT_RISE * (settings.turnoutIntensity ?? 1))
+      ? turnoutBalance(
+          turnout,
+          turnoutCoverage(settings),
+          settings.turnoutExpected ?? null,
+        )
       : null
+  const turnoutOf = balance ? turnoutFactors(raw, (id) => blocs.get(id), turnout!, balance.v0, balance.delta) : null
   const corrected = normalize(
     Object.fromEntries(draft.map((d) => [d.c.id, d.raw * (turnoutOf?.[d.c.id] ?? 1)])),
   )

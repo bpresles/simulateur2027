@@ -227,12 +227,12 @@ describe('simulate avec les biais du billet', () => {
     simulate(simulationData, { ...defaultSettings(), ...settings }, calibration)
   const row = (res: ReturnType<typeof at>, id: string) => res.firstRound.find((r) => r.candidateId === id)!
 
-  it('seules options activées par défaut avec la hausse de participation, à 100 %', () => {
+  it('seules options activées par défaut avec la participation attendue (par défaut)', () => {
     expect(defaultSettings()).toMatchObject({
       blogBiasEnabled: true,
       blogBiasIntensity: 1,
       turnoutEnabled: true,
-      turnoutIntensity: 1,
+      turnoutExpected: null,
       progressionEnabled: false,
       progressionIntensity: 1,
       correctionsEnabled: false,
