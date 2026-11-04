@@ -1,14 +1,31 @@
 import type { ReactNode } from 'react'
 import { simulationData } from '../../data/schema'
 import { BLOCS } from '../../domain/types'
-import type { NoIntention, PollOrigin, PollStatus, SimulationResult } from '../../domain/types'
+import type { NoIntention, PastElectionReference, PollOrigin, PollStatus, SimulationResult } from '../../domain/types'
 import { allianceCombos, alliancesConflict, availableAlliances, comboWith, defaultSet } from '../../domain/alliances'
+import { BLOG_BIAS_BLOCS, BLOG_BIAS_URL, totalBias } from '../../domain/blogBias'
+import type { YearBlocBias } from '../../domain/blogBias'
+import { ELECTION_WEIGHTS, EQUIVALENTS_2017, PAST_YEARS } from '../../domain/pastElections'
+import type { PastYear } from '../../domain/pastElections'
 import { windowDaysOf } from '../../domain/pollAverage'
 import { referenceParts } from '../../domain/references'
 import { minorTransfer } from '../../domain/transfers'
 import { TIGHT_QUALIFICATION_GAP } from '../../domain/simulate'
+import {
+  blocShares,
+  BLOG_TURNOUT_RISE,
+  TURNOUT_BLOCS_2022,
+  TURNOUT_PROFILE_2022,
+  TURNOUT_PROFILE_SOURCE,
+} from '../../domain/turnout'
 import { noIntentionRange, secondRoundDropout2022 } from '../../domain/secondRound'
-import { progression2022Stats, reference2022Stats } from '../../hooks/useSimulation'
+import {
+  calibration,
+  progression2017Stats,
+  progression2022Stats,
+  reference2017Stats,
+  reference2022Stats,
+} from '../../hooks/useSimulation'
 import { useSettings } from '../../state/settingsStore'
 import { anyName, BLOC_LABELS, BLOC_VOTERS, cand, entrantLabel, profileLabel, transferLabel } from '../candidates'
 import { date, fieldwork, integer, noIntentionLabel, num, pct, pts, range, ratio, shownScore } from '../format'
@@ -16,7 +33,22 @@ import { Link } from '../Link'
 import { AllianceRates } from './AllianceRates'
 import { ProvenanceLegend, ProvenanceValue } from './Provenance'
 
-const { polls, reference2022, transfers } = simulationData
+const { polls, reference2022, reference2017, transfers } = simulationData
+const REFERENCES = { 2022: reference2022, 2017: reference2017 }
+const PROGRESSIONS = { 2022: progression2022Stats, 2017: progression2017Stats }
+
+/** Nom d'un candidat d'un scrutin passé, y compris ceux testés avant les primaires. */
+const pastName = (year: PastYear, id: string) => {
+  const ref = REFERENCES[year]
+  return [...ref.candidates, ...ref.campaignPolls.otherCandidates].find((c) => c.id === id)?.name ?? id
+}
+/** Participation au 1er tour (% des inscrits). */
+const turnoutOf = (ref: Pick<PastElectionReference, 'registered' | 'voters'>) => (ref.voters * 100) / ref.registered
+/** Parts des blocs (sans Lassalle) chez l'ensemble des votants et chez ceux qui reviennent voter. */
+const TURNOUT_SHARES = {
+  all: blocShares(TURNOUT_PROFILE_2022.all),
+  returning: blocShares(TURNOUT_PROFILE_2022.abstainers2017),
+}
 
 /** Part sans intention de vote des duels de 2nd tour publiés : fourchette et détail. */
 const NO_INTENTION = noIntentionRange(polls.secondRoundPolls)
@@ -32,7 +64,7 @@ const UNDECIDED = institutesWith((n) => n.undecided !== undefined)
 const STEPS: [string, string][] = [
   ['sondages', 'Moyenne des sondages'],
   ['progression', 'Progression comme en 2022'],
-  ['corrections', 'Corrections 2022'],
+  ['corrections', 'Corrections 2017 et 2022'],
   ['alliances', 'Alliances'],
   ['qualification', 'Qualification'],
   ['reports', 'Reports de voix'],
@@ -435,31 +467,63 @@ export function Methodology({ result }: { result: SimulationResult }) {
           </p>
         </Step>
 
-        <Step id="corrections" n={3} title="Correction des écarts constatés en 2022">
+        <Step id="corrections" n={3} title="Correction des écarts constatés en 2017 et 2022">
           <div className="prose-method">
             <p>
-              En 2022, les derniers sondages avant le 1er tour ont sous-estimé certains candidats et en ont
-              surestimé d’autres. On mesure cet écart par un ratio, puis on l’applique au candidat de 2027 de
-              la même famille politique.
+              Aux deux dernières présidentielles, les derniers sondages avant le 1er tour ont sous-estimé
+              certains candidats et en ont surestimé d’autres. On mesure cet écart par un ratio à chaque
+              scrutin, on combine les deux mesures en un écart estimé, puis on l’applique au candidat de 2027
+              de la même famille politique.
             </p>
+            <code className="formula">ratio d’un scrutin = résultat officiel ÷ moyenne des derniers sondages</code>
             <code className="formula">
-              ratio = résultat officiel 2022 ÷ moyenne des derniers sondages 2022
+              écart estimé = ratio 2022<sup>{num(ELECTION_WEIGHTS[2022], 1)}</sup> × ratio 2017
+              <sup>{num(ELECTION_WEIGHTS[2017], 1)}</sup> (ratio 2022 seul sans équivalent en 2017)
             </code>
             <code className="formula">
-              correction (points) = moyenne 2027 (ou sondages projetés, étape 2) × (ratio − 1) × intensité de
-              la correction
+              correction (points) = moyenne 2027 (ou sondages projetés, étape 2) × (écart estimé − 1) ×
+              intensité de la correction
             </code>
+            <ul>
+              {PAST_YEARS.map((year) => {
+                const ref = REFERENCES[year]
+                const stats = year === 2022 ? reference2022Stats : reference2017Stats
+                return (
+                  <li key={year}>
+                    {year} : dernier sondage de chaque institut dont le terrain s’achève dans les{' '}
+                    {ref.windowDays} jours précédant le 1er tour du {date(ref.electionDate)} (
+                    {stats.pollsUsed.length} instituts : {stats.pollsUsed.map((p) => p.institute).join(', ')}).
+                    Résultats : voix officielles divisées par les {integer(ref.expressed)} suffrages exprimés.
+                  </li>
+                )
+              })}
+            </ul>
             <p>
-              Moyenne 2022 : dernier sondage de chaque institut dont le terrain s’achève dans les{' '}
-              {reference2022.windowDays} jours précédant le scrutin du {date(reference2022.electionDate)} (
-              {reference2022Stats.pollsUsed.length} instituts :{' '}
-              {reference2022Stats.pollsUsed.map((p) => p.institute).join(', ')}). Résultats : voix officielles
-              divisées par les {integer(reference2022.expressed)} suffrages exprimés.
+              <strong>Combinaison des deux scrutins.</strong> L’écart estimé est une moyenne géométrique où
+              chaque scrutin pèse {pct(ELECTION_WEIGHTS[2022] * 100, 0)}. Hypothèse : rien ne permet de dire
+              lequel des deux annonce le mieux 2027. La moyenne géométrique traite de la même façon une
+              sous-estimation et une surestimation de même ampleur (×1,25 et ×0,80 se compensent) : un biais
+              qui se répète d’un scrutin à l’autre est conservé, un biais qui s’inverse s’atténue.
+              {(() => {
+                const c = calibration.correction
+                const id = 'melenchon'
+                return c.ratio2022[id] !== undefined && c.ratio2017[id] !== undefined && c.ratio[id] !== undefined
+                  ? ` Exemple : Jean-Luc Mélenchon, à ${ratio(c.ratio2022[id])} en 2022 et ${ratio(c.ratio2017[id])} en 2017, reçoit un écart estimé de ${ratio(c.ratio[id])}.`
+                  : ''
+              })()}
             </p>
             <p>
-              C’est strictement le scénario de 2022 : appliquée aux derniers sondages de 2022, cette
-              correction redonne exactement le résultat officiel du 1er tour (un test automatique le vérifie).
-              À 100 % d’intensité, chaque candidat de 2027 reçoit donc l’écart relatif réel de sa référence de
+              <strong>Équivalents de 2017 (hypothèses).</strong> L’écart de 2017 d’un candidat de 2022 est
+              celui du même candidat, ou du candidat de son parti : Hidalgo → Hamon (PS) ; Jadot → Hamon,
+              candidat commun PS-EELV après le retrait de Jadot en février 2017 ; Pécresse → Fillon (LR).
+              Roussel (le PCF soutenait Mélenchon en 2017) et Zemmour (absent en 2017) n’en ont pas : leur
+              écart estimé est celui de 2022 seul.
+            </p>
+            <p>
+              Appliqué aux derniers sondages de son scrutin, chaque ratio redonne exactement le résultat
+              officiel du 1er tour (un test automatique le vérifie pour 2022 et 2017). L’écart estimé n’est
+              celui d’aucun des deux scrutins : c’est le biais qu’on peut attendre s’il se reproduit en
+              moyenne. À 100 % d’intensité, chaque candidat de 2027 reçoit l’écart estimé de sa référence de
               2022.
             </p>
             <p>
@@ -469,28 +533,77 @@ export function Methodology({ result }: { result: SimulationResult }) {
                 : 'Les corrections sont désactivées dans le scénario en cours.'}
             </p>
           </div>
-          <Table caption="Écarts de 2022">
+          {PAST_YEARS.map((year) => {
+            const ref = REFERENCES[year]
+            const stats = year === 2022 ? reference2022Stats : reference2017Stats
+            return (
+              <Table key={year} caption={`Écarts de ${year}`}>
+                <thead>
+                  <tr className="border-b border-rule">
+                    <th className={th}>Candidat {year}</th>
+                    <th className={`${th} text-right`}>Derniers sondages</th>
+                    <th className={`${th} text-right`}>Résultat</th>
+                    <th className={`${th} text-right`}>Ratio</th>
+                    {year === 2017 && <th className={th}>Équivalent de</th>}
+                  </tr>
+                </thead>
+                <tbody>
+                  {ref.candidates.map((c) => {
+                    const of2022 = Object.entries(EQUIVALENTS_2017)
+                      .filter(([id, eq]) => eq === c.id && calibration.correction.ratio2017[id] !== undefined)
+                      .map(([id]) => reference2022.candidates.find((x) => x.id === id)?.name ?? id)
+                    return (
+                      <tr key={c.id} className="border-b border-rule/60">
+                        <td className={td}>{c.name}</td>
+                        <td className={`${td} num text-right`}>{pct(stats.pollAverage[c.id] ?? 0, 2)}</td>
+                        <td className={`${td} num text-right`}>{pct(stats.result[c.id] ?? 0, 2)}</td>
+                        <td className={`${td} num text-right font-medium`}>
+                          {stats.ratio[c.id] !== undefined ? ratio(stats.ratio[c.id]!) : '—'}
+                        </td>
+                        {year === 2017 && (
+                          <td className={td}>
+                            {of2022.length > 0 ? of2022.join(', ') : <span className="text-ink-3">aucun</span>}
+                          </td>
+                        )}
+                      </tr>
+                    )
+                  })}
+                </tbody>
+              </Table>
+            )
+          })}
+          <Table caption="Écart estimé par référence de 2022">
             <thead>
               <tr className="border-b border-rule">
                 <th className={th}>Candidat 2022</th>
-                <th className={`${th} text-right`}>Derniers sondages</th>
-                <th className={`${th} text-right`}>Résultat</th>
-                <th className={`${th} text-right`}>Ratio</th>
+                <th className={`${th} text-right`}>Ratio 2022</th>
+                <th className={`${th} text-right`}>Ratio 2017</th>
+                <th className={`${th} text-right`}>Écart estimé</th>
                 <th className={th}>Référence pour 2027</th>
               </tr>
             </thead>
             <tbody>
               {reference2022.candidates.map((c) => {
                 const users = usersOf(c.id)
+                const r2017 = calibration.correction.ratio2017[c.id]
+                const eq = EQUIVALENTS_2017[c.id]
+                const estimate = calibration.correction.ratio[c.id]
                 return (
                   <tr key={c.id} className="border-b border-rule/60">
                     <td className={td}>{c.name}</td>
                     <td className={`${td} num text-right`}>
-                      {pct(reference2022Stats.pollAverage[c.id] ?? 0, 2)}
+                      {reference2022Stats.ratio[c.id] !== undefined ? ratio(reference2022Stats.ratio[c.id]!) : '—'}
                     </td>
-                    <td className={`${td} num text-right`}>{pct(reference2022Stats.result[c.id] ?? 0, 2)}</td>
+                    <td className={`${td} num text-right`}>
+                      {r2017 !== undefined ? ratio(r2017) : <span className="text-ink-3">aucun équivalent</span>}
+                      {r2017 !== undefined && eq !== c.id && (
+                        <span className="block text-xs text-ink-3">
+                          {reference2017.candidates.find((x) => x.id === eq)?.name ?? eq}
+                        </span>
+                      )}
+                    </td>
                     <td className={`${td} num text-right font-medium`}>
-                      {ratio(reference2022Stats.ratio[c.id] ?? 1)}
+                      {estimate !== undefined ? ratio(estimate) : '—'}
                     </td>
                     <td className={td}>
                       {users.length > 0 ? users.join(', ') : <span className="text-ink-3">aucun</span>}
@@ -516,10 +629,13 @@ export function Methodology({ result }: { result: SimulationResult }) {
                 </li>
               ))}
             <li>
-              Pour une référence pondérée, le ratio est la moyenne des ratios de chaque référence, pondérée
-              par son poids.
+              Pour une référence pondérée, l’écart estimé est la moyenne des écarts estimés de chaque
+              référence, pondérée par son poids.
             </li>
-            <li>Les autres candidats sont comparés à eux-mêmes en 2022.</li>
+            <li>
+              Les autres candidats sont comparés à eux-mêmes en 2022, et à leur équivalent de 2017 quand il
+              existe.
+            </li>
           </ul>
           <div className="prose-method">
             <p>
@@ -538,7 +654,7 @@ export function Methodology({ result }: { result: SimulationResult }) {
                 <th className={th}>Électorats de 2027 rattachés</th>
                 <th className={`${th} text-right`}>Total</th>
                 <th className={`${th} text-right`}>Progression</th>
-                <th className={`${th} text-right`}>Correction</th>
+                <th className={`${th} text-right`}>Écart estimé</th>
               </tr>
             </thead>
             <tbody>
@@ -551,7 +667,7 @@ export function Methodology({ result }: { result: SimulationResult }) {
                 })
                 if (parts.length === 0) return []
                 const prog = progression2022Stats.ratio[ref.id]
-                const corr = reference2022Stats.ratio[ref.id]
+                const corr = calibration.correction.ratio[ref.id]
                 return [
                   <tr key={ref.id} className="border-b border-rule/60">
                     <td className={td}>{ref.name}</td>
@@ -579,8 +695,10 @@ export function Methodology({ result }: { result: SimulationResult }) {
                 <th className={th}>Candidat</th>
                 <th className={`${th} text-right`}>Moyenne 2027</th>
                 {settings.progressionEnabled && <th className={`${th} text-right`}>Projetée (étape 2)</th>}
-                <th className={`${th} text-right`}>Ratio</th>
+                <th className={`${th} text-right`}>Écart estimé</th>
                 <th className={`${th} text-right`}>Correction</th>
+                {settings.blogBiasEnabled && <th className={`${th} text-right`}>Billet</th>}
+                {settings.turnoutEnabled && <th className={`${th} text-right`}>Participation</th>}
                 <th className={`${th} text-right`}>Score corrigé</th>
               </tr>
             </thead>
@@ -597,11 +715,17 @@ export function Methodology({ result }: { result: SimulationResult }) {
                       )}
                     </td>
                   )}
-                  <td className={`${td} num text-right`}>{r.ratio2022 ? ratio(r.ratio2022) : '—'}</td>
+                  <td className={`${td} num text-right`}>{r.correctionRatio ? ratio(r.correctionRatio) : '—'}</td>
                   <td className={`${td} num text-right`}>
                     {pts(r.appliedCorrection, 2)}
                     {r.isOverride && <span className="ml-1 text-xs text-ballpoint">manuelle</span>}
                   </td>
+                  {settings.blogBiasEnabled && (
+                    <td className={`${td} num text-right`}>{r.blogBiasFactor ? ratio(r.blogBiasFactor) : '—'}</td>
+                  )}
+                  {settings.turnoutEnabled && (
+                    <td className={`${td} num text-right`}>{r.turnoutFactor ? ratio(r.turnoutFactor) : '—'}</td>
+                  )}
                   <td className={`${td} num text-right font-medium`}>
                     {pct(r.corrected, 2)}
                     {r.ceded > 1e-9 && (
@@ -612,16 +736,267 @@ export function Methodology({ result }: { result: SimulationResult }) {
               ))}
             </tbody>
           </Table>
+          <div className="prose-method">
+            <h3 id="billet">Option : biais révélés par un billet de blog</h3>
+            <p>
+              Le{' '}
+              <a href={BLOG_BIAS_URL} className="link" target="_blank" rel="noreferrer">
+                billet d’Eliot Thibault publié le 01/11/2026 dans le Club de Mediapart
+              </a>{' '}
+              soutient que, loin du scrutin, les sondages surestiment l’extrême droite et sous-estiment la
+              gauche. Il chiffre l’écart du bloc d’extrême droite à environ 4 points entre les sondages
+              d’octobre 2021 et son score de 2022 (environ 5 points en 2017). L’option « Corriger les biais
+              révélés dans le billet de blog d’Eliot Thibault » mesure ces écarts sur les données de 2022 et de
+              2017 du simulateur, bloc par bloc, les combine comme à l’étape 3 (moyenne géométrique, chaque
+              scrutin pesant {pct(ELECTION_WEIGHTS[2022] * 100, 0)}) et les applique aux candidats de 2027 de
+              ces deux blocs. Elle est{' '}
+              <strong>
+                {settings.blogBiasEnabled
+                  ? `activée, à ${pct(settings.blogBiasIntensity * 100, 0)} d’intensité`
+                  : 'désactivée'}
+              </strong>{' '}
+              dans le scénario en cours.
+              {(() => {
+                const ed = calibration.blogBias.extreme_droite?.years
+                const gap = (y: YearBlocBias | undefined) => (y && y.early > 0 ? pts(y.result - y.early) : null)
+                const [g2022, g2017] = [gap(ed?.[2022]), gap(ed?.[2017])]
+                return g2022 && g2017
+                  ? ` Sur les données du simulateur, à la même distance du scrutin que la base 2027, cet écart est de ${g2022} en 2022 et de ${g2017} en 2017.`
+                  : ''
+              })()}
+            </p>
+            <p>
+              L’écart se décompose comme les étapes 2 et 3 : l’évolution des sondages depuis la même distance
+              du scrutin (le {date(progression2022Stats.asOf)} et le {date(progression2017Stats.asOf)} pour la
+              base 2027 du {date(polls.asOf)}), puis l’écart entre derniers sondages et résultat. La date de
+              comparaison suit la base 2027 : à mesure que le scrutin approche, elle se rapproche des votes de
+              2022 et 2017 et l’évolution mesurée se réduit ; seul demeure, à la fin, l’écart entre derniers
+              sondages et résultat.
+            </p>
+            <p>
+              En 2017, les primaires LR (novembre 2016) et PS (janvier 2017) n’avaient pas encore désigné les
+              candidats : à six mois du scrutin, toutes les hypothèses testant Emmanuel Macron sont retenues,
+              et chaque candidat testé compte dans son bloc (Hollande, Valls, Montebourg ou Peillon à gauche
+              comme Benoît Hamon). Les blocs n’ont pas le même poids d’un scrutin à l’autre : ce sont leurs
+              écarts relatifs qui sont combinés, pas leurs niveaux.
+            </p>
+          </div>
+          <Table caption="Écarts par bloc à la même distance du scrutin (candidats du même bloc à chaque scrutin)">
+            <thead>
+              <tr className="border-b border-rule">
+                <th className={th}>Bloc</th>
+                <th className={th}>Scrutin</th>
+                <th className={`${th} text-right`}>Sondages à la même distance</th>
+                <th className={`${th} text-right`}>Derniers sondages</th>
+                <th className={`${th} text-right`}>Résultat</th>
+                <th className={`${th} text-right`}>Progression</th>
+                <th className={`${th} text-right`}>Correction</th>
+                <th className={`${th} text-right`}>Total</th>
+              </tr>
+            </thead>
+            <tbody>
+              {BLOCS.flatMap((bloc) => {
+                const b = calibration.blogBias[bloc]
+                if (!b) return []
+                const years = PAST_YEARS.filter((y) => b.years[y])
+                return [
+                  ...years.map((year, i) => {
+                    const y = b.years[year]!
+                    return (
+                      <tr key={`${bloc}-${year}`} className="border-b border-rule/60">
+                        {i === 0 && (
+                          <td className={td} rowSpan={years.length + 1}>
+                            {BLOC_LABELS[bloc]}
+                          </td>
+                        )}
+                        <td className={td}>
+                          {year}
+                          <span className="block text-xs text-ink-3">
+                            {(BLOG_BIAS_BLOCS[year][bloc] ?? []).map((id) => pastName(year, id)).join(', ')}
+                          </span>
+                        </td>
+                        <td className={`${td} num text-right`}>
+                          {y.early > 0 ? pct(y.early) : '—'}
+                          <span className="block text-xs text-ink-3">au {date(PROGRESSIONS[year].asOf)}</span>
+                        </td>
+                        <td className={`${td} num text-right`}>{pct(y.final)}</td>
+                        <td className={`${td} num text-right`}>{pct(y.result)}</td>
+                        <td className={`${td} num text-right`}>
+                          {y.progression !== null ? ratio(y.progression) : '—'}
+                        </td>
+                        <td className={`${td} num text-right`}>{ratio(y.correction)}</td>
+                        <td className={`${td} num text-right`}>
+                          {y.progression !== null ? ratio(y.progression * y.correction) : '—'}
+                        </td>
+                      </tr>
+                    )
+                  }),
+                  <tr key={`${bloc}-estimate`} className="border-b border-rule">
+                    <td className={`${td} font-medium`} colSpan={4}>
+                      Estimation (2022 et 2017)
+                    </td>
+                    <td className={`${td} num text-right font-medium`}>{ratio(b.progression)}</td>
+                    <td className={`${td} num text-right font-medium`}>{ratio(b.correction)}</td>
+                    <td className={`${td} num text-right font-medium`}>{ratio(totalBias(b))}</td>
+                  </tr>,
+                ]
+              })}
+            </tbody>
+          </Table>
+          <div className="prose-method">
+            <code className="formula">
+              facteur du bloc = (1 + (progression − 1) × intensité) × (1 + (correction − 1) × intensité)
+            </code>
+            <p>
+              Le facteur multiplie le score de chaque candidat du bloc après l’étape 3, puis les scores sont
+              ramenés à 100 % : le centre et la droite, non corrigés, absorbent l’écart.
+            </p>
+            <p>
+              <strong>Un même biais n’est corrigé qu’une fois.</strong> Pour un candidat disposant d’une
+              référence 2022, chaque composante du facteur est réduite à ce que l’option dédiée ne corrige pas
+              déjà :
+            </p>
+            <ul>
+              <li>
+                progression : « Progression comme en 2022 » ne reprend que 2022 ; quand elle est activée, le
+                billet ne garde que ce que 2017 change à l’estimation (progression estimée ÷ progression de
+                2022 du bloc) ;
+              </li>
+              <li>
+                écart final : « Corriger la moyenne » l’estime déjà sur 2017 et 2022 ; quand elle est activée
+                (ou qu’un écart est saisi à la main), le billet n’en reprend rien, sauf pour un candidat dont
+                la référence n’a pas d’équivalent en 2017 (Roussel, Zemmour), pour qui il garde ce que 2017
+                change à l’écart du bloc.
+              </li>
+            </ul>
+            <p>
+              L’option dédiée s’applique alors, pour ce candidat, à la plus forte des deux intensités (la sienne
+              ou celle du billet). Seule, l’option du billet applique les deux composantes en entier. Les
+              candidats sans référence 2022
+              {(() => {
+                const unreferenced = result.firstRound.filter((r) => {
+                  const { bloc } = cand(r.candidateId)
+                  return r.correctionRatio === null && bloc !== undefined && calibration.blogBias[bloc]
+                })
+                return unreferenced.length > 0
+                  ? ` (${unreferenced.map((r) => cand(r.candidateId).shortName).join(', ')} dans le scénario en cours)`
+                  : ''
+              })()}{' '}
+              reçoivent toujours le facteur complet de leur bloc.
+            </p>
+
+            <h3 id="participation">Option : hausse de participation annoncée par le billet</h3>
+            <p>
+              Le billet annonce aussi une participation en hausse : la part des électeurs certains d’aller
+              voter atteindrait 77 % contre 70 % en 2021 selon l’Ifop (chiffres cités par le billet, non
+              revérifiés ici). L’option « Ajouter la hausse de participation annoncée par le billet » ajoute{' '}
+              {BLOG_TURNOUT_RISE} points d’inscrits aux votants (à 100 % d’intensité) et les fait voter comme
+              les électeurs qui reviennent aux urnes. Elle est{' '}
+              <strong>
+                {settings.turnoutEnabled
+                  ? `activée, à ${pct(settings.turnoutIntensity * 100, 0)} d’intensité`
+                  : 'désactivée'}
+              </strong>{' '}
+              dans le scénario en cours.
+            </p>
+            <p>
+              <strong>Pour qui votent les électeurs qui reviennent ?</strong> Le meilleur indice disponible
+              est le vote, au 1er tour de 2022, des électeurs qui s’étaient abstenus au 1er tour de 2017,
+              mesuré par le sondage jour du vote d’Ifop-Fiducial. Pour chaque bloc, l’affinité k rapporte sa
+              part chez ces électeurs à sa part chez l’ensemble des votants. Jean Lassalle (
+              {pct(TURNOUT_PROFILE_2022.all.lassalle ?? 0, 1)} de l’ensemble,{' '}
+              {pct(TURNOUT_PROFILE_2022.abstainers2017.lassalle ?? 0, 0)} de ces électeurs), inclassable, est
+              laissé de côté et les parts sont ramenées à 100 %.
+            </p>
+          </div>
+          <Table caption="Vote au 1er tour 2022 selon la participation au 1er tour 2017 (Ifop-Fiducial, sondage jour du vote)">
+            <thead>
+              <tr className="border-b border-rule">
+                <th className={th}>Bloc</th>
+                <th className={`${th} text-right`}>Ensemble des votants</th>
+                <th className={`${th} text-right`}>Abstentionnistes de 2017 venus voter</th>
+                <th className={`${th} text-right`}>Affinité k</th>
+              </tr>
+            </thead>
+            <tbody>
+              {BLOCS.map((bloc) => (
+                <tr key={bloc} className="border-b border-rule/60">
+                  <td className={td}>
+                    {BLOC_LABELS[bloc]}
+                    <span className="block text-xs text-ink-3">
+                      {TURNOUT_BLOCS_2022[bloc].map((id) => pastName(2022, id)).join(', ')}
+                    </span>
+                  </td>
+                  <td className={`${td} num text-right`}>{pct(TURNOUT_SHARES.all[bloc] * 100)}</td>
+                  <td className={`${td} num text-right`}>{pct(TURNOUT_SHARES.returning[bloc] * 100)}</td>
+                  <td className={`${td} num text-right font-medium`}>
+                    {num(calibration.turnout.affinity[bloc], 2)}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </Table>
+          <div className="prose-method">
+            <code className="formula">facteur du candidat = (V₀ + ΔV × k ÷ K) ÷ (V₀ + ΔV)</code>
+            <p>
+              V₀ = {pct(calibration.turnout.base, 1)} des inscrits : la participation au 1er tour que reflètent
+              les sondages corrigés, moyenne de 2022 ({pct(turnoutOf(reference2022), 1)}) et de 2017 (
+              {pct(turnoutOf(reference2017), 1)}) pondérée comme les écarts de l’étape 3. ΔV ={' '}
+              {BLOG_TURNOUT_RISE} points × intensité. k est l’affinité du bloc du candidat (1 sans bloc) et K
+              l’affinité moyenne des votants du scénario (moyenne des k pondérée par les scores) : les
+              nouveaux votants s’ajoutent sans changer le total. Le facteur s’applique après la correction et
+              le billet, puis les scores sont ramenés à 100 %. Il ne touche que le 1er tour.
+            </p>
+            <p>
+              <strong>Limites.</strong>
+            </p>
+            <ul>
+              <li>
+                Double comptage possible : les sondages de 2027 portent déjà sur les électeurs certains d’aller
+                voter, dont la hausse annoncée fait partie. L’option teste l’hypothèse d’électeurs que les
+                sondages ne captent pas ; pour une hausse en partie captée, baissez l’intensité. Activée par
+                défaut à 100 %, elle applique la hausse annoncée en entier.
+              </li>
+              <li>
+                La sous-estimation habituelle de la participation par les sondages est déjà comprise dans les
+                écarts de l’étape 3, qui comparent les sondages au résultat réel.
+              </li>
+              <li>
+                Le profil repose sur une partie de l’échantillon d’un seul sondage (marge d’erreur de plusieurs
+                points) et sur une seule élection : rien ne garantit que les électeurs qui reviendraient en
+                2027 votent comme ceux de 2022.
+              </li>
+              <li>
+                Les travaux sur le sujet trouvent en général un effet modeste d’une participation accrue sur
+                les résultats, les abstentionnistes ayant des préférences proches de celles des votants de
+                profil comparable (Citrin, Schickler et Sides, 2003, sur les sénatoriales américaines ; van der
+                Eijk et van Egmond, 2007, sur les élections nationales et européennes). L’effet devient net
+                quand la hausse est forte : en Australie, le vote obligatoire a augmenté la participation
+                d’environ 24 points et le vote travailliste de 7 à 10 points (Fowler, 2013). Le modèle reste
+                dans ce cadre : l’effet est proportionnel à la hausse et repose sur un profil mesuré, pas sur
+                une hypothèse.
+              </li>
+            </ul>
+          </div>
           <p className="text-sm text-ink-3">
             Sources :{' '}
-            <a href={reference2022.resultsSource.url} className="link" target="_blank" rel="noreferrer">
-              {reference2022.resultsSource.label}
-            </a>
-            ,{' '}
-            <a href={reference2022.pollsSource.url} className="link" target="_blank" rel="noreferrer">
-              {reference2022.pollsSource.label}
+            {PAST_YEARS.map((year) => (
+              <span key={year}>
+                <a href={REFERENCES[year].resultsSource.url} className="link" target="_blank" rel="noreferrer">
+                  {REFERENCES[year].resultsSource.label}
+                </a>
+                ,{' '}
+                <a href={REFERENCES[year].pollsSource.url} className="link" target="_blank" rel="noreferrer">
+                  {REFERENCES[year].pollsSource.label}
+                </a>
+                ,{' '}
+              </span>
+            ))}
+            <a href={TURNOUT_PROFILE_SOURCE.url} className="link" target="_blank" rel="noreferrer">
+              {TURNOUT_PROFILE_SOURCE.label}
             </a>{' '}
-            (liens vers chaque sondage dans le fichier <code>reference-2022.json</code>).
+            (liens vers chaque sondage dans les fichiers <code>reference-2022.json</code> et{' '}
+            <code>reference-2017.json</code>).
           </p>
         </Step>
 
@@ -1121,7 +1496,8 @@ export function Methodology({ result }: { result: SimulationResult }) {
             </li>
             <li>
               Chaque sondage a une marge d’erreur et décrit l’opinion au moment de son terrain, à six mois du
-              scrutin. Les corrections de 2022 supposent que les biais se répètent, ce qui n’est pas garanti.
+              scrutin. Les corrections de 2017 et 2022 supposent que les biais se répètent en moyenne, ce qui
+              n’est pas garanti : deux scrutins ne suffisent pas à distinguer un biais durable d’un accident.
             </li>
             <li>
               Par défaut, seule la fidélité des électeurs des finalistes ({pct(sr.fidelity * 100, 0)}) ne
@@ -1139,6 +1515,8 @@ export function Methodology({ result }: { result: SimulationResult }) {
             )}
             <li>
               Le calage de l’abstention suppose une participation au 1er tour comparable à celle de 2022.
+              L’option de hausse de participation ne modifie que le 1er tour, sur un profil d’électeurs mesuré
+              par un seul sondage.
             </li>
             <li>
               Les chiffres des sondages viennent de la liste des sondages de Wikipedia et ne sont pas

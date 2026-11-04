@@ -51,7 +51,7 @@ describe('données', () => {
     const broken = structuredClone(pollsJson)
     broken.polls[0]!.hypotheses[0]!.scores = { ...broken.polls[0]!.hypotheses[0]!.scores, inconnu: 1 } as never
     expect(() =>
-      parseData({ polls: broken, reference2022: simulationData.reference2022, transfers: simulationData.transfers }),
+      parseData({ ...simulationData, polls: broken }),
     ).toThrow(/candidat inconnu/)
   })
 })

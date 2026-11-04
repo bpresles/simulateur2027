@@ -11,11 +11,10 @@ import {
   testedShare,
 } from './alliances'
 import type { AllianceSplit } from './alliances'
-import { applyCorrections, computeReference2022 } from './corrections'
-import type { Reference2022Stats } from './corrections'
+import { computeCalibration } from './calibration'
+import type { Calibration } from './calibration'
+import { applyCorrections } from './corrections'
 import { averagePolls } from './pollAverage'
-import { computeProgression2022 } from './progression'
-import type { ProgressionStats } from './progression'
 import { computeSecondRound, secondRoundDropout2022 } from './secondRound'
 import { allianceSplit2024, effectiveProfiles, minorTransferParts, resolveDuel } from './transfers'
 import type {
@@ -36,11 +35,15 @@ export function defaultSettings(): Settings {
   return {
     excludedPolls: [],
     progressionEnabled: false,
-    progressionIntensity: 0.7,
-    correctionsEnabled: true,
-    correctionIntensity: 0.7,
+    progressionIntensity: 1,
+    correctionsEnabled: false,
+    correctionIntensity: 1,
     correctionOverrides: {},
     referenceBlend: {},
+    blogBiasEnabled: true,
+    blogBiasIntensity: 1,
+    turnoutEnabled: true,
+    turnoutIntensity: 1,
     alliances: {},
     untestedAlliances: false,
     groupedAlliances: false,
@@ -58,8 +61,7 @@ export function defaultSettings(): Settings {
 export function simulate(
   data: SimulationData,
   settings: Settings,
-  reference: Reference2022Stats = computeReference2022(data.reference2022),
-  progression: ProgressionStats = computeProgression2022(data.polls, data.reference2022, reference),
+  calibration: Calibration = computeCalibration(data, data.polls),
 ): SimulationResult {
   const { polls, transfers } = data
   const candidatesById = new Map(polls.candidates.map((c) => [c.id, c]))
@@ -127,10 +129,20 @@ export function simulate(
   // corrigés de ses donneurs, qui gardent ainsi leur correction 2022 sur les électeurs qu'ils cèdent.
   const insert = (scores: Record<CandidateId, number>) =>
     inserted.reduce((acc, id) => insertMinor(acc, id, minorShare(id), minorTransfers[id] ?? []), scores)
-  const without = applyCorrections(average, polls.candidates, reference, settings, progression)
+  const correct = (scores: Record<CandidateId, number>) =>
+    applyCorrections(
+      scores,
+      polls.candidates,
+      calibration.correction,
+      settings,
+      calibration.y2022.progression,
+      calibration.blogBias,
+      calibration.turnout,
+    )
+  const without = correct(average)
   const base = insert(average)
   const corrected = insert(Object.fromEntries(without.map((r) => [r.candidateId, r.corrected])))
-  const minorRows = applyCorrections(base, polls.candidates, reference, settings, progression)
+  const minorRows = correct(base)
   const firstRound = polls.candidates.flatMap((c): FirstRoundRow[] => {
     const r = without.find((w) => w.candidateId === c.id)
     if (r) return [{ ...r, cededBase: r.base - base[c.id]!, ceded: r.corrected - corrected[c.id]!, corrected: corrected[c.id]! }]

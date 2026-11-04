@@ -199,7 +199,7 @@ export interface Reference2022Poll {
   scores: Record<string, number>
 }
 
-/** Sondage de la campagne 2021-2022, avec toutes ses hypothèses (plusieurs candidats LR testés). */
+/** Sondage de campagne d'un scrutin passé, avec toutes ses hypothèses (plusieurs candidats LR testés). */
 export interface CampaignPoll {
   institute: string
   fieldwork: Fieldwork
@@ -208,7 +208,8 @@ export interface CampaignPoll {
   hypotheses: Hypothesis[]
 }
 
-export interface Reference2022 {
+/** Scrutin passé servant d'étalon : derniers sondages, résultat officiel et sondages de campagne. */
+export interface PastElectionReference {
   electionDate: string
   windowDays: number
   description: string
@@ -216,15 +217,10 @@ export interface Reference2022 {
   pollsSource: SourceLink
   /** Suffrages exprimés au 1er tour (base des pourcentages). */
   expressed: number
-  /** Chiffres officiels du 2nd tour, base du calage de l'abstention. */
-  secondRound: {
-    registered: number
-    voters: number
-    blank: number
-    invalid: number
-    expressed: number
-    source: SourceLink
-  }
+  /** Inscrits au 1er tour. */
+  registered: number
+  /** Votants au 1er tour (participation = votants ÷ inscrits). */
+  voters: number
   candidates: Reference2022Candidate[]
   polls: Reference2022Poll[]
   /** Sondages réalisés à la même distance du scrutin que la base 2027, pour mesurer la progression. */
@@ -238,6 +234,21 @@ export interface Reference2022 {
     polls: CampaignPoll[]
   }
 }
+
+export interface Reference2022 extends PastElectionReference {
+  /** Chiffres officiels du 2nd tour, base du calage de l'abstention. */
+  secondRound: {
+    registered: number
+    voters: number
+    blank: number
+    invalid: number
+    expressed: number
+    source: SourceLink
+  }
+}
+
+/** Présidentielle 2017 : second étalon des écarts entre sondages et résultat. */
+export type Reference2017 = PastElectionReference
 
 export type ProvenanceId = 'franceinfo' | 'publicsenat' | 'lcp' | 'derive' | 'transpose' | 'camp' | 'hypothese'
 
@@ -282,6 +293,7 @@ export interface TransfersData {
 export interface SimulationData {
   polls: PollsData
   reference2022: Reference2022
+  reference2017: Reference2017
   transfers: TransfersData
 }
 
@@ -303,6 +315,23 @@ export interface Settings {
   correctionOverrides: Record<CandidateId, number>
   /** Référence composite à deux candidats : poids du second (0 à 1), qui remplace celui des données. */
   referenceBlend: Record<CandidateId, number>
+  /**
+   * Corrige les biais par bloc relevés par le billet (extrême droite surestimée, gauche sous-estimée loin
+   * du scrutin), sans répéter ce que la progression et la correction activées corrigent déjà.
+   */
+  blogBiasEnabled: boolean
+  /**
+   * 1 = 100 % des biais du billet. Un biais que corrige aussi la progression ou la correction activée n'est
+   * corrigé qu'une fois, à la plus forte des deux intensités.
+   */
+  blogBiasIntensity: number
+  /**
+   * Ajoute la hausse de participation annoncée par le billet, supposée absente des sondages : les électeurs
+   * supplémentaires votent comme les abstentionnistes de 2017 venus voter en 2022.
+   */
+  turnoutEnabled: boolean
+  /** 1 = 100 % de la hausse annoncée par le billet (7 points d'inscrits). */
+  turnoutIntensity: number
   alliances: Record<string, boolean>
   /** Option : permettre des alliances qu'aucun sondage ne teste, estimées par les reports de 2024. */
   untestedAlliances: boolean
@@ -348,12 +377,26 @@ export interface FirstRoundRow {
   progressionFactor: number | null
   /** Derniers sondages projetés (= base si la progression est désactivée), normalisés à 100. */
   projected: number
-  ratio2022: number | null
+  /**
+   * Écart estimé entre derniers sondages et résultat (résultat ÷ sondages) : 2022 combiné à 2017 quand la
+   * référence a un équivalent en 2017, 2022 seul sinon.
+   */
+  correctionRatio: number | null
   /** Références 2022 effectivement utilisées, avec leur poids (une seule le plus souvent). */
   references: ReferencePart[]
   defaultCorrection: number
+  /** Intensité de correction retenue : celle du réglage, ou celle du billet si elle est plus forte. */
+  correctionIntensity: number
   appliedCorrection: number
   isOverride: boolean
+  /**
+   * Facteur des biais du billet pour le bloc du candidat, limité aux composantes que ni la progression ni la
+   * correction ne corrigent déjà (1 si elles couvrent tout) ; null si l'option est désactivée ou si le
+   * billet ne chiffre pas le biais de ce bloc.
+   */
+  blogBiasFactor: number | null
+  /** Facteur de la hausse de participation du billet (null si l'option est désactivée). */
+  turnoutFactor: number | null
   /** Points de la moyenne brute prélevés pour les petits candidats ajoutés (0 sinon). */
   cededBase: number
   /** Points cédés après correction aux petits candidats ajoutés, déjà déduits de `corrected`. */

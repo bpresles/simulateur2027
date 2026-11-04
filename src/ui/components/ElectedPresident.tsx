@@ -1,5 +1,6 @@
 import { AnimatePresence, motion } from 'motion/react'
 import { simulationData } from '../../data/schema'
+import { BLOG_TURNOUT_RISE } from '../../domain/turnout'
 import type { CandidateId, SimulationResult } from '../../domain/types'
 import { useSettings } from '../../state/settingsStore'
 import { cand, colorVars } from '../candidates'
@@ -15,6 +16,7 @@ export function ElectedPresident({ result }: { result: SimulationResult }) {
   const sr = result.secondRound
   const settings = useSettings()
   const { correctionsEnabled, correctionIntensity, progressionEnabled, progressionIntensity } = settings
+  const { blogBiasEnabled, blogBiasIntensity, turnoutEnabled, turnoutIntensity } = settings
   const aWins = sr.pct.a >= sr.pct.b
   const winnerId = aWins ? sr.a : sr.b
   const loserId = aWins ? sr.b : sr.a
@@ -48,12 +50,26 @@ export function ElectedPresident({ result }: { result: SimulationResult }) {
     ...(result.qualification.tight
       ? [`qualification serrée, 2nd tour avec le ${third ? '3e' : '2e'} du 1er tour`]
       : []),
-    correctionsEnabled ? `correction 2022 à ${pct(correctionIntensity * 100, 0)}` : 'sans correction 2022',
+    correctionsEnabled
+      ? `correction 2017-2022 à ${pct(correctionIntensity * 100, 0)}`
+      : 'sans correction 2017-2022',
+    ...(blogBiasEnabled ? [`biais du billet à ${pct(blogBiasIntensity * 100, 0)}`] : []),
+    ...(turnoutEnabled ? [`hausse de participation à ${pct(turnoutIntensity * 100, 0)}`] : []),
     alliances.length > 0 ? alliances.join(', ') : 'sans alliance',
   ].join(' ; ')
 
   // Lecture du résultat : les hypothèses retenues, dans l'ordre chronologique jusqu'au 2nd tour.
   const share = (intensity: number) => (intensity === 1 ? '' : `, à ${pct(intensity * 100, 0)} de leur ampleur`)
+  // Biais du billet : la gauche et l'extrême droite, corrigées une seule fois à la plus forte des intensités.
+  const BLOG_BLOCS = 'la gauche et l’extrême droite'
+  const blogBoost = (intensity: number) =>
+    blogBiasEnabled && blogBiasIntensity > intensity
+      ? ` (à ${pct(blogBiasIntensity * 100, 0)} pour ${BLOG_BLOCS}, biais relevés par le billet)`
+      : ''
+  // La progression de « Progression comme en 2022 » ne tient pas compte de 2017 ; le billet l'y ajoute.
+  const blogProgression = blogBiasEnabled
+    ? ` (comme en moyenne en 2017 et 2022 pour ${BLOG_BLOCS}${blogBiasIntensity > progressionIntensity ? `, à ${pct(blogBiasIntensity * 100, 0)}` : ''}, biais relevés par le billet)`
+    : ''
   const transfersAdjusted =
     Object.keys(settings.transferOverrides).length > 0 ||
     Object.keys(settings.minorTransfers).length > 0 ||
@@ -74,11 +90,20 @@ export function ElectedPresident({ result }: { result: SimulationResult }) {
   const conditions = [
     ...(rallies.length > 0 ? [`${list.format(rallies)} dès le 1er tour`] : []),
     progressionEnabled
-      ? `les intentions de vote évoluent d’ici au scrutin comme en 2022 à la même distance de l’élection${share(progressionIntensity)}`
-      : 'les intentions de vote n’évoluent plus d’ici au scrutin',
+      ? `les intentions de vote évoluent d’ici au scrutin comme en 2022 à la même distance de l’élection${share(progressionIntensity)}${blogProgression}`
+      : blogBiasEnabled
+        ? `les intentions de vote de la gauche et de l’extrême droite évoluent d’ici au scrutin comme en moyenne en 2017 et 2022 à la même distance de l’élection${share(blogBiasIntensity)} (biais relevés par le billet)`
+        : 'les intentions de vote n’évoluent plus d’ici au scrutin',
     correctionsEnabled
-      ? `les sondages se trompent sur le 1er tour comme en 2022${share(correctionIntensity)}${Object.keys(settings.correctionOverrides).length > 0 ? ' (avec vos ajustements par candidat)' : ''}`
-      : 'les sondages donnent exactement le résultat du 1er tour',
+      ? `les sondages se trompent sur le 1er tour comme en moyenne en 2017 et 2022${share(correctionIntensity)}${blogBoost(correctionIntensity)}${Object.keys(settings.correctionOverrides).length > 0 ? ' (avec vos ajustements par candidat)' : ''}`
+      : blogBiasEnabled
+        ? `les sondages se trompent sur ${BLOG_BLOCS} au 1er tour comme en moyenne en 2017 et 2022${share(blogBiasIntensity)} (biais relevés par le billet)`
+        : 'les sondages donnent exactement le résultat du 1er tour',
+    ...(turnoutEnabled
+      ? [
+          `la participation au 1er tour gagne ${num(BLOG_TURNOUT_RISE * turnoutIntensity, 1)} points d’électeurs que les sondages ne captent pas, votant comme les abstentionnistes de 2017 venus voter en 2022`,
+        ]
+      : []),
     transfersAdjusted
       ? 'les reports de voix entre les deux tours suivent vos réglages, à partir de ceux des législatives 2024'
       : 'les reports de voix entre les deux tours ressemblent à ceux des législatives 2024',

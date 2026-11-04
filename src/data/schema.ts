@@ -1,9 +1,19 @@
 import { z } from 'zod'
 import { resolveGroupedLeaders } from '../domain/alliances'
+import { BLOG_BIAS_BLOCS } from '../domain/blogBias'
+import { EQUIVALENTS_2017 } from '../domain/pastElections'
 import { referenceIds } from '../domain/references'
 import { BLOCS } from '../domain/types'
-import type { PollsData, Reference2022, SimulationData, TransfersData } from '../domain/types'
+import type {
+  PastElectionReference,
+  PollsData,
+  Reference2017,
+  Reference2022,
+  SimulationData,
+  TransfersData,
+} from '../domain/types'
 import pollsJson from './polls-2027.json'
+import reference2017Json from './reference-2017.json'
 import referenceJson from './reference-2022.json'
 import transfersJson from './transfers-legislatives-2024.json'
 
@@ -124,21 +134,15 @@ const pollsSchema: z.ZodType<PollsData> = z.object({
   ),
 })
 
-const referenceSchema: z.ZodType<Reference2022> = z.object({
+const pastElectionShape = {
   electionDate: isoDate,
   windowDays: z.number().int().positive(),
   description: z.string(),
   resultsSource: sourceLink,
   pollsSource: sourceLink,
   expressed: z.number().int().positive(),
-  secondRound: z.object({
-    registered: z.number().int().positive(),
-    voters: z.number().int().positive(),
-    blank: z.number().int().nonnegative(),
-    invalid: z.number().int().nonnegative(),
-    expressed: z.number().int().positive(),
-    source: sourceLink,
-  }),
+  registered: z.number().int().positive(),
+  voters: z.number().int().positive(),
   candidates: z.array(z.object({ id: z.string(), name: z.string(), votes: z.number().int().nonnegative() })),
   polls: z.array(
     z.object({
@@ -167,7 +171,21 @@ const referenceSchema: z.ZodType<Reference2022> = z.object({
       }),
     ),
   }),
+}
+
+const referenceSchema: z.ZodType<Reference2022> = z.object({
+  ...pastElectionShape,
+  secondRound: z.object({
+    registered: z.number().int().positive(),
+    voters: z.number().int().positive(),
+    blank: z.number().int().nonnegative(),
+    invalid: z.number().int().nonnegative(),
+    expressed: z.number().int().positive(),
+    source: sourceLink,
+  }),
 })
+
+const reference2017Schema: z.ZodType<Reference2017> = z.object(pastElectionShape)
 
 const transferRow = z.object({
   finalist: percent,
@@ -197,10 +215,39 @@ const transfersSchema: z.ZodType<TransfersData> = z.object({
   }),
 })
 
+/** Contrôles d'un scrutin passé : candidats connus, dates de terrain, total des voix. */
+function validatePastElection(label: string, ref: PastElectionReference): string[] {
+  const errors: string[] = []
+  const ids = new Set(ref.candidates.map((c) => c.id))
+  for (const poll of ref.polls) {
+    for (const id of Object.keys(poll.scores)) {
+      if (!ids.has(id)) errors.push(`${label} ${poll.institute} : candidat inconnu « ${id} »`)
+    }
+  }
+  const campaign = ref.campaignPolls
+  const known = new Set([...ids, ...campaign.otherCandidates.map((c) => c.id)])
+  for (const id of [...campaign.require, ...campaign.exclude]) {
+    if (!known.has(id)) errors.push(`Campagne ${label} : candidat inconnu « ${id} » dans le filtre`)
+  }
+  for (const poll of campaign.polls) {
+    if (poll.fieldwork.start > poll.fieldwork.end) errors.push(`Campagne ${label} ${poll.institute} : dates inversées`)
+    for (const h of poll.hypotheses) {
+      for (const id of Object.keys(h.scores)) {
+        if (!known.has(id)) errors.push(`Campagne ${label} ${poll.institute}/${h.id} : candidat inconnu « ${id} »`)
+      }
+    }
+  }
+  const totalVotes = ref.candidates.reduce((s, c) => s + c.votes, 0)
+  if (totalVotes !== ref.expressed) errors.push(`${label} : total des voix ${totalVotes} ≠ exprimés`)
+  if (!(ref.expressed <= ref.voters && ref.voters <= ref.registered))
+    errors.push(`${label} : 1er tour incohérent (exprimés ≤ votants ≤ inscrits attendu)`)
+  return errors
+}
+
 /** Contrôles de cohérence entre fichiers, que Zod ne peut pas exprimer seul. */
 export function validateData(data: SimulationData): string[] {
   const errors: string[] = []
-  const { polls, reference2022, transfers } = data
+  const { polls, reference2022, reference2017, transfers } = data
   const simulated = new Set(polls.candidates.map((c) => c.id))
   const main = new Set(polls.candidates.filter((c) => !c.minor).map((c) => c.id))
   const known = new Set([...simulated, ...polls.otherCandidates.map((c) => c.id)])
@@ -255,28 +302,22 @@ export function validateData(data: SimulationData): string[] {
     }
   }
 
-  for (const poll of reference2022.polls) {
-    for (const id of Object.keys(poll.scores)) {
-      if (!ref2022Ids.has(id)) errors.push(`2022 ${poll.institute} : candidat inconnu « ${id} »`)
-    }
+  errors.push(...validatePastElection('2022', reference2022), ...validatePastElection('2017', reference2017))
+  for (const [id2022, id2017] of Object.entries(EQUIVALENTS_2017)) {
+    if (!ref2022Ids.has(id2022)) errors.push(`Équivalent 2017 : candidat 2022 inconnu « ${id2022} »`)
+    if (!reference2017.candidates.some((c) => c.id === id2017)) errors.push(`Équivalent 2017 : candidat 2017 inconnu « ${id2017} »`)
   }
-  const campaign = reference2022.campaignPolls
-  const known2021 = new Set([...ref2022Ids, ...campaign.otherCandidates.map((c) => c.id)])
-  for (const id of [...campaign.require, ...campaign.exclude]) {
-    if (!known2021.has(id)) errors.push(`Campagne 2022 : candidat inconnu « ${id} » dans le filtre`)
-  }
-  for (const poll of campaign.polls) {
-    if (poll.fieldwork.start > poll.fieldwork.end) errors.push(`Campagne 2022 ${poll.institute} : dates inversées`)
-    for (const h of poll.hypotheses) {
-      for (const id of Object.keys(h.scores)) {
-        if (!known2021.has(id)) errors.push(`Campagne 2022 ${poll.institute}/${h.id} : candidat inconnu « ${id} »`)
-      }
+  for (const [label, ref, blocs] of [
+    ['2022', reference2022, BLOG_BIAS_BLOCS[2022]],
+    ['2017', reference2017, BLOG_BIAS_BLOCS[2017]],
+  ] as const) {
+    const ids = new Set([...ref.candidates, ...ref.campaignPolls.otherCandidates].map((c) => c.id))
+    for (const id of Object.values(blocs).flat()) {
+      if (!ids.has(id)) errors.push(`Blocs du billet ${label} : candidat inconnu « ${id} »`)
     }
   }
   const t2 = reference2022.secondRound
   if (t2.voters - t2.blank - t2.invalid !== t2.expressed) errors.push('2022 : 2nd tour incohérent (votants − blancs − nuls ≠ exprimés)')
-  const totalVotes = reference2022.candidates.reduce((s, c) => s + c.votes, 0)
-  if (totalVotes !== reference2022.expressed) errors.push(`2022 : total des voix ${totalVotes} ≠ exprimés`)
 
   for (const profile of transfers.profiles) {
     for (const b of BLOCS) {
@@ -288,10 +329,16 @@ export function validateData(data: SimulationData): string[] {
   return errors
 }
 
-export function parseData(raw: { polls: unknown; reference2022: unknown; transfers: unknown }): SimulationData {
+export function parseData(raw: {
+  polls: unknown
+  reference2022: unknown
+  reference2017: unknown
+  transfers: unknown
+}): SimulationData {
   const data: SimulationData = {
     polls: resolveGroupedLeaders(pollsSchema.parse(raw.polls)),
     reference2022: referenceSchema.parse(raw.reference2022),
+    reference2017: reference2017Schema.parse(raw.reference2017),
     transfers: transfersSchema.parse(raw.transfers),
   }
   const errors = validateData(data)
@@ -302,5 +349,6 @@ export function parseData(raw: { polls: unknown; reference2022: unknown; transfe
 export const simulationData: SimulationData = parseData({
   polls: pollsJson,
   reference2022: referenceJson,
+  reference2017: reference2017Json,
   transfers: transfersJson,
 })

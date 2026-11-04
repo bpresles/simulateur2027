@@ -1,41 +1,49 @@
-import type { Reference2022Stats } from './corrections'
+import type { ReferenceStats } from './corrections'
 import { addDays, averageHypothesisPolls, daysBetween } from './pollAverage'
-import type { CampaignPoll, PollUsage, PollsData, Reference2022 } from './types'
+import type { CampaignPoll, PastElectionReference, PollUsage, PollsData } from './types'
 
 export interface ProgressionStats {
-  /** Distance au scrutin de la base 2027, reportée sur 2022 (en jours). */
+  /** Distance au scrutin de la base 2027, reportée sur le scrutin passé (en jours). */
   daysBefore: number
-  /** Date équivalente avant le scrutin de 2022. */
+  /** Date équivalente avant le scrutin passé. */
   asOf: string
   usage: PollUsage<CampaignPoll>[]
   institutesUsed: number
   /** Moyenne des sondages à cette date, normalisée à 100. */
   earlyAverage: Record<string, number>
-  /** Moyenne des derniers sondages avant le vote (celle de la correction 2022). */
+  /** Moyenne des derniers sondages avant le vote (celle de la correction). */
   finalAverage: Record<string, number>
-  /** derniers sondages ÷ sondages à la même distance du scrutin, par candidat de 2022. */
+  /** derniers sondages ÷ sondages à la même distance du scrutin, par candidat du scrutin passé. */
   ratio: Record<string, number>
 }
 
 /**
- * Progression des sondages en 2022 : comment les intentions de vote ont évolué entre la date située
- * à la même distance du scrutin que la base 2027 et les derniers sondages avant le vote.
+ * Progression des sondages d'un scrutin passé : comment les intentions de vote ont évolué entre la date
+ * située à la même distance du scrutin que la base 2027 et les derniers sondages avant le vote.
+ *
+ * Par défaut, chaque hypothèse est ramenée à 100 sur les seuls candidats finalement en lice (2022 : les
+ * hypothèses retenues les testent tous). `withOthers` garde aussi les candidats non retenus (2017 : avant
+ * les primaires, Juppé, Sarkozy, Hollande ou Valls étaient testés) ; un candidat absent d'une hypothèse y
+ * compte alors pour 0, pour que les parts de bloc restent celles des hypothèses.
  */
-export function computeProgression2022(
-  polls: PollsData,
-  ref: Reference2022,
-  stats: Reference2022Stats,
+export function computeProgression(
+  polls: Pick<PollsData, 'asOf' | 'electionDate'>,
+  ref: PastElectionReference,
+  stats: ReferenceStats,
+  { withOthers = false }: { withOthers?: boolean } = {},
 ): ProgressionStats {
   const daysBefore = daysBetween(polls.asOf, polls.electionDate)
   const asOf = addDays(ref.electionDate, -daysBefore)
   const campaign = ref.campaignPolls
-  const keep = new Set(ref.candidates.map((c) => c.id))
+  const ids = [...ref.candidates, ...(withOthers ? campaign.otherCandidates : [])].map((c) => c.id)
   const { usage, average, institutesUsed } = averageHypothesisPolls(
     campaign.polls,
     asOf,
     campaign.windowDays,
     campaign,
-    keep,
+    new Set(ids),
+    undefined,
+    withOthers ? ids : [],
   )
   const ratio = Object.fromEntries(
     ref.candidates.flatMap((c) => {

@@ -1,14 +1,16 @@
 import { frozenData as simulationData } from '../test/frozenData'
-import { applyCorrections, computeReference2022 } from './corrections'
+import { computeCalibration } from './calibration'
+import { applyCorrections, computeReference } from './corrections'
 import { normalize } from './pollAverage'
-import { computeProgression2022 } from './progression'
+import { computeProgression } from './progression'
 import { blendedRatio, referenceParts } from './references'
 import { defaultSettings, simulate } from './simulate'
 
-const reference = computeReference2022(simulationData.reference2022)
-const progression = computeProgression2022(simulationData.polls, simulationData.reference2022, reference)
+const reference = computeReference(simulationData.reference2022)
+const progression = computeProgression(simulationData.polls, simulationData.reference2022, reference)
+const calibration = computeCalibration(simulationData, simulationData.polls)
 
-describe('computeProgression2022', () => {
+describe('computeProgression', () => {
   it('se place à la même distance du scrutin que la base 2027 (182 jours → 10/10/2021)', () => {
     expect(progression.daysBefore).toBe(182)
     expect(progression.asOf).toBe('2021-10-10')
@@ -21,7 +23,7 @@ describe('computeProgression2022', () => {
 
   it('couvre toute la campagne : la progression reste calculable quand la base 2027 avance', () => {
     for (const asOf of ['2026-11-15', '2027-01-10', '2027-03-01', '2027-04-10']) {
-      const later = computeProgression2022({ ...simulationData.polls, asOf }, simulationData.reference2022, reference)
+      const later = computeProgression({ ...simulationData.polls, asOf }, simulationData.reference2022, reference)
       expect(later.institutesUsed).toBeGreaterThanOrEqual(3)
       expect(later.ratio.melenchon).toBeGreaterThan(1)
     }
@@ -37,15 +39,24 @@ describe('computeProgression2022', () => {
 })
 
 describe('progression appliquée au 1er tour', () => {
-  const settings = { ...defaultSettings(), progressionEnabled: true, progressionIntensity: 1, correctionIntensity: 1 }
+  // Sans les options du billet, pour isoler la progression et la correction.
+  const settings = {
+    ...defaultSettings(),
+    progressionEnabled: true,
+    progressionIntensity: 1,
+    correctionsEnabled: true,
+    correctionIntensity: 1,
+    blogBiasEnabled: false,
+    turnoutEnabled: false,
+  }
 
   it('désactivée par défaut : sondages projetés = moyenne brute', () => {
-    const res = simulate(simulationData, defaultSettings(), reference, progression)
+    const res = simulate(simulationData, defaultSettings(), calibration)
     for (const r of res.firstRound) expect(r.projected).toBeCloseTo(r.base, 10)
   })
 
-  it('se cumule avec la correction : moyenne × progression, puis × écart final 2022', () => {
-    const res = simulate(simulationData, settings, reference, progression)
+  it('se cumule avec la correction : moyenne × progression 2022, puis × écart estimé (2022 et 2017)', () => {
+    const res = simulate(simulationData, settings, calibration)
     const melenchon = res.firstRound.find((r) => r.candidateId === 'melenchon')!
     expect(melenchon.progressionRatio).toBeCloseTo(progression.ratio.melenchon!, 10)
     expect(melenchon.projected).toBeGreaterThan(melenchon.base * 1.5)
@@ -59,7 +70,7 @@ describe('progression appliquée au 1er tour', () => {
     )
     const expected = normalize(
       Object.fromEntries(
-        candidates.map((c) => [c.id, projected[c.id]! * (blendedRatio(referenceParts(c), reference.ratio) ?? 1)]),
+        candidates.map((c) => [c.id, projected[c.id]! * (blendedRatio(referenceParts(c), calibration.correction.ratio) ?? 1)]),
       ),
     )
     for (const r of res.firstRound) expect(r.corrected).toBeCloseTo(expected[r.candidateId]!, 8)
@@ -67,13 +78,13 @@ describe('progression appliquée au 1er tour', () => {
 
   it('intensité : facteur = 1 + (progression − 1) × intensité, indépendant de la correction', () => {
     const at = (progressionIntensity: number) =>
-      simulate(simulationData, { ...settings, progressionIntensity, correctionsEnabled: false }, reference, progression)
+      simulate(simulationData, { ...settings, progressionIntensity, correctionsEnabled: false }, calibration)
     const melenchon = (res: ReturnType<typeof at>) => res.firstRound.find((r) => r.candidateId === 'melenchon')!
     const full = melenchon(at(1))
     expect(full.progressionFactor).toBeCloseTo(full.progressionRatio!, 10)
     expect(melenchon(at(0.5)).progressionFactor).toBeCloseTo(1 + (full.progressionRatio! - 1) * 0.5, 10)
     for (const r of at(0).firstRound) expect(r.projected).toBeCloseTo(r.base, 10)
-    const corrected = simulate(simulationData, { ...settings, progressionIntensity: 0.5 }, reference, progression)
+    const corrected = simulate(simulationData, { ...settings, progressionIntensity: 0.5 }, calibration)
     expect(melenchon(corrected).appliedCorrection).toBeCloseTo(melenchon(corrected).defaultCorrection, 10)
   })
 

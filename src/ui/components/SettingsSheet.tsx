@@ -128,9 +128,10 @@ function CorrectionsPanel({ result }: { result: SimulationResult }) {
   return (
     <div className="space-y-5">
       <p className="text-sm text-ink-2">
-        La correction par défaut vaut <em>moyenne × (ratio 2022 − 1) × intensité de la correction</em>, appliquée aux sondages
-        projetés si la progression comme en 2022 est activée. Saisissez une valeur en
-        points pour la remplacer ; videz le champ pour revenir au calcul.
+        La correction par défaut vaut <em>moyenne × (écart estimé − 1) × intensité de la correction</em>, appliquée
+        aux sondages projetés si la progression comme en 2022 est activée. L’écart estimé combine, à poids égal, les
+        écarts entre derniers sondages et résultat de 2022 et de 2017 (2022 seul pour un candidat sans équivalent en
+        2017). Saisissez une valeur en points pour la remplacer ; videz le champ pour revenir au calcul.
       </p>
       <Switch
         id="sheet-corrections"
@@ -140,8 +141,8 @@ function CorrectionsPanel({ result }: { result: SimulationResult }) {
       />
       <div className="space-y-4 rounded-lg bg-sunken/60 p-4">
         <p className="text-sm text-ink-2">
-          <span className="font-medium text-ink">Références pondérées.</span> Le ratio de 2022 de ces candidats
-          mélange deux références ; il sert à la correction et à la progression.
+          <span className="font-medium text-ink">Références pondérées.</span> L’écart estimé de ces candidats
+          mélange deux références de 2022 ; il sert à la correction et à la progression.
         </p>
         {COMPOSITE.map((c) => {
           const [first, second] = referenceParts(c, s.referenceBlend[c.id])
@@ -176,7 +177,7 @@ function CorrectionsPanel({ result }: { result: SimulationResult }) {
           <tr className="border-b border-rule text-left text-ink-3">
             <th className="py-1.5 font-medium">Candidat</th>
             <th className="py-1.5 text-right font-medium">{s.progressionEnabled ? 'Projetée' : result.institutesUsed === 1 ? 'Sondage' : 'Moyenne'}</th>
-            <th className="py-1.5 text-right font-medium">Ratio 2022</th>
+            <th className="py-1.5 text-right font-medium">Écart estimé</th>
             <th className="py-1.5 text-right font-medium">Calculée</th>
             <th className="py-1.5 text-right font-medium">Manuelle</th>
           </tr>
@@ -194,13 +195,13 @@ function CorrectionsPanel({ result }: { result: SimulationResult }) {
                   </span>
                 </td>
                 <td className="num py-1.5 text-right">{pct(r.projected)}</td>
-                <td className="num py-1.5 text-right text-ink-2">{r.ratio2022 ? ratio(r.ratio2022) : '—'}</td>
-                <td className="num py-1.5 text-right text-ink-2">{pts(r.defaultCorrection * s.correctionIntensity)}</td>
+                <td className="num py-1.5 text-right text-ink-2">{r.correctionRatio ? ratio(r.correctionRatio) : '—'}</td>
+                <td className="num py-1.5 text-right text-ink-2">{pts(r.defaultCorrection * r.correctionIntensity)}</td>
                 <td className="py-1 text-right">
                   <NumberInput
                     label={`Correction manuelle pour ${c.name}, en points`}
                     value={override}
-                    placeholder={num(r.defaultCorrection * s.correctionIntensity)}
+                    placeholder={num(r.defaultCorrection * r.correctionIntensity)}
                     onChange={(v) => s.setCorrectionOverride(c.id, v)}
                     min={-30}
                     max={30}

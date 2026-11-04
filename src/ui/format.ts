@@ -67,6 +67,24 @@ export function date(iso: string): string {
   return `${d}/${m}/${y}`
 }
 
+const monthFormat = new Intl.DateTimeFormat('fr-FR', { month: 'long', year: 'numeric', timeZone: 'UTC' })
+
+/** « octobre 2021 » */
+export const month = (iso: string) => monthFormat.format(new Date(`${iso.slice(0, 10)}T00:00:00Z`))
+
+/** Distance au scrutin : « 6 mois », « 3 semaines », « 5 jours ». */
+export function distance(days: number): string {
+  if (days >= 45) return `${Math.round(days / 30.44)} mois`
+  if (days >= 14) return `${Math.round(days / 7)} semaines`
+  return `${days} jour${days > 1 ? 's' : ''}`
+}
+
+/** « d’octobre 2021 », « de décembre 2021 » (élision devant une voyelle). */
+export const ofMonth = (iso: string) => {
+  const m = month(iso)
+  return /^[aeiouy]/.test(m) ? `d’${m}` : `de ${m}`
+}
+
 /** Terrain : 14-16/10/2026, 24/09-07/10/2026 ou 08/04/2022. */
 export function fieldwork({ start, end }: Fieldwork): string {
   if (start === end) return date(end)
