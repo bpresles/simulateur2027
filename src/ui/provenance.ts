@@ -4,6 +4,7 @@ import type { ProvenanceId } from '../domain/types'
 export function provenanceClass(p: ProvenanceId): string {
   if (p === 'derive') return 'prov-derive'
   if (p === 'transpose') return 'prov-transpose'
+  if (p === 'reels2024') return 'prov-reels'
   if (p === 'camp') return 'prov-camp'
   if (p === 'hypothese') return 'prov-hypothese px-1'
   return ''

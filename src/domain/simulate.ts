@@ -16,7 +16,7 @@ import type { Calibration } from './calibration'
 import { applyCorrections } from './corrections'
 import { averagePolls } from './pollAverage'
 import { turnoutBalance, turnoutCoverage, turnoutWarnings } from './turnout'
-import { computeSecondRound, duelCampRates, duelDropout, secondRoundDropout } from './secondRound'
+import { computeSecondRound, duelCampRates, duelDropout, pollBiasGaps, secondRoundDropout } from './secondRound'
 import { allianceSplit2024, effectiveProfiles, minorTransferParts, resolveDuel } from './transfers'
 import type {
   Alliance,
@@ -49,6 +49,8 @@ export function defaultSettings(): Settings {
     untestedAlliances: false,
     groupedAlliances: false,
     allianceOverrides: {},
+    transferCorrectionEnabled: true,
+    transferCorrectionIntensity: 1,
     transferOverrides: {},
     minorTransfers: {},
     fidelity: null,
@@ -63,6 +65,7 @@ export function simulate(
   data: SimulationData,
   settings: Settings,
   calibration: Calibration = computeCalibration(data, data.polls),
+  withSensitivity = true,
 ): SimulationResult {
   const { polls, transfers } = data
   const candidatesById = new Map(polls.candidates.map((c) => [c.id, c]))
@@ -97,7 +100,14 @@ export function simulate(
   const { usage, average, institutesUsed } = selection
 
   const fidelity = settings.fidelity ?? transfers.defaultFidelity
-  const profiles = effectiveProfiles(transfers, settings.transferOverrides, fidelity)
+  const profiles = effectiveProfiles(
+    transfers,
+    settings.transferOverrides,
+    fidelity,
+    settings.transferCorrectionEnabled
+      ? { dropout: data.secondRoundDropout, intensity: settings.transferCorrectionIntensity }
+      : null,
+  )
   const rnId = polls.candidates.find((c) => c.isRN)?.id ?? null
   const split2024 = (leaderId: string, joiningId: string): AllianceSplit =>
     allianceSplit2024(candidatesById.get(leaderId)!, candidatesById.get(joiningId)!, profiles)
@@ -232,7 +242,7 @@ export function simulate(
 
   // Sensibilité : le duel affiché, seul l'abandon change (celui de 2017, puis celui de 2022).
   const sensitivity = (() => {
-    if (secondRound.abstention.mode === 'none') return null
+    if (!withSensitivity || secondRound.abstention.mode === 'none') return null
     const opponent = picked === 'third' && withThird ? third! : second
     const leader = (r: { pct: { a: number; b: number } }) => r.pct.a >= r.pct.b
     const variant = (ref: SimulationData['reference2017']) => {
@@ -241,6 +251,21 @@ export function simulate(
       return { target, pct: r.pct, winnerChanges: leader(r) !== leader(secondRound) }
     }
     const variants = { 2017: variant(data.reference2017), 2022: variant(data.reference2022) }
+    // Sans la correction des reports : tout le scénario est recalculé (les alliances estimées s'appuient aussi
+    // sur les profils). Le vainqueur est comparé par candidat, pas par position.
+    const winnerOf = (r: SimulationResult['secondRound']) => (r.pct.a >= r.pct.b ? r.a : r.b)
+    const raw =
+      settings.transferCorrectionEnabled && settings.transferCorrectionIntensity !== 0
+        ? simulate(data, { ...settings, transferCorrectionEnabled: false }, calibration, false).secondRound
+        : null
+    const uncorrected = raw
+      ? {
+          total: raw.abstention.total,
+          winner: winnerOf(raw),
+          score: Math.max(raw.pct.a, raw.pct.b),
+          winnerChanges: winnerOf(raw) !== winnerOf(secondRound),
+        }
+      : null
     const family = secondRound.abstention.mode === 'camps' ? duelAgainst(opponent, undefined, 'family') : null
     const structural = family
       ? { total: family.abstention.total, pct: family.pct, winnerChanges: leader(family) !== leader(secondRound) }
@@ -249,7 +274,12 @@ export function simulate(
       shown: { total: secondRound.abstention.total, pct: secondRound.pct },
       variants,
       structural,
-      winnerChanges: variants[2017].winnerChanges || variants[2022].winnerChanges || !!structural?.winnerChanges,
+      uncorrected,
+      winnerChanges:
+        variants[2017].winnerChanges ||
+        variants[2022].winnerChanges ||
+        !!structural?.winnerChanges ||
+        !!uncorrected?.winnerChanges,
     }
   })()
 
@@ -274,6 +304,7 @@ export function simulate(
     entrants,
     qualification: { gap, tight, picked, withSecond, withThird },
     secondRound,
+    secondRoundPollBias: pollBiasGaps(data.secondRoundPollBias, polls),
     secondRoundSensitivity: sensitivity,
     turnoutBalance: balance,
     warnings,

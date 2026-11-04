@@ -7,5 +7,6 @@ import reference2022 from '../data/reference-2022.json'
 import transfers from '../data/transfers-legislatives-2024.json'
 import turnoutCertainty from '../data/turnout-certainty.json'
 import secondRoundDropout from '../data/second-round-dropout.json'
+import secondRoundPollBias from '../data/second-round-poll-bias.json'
 
-export const frozenData = parseData({ polls: frozenPolls, reference2022, reference2017, transfers, turnoutCertainty, secondRoundDropout })
+export const frozenData = parseData({ polls: frozenPolls, reference2022, reference2017, transfers, turnoutCertainty, secondRoundDropout, secondRoundPollBias })

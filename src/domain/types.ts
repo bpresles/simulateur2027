@@ -254,7 +254,7 @@ export interface Reference2017 extends PastElectionReference {
   secondRound: SecondRoundOfficial
 }
 
-export type ProvenanceId = 'franceinfo' | 'publicsenat' | 'lcp' | 'derive' | 'transpose' | 'camp' | 'hypothese'
+export type ProvenanceId = 'franceinfo' | 'publicsenat' | 'lcp' | 'derive' | 'transpose' | 'camp' | 'hypothese' | 'reels2024'
 
 export interface TransferValues {
   finalist: number
@@ -401,6 +401,8 @@ export interface DropoutConstituency {
   code: string
   firstRoundExpressed: number
   secondRoundExpressed: number
+  /** Voix du 2nd tour du finaliste opposé au RN et du candidat RN. */
+  secondRoundVotes: { finalist: number; rn: number }
   /** Voix du 1er tour par bloc, d'après la nuance des candidats (`nuanceBlocs`). */
   firstRoundVotesByBloc: Record<Bloc, number>
 }
@@ -430,6 +432,46 @@ export interface SecondRoundDropoutData {
   }
 }
 
+/** Sondage de 2nd tour Macron – Le Pen publié avant le 1er tour, en % pour le candidat opposé au RN. */
+export interface PollBiasPoll {
+  institute: string
+  /** Fin de terrain (ISO). */
+  end: string
+  antiRn: number
+  rn: number
+  url: string
+}
+
+export interface PollBiasElection {
+  year: number
+  duel: string
+  electionDate: string
+  secondRoundDate: string
+  result: { antiRn: number; rn: number; source: SourceLink }
+  listSource: SourceLink
+  polls: PollBiasPoll[]
+}
+
+export interface SecondRoundPollBiasData {
+  description: string
+  elections: PollBiasElection[]
+}
+
+/** Écart historique d'une année entre le résultat du 2nd tour et les sondages à la même distance du 1er tour. */
+export interface PollBiasGap {
+  year: number
+  duel: string
+  /** Sondages de la fenêtre (0 si aucun : repli sur le plus proche). */
+  pollCount: number
+  /** Moyenne des sondages de la fenêtre, ou score du sondage le plus proche (en % du candidat opposé au RN). */
+  estimate: number
+  /** Sondage le plus proche, seulement quand la fenêtre est vide. */
+  nearest: { institute: string; end: string; distance: number } | null
+  result: number
+  /** Résultat − estimation, en points. */
+  gap: number
+}
+
 export interface SimulationData {
   polls: PollsData
   reference2022: Reference2022
@@ -437,6 +479,7 @@ export interface SimulationData {
   transfers: TransfersData
   turnoutCertainty: TurnoutCertaintyData
   secondRoundDropout: SecondRoundDropoutData
+  secondRoundPollBias: SecondRoundPollBiasData
 }
 
 /** Réglages de l'utilisateur. Seules les surcharges sont stockées, les défauts restent calculés. */
@@ -484,6 +527,13 @@ export interface Settings {
    * Absente = taux constaté aux législatives 2024.
    */
   allianceOverrides: Record<string, number>
+  /**
+   * Corrige les reports de l'enquête Ipsos-Talan d'après les votes réels de 2024 (régression écologique), pour
+   * les électorats des blocs absents du duel. Les surcharges de `transferOverrides` restent prioritaires.
+   */
+  transferCorrectionEnabled: boolean
+  /** 1 = 100 % de l'écart entre les reports de l'enquête et les votes réels. */
+  transferCorrectionIntensity: number
   transferOverrides: Partial<Record<ProfileId, Partial<Record<Bloc, TransferValues>>>>
   /** Répartition choisie pour les électeurs de chaque petit candidat (identifiant), absente = la première. */
   minorTransfers: Record<CandidateId, string>
@@ -681,6 +731,8 @@ export interface SimulationResult {
    * l'abandon des seconds tours de 2017 puis de 2022 (présidentielles récentes, à risque RN plus faible).
    * Null si le calage est désactivé.
    */
+  /** Écart historique des sondages de 2nd tour (2022, 2017) à la même distance du scrutin : affiché, jamais appliqué. */
+  secondRoundPollBias: PollBiasGap[]
   secondRoundSensitivity: {
     /** Duel affiché : cible retenue (estimation du duel ou valeur saisie). */
     shown: { total: number; pct: { a: number; b: number } }
@@ -693,6 +745,11 @@ export interface SimulationResult {
      * finaliste, les autres candidats du même bloc prennent le taux des autres blocs.
      */
     structural: { total: number; pct: { a: number; b: number }; winnerChanges: boolean } | null
+    /**
+     * Variante sans la correction des reports (option activée à intensité non nulle) : vainqueur et score
+     * du 2nd tour avec les reports bruts de l'enquête.
+     */
+    uncorrected: { total: number; winner: CandidateId; score: number; winnerChanges: boolean } | null
     /** L'une des variantes change le vainqueur. */
     winnerChanges: boolean
   } | null

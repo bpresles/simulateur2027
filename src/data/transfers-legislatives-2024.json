@@ -27,6 +27,10 @@
       "label": "Camp RN",
       "description": "Électorat rattaché au camp du RN, comme l'électorat « RN et alliés » des législatives 2024 : il vote pour le candidat RN selon le taux de fidélité, comme les électeurs du finaliste."
     },
+    "reels2024": {
+      "label": "Votes réels 2024",
+      "description": "Report estimé sur les résultats réels des législatives 2024 (régression écologique de Goodman sur les circonscriptions du même type de duel), pour les électorats des blocs absents du duel : il remplace le report de l'enquête, à hauteur de l'intensité de la correction. Voir la méthodologie."
+    },
     "hypothese": {
       "label": "Hypothèse",
       "description": "Valeur sans source : hypothèse de modélisation. Par défaut, seuls le taux de fidélité et le modèle de repli (duel sans le RN) en utilisent."

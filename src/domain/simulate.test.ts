@@ -22,11 +22,13 @@ describe('simulate (données réelles)', () => {
     expect(res.secondRound.votes.abstention).toBeCloseTo(ab.total, 8)
     // Duel Le Pen – Mélenchon : gauche non LFI et extrême droite non finaliste à 1,99 %, centre et droite à 25,38 %,
     // soit ≈ 6,9 % au total (au lieu de la moyenne uniforme 10,86 % de l'étape précédente) : Mélenchon 50,43 → 52,0 %
-    // sur les données figées (50,07 → 52,04 % sur les données vivantes).
+    // sur les données figées (50,07 → 52,04 % sur les données vivantes). Avec la correction des reports d'après
+    // les votes réels de 2024 (activée par défaut), Mélenchon monte encore : 52,0 → 55,5 % sur les données vivantes.
     expect(ab.total).toBeGreaterThan(6)
     expect(ab.total).toBeLessThan(8)
     // Défauts : options du billet d'Eliot Thibault seules (biais et participation attendue par défaut, sans effet avec le billet à 100 %).
-    expect(res.secondRound.pct.b).toBeCloseTo(52, 0)
+    expect(res.secondRound.pct.b).toBeGreaterThan(53)
+    expect(res.secondRound.pct.b).toBeLessThan(58)
   })
 
   it('un seul sondage coché : base de ce sondage, sans alerte de moyenne fragile', () => {
@@ -172,6 +174,43 @@ describe('simulate : abandon par duel et sensibilité', () => {
     const sens = res.secondRoundSensitivity!
     expect(sens.structural!.total).toBeGreaterThan(res.secondRound.abstention.total)
     expect(sens.structural!.winnerChanges).toBe(leader(sens.structural!) !== leader(res.secondRound))
+  })
+  it('variante sans la correction des reports : écart et vainqueur', () => {
+    const res = at({})
+    const sens = res.secondRoundSensitivity!
+    const raw = at({ transferCorrectionEnabled: false })
+    expect(sens.uncorrected!.score).toBeCloseTo(Math.max(raw.secondRound.pct.a, raw.secondRound.pct.b), 8)
+    expect(sens.uncorrected!.winnerChanges).toBe(false)
+    expect(sens.uncorrected!.score).toBeLessThan(res.secondRound.pct.b)
+  })
+  it('option désactivée ou intensité nulle : pas de variante, résultat identique', () => {
+    expect(at({ transferCorrectionEnabled: false }).secondRoundSensitivity!.uncorrected).toBeNull()
+    const zero = at({ transferCorrectionIntensity: 0 })
+    expect(zero.secondRoundSensitivity!.uncorrected).toBeNull()
+    expect(zero.secondRound.pct.b).toBeCloseTo(at({ transferCorrectionEnabled: false }).secondRound.pct.b, 10)
+  })
+  it('l’intensité met la correction à l’échelle', () => {
+    const b = (k: number) => at({ transferCorrectionIntensity: k }).secondRound.pct.b
+    expect(b(0.5)).toBeGreaterThan(b(0))
+    expect(b(1)).toBeGreaterThan(b(0.5))
+  })
+  it('un report saisi reste prioritaire sur la correction', () => {
+    const override = { finalist: 40, rn: 20, abstention: 40 }
+    const a = at({ transferOverrides: { lfi_rn: { centre: override, droite: override } } })
+    const b = at({ transferCorrectionEnabled: false, transferOverrides: { lfi_rn: { centre: override, droite: override } } })
+    expect(a.secondRound.pct.b).toBeCloseTo(b.secondRound.pct.b, 10)
+  })
+  it('écart historique des sondages de 2nd tour : fenêtre ± 20 jours, repli sur le plus proche', () => {
+    const gaps = at({}).secondRoundPollBias
+    const g2022 = gaps.find((g) => g.year === 2022)!
+    expect(g2022.nearest).toBeNull()
+    expect(g2022.pollCount).toBeGreaterThan(0)
+    expect(g2022.gap).toBeCloseTo(g2022.result - g2022.estimate, 10)
+    const g2017 = gaps.find((g) => g.year === 2017)!
+    expect(g2017.pollCount).toBe(0)
+    expect(g2017.nearest).toMatchObject({ institute: 'Ifop', end: '2016-12-03', distance: 141 })
+    expect(g2017.estimate).toBe(62)
+    expect(g2017.gap).toBeCloseTo(4.1, 10)
   })
   it('un vainqueur changé n’est signalé que par les variantes concernées, même avec un total saisi', () => {
     for (const target of [null, 5, 8.44, 12.96, 20]) {

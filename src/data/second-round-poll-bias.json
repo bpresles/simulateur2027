@@ -1,0 +1,486 @@
+{
+  "description": "Sondages de 2nd tour Macron – Le Pen publiés avant le 1er tour de 2017 et de 2022 (listes de sondages de Wikipédia), comparés au résultat du 2nd tour. Sert à mesurer l’écart historique des sondages de 2nd tour à la même distance du scrutin ; il est affiché, jamais utilisé dans le calcul.",
+  "elections": [
+    {
+      "year": 2022,
+      "duel": "Macron – Le Pen",
+      "electionDate": "2022-04-10",
+      "secondRoundDate": "2022-04-24",
+      "result": {
+        "antiRn": 58.55,
+        "rn": 41.45,
+        "source": {
+          "label": "Conseil constitutionnel – Décision n° 2022-197 PDR du 27/04/2022 (résultats du 2nd tour)",
+          "url": "https://www.conseil-constitutionnel.fr/decision/2022/2022197PDR.htm"
+        }
+      },
+      "listSource": {
+        "label": "Wikipédia – Liste de sondages sur l’élection présidentielle française de 2022",
+        "url": "https://fr.wikipedia.org/wiki/Liste_de_sondages_sur_l%27%C3%A9lection_pr%C3%A9sidentielle_fran%C3%A7aise_de_2022"
+      },
+      "polls": [
+        {
+          "institute": "Harris",
+          "end": "2022-01-10",
+          "antiRn": 55.0,
+          "rn": 45.0,
+          "url": "http://harris-interactive.fr/wp-content/uploads/sites/6/2022/01/ZGEGEOSRGA-37.pdf"
+        },
+        {
+          "institute": "Ifop",
+          "end": "2022-01-10",
+          "antiRn": 58.0,
+          "rn": 42.0,
+          "url": "https://www.ifop.com/wp-content/uploads/2022/01/ROL22_2022.01.10.pdf"
+        },
+        {
+          "institute": "OpinionWay",
+          "end": "2022-01-07",
+          "antiRn": 57.0,
+          "rn": 43.0,
+          "url": "http://www.commission-des-sondages.fr/notices/files/notices/2022/janvier/9281-rpw-op-kea-les-echos.pdf"
+        },
+        {
+          "institute": "Ipsos",
+          "end": "2022-01-06",
+          "antiRn": 58.0,
+          "rn": 42.0,
+          "url": "https://www.ipsos.com/sites/default/files/ct/news/documents/2022-01/Ipsos%20-%20Le%20Parisien-France%20Info%20-%20IV%202022%20-%20Janvier2022.pdf"
+        },
+        {
+          "institute": "Ifop",
+          "end": "2022-01-05",
+          "antiRn": 59.0,
+          "rn": 41.0,
+          "url": "https://www.ifop.com/wp-content/uploads/2022/01/118727_Ifop_Rapport_Baro_Presid.V8..pdf"
+        },
+        {
+          "institute": "OpinionWay",
+          "end": "2022-01-04",
+          "antiRn": 57.0,
+          "rn": 43.0,
+          "url": "http://www.commission-des-sondages.fr/notices/files/notices/2022/janvier/9274-rpw-baro-ow-kea-v2-les-echos.pdf"
+        },
+        {
+          "institute": "Harris",
+          "end": "2021-12-31",
+          "antiRn": 55.0,
+          "rn": 45.0,
+          "url": "http://harris-interactive.fr/wp-content/uploads/sites/6/2022/01/FKHFSKFNT-9.pdf"
+        },
+        {
+          "institute": "OpinionWay",
+          "end": "2021-12-22",
+          "antiRn": 58.0,
+          "rn": 42.0,
+          "url": "https://vsd.fr/actualite/25806-notre-sondage-exclusif-vsd-opinionway"
+        },
+        {
+          "institute": "Elabe",
+          "end": "2021-12-20",
+          "antiRn": 57.0,
+          "rn": 43.0,
+          "url": "https://elabe.fr/wp-content/uploads/2021/12/presidentielle-2022-def.pdf"
+        },
+        {
+          "institute": "Ifop",
+          "end": "2021-12-15",
+          "antiRn": 57.0,
+          "rn": 43.0,
+          "url": "https://www.ifop.com/wp-content/uploads/2021/12/117825-Rapport-SR-N163-IV-presidentielle-20-decembre.pdf"
+        },
+        {
+          "institute": "OpinionWay",
+          "end": "2021-12-15",
+          "antiRn": 57.0,
+          "rn": 43.0,
+          "url": "https://www.opinion-way.com/fr/sondage-d-opinion/sondages-publies/opinionway-pour-les-echos-radio-classique-cnews-barometre-2022-vague-4-decembre-2021/download.html"
+        },
+        {
+          "institute": "Harris",
+          "end": "2021-12-13",
+          "antiRn": 56.0,
+          "rn": 44.0,
+          "url": "http://harris-interactive.fr/wp-content/uploads/sites/6/2021/12/MREFQDZF-54D.pdf"
+        },
+        {
+          "institute": "Odoxa",
+          "end": "2021-12-09",
+          "antiRn": 58.0,
+          "rn": 42.0,
+          "url": "http://www.odoxa.fr/sondage/intentions-de-vote-la-bombe-pecresse-relance-totalement-la-campagne-presidentielle/"
+        },
+        {
+          "institute": "Ifop",
+          "end": "2021-12-06",
+          "antiRn": 56.0,
+          "rn": 44.0,
+          "url": "https://www.lefigaro.fr/politique/presidentielle-2022-valerie-pecresse-s-invite-dans-la-bataille-du-second-tour-20211206"
+        },
+        {
+          "institute": "Harris",
+          "end": "2021-12-06",
+          "antiRn": 55.0,
+          "rn": 45.0,
+          "url": "https://harris-interactive.fr/wp-content/uploads/sites/6/2021/12/GJTDKD-021R.pdf"
+        },
+        {
+          "institute": "Harris",
+          "end": "2021-11-29",
+          "antiRn": 54.0,
+          "rn": 46.0,
+          "url": "https://harris-interactive.fr/wp-content/uploads/sites/6/2021/11/HVBTA-X43.pdf"
+        },
+        {
+          "institute": "Ifop",
+          "end": "2021-11-25",
+          "antiRn": 54.0,
+          "rn": 46.0,
+          "url": "https://www.lejdd.fr/Politique/sondage-presidentielle-xavier-bertrand-domine-ses-rivaux-de-droite-mais-reste-loin-de-macron-et-le-pen-4079405⁵"
+        },
+        {
+          "institute": "Elabe",
+          "end": "2021-11-24",
+          "antiRn": 55.0,
+          "rn": 45.0,
+          "url": "https://elabe.fr/wp-content/uploads/2021/11/opinion-2022.pdf"
+        },
+        {
+          "institute": "Harris",
+          "end": "2021-11-22",
+          "antiRn": 55.0,
+          "rn": 45.0,
+          "url": "https://harris-interactive.fr/wp-content/uploads/sites/6/2021/11/DGTENVF-AX5.pdf"
+        },
+        {
+          "institute": "OpinionWay",
+          "end": "2021-11-17",
+          "antiRn": 56.0,
+          "rn": 44.0,
+          "url": "https://www.opinion-way.com/fr/sondage-d-opinion/sondages-publies/opinionway-pour-les-echos-cnews-radio-classique-presitrack-vague-3-novembre-2021/viewdocument/2715.html"
+        },
+        {
+          "institute": "Harris",
+          "end": "2021-11-15",
+          "antiRn": 56.0,
+          "rn": 44.0,
+          "url": "https://harris-interactive.fr/wp-content/uploads/sites/6/2021/11/Rapport-Harris-Vague-22-Intentions-de-vote-Presidentielle-2022-Challenges.pdf"
+        },
+        {
+          "institute": "Elabe",
+          "end": "2021-11-11",
+          "antiRn": 58.0,
+          "rn": 42.0,
+          "url": "https://elabe.fr/presidentielle2022-et-candidats-lr/"
+        },
+        {
+          "institute": "Harris",
+          "end": "2021-11-08",
+          "antiRn": 55.0,
+          "rn": 45.0,
+          "url": "https://harris-interactive.fr/wp-content/uploads/sites/6/2021/11/Rapport-Harris-Vague-21-Intentions-de-vote-Presidentielle-2022-Challenges.pdf"
+        },
+        {
+          "institute": "Ifop",
+          "end": "2021-11-05",
+          "antiRn": 56.0,
+          "rn": 44.0,
+          "url": "https://www.ifop.com/wp-content/uploads/2021/11/118574_Ifop_Rapport_Baro_Presid.V6..pdf"
+        },
+        {
+          "institute": "Harris",
+          "end": "2021-10-30",
+          "antiRn": 54.0,
+          "rn": 46.0,
+          "url": "https://harris-interactive.fr/wp-content/uploads/sites/6/2021/11/Rapport-Harris-Vague-20-Intentions-de-vote-Presidentielle-2022-Challenges.pdf"
+        },
+        {
+          "institute": "Elabe",
+          "end": "2021-10-27",
+          "antiRn": 55.0,
+          "rn": 45.0,
+          "url": "https://elabe.fr/wp-content/uploads/2021/10/pr2022.pdf"
+        },
+        {
+          "institute": "Harris",
+          "end": "2021-10-25",
+          "antiRn": 55.0,
+          "rn": 45.0,
+          "url": "https://harris-interactive.fr/wp-content/uploads/sites/6/2021/10/Rapport-Harris-Vague-19-Intentions-de-vote-Presidentielle-2022-Challenges.pdf"
+        },
+        {
+          "institute": "Opinionway",
+          "end": "2021-10-20",
+          "antiRn": 58.0,
+          "rn": 42.0,
+          "url": "https://www.opinion-way.com/fr/component/edocman/opinionway-pour-les-echos-cnews-radio-classique-presitrack-vague-2-octobre-2021/viewdocument/2695.html"
+        },
+        {
+          "institute": "Harris",
+          "end": "2021-10-18",
+          "antiRn": 54.0,
+          "rn": 46.0,
+          "url": "https://harris-interactive.fr/wp-content/uploads/sites/6/2021/10/Rapport-Harris-Vague-18-Intentions-de-vote-Presidentielle-2022-Challenges.pdf"
+        },
+        {
+          "institute": "Ifop",
+          "end": "2021-10-15",
+          "antiRn": 56.0,
+          "rn": 44.0,
+          "url": "https://www.ifop.com/wp-content/uploads/2021/10/Presentation-LAZARE-DEF-19.10.2021-18h15.pdf"
+        },
+        {
+          "institute": "Harris",
+          "end": "2021-10-11",
+          "antiRn": 54.0,
+          "rn": 46.0,
+          "url": "https://harris-interactive.fr/wp-content/uploads/sites/6/2021/10/Rapport-Harris-Vague-17-Intentions-de-vote-Presidentielle-2022-Challenges.pdf"
+        },
+        {
+          "institute": "Odoxa",
+          "end": "2021-10-11",
+          "antiRn": 58.0,
+          "rn": 42.0,
+          "url": "https://www.odoxa.fr/sondage/intentions-de-vote-2eme-vague/"
+        },
+        {
+          "institute": "Elabe",
+          "end": "2021-10-06",
+          "antiRn": 60.0,
+          "rn": 40.0,
+          "url": "https://elabe.fr/presidentielle-2022-2/"
+        },
+        {
+          "institute": "Harris",
+          "end": "2021-10-04",
+          "antiRn": 53.0,
+          "rn": 47.0,
+          "url": "https://harris-interactive.fr/wp-content/uploads/sites/6/2021/10/Rapport-Harris-Vague-16-Intentions-de-vote-Presidentielle-2022-Challenges.pdf"
+        },
+        {
+          "institute": "Ifop",
+          "end": "2021-10-01",
+          "antiRn": 58.0,
+          "rn": 42.0,
+          "url": "https://www.commission-des-sondages.fr/notices/files/notices/2021/octobre/9216-p-ifop-le-figaro-v4.pdf"
+        },
+        {
+          "institute": "Harris",
+          "end": "2021-09-27",
+          "antiRn": 54.0,
+          "rn": 46.0,
+          "url": "https://harris-interactive.fr/wp-content/uploads/sites/6/2021/09/Rapport-Harris-Vague-15-Intentions-de-vote-Presidentielle-2022-Challenges.pdf"
+        },
+        {
+          "institute": "OpinionWay",
+          "end": "2021-09-23",
+          "antiRn": 58.0,
+          "rn": 42.0,
+          "url": "https://www.opinion-way.com/fr/component/edocman/opinionway-pour-les-echos-cnews-et-radio-classique-presitrack-vague-1-septembre-2021/viewdocument/2673.html"
+        },
+        {
+          "institute": "Odoxa",
+          "end": "2021-09-23",
+          "antiRn": 58.0,
+          "rn": 42.0,
+          "url": "https://www.odoxa.fr/sondage/intentions-de-vote-a-la-presidentielle-et-match-zemmour-melenchon-dans-lopinion/"
+        },
+        {
+          "institute": "Harris",
+          "end": "2021-09-20",
+          "antiRn": 55.0,
+          "rn": 45.0,
+          "url": "https://harris-interactive.fr/wp-content/uploads/sites/6/2021/09/Rapport_Harris_-_Vague_14_Intentions_de_vote_Presidentielle_2022_Challenges.pdf"
+        },
+        {
+          "institute": "Harris",
+          "end": "2021-09-13",
+          "antiRn": 54.0,
+          "rn": 46.0,
+          "url": "https://harris-interactive.fr/wp-content/uploads/sites/6/2021/09/Rapport_Harris_-_Vague_13_Intentions_de_vote_Presidentielle_2022_Challenges.pdf"
+        },
+        {
+          "institute": "Elabe",
+          "end": "2021-09-13",
+          "antiRn": 59.0,
+          "rn": 41.0,
+          "url": "https://elabe.fr/wp-content/uploads/2021/09/presidentielle-2022-et-eric-zemmour.pdf"
+        },
+        {
+          "institute": "Harris",
+          "end": "2021-09-06",
+          "antiRn": 54.0,
+          "rn": 46.0,
+          "url": "https://harris-interactive.fr/wp-content/uploads/sites/6/2021/09/Rapport_Harris_-_Vague_12_Intentions_de_vote_Presidentielle_2022_Challenges.pdf"
+        },
+        {
+          "institute": "Ifop",
+          "end": "2021-09-02",
+          "antiRn": 56.0,
+          "rn": 44.0,
+          "url": "https://www.ifop.com/wp-content/uploads/2021/09/118400-Rapport.pdf"
+        },
+        {
+          "institute": "Harris",
+          "end": "2021-08-30",
+          "antiRn": 55.0,
+          "rn": 45.0,
+          "url": "https://harris-interactive.fr/wp-content/uploads/sites/6/2021/09/Rapport_Harris_-_Vague_11_Intentions_de_vote_Presidentielle_2022_Challenges.pdf"
+        },
+        {
+          "institute": "Harris",
+          "end": "2021-08-23",
+          "antiRn": 55.0,
+          "rn": 45.0,
+          "url": "https://harris-interactive.fr/wp-content/uploads/sites/6/2021/08/Rapport_Harris_-_Vague_10_Intentions_de_vote_Presidentielle_2022_Challenges.pdf"
+        }
+      ]
+    },
+    {
+      "year": 2017,
+      "duel": "Macron – Le Pen",
+      "electionDate": "2017-04-23",
+      "secondRoundDate": "2017-05-07",
+      "result": {
+        "antiRn": 66.1,
+        "rn": 33.9,
+        "source": {
+          "label": "Conseil constitutionnel – Décision n° 2017-171 PDR du 10/05/2017 (résultats du 2nd tour)",
+          "url": "https://www.conseil-constitutionnel.fr/decision/2017/2017171PDR.htm"
+        }
+      },
+      "listSource": {
+        "label": "Wikipédia – Liste de sondages sur l’élection présidentielle française de 2017",
+        "url": "https://fr.wikipedia.org/wiki/Liste_de_sondages_sur_l%27%C3%A9lection_pr%C3%A9sidentielle_fran%C3%A7aise_de_2017"
+      },
+      "polls": [
+        {
+          "institute": "Harris",
+          "end": "2017-02-22",
+          "antiRn": 60.0,
+          "rn": 40.0,
+          "url": "http://harris-interactive.fr/wp-content/uploads/sites/6/2017/02/Note-Harris-Intentions-vote-election-presidentielle-France-TV.pdf"
+        },
+        {
+          "institute": "Ifop",
+          "end": "2017-02-21",
+          "antiRn": 61.0,
+          "rn": 39.0,
+          "url": "http://cdn-new-parismatch.ladmedia.fr/var/ifop/21-02-2017.pdf"
+        },
+        {
+          "institute": "BVA",
+          "end": "2017-02-20",
+          "antiRn": 61.0,
+          "rn": 39.0,
+          "url": "http://www.bva-group.com/wp-content/uploads/2017/02/Intentions-de-vote-Vague-10-POP2017-23-F%C3%A9vrier-2017-Pr%C3%A9sentation.pdf"
+        },
+        {
+          "institute": "OpinionWay",
+          "end": "2017-02-17",
+          "antiRn": 60.0,
+          "rn": 40.0,
+          "url": "http://opinionlab.opinion-way.com/dokumenty/PresiTRACK-OpinionWay-ORPI-Resultats-semaine13-17-fev.pdf"
+        },
+        {
+          "institute": "Ifop",
+          "end": "2017-02-13",
+          "antiRn": 62.0,
+          "rn": 38.0,
+          "url": "http://cdn1-new-parismatch.ladmedia.fr/var/ifop/13-02-2017.pdf"
+        },
+        {
+          "institute": "OpinionWay",
+          "end": "2017-02-09",
+          "antiRn": 65.0,
+          "rn": 35.0,
+          "url": "http://opinionlab.opinion-way.com/dokumenty/PresiTRACK-OpinionWay-ORPI-Resultats-de-la-semaine-du-6-au-10-fevrier.pdf"
+        },
+        {
+          "institute": "Ifop",
+          "end": "2017-02-09",
+          "antiRn": 63.0,
+          "rn": 37.0,
+          "url": "http://cdn-new-parismatch.ladmedia.fr/var/ifop/09-02-2017.pdf"
+        },
+        {
+          "institute": "Elabe",
+          "end": "2017-02-08",
+          "antiRn": 63.0,
+          "rn": 37.0,
+          "url": "http://elabe.fr/intentions-de-vote-election-presidentielle-2017/"
+        },
+        {
+          "institute": "Ifop",
+          "end": "2017-02-06",
+          "antiRn": 63.0,
+          "rn": 37.0,
+          "url": "http://cdn-new-parismatch.ladmedia.fr/var/ifop/06-02-2017.pdf"
+        },
+        {
+          "institute": "BVA",
+          "end": "2017-02-02",
+          "antiRn": 66.0,
+          "rn": 34.0,
+          "url": "http://www.bva.fr/data/sondage/sondage_fiche/1945/fichier_intentions_de_vote_-_vague_9_-_pop2017_-_4_fevrier_20171bc7f.pdf"
+        },
+        {
+          "institute": "Ifop",
+          "end": "2017-02-01",
+          "antiRn": 63.0,
+          "rn": 37.0,
+          "url": "http://cdn3-new-parismatch.ladmedia.fr/var/ifop/02-02-2017.pdf"
+        },
+        {
+          "institute": "Elabe",
+          "end": "2017-01-31",
+          "antiRn": 65.0,
+          "rn": 35.0,
+          "url": "http://elabe.fr/wp-content/uploads/2017/02/01022017_les_echos_radio_classique_intentions-de-vote-presidentielles_vague_6.pdf"
+        },
+        {
+          "institute": "TNS",
+          "end": "2017-01-27",
+          "antiRn": 65.0,
+          "rn": 35.0,
+          "url": "http://www.lefigaro.fr/elections/presidentielles/2017/01/29/35003-20170129ARTFIG00201-presidentielle-fillon-et-macron-au-coude-a-coude-le-pen-en-tete.php"
+        },
+        {
+          "institute": "Ipsos",
+          "end": "2017-01-20",
+          "antiRn": 64.0,
+          "rn": 36.0,
+          "url": "http://www.ipsos.fr/decrypter-societe/2017-01-22-sympathisants-socialistes-sceptiques-quant-aux-chances-ps-pour-presidentielle"
+        },
+        {
+          "institute": "Ifop",
+          "end": "2017-01-06",
+          "antiRn": 65.0,
+          "rn": 35.0,
+          "url": "http://www.ifop.fr/media/poll/3605-1-study_file.pdf"
+        },
+        {
+          "institute": "Ifop",
+          "end": "2016-12-03",
+          "antiRn": 62.0,
+          "rn": 38.0,
+          "url": "http://www.ifop.com/media/poll/3576-1-study_file.pdf"
+        },
+        {
+          "institute": "Odoxa",
+          "end": "2016-04-15",
+          "antiRn": 61.0,
+          "rn": 39.0,
+          "url": "http://www.odoxa.fr/macron-et-si-cetait-lui/"
+        },
+        {
+          "institute": "Odoxa",
+          "end": "2016-01-15",
+          "antiRn": 65.0,
+          "rn": 35.0,
+          "url": "http://www.odoxa.fr/2017-juppe-et-macron-plebiscites/"
+        }
+      ]
+    }
+  ]
+}

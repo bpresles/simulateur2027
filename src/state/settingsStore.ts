@@ -16,6 +16,8 @@ interface SettingsActions {
   setReferenceBlend: (id: CandidateId, weight: number | undefined) => void
   setBlogBiasEnabled: (enabled: boolean) => void
   setBlogBiasIntensity: (intensity: number) => void
+  setTransferCorrectionEnabled: (enabled: boolean) => void
+  setTransferCorrectionIntensity: (intensity: number) => void
   setTurnoutEnabled: (enabled: boolean) => void
   /** `null` rétablit la participation attendue par défaut (la hausse des certains reportée sur 2022). */
   setTurnoutExpected: (expected: number | null) => void
@@ -41,7 +43,7 @@ interface SettingsActions {
 export type SettingsStore = Settings & SettingsActions
 
 const STORAGE_KEY = 'simulateur2027:settings'
-const STORAGE_VERSION = 9
+const STORAGE_VERSION = 10
 
 export const useSettings = create<SettingsStore>()(
   persist(
@@ -69,6 +71,8 @@ export const useSettings = create<SettingsStore>()(
         }),
       setBlogBiasEnabled: (blogBiasEnabled) => set({ blogBiasEnabled }),
       setBlogBiasIntensity: (blogBiasIntensity) => set({ blogBiasIntensity }),
+      setTransferCorrectionEnabled: (transferCorrectionEnabled) => set({ transferCorrectionEnabled }),
+      setTransferCorrectionIntensity: (transferCorrectionIntensity) => set({ transferCorrectionIntensity }),
       setTurnoutEnabled: (turnoutEnabled) => set({ turnoutEnabled }),
       setTurnoutExpected: (turnoutExpected) => set({ turnoutExpected }),
       setAlliances: (alliances) => set({ alliances }),
@@ -129,6 +133,8 @@ export const useSettings = create<SettingsStore>()(
         untestedAlliances: s.untestedAlliances,
         groupedAlliances: s.groupedAlliances,
         allianceOverrides: s.allianceOverrides,
+        transferCorrectionEnabled: s.transferCorrectionEnabled,
+        transferCorrectionIntensity: s.transferCorrectionIntensity,
         transferOverrides: s.transferOverrides,
         minorTransfers: s.minorTransfers,
         fidelity: s.fidelity,
@@ -148,9 +154,11 @@ export const useSettings = create<SettingsStore>()(
       // (anciens défauts) suivent.
       // ≤ v8 : l'intensité de la hausse de participation (7 points du billet) est remplacée par une
       // participation attendue (null = défaut) ; l'ancienne intensité est abandonnée.
+      // ≤ v9 : l'option de correction des reports d'après les votes réels de 2024 est ajoutée (activée par
+      // défaut, à 100 %) : les anciens réglages la reçoivent par défaut.
       // Le reste du scénario est conservé ; les nouveaux réglages prennent leur valeur par défaut.
       migrate: (persisted, version) => {
-        if (version < 1 || version > 8) return defaultSettings()
+        if (version < 1 || version > 9) return defaultSettings()
         const {
           allianceEfficiency: _efficiency,
           hypothesisSetId,
@@ -196,6 +204,8 @@ export function selectSettings(s: SettingsStore): Settings {
     untestedAlliances: s.untestedAlliances,
     groupedAlliances: s.groupedAlliances,
     allianceOverrides: s.allianceOverrides,
+    transferCorrectionEnabled: s.transferCorrectionEnabled,
+    transferCorrectionIntensity: s.transferCorrectionIntensity,
     transferOverrides: s.transferOverrides,
     minorTransfers: s.minorTransfers,
     fidelity: s.fidelity,

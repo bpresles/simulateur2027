@@ -4,7 +4,7 @@ import { simulationData } from '../../data/schema'
 import { noIntentionRange, secondRoundDropout } from '../../domain/secondRound'
 import type { Entrant, SimulationResult } from '../../domain/types'
 import { cand, colorVars, entrantLabel, profileLabel } from '../candidates'
-import { fieldwork, noIntentionLabel, pct, range, shownScore } from '../format'
+import { date, fieldwork, noIntentionLabel, pct, pts, range, shownScore } from '../format'
 import { dropoutBasis } from '../dropout'
 import { Link } from '../Link'
 import { AnimatedNumber } from './AnimatedNumber'
@@ -50,6 +50,7 @@ export function SecondRoundDuel({ result }: { result: SimulationResult }) {
       <SensitivityLine result={result} />
 
       <MethodLine result={result} />
+      <PollBiasLine result={result} />
     </section>
   )
 }
@@ -68,6 +69,23 @@ function abstentionBasis(sr: SimulationResult['secondRound'], chosen: boolean): 
     : `abandon estimé pour ce duel : ${split} (${dropoutBasis(sr.duel)}), soit ${pct(total)} au total.`
 }
 
+/** Écart historique des sondages de 2nd tour, affiché pour information : jamais appliqué au calcul. */
+function PollBiasLine({ result }: { result: SimulationResult }) {
+  const gaps = result.secondRoundPollBias
+  if (gaps.length === 0) return null
+  const one = (g: (typeof gaps)[number]) =>
+    g.nearest
+      ? `en ${g.year}, sondage le plus proche (${g.nearest.institute}, ${date(g.nearest.end)}) à ${pct(g.estimate, 0)} pour ${pct(g.result)} au résultat (${pts(g.gap)})`
+      : `${pct(g.estimate)} en moyenne en ${g.year} (${g.pollCount} sondage${g.pollCount > 1 ? 's' : ''}) pour ${pct(g.result, 2)} au résultat (${pts(g.gap)})`
+  return (
+    <p className="mt-2 text-sm text-ink-3">
+      À la même distance du scrutin, les sondages de 2nd tour sous-estimaient le candidat opposé au RN :{' '}
+      {gaps.map((g, i) => `${i > 0 ? ' ; ' : `${g.duel.split(' – ')[0]} `}${one(g)}`).join('')}. Mesuré sur des duels{' '}
+      {gaps[0]!.duel} ; non appliqué au calcul.
+    </p>
+  )
+}
+
 function SensitivityLine({ result }: { result: SimulationResult }) {
   const sens = result.secondRoundSensitivity
   if (!sens?.winnerChanges) return null
@@ -84,6 +102,11 @@ function SensitivityLine({ result }: { result: SimulationResult }) {
     ...(sens.structural?.winnerChanges
       ? [
           `si les électeurs des autres candidats du bloc d’un finaliste (hors extrême droite) s’abstenaient autant que ceux des autres blocs, ${name(sens.structural)} l’emporterait (${score(sens.structural)})`,
+        ]
+      : []),
+    ...(sens.uncorrected?.winnerChanges
+      ? [
+          `sans la correction des reports de l’enquête Ipsos-Talan d’après les votes réels de 2024, ${cand(sens.uncorrected.winner).shortName} l’emporterait (${pct(sens.uncorrected.score)})`,
         ]
       : []),
   ]

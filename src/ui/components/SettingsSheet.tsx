@@ -14,6 +14,7 @@ import { AllianceRates } from './AllianceRates'
 import { AllianceSwitches, GroupedAlliancesSwitch, UntestedAlliancesSwitch } from './AllianceSwitches'
 import { Segmented, Slider, Switch, TextButton } from './controls'
 import { DROPOUT_ROWS, dropoutBasis } from '../dropout'
+import { correctedTransfer } from '../../domain/transferCorrection'
 import { provenanceClass } from '../provenance'
 import { ProvenanceLegend } from './Provenance'
 
@@ -403,8 +404,15 @@ function TransfersEditor({ result }: { result: SimulationResult }) {
   const profile = transfers.profiles.find((p) => p.id === profileId)!
   const overrides = s.transferOverrides[profileId] ?? {}
 
+  // Valeur par défaut d'une ligne : report de l'enquête, corrigé d'après les votes réels de 2024 si l'option est active.
+  const corrected = (bloc: Bloc) =>
+    s.transferCorrectionEnabled
+      ? correctedTransfer(transfers, simulationData.secondRoundDropout, profileId, bloc, s.transferCorrectionIntensity)
+      : null
+  const defaultOf = (bloc: Bloc): TransferValues => corrected(bloc) ?? profile.rows[bloc]
+
   const update = (bloc: Bloc, current: TransferValues, key: 'finalist' | 'rn', v: number | undefined) => {
-    const next = { ...current, [key]: Math.min(100, Math.max(0, v ?? profile.rows[bloc][key])) }
+    const next = { ...current, [key]: Math.min(100, Math.max(0, v ?? defaultOf(bloc)[key])) }
     if (next.finalist + next.rn > 100) {
       if (key === 'finalist') next.rn = 100 - next.finalist
       else next.finalist = 100 - next.rn
@@ -418,7 +426,7 @@ function TransfersEditor({ result }: { result: SimulationResult }) {
       <SecondRoundPanel result={result} />
       <MinorTransfersPanel />
       <p className="text-sm text-ink-2">
-        Taux de report de chaque électorat selon le type de duel. Le taux de blanc, nul ou abstention est
+        Taux de report de chaque électorat selon le type de duel (enquête Ipsos-Talan, corrigée d’après les votes réels de 2024 pour les blocs absents du duel si l’option est activée). Le taux de blanc, nul ou abstention est
         recalculé pour que la ligne totalise 100 %.
       </p>
       <Segmented
@@ -446,7 +454,8 @@ function TransfersEditor({ result }: { result: SimulationResult }) {
         <tbody>
           {BLOCS.map((bloc) => {
             const row = profile.rows[bloc]
-            const current = overrides[bloc] ?? row
+            const fixed = corrected(bloc)
+            const current = overrides[bloc] ?? fixed ?? row
             const modified = overrides[bloc] !== undefined
             return (
               <tr key={bloc} className="border-b border-rule/70 align-middle">
@@ -454,7 +463,7 @@ function TransfersEditor({ result }: { result: SimulationResult }) {
                   {BLOC_VOTERS[bloc]}
                   {!modified && (
                     <span className="block text-xs text-ink-3">
-                      {[...new Set(Object.values(row.provenance))].map((p, i) => (
+                      {[...new Set(fixed ? (['reels2024'] as const) : Object.values(row.provenance))].map((p, i) => (
                         <span key={p}>
                           {i > 0 && ', '}
                           <span className={provenanceClass(p)}>{transfers.sources[p].label}</span>
