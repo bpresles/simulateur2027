@@ -1,10 +1,9 @@
 import { BLOG_BIAS_URL, totalBias } from '../../domain/blogBias'
 import { newestFirst } from '../../domain/pollAverage'
-import { BLOG_TURNOUT_RISE } from '../../domain/turnout'
-import type { SimulationResult } from '../../domain/types'
+import type { SimulationResult, TurnoutBalance } from '../../domain/types'
 import { calibration, progression2022Stats } from '../../hooks/useSimulation'
 import { useSettings } from '../../state/settingsStore'
-import { distance, fieldwork, month, num, ofMonth, ratio } from '../format'
+import { date, distance, fieldwork, month, num, ofMonth, pct, pts, ratio } from '../format'
 import { simulationData } from '../../data/schema'
 import { AllianceSwitches, GroupedAlliancesSwitch, UntestedAlliancesSwitch } from './AllianceSwitches'
 import { Checkbox, Slider, Switch } from './controls'
@@ -167,23 +166,10 @@ export function ScenarioBar({ result, onOpenSettings }: { result: SimulationResu
                 id="turnout"
                 checked={s.turnoutEnabled}
                 onCheckedChange={s.setTurnoutEnabled}
-                label="Ajouter la hausse de participation annoncée par le billet"
-                description={`${BLOG_TURNOUT_RISE} points d’inscrits de plus que dans les sondages, votant comme les abstentionnistes de 2017 venus voter en 2022`}
+                label="Participation attendue au 1er tour"
+                description="Ajuste les scores à la participation attendue, l’écart étant réparti comme le vote 2022 des abstentionnistes de 2017 venus voter"
               />
-              {s.turnoutEnabled && (
-                <p className="ml-12 mt-1 text-sm text-ink-3">
-                  Les sondages interrogent déjà les électeurs certains d’aller voter, dont la hausse fait partie :
-                  l’option teste l’hypothèse d’électeurs qu’ils ne captent pas. Pour une hausse en partie captée,
-                  baissez l’intensité.
-                </p>
-              )}
-              <Intensity
-                label="Intensité de la hausse de participation"
-                hint={`une hausse de ${BLOG_TURNOUT_RISE} points absente des sondages`}
-                value={s.turnoutIntensity}
-                onValueChange={s.setTurnoutIntensity}
-                disabled={!s.turnoutEnabled}
-              />
+              <TurnoutControls balance={result.turnoutBalance} />
             </div>
           </fieldset>
           <div>
@@ -341,6 +327,57 @@ function Intensity({
         disabled={disabled}
       />
       <span className="num w-12 text-right text-sm font-medium">{num(value * 100, 0)}&#8239;%</span>
+    </div>
+  )
+}
+
+/**
+ * Participation attendue au 1er tour et bilan : ce que les sondages contiennent déjà, ce que les options
+ * reproduisent de la mobilisation de 2022, et le supplément (ou retrait) appliqué.
+ */
+function TurnoutControls({ balance }: { balance: TurnoutBalance | null }) {
+  const enabled = useSettings((s) => s.turnoutEnabled)
+  const expected = useSettings((s) => s.turnoutExpected)
+  const setExpected = useSettings((s) => s.setTurnoutExpected)
+  if (!balance) return null
+  return (
+    <div className="ml-12 mt-2">
+      <div className="flex items-center gap-3">
+        <span className="text-sm text-ink-3">Participation attendue</span>
+        <Slider
+          label="Participation attendue"
+          value={balance.expected}
+          onValueChange={setExpected}
+          min={70}
+          max={90}
+          step={0.5}
+          disabled={!enabled}
+        />
+        <span className="num w-14 text-right text-sm font-medium">{pct(balance.expected, 1)}</span>
+      </div>
+      {expected !== null && (
+        <button
+          type="button"
+          className="link mt-1 text-sm"
+          disabled={!enabled}
+          onClick={() => setExpected(null)}
+        >
+          Revenir au défaut ({pct(balance.defaultExpected, 1)}, hypothèse du billet : la hausse des certains reportée
+          sur 2022)
+        </button>
+      )}
+      {enabled && (
+        <ul className="mt-2 space-y-0.5 text-sm text-ink-3">
+          <li>
+            Certains d’aller voter aujourd’hui (Ifop, {date(balance.certainNow.measure.fieldwork.end)}) :{' '}
+            {pct(balance.certainNow.share, 1)} des inscrits, déjà dans les sondages
+          </li>
+          <li>
+            Mobilisation de 2022 déjà corrigée : {pts(balance.covered, 1)}, selon les options activées
+          </li>
+          <li>Supplément appliqué : {pts(balance.delta, 1)}</li>
+        </ul>
+      )}
     </div>
   )
 }

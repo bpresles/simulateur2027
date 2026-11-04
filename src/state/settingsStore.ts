@@ -17,7 +17,8 @@ interface SettingsActions {
   setBlogBiasEnabled: (enabled: boolean) => void
   setBlogBiasIntensity: (intensity: number) => void
   setTurnoutEnabled: (enabled: boolean) => void
-  setTurnoutIntensity: (intensity: number) => void
+  /** `null` rétablit la participation attendue par défaut (la hausse des certains reportée sur 2022). */
+  setTurnoutExpected: (expected: number | null) => void
   /** Remplace les alliances actives (celles qu'aucun sondage ne permet plus sont retirées). */
   setAlliances: (alliances: Record<string, boolean>) => void
   setUntestedAlliances: (enabled: boolean) => void
@@ -40,7 +41,7 @@ interface SettingsActions {
 export type SettingsStore = Settings & SettingsActions
 
 const STORAGE_KEY = 'simulateur2027:settings'
-const STORAGE_VERSION = 8
+const STORAGE_VERSION = 9
 
 export const useSettings = create<SettingsStore>()(
   persist(
@@ -69,7 +70,7 @@ export const useSettings = create<SettingsStore>()(
       setBlogBiasEnabled: (blogBiasEnabled) => set({ blogBiasEnabled }),
       setBlogBiasIntensity: (blogBiasIntensity) => set({ blogBiasIntensity }),
       setTurnoutEnabled: (turnoutEnabled) => set({ turnoutEnabled }),
-      setTurnoutIntensity: (turnoutIntensity) => set({ turnoutIntensity }),
+      setTurnoutExpected: (turnoutExpected) => set({ turnoutExpected }),
       setAlliances: (alliances) => set({ alliances }),
       setUntestedAlliances: (untestedAlliances) => set({ untestedAlliances }),
       setGroupedAlliances: (groupedAlliances) => set({ groupedAlliances }),
@@ -123,7 +124,7 @@ export const useSettings = create<SettingsStore>()(
         blogBiasEnabled: s.blogBiasEnabled,
         blogBiasIntensity: s.blogBiasIntensity,
         turnoutEnabled: s.turnoutEnabled,
-        turnoutIntensity: s.turnoutIntensity,
+        turnoutExpected: s.turnoutExpected,
         alliances: s.alliances,
         untestedAlliances: s.untestedAlliances,
         groupedAlliances: s.groupedAlliances,
@@ -145,14 +146,21 @@ export const useSettings = create<SettingsStore>()(
       // ≤ v7 : les intensités repassent à 100 % par défaut et seules les options du billet (biais et hausse de
       // participation) sont activées ; une intensité restée à 70 % et « Corriger la moyenne » resté activé
       // (anciens défauts) suivent.
+      // ≤ v8 : l'intensité de la hausse de participation (7 points du billet) est remplacée par une
+      // participation attendue (null = défaut) ; l'ancienne intensité est abandonnée.
       // Le reste du scénario est conservé ; les nouveaux réglages prennent leur valeur par défaut.
       migrate: (persisted, version) => {
-        if (version < 1 || version > 7) return defaultSettings()
+        if (version < 1 || version > 8) return defaultSettings()
         const {
           allianceEfficiency: _efficiency,
           hypothesisSetId,
+          turnoutIntensity: _turnoutIntensity,
           ...old
-        } = persisted as Partial<Settings> & { allianceEfficiency?: unknown; hypothesisSetId?: string | null }
+        } = persisted as Partial<Settings> & {
+          allianceEfficiency?: unknown
+          hypothesisSetId?: string | null
+          turnoutIntensity?: unknown
+        }
         const { 'philippe-glucksmann': _dynamic, ...kept } = old.alliances ?? {}
         const alliances = version <= 2 ? kept : (old.alliances ?? {})
         return {
@@ -160,10 +168,11 @@ export const useSettings = create<SettingsStore>()(
           ...old,
           alliances: hypothesisSetId === 'philippe-seul' ? { ...alliances, 'attal-philippe': true } : alliances,
           transferOverrides: version === 1 ? {} : (old.transferOverrides ?? {}),
-          ...(old.progressionIntensity === 0.7 && { progressionIntensity: defaultSettings().progressionIntensity }),
-          ...(old.correctionIntensity === 0.7 && { correctionIntensity: defaultSettings().correctionIntensity }),
-          ...(old.blogBiasIntensity === 0.7 && { blogBiasIntensity: defaultSettings().blogBiasIntensity }),
-          ...(old.correctionsEnabled === true && { correctionsEnabled: defaultSettings().correctionsEnabled }),
+          // Les anciens défauts (≤ v7) ne concernent pas les états de la v8, dont les valeurs sont délibérées.
+          ...(version <= 7 && old.progressionIntensity === 0.7 && { progressionIntensity: defaultSettings().progressionIntensity }),
+          ...(version <= 7 && old.correctionIntensity === 0.7 && { correctionIntensity: defaultSettings().correctionIntensity }),
+          ...(version <= 7 && old.blogBiasIntensity === 0.7 && { blogBiasIntensity: defaultSettings().blogBiasIntensity }),
+          ...(version <= 7 && old.correctionsEnabled === true && { correctionsEnabled: defaultSettings().correctionsEnabled }),
         }
       },
     },
@@ -182,7 +191,7 @@ export function selectSettings(s: SettingsStore): Settings {
     blogBiasEnabled: s.blogBiasEnabled,
     blogBiasIntensity: s.blogBiasIntensity,
     turnoutEnabled: s.turnoutEnabled,
-    turnoutIntensity: s.turnoutIntensity,
+    turnoutExpected: s.turnoutExpected,
     alliances: s.alliances,
     untestedAlliances: s.untestedAlliances,
     groupedAlliances: s.groupedAlliances,

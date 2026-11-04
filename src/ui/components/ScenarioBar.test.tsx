@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 // Options du bloc « Paramètres de la simulation » : description selon les écarts saisis, lien vers les
-// réglages, biais du billet, hausse de participation et réinitialisation.
+// réglages, biais du billet, participation attendue et réinitialisation.
 import { cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { act } from 'react'
 import { simulationData } from '../../data/schema'
@@ -119,37 +119,49 @@ describe('ScenarioBar : biais du billet de blog', () => {
   })
 })
 
-describe('ScenarioBar : hausse de participation', () => {
-  const name = /Ajouter la hausse de participation annoncée par le billet/
-  const slider = () => screen.getByRole('slider', { name: 'Intensité de la hausse de participation' })
+describe('ScenarioBar : participation attendue', () => {
+  const name = /Participation attendue au 1er tour/
+  const slider = () => screen.getByRole('slider', { name: 'Participation attendue' })
+  const defaultExpected = () => simulate(simulationData, selectSettings(useSettings.getState())).turnoutBalance!.defaultExpected
 
-  it('propose l’option, activée par défaut, curseur à 100 %, avec l’avertissement de double comptage', () => {
+  it('propose l’option, activée par défaut, curseur sur la participation par défaut, bilan en trois lignes', () => {
     render(<Harness />)
     expect(screen.getByRole('switch', { name }).getAttribute('aria-checked')).toBe('true')
-    expect(slider().getAttribute('aria-valuenow')).toBe('100')
+    expect(Number(slider().getAttribute('aria-valuenow'))).toBeCloseTo(defaultExpected(), 6)
     expect(slider().hasAttribute('data-disabled')).toBe(false)
-    expect(screen.getByText(/électeurs certains d’aller voter/)).toBeTruthy()
+    expect(screen.getByText(/Certains d’aller voter aujourd’hui \(Ifop, \d{2}\/\d{2}\/\d{4}\)/)).toBeTruthy()
+    expect(screen.getByText(/Mobilisation de 2022 déjà corrigée/)).toBeTruthy()
+    expect(screen.getByText(/Supplément appliqué : ±0,0/)).toBeTruthy()
+    expect(screen.queryByRole('button', { name: /Revenir au défaut/ })).toBeNull()
   })
 
-  it('désactivée, elle retire l’avertissement et la hausse du 1er tour', () => {
-    const before = simulate(simulationData, selectSettings(useSettings.getState()))
+  it('désactivée, elle retire le bilan et l’ajustement du 1er tour', () => {
+    const before = simulate(simulationData, { ...selectSettings(useSettings.getState()), turnoutExpected: 85 })
     render(<Harness />)
     act(() => fireEvent.click(screen.getByRole('switch', { name })))
     expect(useSettings.getState().turnoutEnabled).toBe(false)
     expect(slider().hasAttribute('data-disabled')).toBe(true)
-    expect(screen.queryByText(/électeurs certains d’aller voter/)).toBeNull()
+    expect(screen.queryByText(/Supplément appliqué/)).toBeNull()
     const after = simulate(simulationData, selectSettings(useSettings.getState()))
     const score = (r: typeof before, id: string) => r.firstRound.find((x) => x.candidateId === id)!.corrected
     expect(score(after, 'melenchon')).toBeLessThan(score(before, 'melenchon'))
   })
 
-  it('« Réinitialiser tous les paramètres » la réactive et rétablit son intensité', () => {
+  it('une participation réglée propose de revenir au défaut', () => {
+    act(() => useSettings.getState().setTurnoutExpected(85))
+    render(<Harness />)
+    expect(Number(slider().getAttribute('aria-valuenow'))).toBe(85)
+    act(() => fireEvent.click(screen.getByRole('button', { name: /Revenir au défaut/ })))
+    expect(useSettings.getState().turnoutExpected).toBeNull()
+  })
+
+  it('« Réinitialiser tous les paramètres » la réactive et rétablit la participation par défaut', () => {
     act(() => {
       useSettings.getState().setTurnoutEnabled(false)
-      useSettings.getState().setTurnoutIntensity(0.5)
+      useSettings.getState().setTurnoutExpected(85)
     })
     render(<Harness />)
     act(() => fireEvent.click(screen.getByRole('button', { name: 'Réinitialiser tous les paramètres' })))
-    expect(useSettings.getState()).toMatchObject({ turnoutEnabled: true, turnoutIntensity: 1 })
+    expect(useSettings.getState()).toMatchObject({ turnoutEnabled: true, turnoutExpected: null })
   })
 })

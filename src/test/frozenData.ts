@@ -5,5 +5,6 @@ import frozenPolls from '../data/__fixtures__/polls-2027-20261018.json'
 import reference2017 from '../data/reference-2017.json'
 import reference2022 from '../data/reference-2022.json'
 import transfers from '../data/transfers-legislatives-2024.json'
+import turnoutCertainty from '../data/turnout-certainty.json'
 
-export const frozenData = parseData({ polls: frozenPolls, reference2022, reference2017, transfers })
+export const frozenData = parseData({ polls: frozenPolls, reference2022, reference2017, transfers, turnoutCertainty })

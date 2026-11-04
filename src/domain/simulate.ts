@@ -15,6 +15,7 @@ import { computeCalibration } from './calibration'
 import type { Calibration } from './calibration'
 import { applyCorrections } from './corrections'
 import { averagePolls } from './pollAverage'
+import { turnoutBalance, turnoutCoverage, turnoutWarnings } from './turnout'
 import { computeSecondRound, secondRoundDropout2022 } from './secondRound'
 import { allianceSplit2024, effectiveProfiles, minorTransferParts, resolveDuel } from './transfers'
 import type {
@@ -43,7 +44,7 @@ export function defaultSettings(): Settings {
     blogBiasEnabled: true,
     blogBiasIntensity: 1,
     turnoutEnabled: true,
-    turnoutIntensity: 1,
+    turnoutExpected: null,
     alliances: {},
     untestedAlliances: false,
     groupedAlliances: false,
@@ -227,6 +228,9 @@ export function simulate(
     )
   }
 
+  const balance = turnoutBalance(calibration.turnout, turnoutCoverage(settings), settings.turnoutExpected)
+  if (balance && settings.turnoutEnabled) warnings.push(...turnoutWarnings(balance))
+
   return {
     hypothesisSet,
     allianceIds,
@@ -239,6 +243,7 @@ export function simulate(
     entrants,
     qualification: { gap, tight, picked, withSecond, withThird },
     secondRound,
+    turnoutBalance: balance,
     warnings,
   }
 }

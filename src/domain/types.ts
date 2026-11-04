@@ -290,11 +290,89 @@ export interface TransfersData {
   }
 }
 
+/**
+ * Mesure datée de la part des inscrits certains d’aller voter (Ifop-Fiducial). Soit `envisage` et `certain`
+ * (la part des inscrits s'en déduit), soit `registeredShare` quand la source ne publie que cet indice.
+ */
+export interface TurnoutMeasure {
+  id: string
+  /** Scrutin visé : 2022 (référence) ou 2027. */
+  cycle: 2022 | 2027
+  /** Dernière vague avant le vote (référence 2022 seulement). */
+  final?: boolean
+  fieldwork: { start: string; end: string }
+  /** Part des inscrits qui envisagent d'aller voter (%). */
+  envisage?: number
+  /** Part de « tout à fait certains » parmi ceux qui envisagent d'aller voter (%). */
+  certain?: number
+  /** Part des inscrits certains d'aller voter (%), quand elle est publiée directement. */
+  registeredShare?: number
+  source: { label: string; url: string }
+}
+
+/** Mesure de contrôle Ipsos bva-CEVIPOF (note 10/10, base : tous les inscrits). */
+export interface TurnoutControlMeasure {
+  fieldwork: { start: string; end: string }
+  share: number
+  /** Scrutin dont la participation réelle sert de comparaison (null : pas encore voté). */
+  election: 2017 | 2022 | null
+}
+
+export interface TurnoutCertaintyData {
+  description: string
+  measures: TurnoutMeasure[]
+  control: {
+    description: string
+    source: { label: string; url: string }
+    measures: TurnoutControlMeasure[]
+  }
+}
+
+/** Une part d'inscrits certains d'aller voter (%) et la mesure dont elle est tirée. */
+export interface CertainShare {
+  share: number
+  measure: TurnoutMeasure
+}
+
+/**
+ * Bilan de participation du 1er tour, en % des inscrits. V₀ = certainNow + couverture de la mobilisation de
+ * 2022 par les options ; delta = expected − v0, ajouté (ou retranché) aux votants.
+ */
+export interface TurnoutBalance {
+  /** E2027 : part des certains d'aller voter aujourd'hui, déjà dans les sondages. */
+  certainNow: CertainShare
+  /** E2022 : part des certains à la même distance du scrutin en 2021. */
+  certainRef: CertainShare
+  /** F2022 : part des certains dans la dernière vague avant le vote 2022. */
+  finalRef: CertainShare
+  /** P2022 : participation réelle au 1er tour 2022. */
+  turnoutRef: number
+  /** Mobilisation de campagne de 2022 : F2022 − E2022. */
+  campaign: number
+  /** Mobilisation de fin de campagne de 2022 : P2022 − F2022. */
+  late: number
+  /** Part de la mobilisation de 2022 déjà reproduite par les options (progression, correction, billet). */
+  covered: number
+  /** Couverture appliquée à la mobilisation de campagne et à celle de fin de campagne (0 à 1). */
+  coverage: { campaign: number; late: number }
+  /** V₀ : électorat que représentent les sondages corrigés. */
+  v0: number
+  /** P2027 : participation attendue (réglage ou défaut). */
+  expected: number
+  /** Participation attendue par défaut : P2022 + (E2027 − E2022). */
+  defaultExpected: number
+  /** ΔV = P2027 − V₀ : supplément appliqué (négatif si les sondages corrigés dépassent la participation attendue). */
+  delta: number
+  /** Distance au scrutin (jours) de E2027, de E2022 et de la date des sondages. */
+  distances: { now: number; ref: number; asOf: number }
+}
+
 export interface SimulationData {
   polls: PollsData
   reference2022: Reference2022
   reference2017: Reference2017
   transfers: TransfersData
+  turnoutCertainty: TurnoutCertaintyData
 }
 
 /** Réglages de l'utilisateur. Seules les surcharges sont stockées, les défauts restent calculés. */
@@ -326,12 +404,12 @@ export interface Settings {
    */
   blogBiasIntensity: number
   /**
-   * Ajoute la hausse de participation annoncée par le billet, supposée absente des sondages : les électeurs
-   * supplémentaires votent comme les abstentionnistes de 2017 venus voter en 2022.
+   * Ajuste le 1er tour à la participation attendue : l'écart entre elle et l'électorat que représentent les
+   * sondages corrigés est réparti selon le vote 2022 des abstentionnistes de 2017 venus voter.
    */
   turnoutEnabled: boolean
-  /** 1 = 100 % de la hausse annoncée par le billet (7 points d'inscrits). */
-  turnoutIntensity: number
+  /** Participation attendue au 1er tour (% des inscrits). null = la hausse des certains reportée sur 2022. */
+  turnoutExpected: number | null
   alliances: Record<string, boolean>
   /** Option : permettre des alliances qu'aucun sondage ne teste, estimées par les reports de 2024. */
   untestedAlliances: boolean
@@ -395,7 +473,7 @@ export interface FirstRoundRow {
    * billet ne chiffre pas le biais de ce bloc.
    */
   blogBiasFactor: number | null
-  /** Facteur de la hausse de participation du billet (null si l'option est désactivée). */
+  /** Facteur de l'ajustement à la participation attendue (null si l'option est désactivée). */
   turnoutFactor: number | null
   /** Points de la moyenne brute prélevés pour les petits candidats ajoutés (0 sinon). */
   cededBase: number
@@ -522,5 +600,7 @@ export interface SimulationResult {
   }
   /** Second tour affiché : 1er contre 2e, ou 1er contre 3e si la qualification est serrée et ce choix fait. */
   secondRound: SecondRoundResult
+  /** Bilan de participation du 1er tour (null si les mesures manquent). Calculé même option désactivée. */
+  turnoutBalance: TurnoutBalance | null
   warnings: string[]
 }

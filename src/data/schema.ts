@@ -11,11 +11,13 @@ import type {
   Reference2022,
   SimulationData,
   TransfersData,
+  TurnoutCertaintyData,
 } from '../domain/types'
 import pollsJson from './polls-2027.json'
 import reference2017Json from './reference-2017.json'
 import referenceJson from './reference-2022.json'
 import transfersJson from './transfers-legislatives-2024.json'
+import turnoutCertaintyJson from './turnout-certainty.json'
 
 const isoDate = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'date ISO AAAA-MM-JJ attendue')
 const percent = z.number().min(0).max(100)
@@ -215,6 +217,38 @@ const transfersSchema: z.ZodType<TransfersData> = z.object({
   }),
 })
 
+const turnoutCertaintySchema: z.ZodType<TurnoutCertaintyData> = z.object({
+  description: z.string(),
+  measures: z.array(
+    z
+      .object({
+        id: z.string(),
+        cycle: z.union([z.literal(2022), z.literal(2027)]),
+        final: z.boolean().optional(),
+        fieldwork,
+        envisage: percent.optional(),
+        certain: percent.optional(),
+        registeredShare: percent.optional(),
+        source: sourceLink,
+      })
+      .refine(
+        (m) => m.registeredShare !== undefined || (m.envisage !== undefined && m.certain !== undefined),
+        'part des inscrits (registeredShare) ou couple envisage/certain attendu',
+      ),
+  ),
+  control: z.object({
+    description: z.string(),
+    source: sourceLink,
+    measures: z.array(
+      z.object({
+        fieldwork,
+        share: percent,
+        election: z.union([z.literal(2017), z.literal(2022), z.null()]),
+      }),
+    ),
+  }),
+})
+
 /** Contrôles d'un scrutin passé : candidats connus, dates de terrain, total des voix. */
 function validatePastElection(label: string, ref: PastElectionReference): string[] {
   const errors: string[] = []
@@ -319,6 +353,16 @@ export function validateData(data: SimulationData): string[] {
   const t2 = reference2022.secondRound
   if (t2.voters - t2.blank - t2.invalid !== t2.expressed) errors.push('2022 : 2nd tour incohérent (votants − blancs − nuls ≠ exprimés)')
 
+  const turnoutMeasures = data.turnoutCertainty.measures
+  for (const m of turnoutMeasures) {
+    if (m.fieldwork.start > m.fieldwork.end) errors.push(`Participation ${m.id} : dates de terrain inversées`)
+  }
+  if (turnoutMeasures.filter((m) => m.cycle === 2022 && m.final).length !== 1)
+    errors.push('Participation : il faut exactement une mesure finale pour 2022')
+  if (!turnoutMeasures.some((m) => m.cycle === 2022 && !m.final)) errors.push('Participation : aucune mesure de campagne 2022')
+  if (!turnoutMeasures.some((m) => m.cycle === 2027)) errors.push('Participation : aucune mesure 2027')
+  if (turnoutMeasures.some((m) => m.cycle === 2027 && m.final)) errors.push('Participation : une mesure 2027 ne peut pas être finale')
+
   for (const profile of transfers.profiles) {
     for (const b of BLOCS) {
       const row = profile.rows[b]
@@ -334,12 +378,14 @@ export function parseData(raw: {
   reference2022: unknown
   reference2017: unknown
   transfers: unknown
+  turnoutCertainty: unknown
 }): SimulationData {
   const data: SimulationData = {
     polls: resolveGroupedLeaders(pollsSchema.parse(raw.polls)),
     reference2022: referenceSchema.parse(raw.reference2022),
     reference2017: reference2017Schema.parse(raw.reference2017),
     transfers: transfersSchema.parse(raw.transfers),
+    turnoutCertainty: turnoutCertaintySchema.parse(raw.turnoutCertainty),
   }
   const errors = validateData(data)
   if (errors.length > 0) throw new Error(`Données invalides :\n- ${errors.join('\n- ')}`)
@@ -351,4 +397,5 @@ export const simulationData: SimulationData = parseData({
   reference2022: referenceJson,
   reference2017: reference2017Json,
   transfers: transfersJson,
+  turnoutCertainty: turnoutCertaintyJson,
 })

@@ -1,0 +1,61 @@
+{
+  "description": "Part des inscrits certains d’aller voter au 1er tour, mesurée par l’Ifop-Fiducial avec les mêmes questions (« envisagez-vous d’aller voter ? » puis « tout à fait certain / pratiquement certain / … »), chiffres redressés. La part des inscrits se calcule : part des personnes qui envisagent de voter × part de « tout à fait certains » parmi elles. Le rolling 2022 ne publie que l’indice de participation, en % des inscrits.",
+  "measures": [
+    {
+      "id": "ifop-2021-10",
+      "cycle": 2022,
+      "fieldwork": { "start": "2021-10-09", "end": "2021-10-13" },
+      "envisage": 94.6,
+      "certain": 69.4,
+      "source": {
+        "label": "Ifop-Fiducial pour Le Figaro, 09–13/10/2021 (notice de la Commission des sondages)",
+        "url": "https://www.commission-des-sondages.fr/notices/files/notices/2021/octobre/9224-p-ifop-le-figaro.pdf"
+      }
+    },
+    {
+      "id": "ifop-rolling-2022-04",
+      "cycle": 2022,
+      "final": true,
+      "fieldwork": { "start": "2022-04-05", "end": "2022-04-08" },
+      "registeredShare": 73,
+      "source": {
+        "label": "Ifop-Fiducial, rolling du 05 au 08/04/2022 : indice de participation (27 % d’abstention)",
+        "url": "https://www.ifopgroup.com/wp-content/uploads/2022/04/ROL22_2022.04.08.pdf"
+      }
+    },
+    {
+      "id": "ifop-2026-09",
+      "cycle": 2027,
+      "fieldwork": { "start": "2026-09-25", "end": "2026-09-29" },
+      "envisage": 95.9,
+      "certain": 77.7,
+      "source": {
+        "label": "Ifop-Fiducial pour Le Figaro, 25–29/09/2026 (notice de la Commission des sondages)",
+        "url": "https://www.commission-des-sondages.fr/notices/files/notices/2026/septembre/10284-pres-barometre-election-presidentielle-v6-ifop-le-figaro-30-septembre.pdf"
+      }
+    },
+    {
+      "id": "ifop-2026-10",
+      "cycle": 2027,
+      "fieldwork": { "start": "2026-10-12", "end": "2026-10-14" },
+      "envisage": 95.8,
+      "certain": 77.3,
+      "source": {
+        "label": "Ifop-Fiducial pour LCI, 12–14/10/2026 (notice de la Commission des sondages)",
+        "url": "https://www.commission-des-sondages.fr/notices/files/notices/2026/octobre/10314-pres-climat-politique-post-primaire-ps-pp-ifop-lci-14-octobre.pdf"
+      }
+    }
+  ],
+  "control": {
+    "description": "Contrôle : note d’intention de participation de 10/10 (Ipsos bva-CEVIPOF, base : tous les inscrits), comparée à la participation réelle au 1er tour de l’élection suivante.",
+    "source": {
+      "label": "Ipsos bva pour Le Monde, enquête électorale du 13/09/2026 (notice de la Commission des sondages)",
+      "url": "https://www.commission-des-sondages.fr/notices/files/notices/2026/septembre/10262-pres-enquete-electorale-ipsos-bva-le-monde-13-septembre.pdf"
+    },
+    "measures": [
+      { "fieldwork": { "start": "2016-09-09", "end": "2016-09-18" }, "share": 67, "election": 2017 },
+      { "fieldwork": { "start": "2021-10-07", "end": "2021-10-13" }, "share": 59, "election": 2022 },
+      { "fieldwork": { "start": "2026-09-03", "end": "2026-09-09" }, "share": 67, "election": null }
+    ]
+  }
+}

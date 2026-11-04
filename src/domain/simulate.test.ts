@@ -18,7 +18,7 @@ describe('simulate (données réelles)', () => {
     const res = run()
     expect(res.secondRound.abstention.target).toBeCloseTo(secondRoundDropout2022(simulationData.reference2022), 10)
     expect(res.secondRound.votes.abstention).toBeCloseTo(res.secondRound.abstention.target!, 8)
-    // Défauts : options du billet d'Eliot Thibault seules (biais et hausse de participation), à 100 %.
+    // Défauts : options du billet d'Eliot Thibault seules (biais et participation attendue par défaut, sans effet avec le billet à 100 %).
     expect(res.secondRound.pct.b).toBeCloseTo(51, 0)
   })
 

@@ -146,8 +146,9 @@ function SimulatorPage({ result, onOpenSettings }: { result: SimulationResult; o
                 mesurés sur 2017 et 2022 à la même distance du scrutin (en option, activée par défaut)
               </li>
               <li>
-                La hausse de participation annoncée par ce billet, répartie selon le vote en 2022 des abstentionnistes
-                de 2017 (sondage jour du vote Ifop-Fiducial, en option, activée par défaut)
+                La participation attendue au 1er tour, par défaut la hausse des électeurs certains d’aller voter
+                (Ifop-Fiducial) reportée sur la participation de 2022, l’écart avec les sondages corrigés étant
+                réparti selon le vote en 2022 des abstentionnistes de 2017 (en option, activée par défaut)
               </li>
             </ul>
           </div>

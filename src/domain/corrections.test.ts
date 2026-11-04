@@ -1,5 +1,7 @@
 import { frozenData as simulationData } from '../test/frozenData'
 import { applyCorrections, computeReference, defaultCorrection } from './corrections'
+import { computeCalibration } from './calibration'
+import { defaultSettings } from './simulate'
 import type { Candidate } from './types'
 
 const stats = computeReference(simulationData.reference2022)
@@ -80,5 +82,39 @@ describe('applyCorrections', () => {
   it('une valeur manuelle remplace la correction calculée', () => {
     const rows = applyCorrections(base, candidates, stats, { ...on, correctionOverrides: { y: 2 } })
     expect(rows[1]).toMatchObject({ appliedCorrection: 2, isOverride: true })
+  })
+})
+
+describe('applyCorrections : participation attendue (pas de double comptage)', () => {
+  const { turnout, blogBias, y2022 } = computeCalibration(simulationData, simulationData.polls)
+  const candidates = simulationData.polls.candidates
+  const base = Object.fromEntries(candidates.map((c, i) => [c.id, 100 / candidates.length + (i % 3)]))
+  const run = (settings: Partial<ReturnType<typeof defaultSettings>>) =>
+    applyCorrections(
+      base,
+      candidates,
+      stats,
+      { ...defaultSettings(), ...settings },
+      y2022.progression,
+      blogBias,
+      turnout,
+    )
+
+  it('billet activé à 100 % et participation par défaut : tous les facteurs valent 1', () => {
+    for (const r of run({})) expect(r.turnoutFactor).toBeCloseTo(1, 12)
+  })
+  it('sans le billet ni correction, un supplément est réparti : facteurs non neutres', () => {
+    const rows = run({ blogBiasEnabled: false })
+    expect(rows.some((r) => Math.abs(r.turnoutFactor! - 1) > 1e-3)).toBe(true)
+    expect(rows.reduce((s, r) => s + r.corrected, 0)).toBeCloseTo(100, 8)
+  })
+  it('option désactivée : aucun facteur', () => {
+    for (const r of run({ turnoutEnabled: false })) expect(r.turnoutFactor).toBeNull()
+  })
+  it('participation attendue sous V₀ : retrait, la gauche perd par rapport à la droite', () => {
+    const rows = run({ turnoutExpected: 75 })
+    const factor = (id: string) => rows.find((r) => r.candidateId === id)!.turnoutFactor!
+    expect(factor('melenchon')).toBeLessThan(1)
+    expect(factor('retailleau')).toBeGreaterThan(1)
   })
 })
