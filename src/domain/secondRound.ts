@@ -5,6 +5,7 @@ import type {
   Candidate,
   CandidateId,
   Entrant,
+  CampRates,
   DropoutProfile,
   PresidentialDuel,
   Reference2017,
@@ -31,9 +32,81 @@ export function presidentialDropout(e: PresidentialDuel): number {
   return 100 * (1 - e.secondRound.expressed / e.firstRound.expressed)
 }
 
+/** Somme des exprimés des deux tours dans les circonscriptions d'un profil. */
+export function profileTotals(p: Pick<DropoutProfile, 'constituencies'>) {
+  return p.constituencies.reduce(
+    (t, c) => ({ first: t.first + c.firstRoundExpressed, second: t.second + c.secondRoundExpressed }),
+    { first: 0, second: 0 },
+  )
+}
+
 /** Abandon net des duels d'un profil aux législatives 2024, calculé depuis les sommes d'exprimés. */
-export function profileDropout(p: Pick<DropoutProfile, 'firstRoundExpressed' | 'secondRoundExpressed'>): number {
-  return 100 * (1 - p.secondRoundExpressed / p.firstRoundExpressed)
+export function profileDropout(p: Pick<DropoutProfile, 'constituencies'>): number {
+  const { first, second } = profileTotals(p)
+  return 100 * (1 - second / first)
+}
+
+/** Estimation (%) et erreur type d'un taux d'abandon. */
+export interface RateEstimate {
+  value: number
+  se: number
+}
+
+/**
+ * Où tombe l'abandon : régression écologique (Goodman) sur les circonscriptions d'un profil. L'abandon net
+ * y = 1 − exprimés du 2nd tour ÷ exprimés du 1er tour s'explique par la part x des blocs des deux
+ * finalistes et celle (1 − x) des autres blocs, aux moindres carrés sans constante, chaque circonscription
+ * pesant 1 : y = camp × x + autres × (1 − x). Les valeurs sont brutes (elles peuvent être négatives) ;
+ * l'erreur type vient de s² = SCR ÷ (n − 2) et de la diagonale de (X'X)⁻¹. Comportements déduits d'agrégats :
+ * c'est une inférence écologique, pas une mesure sur des individus.
+ */
+export function campDropout(p: Pick<DropoutProfile, 'constituencies' | 'finalistBlocs'>): {
+  camp: RateEstimate
+  others: RateEstimate
+} {
+  const rows = p.constituencies.map((c) => {
+    const total = Object.values(c.firstRoundVotesByBloc).reduce((t, v) => t + v, 0)
+    const inCamp = p.finalistBlocs.reduce((t, b) => t + c.firstRoundVotesByBloc[b], 0)
+    const x = total > 0 ? inCamp / total : 0
+    return { x, z: 1 - x, y: 1 - c.secondRoundExpressed / c.firstRoundExpressed }
+  })
+  const sxx = rows.reduce((t, r) => t + r.x * r.x, 0)
+  const sxz = rows.reduce((t, r) => t + r.x * r.z, 0)
+  const szz = rows.reduce((t, r) => t + r.z * r.z, 0)
+  const sxy = rows.reduce((t, r) => t + r.x * r.y, 0)
+  const szy = rows.reduce((t, r) => t + r.z * r.y, 0)
+  const det = sxx * szz - sxz * sxz
+  const camp = (szz * sxy - sxz * szy) / det
+  const others = (sxx * szy - sxz * sxy) / det
+  const ssr = rows.reduce((t, r) => t + (r.y - camp * r.x - others * r.z) ** 2, 0)
+  const s2 = ssr / (rows.length - 2)
+  return {
+    camp: { value: 100 * camp, se: 100 * Math.sqrt((s2 * szz) / det) },
+    others: { value: 100 * others, se: 100 * Math.sqrt((s2 * sxx) / det) },
+  }
+}
+
+/**
+ * Taux d'abandon d'un duel selon les électorats : moyenne des taux de ses profils de reports 2024, pondérée
+ * par `profileWeights`, chaque taux borné à 0 (une estimation négative n'a pas de sens). Null pour un duel
+ * sans profil sourcé, ou si les deux taux sont nuls (le calage uniforme prend alors le relais).
+ */
+export function duelCampRates(duel: ResolvedDuel, data: SecondRoundDropoutData): CampRates | null {
+  const { profiles } = data.legislatives2024
+  const parts = duel.kind === 'sourced' ? duel.profileWeights.filter((w) => profiles[w.profileId]) : []
+  const total = parts.reduce((s, w) => s + w.weight, 0)
+  if (total <= 0) return null
+  const rates = parts.reduce(
+    (acc, w) => {
+      const e = campDropout(profiles[w.profileId])
+      return {
+        camp: acc.camp + (w.weight * Math.max(0, e.camp.value)) / total,
+        others: acc.others + (w.weight * Math.max(0, e.others.value)) / total,
+      }
+    },
+    { camp: 0, others: 0 },
+  )
+  return rates.camp > 0 || rates.others > 0 ? rates : null
 }
 
 /**
@@ -81,8 +154,15 @@ interface SecondRoundInput {
   fallback: TransfersData['fallback']
   candidatesById: Map<CandidateId, Candidate>
   fidelity: number
-  /** Total visé de blancs, nuls et abstentions (points des électeurs du 1er tour), null = pas de calage. */
+  /**
+   * Total imposé de blancs, nuls et abstentions (points des électeurs du 1er tour). Null : pas de total
+   * imposé, l'abandon est celui des taux par camp (si fournis), sinon les taux bruts.
+   */
   abstentionTarget: number | null
+  /** Taux d'abandon des électorats des blocs des finalistes et des autres blocs (2024, %). Active le mode « camps ». */
+  campRates?: CampRates | null
+  /** Électorats au taux du camp : de même bloc qu'un finaliste (défaut), ou seulement de sa famille (variante). */
+  campScope?: 'bloc' | 'family'
   secondRoundPolls: SecondRoundPoll[]
   /** Petits candidats : électorats principaux dont leurs électeurs suivent les reports (poids de total 1). */
   minorTransfers?: Record<CandidateId, ReferencePart[]>
@@ -101,8 +181,15 @@ interface SecondRoundInput {
  *   duel hors source : modèle de repli par affinités entre blocs.
  * - Électeurs d'un petit candidat éliminé : répartis entre des électorats principaux selon leurs poids,
  *   chaque part se reporte comme cet électorat (fidèle à son candidat s'il est finaliste ou allié).
- * Calage : le taux d'abstention de chaque électorat est multiplié par un même coefficient pour que
- * le total atteigne la cible ; les votes exprimés gardent la répartition des taux de report.
+ * Abandon, trois modes :
+ * - « camps » (duel sourcé, taux 2024 fournis) : les électeurs d'un finaliste gardent leurs taux ; les autres
+ *   électorats abandonnent au taux du « camp » s'ils sont de la famille d'un finaliste (même profil de duel
+ *   que l'un de ses membres, ou extrême droite face à un finaliste RN), sinon à celui des autres blocs. Avec un total imposé, ces taux sont multipliés par un même coefficient pour
+ *   l'atteindre, ce qui garde leur rapport. Le total est alors un résultat ;
+ * - « uniform » : le taux d'abstention de chaque électorat est multiplié par un même coefficient pour que le
+ *   total atteigne la cible (duel sans RN) ;
+ * - « none » : taux bruts.
+ * Dans tous les cas, les votes exprimés de chaque électorat gardent la répartition des taux de report.
  * Le résultat est exprimé en % des suffrages exprimés : A / (A + B).
  */
 export function computeSecondRound(input: SecondRoundInput): SecondRoundResult {
@@ -158,9 +245,47 @@ export function computeSecondRound(input: SecondRoundInput): SecondRoundResult {
   })
 
   const uncalibrated = raw.reduce((s, f) => s + f.abstention, 0)
-  const factor = abstentionTarget === null ? 1 : uncalibrated > 0 ? abstentionTarget / uncalibrated : 0
+  const rates = input.campRates && duel.kind === 'sourced' ? input.campRates : null
+  // Camp d'un finaliste : par défaut, les électorats non finalistes de même bloc que l'un des membres des
+  // deux finalistes. Variante « famille » : seulement ceux dont le candidat a le même profil de duel qu'un
+  // membre d'un finaliste, plus l'extrême droite face à un finaliste RN (les autres candidats du même bloc
+  // prennent le taux des autres blocs). En 2024 chaque camp n'avait qu'un candidat au 1er tour : le taux du
+  // camp mesure surtout le comportement des propres électeurs du finaliste.
+  const campBlocs = new Set([a, b].flatMap((e) => e.members.map((m) => bloc(m.candidateId))))
+  const finalistProfiles = new Set(
+    [a, b].flatMap((e) => e.members.map((m) => candidatesById.get(m.candidateId)?.duelProfile)).filter(Boolean),
+  )
+  const rnFinal = isRN(a) || isRN(b)
+  const inFamily = (id: CandidateId) =>
+    input.campScope === 'family'
+      ? finalistProfiles.has(candidatesById.get(id)?.duelProfile) || (rnFinal && bloc(id) === 'extreme_droite')
+      : campBlocs.has(bloc(id))
+  const rateFor = (id: CandidateId) => ((inFamily(id) ? rates!.camp : rates!.others) / 100)
+  // Petit candidat (électeurs répartis entre plusieurs électorats, dont parfois un finaliste) : en variante
+  // « famille », taux des autres électorats, faute de pouvoir le classer simplement ; sinon, son propre bloc.
+  const campRate = (f: VoteFlow) =>
+    f.isFinalistVoter ? 0 : f.like && input.campScope === 'family' ? rates!.others / 100 : rateFor(f.candidateId)
+  const campMembers = rates ? raw.filter((f) => !f.isFinalistVoter && inFamily(f.candidateId)).map((f) => f.candidateId) : []
+  const mobile = rates ? raw.reduce((t, f) => t + f.share * campRate(f), 0) : 0
+  const fixed = raw.reduce((t, f) => t + (f.isFinalistVoter ? f.abstention : 0), 0)
+  const mode: 'camps' | 'uniform' | 'none' =
+    rates && (mobile > 0 || abstentionTarget === null) ? 'camps' : abstentionTarget === null ? 'none' : 'uniform'
+  const factor =
+    mode === 'camps'
+      ? abstentionTarget === null
+        ? 1
+        : Math.max(0, abstentionTarget - fixed) / mobile
+      : abstentionTarget === null
+        ? 1
+        : uncalibrated > 0
+          ? abstentionTarget / uncalibrated
+          : 0
   const flows =
-    abstentionTarget === null ? raw : raw.map((f) => calibrate(f, factor, uncalibrated, abstentionTarget))
+    mode === 'camps'
+      ? raw.map((f) => (f.isFinalistVoter ? f : withAbstention(f, Math.min(f.share, f.share * campRate(f) * factor))))
+      : mode === 'uniform'
+        ? raw.map((f) => calibrate(f, factor, uncalibrated, abstentionTarget!))
+        : raw
 
   const votes = flows.reduce(
     (acc, f) => ({ a: acc.a + f.toA, b: acc.b + f.toB, abstention: acc.abstention + f.abstention }),
@@ -185,8 +310,28 @@ export function computeSecondRound(input: SecondRoundInput): SecondRoundResult {
     pct,
     flows,
     fidelity,
-    abstention: { uncalibrated, target: abstentionTarget, factor },
+    abstention: {
+      uncalibrated,
+      target: abstentionTarget,
+      factor,
+      mode,
+      total: votes.abstention,
+      camps: mode === 'camps' ? { members: campMembers, rates: rates! } : null,
+    },
     directPolls,
+  }
+}
+
+/** Fixe l'abstention d'un électorat ; ses exprimés gardent la répartition brute toA / toB. */
+function withAbstention(f: VoteFlow, abstention: number): VoteFlow {
+  const expressedRaw = f.toA + f.toB
+  const wanted = expressedRaw > 0 ? abstention : f.share
+  const expressed = f.share - wanted
+  return {
+    ...f,
+    abstention: wanted,
+    toA: expressedRaw > 0 ? (expressed * f.toA) / expressedRaw : 0,
+    toB: expressedRaw > 0 ? (expressed * f.toB) / expressedRaw : 0,
   }
 }
 

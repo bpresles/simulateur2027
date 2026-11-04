@@ -1,5 +1,5 @@
 import { frozenData as simulationData } from '../test/frozenData'
-import { duelDropout, profileDropout, secondRoundDropout } from './secondRound'
+import { campDropout, duelDropout, secondRoundDropout } from './secondRound'
 import { defaultSettings, simulate } from './simulate'
 
 const run = (overrides: Partial<ReturnType<typeof defaultSettings>> = {}) =>
@@ -14,17 +14,19 @@ describe('simulate (données réelles)', () => {
     expect(res.secondRound.pct.a + res.secondRound.pct.b).toBeCloseTo(100, 8)
   })
 
-  it('par défaut : blancs, nuls et abstention calés sur l’estimation du duel (législatives 2024)', () => {
+  it('par défaut : l’abandon est réparti comme en 2024, son total est un résultat', () => {
     const res = run()
-    expect(res.secondRound.abstention.target).toBeCloseTo(
-      duelDropout(res.secondRound.duel, simulationData.secondRoundDropout),
-      10,
-    )
-    expect(res.secondRound.votes.abstention).toBeCloseTo(res.secondRound.abstention.target!, 8)
+    const ab = res.secondRound.abstention
+    expect(ab.mode).toBe('camps')
+    expect(ab.target).toBeNull()
+    expect(res.secondRound.votes.abstention).toBeCloseTo(ab.total, 8)
+    // Duel Le Pen – Mélenchon : gauche non LFI et extrême droite non finaliste à 1,99 %, centre et droite à 25,38 %,
+    // soit ≈ 6,9 % au total (au lieu de la moyenne uniforme 10,86 % de l'étape précédente) : Mélenchon 50,43 → 52,0 %
+    // sur les données figées (50,07 → 52,04 % sur les données vivantes).
+    expect(ab.total).toBeGreaterThan(6)
+    expect(ab.total).toBeLessThan(8)
     // Défauts : options du billet d'Eliot Thibault seules (biais et participation attendue par défaut, sans effet avec le billet à 100 %).
-    // Duel Le Pen – Mélenchon : abandon des duels RN – LFI de 2024 (8,44 %) au lieu de la moyenne 2017-2022
-    // (10,86 %) : Mélenchon 50,43 → 51,06 % sur les données figées (50,07 → 50,67 % sur les données vivantes).
-    expect(res.secondRound.pct.b).toBeCloseTo(51.06, 1)
+    expect(res.secondRound.pct.b).toBeCloseTo(52, 0)
   })
 
   it('un seul sondage coché : base de ce sondage, sans alerte de moyenne fragile', () => {
@@ -122,17 +124,30 @@ describe('simulate : abandon par duel et sensibilité', () => {
   const { reference2022, reference2017, secondRoundDropout: dropoutData } = simulationData
   const leader = (r: { pct: { a: number; b: number } }) => r.pct.a >= r.pct.b
 
-  it('duel Le Pen – Mélenchon : cible des duels RN – LFI', () => {
+  it('duel Le Pen – Mélenchon : taux des duels RN – LFI, camp pour la gauche non LFI et l’extrême droite', () => {
     const res = at({})
     expect(res.secondRound.duel.profileWeights).toEqual([{ profileId: 'lfi_rn', weight: 1 }])
-    expect(res.secondRound.abstention.target).toBeCloseTo(profileDropout(dropoutData.legislatives2024.profiles.lfi_rn), 10)
+    const { camp, others } = campDropout(dropoutData.legislatives2024.profiles.lfi_rn)
+    expect(res.secondRound.abstention.camps!.rates.camp).toBeCloseTo(camp.value, 10)
+    const rate = (id: string) => {
+      const f = res.secondRound.flows.find((x) => x.candidateId === id)!
+      return (100 * f.abstention) / f.share
+    }
+    expect(rate('glucksmann')).toBeCloseTo(camp.value, 6)
+    expect(rate('zemmour')).toBeCloseTo(camp.value, 6)
+    expect(rate('philippe')).toBeCloseTo(others.value, 6)
+    expect(rate('retailleau')).toBeCloseTo(others.value, 6)
   })
-  it('une cible saisie l’emporte sur l’estimation du duel', () => {
-    expect(at({ abstentionTarget: 5 }).secondRound.abstention.target).toBe(5)
+  it('un total saisi l’emporte sur l’estimation et reste réparti par camps', () => {
+    const res = at({ abstentionTarget: 5 })
+    expect(res.secondRound.abstention.target).toBe(5)
+    expect(res.secondRound.abstention.mode).toBe('camps')
+    expect(res.secondRound.abstention.total).toBeCloseTo(5, 8)
   })
   it('duel sans RN : repli sur les présidentielles 2007 et 2012', () => {
     const res = at({ correctionsEnabled: true, correctionOverrides: { lepen: -30 } })
     expect(res.secondRound.duel.kind).toBe('fallback')
+    expect(res.secondRound.abstention.mode).toBe('uniform')
     expect(res.secondRound.abstention.target).toBeCloseTo(duelDropout(res.secondRound.duel, dropoutData), 10)
     expect(res.secondRound.abstention.target).toBeLessThan(4)
   })
@@ -152,14 +167,22 @@ describe('simulate : abandon par duel et sensibilité', () => {
       expect(res.secondRound.pct.a).toBeCloseTo(sens.variants[year].pct.a, 8)
     }
   })
-  it('un vainqueur changé n’est signalé que par les variantes concernées, même avec une cible saisie', () => {
+  it('variante structurelle : les autres candidats du même bloc prennent le taux des autres blocs', () => {
+    const res = at({})
+    const sens = res.secondRoundSensitivity!
+    expect(sens.structural!.total).toBeGreaterThan(res.secondRound.abstention.total)
+    expect(sens.structural!.winnerChanges).toBe(leader(sens.structural!) !== leader(res.secondRound))
+  })
+  it('un vainqueur changé n’est signalé que par les variantes concernées, même avec un total saisi', () => {
     for (const target of [null, 5, 8.44, 12.96, 20]) {
       const res = at({ abstentionTarget: target })
       const sens = res.secondRoundSensitivity!
       for (const year of [2017, 2022] as const) {
         expect(sens.variants[year].winnerChanges).toBe(leader(sens.variants[year]) !== leader(res.secondRound))
       }
-      expect(sens.winnerChanges).toBe(sens.variants[2017].winnerChanges || sens.variants[2022].winnerChanges)
+      expect(sens.winnerChanges).toBe(
+        sens.variants[2017].winnerChanges || sens.variants[2022].winnerChanges || sens.structural!.winnerChanges,
+      )
       expect(res.warnings.some((w) => w.startsWith('2nd tour serré'))).toBe(false)
     }
   })

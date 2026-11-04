@@ -227,9 +227,17 @@ const presidentialRound = z.object({
 
 const dropoutProfile = z.object({
   label: z.string(),
-  constituencies: z.array(z.string()).min(1),
-  firstRoundExpressed: z.number().int().positive(),
-  secondRoundExpressed: z.number().int().positive(),
+  finalistBlocs: z.array(bloc).min(2),
+  constituencies: z
+    .array(
+      z.object({
+        code: z.string(),
+        firstRoundExpressed: z.number().int().positive(),
+        secondRoundExpressed: z.number().int().positive(),
+        firstRoundVotesByBloc: z.record(bloc, z.number().int().nonnegative()),
+      }),
+    )
+    .min(3),
   leftParty: z.record(z.string(), z.string()).optional(),
 })
 
@@ -251,6 +259,7 @@ const secondRoundDropoutSchema: z.ZodType<SecondRoundDropoutData> = z.object({
   legislatives2024: z.object({
     description: z.string(),
     method: z.string(),
+    nuanceBlocs: z.record(bloc, z.array(z.string())),
     sources: z.array(sourceLink).min(1),
     profiles: z.record(profileId, dropoutProfile),
     unclassified: z.array(z.object({ code: z.string(), dep: z.string(), nuance: z.string(), name: z.string() })),
@@ -404,11 +413,20 @@ export function validateData(data: SimulationData): string[] {
     if (!dropout.legislatives2024.profiles[profile.id]) errors.push(`Abandon 2024 : aucune estimation pour le profil « ${profile.id} »`)
   }
   for (const [id, p] of Object.entries(dropout.legislatives2024.profiles)) {
-    if (new Set(p.constituencies).size !== p.constituencies.length) errors.push(`Abandon 2024 ${id} : circonscriptions en double`)
+    const codes = p.constituencies.map((c) => c.code)
+    if (new Set(codes).size !== codes.length) errors.push(`Abandon 2024 ${id} : circonscriptions en double`)
     if (p.leftParty) {
       const parties = Object.keys(p.leftParty)
-      if (parties.length !== p.constituencies.length || parties.some((c) => !p.constituencies.includes(c)))
+      if (parties.length !== codes.length || parties.some((c) => !codes.includes(c)))
         errors.push(`Abandon 2024 ${id} : partis de gauche incohérents avec la liste des circonscriptions`)
+    }
+    for (const c of p.constituencies) {
+      const votes = Object.values(c.firstRoundVotesByBloc).reduce((t, v) => t + v, 0)
+      // Tolérance : quelques voix d'écart entre les voix par nuance et les exprimés officiels (données du ministère).
+      if (Math.abs(votes - c.firstRoundExpressed) > 5)
+        errors.push(`Abandon 2024 ${id}/${c.code} : voix par bloc ≠ exprimés du 1er tour`)
+      if (c.secondRoundExpressed > c.firstRoundExpressed * 1.2)
+        errors.push(`Abandon 2024 ${id}/${c.code} : exprimés du 2nd tour invraisemblables`)
     }
   }
   for (const e of dropout.presidential.elections) {

@@ -19,11 +19,12 @@ import {
   TURNOUT_PROFILE_SOURCE,
 } from '../../domain/turnout'
 import {
-  duelDropout,
+  campDropout,
   noIntentionRange,
   noRnDropout,
   presidentialDropout,
   profileDropout,
+  profileTotals,
   secondRoundDropout,
 } from '../../domain/secondRound'
 import {
@@ -1543,24 +1544,28 @@ export function Methodology({ result }: { result: SimulationResult }) {
             </p>
             <code className="formula">abandon = 1 − exprimés du 2nd tour ÷ exprimés du 1er tour</code>
             <p>
-              <strong>Règle de choix.</strong> Pour un duel que les reports de 2024 couvrent, la cible est
-              l’abandon constaté aux législatives de 2024 dans les duels équivalents (même profil que les reports
-              de l’étape 6), pondéré par les poids du profil quand une alliance en mêle plusieurs. Pour un duel
-              sans RN (repli), c’est la moyenne simple des seconds tours présidentiels sans FN ni RN, {listFr(NO_RN_YEARS.map(String))} :{' '}
-              {pct(noRnDropout(dropoutData), 2)}. Une valeur saisie dans les réglages l’emporte et vaut pour tous
-              les duels ; le calage peut aussi être désactivé (taux bruts de 2024).
-            </p>
-            <p>
-              Le taux d’abstention de chaque électorat, issu des reports de 2024, est multiplié par un même
-              coefficient pour atteindre cette cible ; les votes exprimés gardent la répartition des reports de
-              2024. Seules les différences d’abstention entre électorats influent sur le résultat en % des
-              exprimés.
+              <strong>Règle de choix.</strong> Pour un duel que les reports de 2024 couvrent, l’abandon est celui
+              constaté aux législatives de 2024 dans les duels équivalents (même profil que les reports de
+              l’étape 6), pondéré par les poids du profil quand une alliance en mêle plusieurs, et{' '}
+              <strong>réparti entre électorats</strong> comme en 2024 (voir plus bas) : le total est alors un
+              résultat. Pour un duel sans RN (repli), c’est la moyenne simple des seconds tours présidentiels sans
+              FN ni RN, {listFr(NO_RN_YEARS.map(String))} : {pct(noRnDropout(dropoutData), 2)}, appliquée par un même
+              coefficient à tous les électorats. Un total saisi dans les réglages l’emporte et vaut pour tous les
+              duels : il est réparti comme en 2024 (mêmes rapports de taux, plafonné à la part de chaque électorat).
+              Le calage peut aussi être désactivé (taux bruts de 2024). Dans tous les cas, les exprimés de chaque
+              électorat gardent la répartition des reports de 2024.
             </p>
             <p>
               Scénario en cours :{' '}
-              {sr.abstention.target === null
+              {sr.abstention.mode === 'none'
                 ? `calage désactivé, les taux bruts de 2024 donnent ${pct(sr.abstention.uncalibrated)} de blancs, nuls et abstentions.`
-                : `taux bruts de 2024 : ${pct(sr.abstention.uncalibrated)}, cible ${pct(sr.abstention.target, 2)} (${settings.abstentionTarget === null ? `estimation pour ce duel : ${dropoutBasis(sr.duel)}` : 'choisie dans les réglages'}${settings.abstentionTarget === null ? `, soit ${pct(duelDropout(sr.duel, dropoutData), 2)}` : ''}), coefficient ×${num(sr.abstention.factor, 2)}.`}{' '}
+                : sr.abstention.mode === 'uniform'
+                  ? `taux bruts de 2024 : ${pct(sr.abstention.uncalibrated)}, cible ${pct(sr.abstention.target!, 2)} (${settings.abstentionTarget === null ? `estimation pour ce duel : ${dropoutBasis(sr.duel)}` : 'choisie dans les réglages'}), coefficient ×${num(sr.abstention.factor, 2)}.`
+                  : `abandon de ${pct(sr.abstention.camps!.rates.camp * sr.abstention.factor)} pour ${
+                      sr.abstention.camps!.members.length > 0
+                        ? `les électeurs de ${listFr(sr.abstention.camps!.members.map((id) => cand(id).shortName))}`
+                        : 'les électeurs des camps des finalistes'
+                    } et de ${pct(sr.abstention.camps!.rates.others * sr.abstention.factor)} pour les autres non finalistes (${dropoutBasis(sr.duel)}${settings.abstentionTarget === null ? '' : `, total de ${pct(sr.abstention.total)} choisi dans les réglages`}), soit ${pct(sr.abstention.total, 2)} au total.`}{' '}
               {cand(sr.a).shortName} obtient {num(sr.votes.a)} points et {cand(sr.b).shortName}{' '}
               {num(sr.votes.b)} points sur 100 électeurs exprimés du 1er tour ; {num(sr.votes.abstention)}{' '}
               votent blanc, nul ou s’abstiennent. D’où{' '}
@@ -1587,6 +1592,7 @@ export function Methodology({ result }: { result: SimulationResult }) {
             <tbody>
               {(Object.keys(DUEL_KIND) as (keyof typeof DUEL_KIND)[]).map((id) => {
                 const p = dropoutData.legislatives2024.profiles[id]
+                const totals = profileTotals(p)
                 return (
                   <tr key={id} className="border-b border-rule/60">
                     <td className={td}>
@@ -1594,8 +1600,8 @@ export function Methodology({ result }: { result: SimulationResult }) {
                       <span className="block text-xs text-ink-3">{DUEL_KIND[id]}</span>
                     </td>
                     <td className={`${td} num text-right`}>{integer(p.constituencies.length)}</td>
-                    <td className={`${td} num text-right`}>{integer(p.firstRoundExpressed)}</td>
-                    <td className={`${td} num text-right`}>{integer(p.secondRoundExpressed)}</td>
+                    <td className={`${td} num text-right`}>{integer(totals.first)}</td>
+                    <td className={`${td} num text-right`}>{integer(totals.second)}</td>
                     <td className={`${td} num text-right font-medium`}>{pct(profileDropout(p), 2)}</td>
                   </tr>
                 )
@@ -1610,6 +1616,92 @@ export function Methodology({ result }: { result: SimulationResult }) {
               {dropoutData.legislatives2024.unclassified.length} duels RN – gauche, surtout à La Réunion, n’ont
               pas pu être classés et sont exclus. {dropoutData.legislatives2024.method}
             </p>
+          </div>
+          <div className="prose-method">
+            <p>
+              <strong>De quel côté tombe l’abandon.</strong> L’abandon de 2024 ne touche pas tous les électorats
+              pareil. Une régression écologique (Goodman) sur les circonscriptions de chaque type de duel explique
+              l’abandon net y de chacune par la part x au 1er tour des blocs des deux finalistes et celle (1 − x)
+              des autres blocs, aux moindres carrés sans constante, chaque circonscription pesant 1 :
+            </p>
+            <code className="formula">y = taux des camps × x + taux des autres blocs × (1 − x)</code>
+            <p>
+              Les blocs des finalistes sont, en 2024, ceux du RN et de son adversaire (gauche pour les duels LFI et
+              gauche non LFI, centre, droite). Les valeurs brutes et leurs erreurs types (s² = SCR ÷ (n − 2), variances
+              = s² × diag((X’X)⁻¹)) sont dans le tableau ; pour le calcul, une estimation négative est ramenée à 0.
+            </p>
+          </div>
+          <Table caption="Abandon net par type d’électorat, régression sur les circonscriptions de 2024 (%, erreur type)">
+            <thead>
+              <tr className="border-b border-rule">
+                <th className={th}>Type de duel</th>
+                <th className={th}>Blocs des finalistes</th>
+                <th className={`${th} text-right`}>Camps des finalistes</th>
+                <th className={`${th} text-right`}>Autres blocs</th>
+              </tr>
+            </thead>
+            <tbody>
+              {(Object.keys(DUEL_KIND) as (keyof typeof DUEL_KIND)[]).map((id) => {
+                const p = dropoutData.legislatives2024.profiles[id]
+                const e = campDropout(p)
+                return (
+                  <tr key={id} className="border-b border-rule/60">
+                    <td className={td}>{DUEL_KIND[id]}</td>
+                    <td className={td}>{p.finalistBlocs.map((b) => BLOC_LABELS[b]).join(' + ')}</td>
+                    <td className={`${td} num text-right`}>
+                      {pct(e.camp.value, 2)} ({num(e.camp.se, 2)})
+                    </td>
+                    <td className={`${td} num text-right`}>
+                      {pct(e.others.value, 2)} ({num(e.others.se, 2)})
+                    </td>
+                  </tr>
+                )
+              })}
+            </tbody>
+          </Table>
+          <div className="prose-method">
+            <p>
+              <strong>Lecture.</strong> L’abandon tombe sur les blocs absents du duel : les électeurs des camps des
+              finalistes s’abstiennent à peine (estimations proches de 0, parfois négatives), ceux des autres blocs
+              beaucoup plus. Avant, le modèle appliquait un même coefficient à tous les électorats et faisait
+              abandonner 15 % de la gauche non LFI dans un duel Le Pen – Mélenchon ; la répartition de 2024 donne{' '}
+              {pct(campDropout(dropoutData.legislatives2024.profiles.lfi_rn).camp.value, 1)} pour les camps des
+              finalistes.
+            </p>
+            <p>
+              <strong>Application.</strong> Les électeurs d’un finaliste (et de ses alliés) gardent leurs taux de
+              report. Parmi les autres électorats, ceux dont le <em>bloc</em> est celui d’un membre de l’un des deux
+              finalistes prennent le taux des camps des finalistes ; les autres blocs prennent le taux des autres
+              blocs. Dans Le Pen – Mélenchon, la gauche non LFI et l’extrême droite non finaliste sont au taux du
+              camp, le centre et la droite à celui des autres blocs. Les exprimés de chaque électorat gardent la
+              répartition brute des reports.
+            </p>
+            <p>
+              <strong>Variante structurelle.</strong> Le même duel est aussi calculé en réservant le taux du camp
+              aux électorats de la <em>famille</em> d’un finaliste (candidats de même profil de duel qu’un membre
+              d’un finaliste, et extrême droite face à un finaliste RN) : les électeurs des autres candidats de
+              gauche s’abstiennent alors autant que ceux du centre et de la droite. Comme les variantes 2017 et
+              2022, elle n’est citée sous le duel (« 2nd tour serré ») que si elle change le vainqueur.
+              {result.secondRoundSensitivity?.structural &&
+                ` Scénario en cours : abandon total ${pct(result.secondRoundSensitivity.structural.total, 2)}, ${cand(sr.a).shortName} ${pct(result.secondRoundSensitivity.structural.pct.a)} et ${cand(sr.b).shortName} ${pct(result.secondRoundSensitivity.structural.pct.b)}.`}
+            </p>
+            <p>
+              <strong>Limites de cette répartition.</strong>
+            </p>
+            <ul>
+              <li>
+                Inférence écologique : les comportements sont déduits d’agrégats par circonscription, pas mesurés
+                sur des individus.
+              </li>
+              <li>Les estimations négatives sont ramenées à 0 pour le calcul.</li>
+              <li>
+                En 2024, chaque camp n’avait qu’un candidat au 1er tour (candidat unique du Nouveau Front populaire à
+                gauche) : le taux du camp mesure donc surtout le comportement des propres électeurs du finaliste.
+                L’appliquer aux électeurs d’un autre candidat du même bloc est une extrapolation, d’où la variante
+                structurelle ci-dessus.
+              </li>
+              <li>La régression est non pondérée : chaque circonscription pèse 1, quelle que soit sa taille.</li>
+            </ul>
           </div>
           <Table caption="Seconds tours présidentiels de 2002 à 2022 : abandon net, pour comparaison">
             <thead>

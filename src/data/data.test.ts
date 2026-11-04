@@ -3,6 +3,7 @@ import type { Alliance } from '../domain/types'
 import { averagePolls } from '../domain/pollAverage'
 import { defaultSettings, simulate } from '../domain/simulate'
 import pollsJson from './polls-2027.json'
+import { profileTotals } from '../domain/secondRound'
 import { parseData, simulationData, validateData } from './schema'
 
 describe('données', () => {
@@ -67,11 +68,21 @@ describe('données', () => {
     const { profiles } = simulationData.secondRoundDropout.legislatives2024
     for (const p of simulationData.transfers.profiles) {
       expect(profiles[p.id].constituencies.length).toBeGreaterThan(0)
-      expect(profiles[p.id].firstRoundExpressed).toBeGreaterThan(profiles[p.id].secondRoundExpressed)
+      const totals = profileTotals(profiles[p.id])
+      expect(totals.first).toBeGreaterThan(totals.second)
     }
     const broken = structuredClone(simulationData)
     delete (broken.secondRoundDropout.legislatives2024.profiles as Partial<typeof profiles>).lr_rn
     expect(validateData(broken)).toEqual([expect.stringMatching(/aucune estimation pour le profil « lr_rn »/)])
+  })
+
+  it('rejette des voix par bloc qui ne totalisent pas les exprimés du 1er tour (tolérance de 5 voix)', () => {
+    const broken = structuredClone(simulationData)
+    const row = broken.secondRoundDropout.legislatives2024.profiles.lfi_rn.constituencies[0]!
+    row.firstRoundVotesByBloc.gauche += 3
+    expect(validateData(broken)).toEqual([])
+    row.firstRoundVotesByBloc.gauche += 10
+    expect(validateData(broken)).toEqual([expect.stringMatching(/voix par bloc/)])
   })
 
   it('rejette un profil d’abandon sans circonscription ni parti cohérents', () => {
