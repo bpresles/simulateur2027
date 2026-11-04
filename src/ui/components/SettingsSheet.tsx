@@ -8,7 +8,7 @@ import { useSettings } from '../../state/settingsStore'
 import { BLOC_VOTERS, MINOR_CANDIDATES, cand, colorVars, transferLabel } from '../candidates'
 import { num, pct, pts, ratio } from '../format'
 import { referenceParts } from '../../domain/references'
-import { secondRoundDropout2022 } from '../../domain/secondRound'
+import { referenceDropout, secondRoundDropout } from '../../domain/secondRound'
 import { minorTransfer } from '../../domain/transfers'
 import { AllianceRates } from './AllianceRates'
 import { AllianceSwitches, GroupedAlliancesSwitch, UntestedAlliancesSwitch } from './AllianceSwitches'
@@ -261,7 +261,7 @@ function AlliancesPanel({ result }: { result: SimulationResult }) {
 function SecondRoundPanel() {
   const s = useSettings()
   const fidelity = s.fidelity ?? transfers.defaultFidelity
-  const reference = secondRoundDropout2022(simulationData.reference2022)
+  const reference = referenceDropout({ 2022: simulationData.reference2022, 2017: simulationData.reference2017 })
   const target = s.abstentionTarget ?? reference
   return (
     <div className="space-y-6 border-b border-rule pb-6">
@@ -271,7 +271,7 @@ function SecondRoundPanel() {
           checked={s.abstentionCalibration}
           onCheckedChange={s.setAbstentionCalibration}
           label={`Caler blancs, nuls et abstention : ${pct(target, 2)}`}
-          description={`Part des électeurs exprimés du 1er tour qui ne s’expriment pas au 2nd. Par défaut, niveau réel du 2nd tour 2022 (${pct(reference, 2)}). Désactivé : taux bruts des législatives 2024.`}
+          description={`Part des électeurs exprimés du 1er tour qui ne s’expriment pas au 2nd. Par défaut, moyenne des 2nds tours de 2017 et 2022 (${pct(reference, 2)} ; rappel : 2017 ${pct(secondRoundDropout(simulationData.reference2017), 2)}, 2022 ${pct(secondRoundDropout(simulationData.reference2022), 2)}). Désactivé : taux bruts des législatives 2024.`}
         />
         <div className="mt-3 pl-12">
           <Slider
@@ -285,7 +285,7 @@ function SecondRoundPanel() {
           />
           {s.abstentionTarget !== null && (
             <TextButton className="mt-2" onClick={() => s.setAbstentionTarget(null)}>
-              Revenir au niveau de 2022
+              Revenir à la moyenne 2017-2022
             </TextButton>
           )}
         </div>

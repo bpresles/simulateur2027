@@ -7239,5 +7239,16 @@
         ]
       }
     ]
+  },
+  "secondRound": {
+    "registered": 47568693,
+    "voters": 35467327,
+    "blank": 3021499,
+    "invalid": 1064225,
+    "expressed": 31381603,
+    "source": {
+      "label": "Conseil constitutionnel – Décision n° 2017-171 PDR du 10/05/2017 (résultats du 2nd tour)",
+      "url": "https://www.conseil-constitutionnel.fr/decision/2017/2017171PDR.htm"
+    }
   }
 }

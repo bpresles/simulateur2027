@@ -175,19 +175,18 @@ const pastElectionShape = {
   }),
 }
 
-const referenceSchema: z.ZodType<Reference2022> = z.object({
-  ...pastElectionShape,
-  secondRound: z.object({
-    registered: z.number().int().positive(),
-    voters: z.number().int().positive(),
-    blank: z.number().int().nonnegative(),
-    invalid: z.number().int().nonnegative(),
-    expressed: z.number().int().positive(),
-    source: sourceLink,
-  }),
+const secondRoundShape = z.object({
+  registered: z.number().int().positive(),
+  voters: z.number().int().positive(),
+  blank: z.number().int().nonnegative(),
+  invalid: z.number().int().nonnegative(),
+  expressed: z.number().int().positive(),
+  source: sourceLink,
 })
 
-const reference2017Schema: z.ZodType<Reference2017> = z.object(pastElectionShape)
+const referenceSchema: z.ZodType<Reference2022> = z.object({ ...pastElectionShape, secondRound: secondRoundShape })
+
+const reference2017Schema: z.ZodType<Reference2017> = z.object({ ...pastElectionShape, secondRound: secondRoundShape })
 
 const transferRow = z.object({
   finalist: percent,
@@ -350,8 +349,14 @@ export function validateData(data: SimulationData): string[] {
       if (!ids.has(id)) errors.push(`Blocs du billet ${label} : candidat inconnu « ${id} »`)
     }
   }
-  const t2 = reference2022.secondRound
-  if (t2.voters - t2.blank - t2.invalid !== t2.expressed) errors.push('2022 : 2nd tour incohérent (votants − blancs − nuls ≠ exprimés)')
+  for (const [label, ref] of [
+    ['2022', reference2022],
+    ['2017', reference2017],
+  ] as const) {
+    const t2 = ref.secondRound
+    if (t2.voters - t2.blank - t2.invalid !== t2.expressed) errors.push(`${label} : 2nd tour incohérent (votants − blancs − nuls ≠ exprimés)`)
+    if (t2.voters > t2.registered) errors.push(`${label} : 2nd tour incohérent (votants > inscrits)`)
+  }
 
   const turnoutMeasures = data.turnoutCertainty.measures
   for (const m of turnoutMeasures) {

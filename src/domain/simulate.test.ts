@@ -1,5 +1,5 @@
 import { frozenData as simulationData } from '../test/frozenData'
-import { secondRoundDropout2022 } from './secondRound'
+import { referenceDropout, secondRoundDropout } from './secondRound'
 import { defaultSettings, simulate } from './simulate'
 
 const run = (overrides: Partial<ReturnType<typeof defaultSettings>> = {}) =>
@@ -14,12 +14,13 @@ describe('simulate (données réelles)', () => {
     expect(res.secondRound.pct.a + res.secondRound.pct.b).toBeCloseTo(100, 8)
   })
 
-  it('par défaut : blancs, nuls et abstention calés sur le 2nd tour 2022', () => {
+  it('par défaut : blancs, nuls et abstention calés sur la moyenne des 2nds tours 2017 et 2022', () => {
     const res = run()
-    expect(res.secondRound.abstention.target).toBeCloseTo(secondRoundDropout2022(simulationData.reference2022), 10)
+    expect(res.secondRound.abstention.target).toBeCloseTo(referenceDropout({ 2022: simulationData.reference2022, 2017: simulationData.reference2017 }), 10)
     expect(res.secondRound.votes.abstention).toBeCloseTo(res.secondRound.abstention.target!, 8)
     // Défauts : options du billet d'Eliot Thibault seules (biais et participation attendue par défaut, sans effet avec le billet à 100 %).
-    expect(res.secondRound.pct.b).toBeCloseTo(51, 0)
+    // 10,86 % d'abandon (moyenne 2017-2022) au lieu de 8,75 % (2022 seul) : 51,0 → 50,4 % sur les données figées.
+    expect(res.secondRound.pct.b).toBeCloseTo(50.43, 1)
   })
 
   it('un seul sondage coché : base de ce sondage, sans alerte de moyenne fragile', () => {
@@ -108,5 +109,38 @@ describe('simulate (données réelles)', () => {
     const res = run()
     expect(res.secondRound.directPolls.length).toBeGreaterThan(0)
     expect(res.secondRound.directPolls.every((p) => 'melenchon' in p.scores && 'lepen' in p.scores)).toBe(true)
+  })
+})
+
+describe('simulate : sensibilité du 2nd tour à l’abandon', () => {
+  const at = (settings: Partial<ReturnType<typeof defaultSettings>>) =>
+    simulate(simulationData, { ...defaultSettings(), ...settings })
+  const { reference2022, reference2017 } = simulationData
+
+  it('expose les cibles de 2017 et de 2022 pour le duel affiché', () => {
+    const res = at({})
+    const sens = res.secondRoundSensitivity!
+    expect(sens[2017].target).toBeCloseTo(secondRoundDropout(reference2017), 10)
+    expect(sens[2022].target).toBeCloseTo(secondRoundDropout(reference2022), 10)
+    expect(sens[2017].pct.a + sens[2017].pct.b).toBeCloseTo(100, 8)
+  })
+  it('calage désactivé : pas de sensibilité', () => {
+    expect(at({ abstentionCalibration: false }).secondRoundSensitivity).toBeNull()
+  })
+  it('cohérent avec le duel affiché quand la cible choisie est celle de 2022 ou de 2017', () => {
+    const base = at({})
+    const sens = base.secondRoundSensitivity!
+    for (const year of [2017, 2022] as const) {
+      const res = at({ abstentionTarget: sens[year].target })
+      expect(res.secondRound.pct.a).toBeCloseTo(sens[year].pct.a, 8)
+    }
+  })
+  it('signale un changement de vainqueur, même avec une cible saisie, sans l’ajouter aux avertissements', () => {
+    for (const target of [null, 5, 12.96, 20]) {
+      const res = at({ abstentionTarget: target })
+      const sens = res.secondRoundSensitivity!
+      expect(res.warnings.some((w) => w.startsWith('2nd tour serré'))).toBe(false)
+      expect(sens.winnerChanges).toBe(sens[2017].pct.a >= sens[2017].pct.b !== (sens[2022].pct.a >= sens[2022].pct.b))
+    }
   })
 })

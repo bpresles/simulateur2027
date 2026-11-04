@@ -1,9 +1,9 @@
 import { frozenData as simulationData } from '../test/frozenData'
-import { computeSecondRound, noIntentionRange, secondRoundDropout2022 } from './secondRound'
+import { computeSecondRound, noIntentionRange, referenceDropout, secondRoundDropout } from './secondRound'
 import { blendProfiles, effectiveProfiles, fallbackSplit, resolveDuel } from './transfers'
 import type { Candidate, Entrant, SecondRoundPoll } from './types'
 
-const { transfers, reference2022 } = simulationData
+const { transfers, reference2022, reference2017 } = simulationData
 const profiles = effectiveProfiles(transfers, {}, 1)
 
 const cand = (id: string, bloc: Candidate['bloc'], duelProfile: Candidate['duelProfile'], isRN = false) =>
@@ -166,10 +166,19 @@ describe('computeSecondRound', () => {
   })
 })
 
-describe('secondRoundDropout2022', () => {
+describe('secondRoundDropout', () => {
   it('vaut 1 − exprimés du 2nd tour ÷ exprimés du 1er tour (2022)', () => {
-    expect(secondRoundDropout2022(reference2022)).toBeCloseTo(100 * (1 - 32_057_325 / 35_132_947), 10)
-    expect(secondRoundDropout2022(reference2022)).toBeCloseTo(8.754, 3)
+    expect(secondRoundDropout(reference2022)).toBeCloseTo(100 * (1 - 32_057_325 / 35_132_947), 10)
+    expect(secondRoundDropout(reference2022)).toBeCloseTo(8.754, 3)
+  })
+  it('2017 : 12,96 % (Conseil constitutionnel, décision 2017-171 PDR)', () => {
+    expect(secondRoundDropout(reference2017)).toBeCloseTo(100 * (1 - 31_381_603 / 36_054_394), 10)
+    expect(secondRoundDropout(reference2017)).toBeCloseTo(12.96, 2)
+  })
+  it('référence : moyenne arithmétique pondérée de 2017 et 2022 (≈ 10,86 %)', () => {
+    const ref = referenceDropout({ 2022: reference2022, 2017: reference2017 })
+    expect(ref).toBeCloseTo((secondRoundDropout(reference2022) + secondRoundDropout(reference2017)) / 2, 10)
+    expect(ref).toBeCloseTo(10.86, 2)
   })
 })
 
