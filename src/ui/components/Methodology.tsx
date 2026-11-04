@@ -37,6 +37,7 @@ import {
 import { useSettings } from '../../state/settingsStore'
 import { anyName, BLOC_LABELS, BLOC_VOTERS, cand, entrantLabel, profileLabel, transferLabel } from '../candidates'
 import { date, distance, fieldwork, integer, noIntentionLabel, num, pct, pts, range, ratio, shownScore } from '../format'
+import { correctedTransfer, actualRow, actualTransfers } from '../../domain/transferCorrection'
 import { DUEL_KIND, dropoutBasis } from '../dropout'
 import { Link } from '../Link'
 import { AllianceRates } from './AllianceRates'
@@ -1533,6 +1534,107 @@ export function Methodology({ result }: { result: SimulationResult }) {
               .
             </p>
           </div>
+
+          <div className="prose-method">
+            <h3 id="correction-reports">Option : corriger les reports d’après les votes réels de 2024</h3>
+            <p>
+              Les taux de report ci-dessus viennent d’une enquête Ipsos-Talan du jour du vote, c’est-à-dire d’un
+              sondage. On mesure son biais en le comparant aux votes réels de 2024 : pour chaque type de duel, une
+              régression écologique de Goodman sur les circonscriptions de la même base que l’abandon (étape 7)
+              estime ce que les électeurs de chaque bloc ont réellement fait. Pour chaque issue (finaliste, RN,
+              abandon), y = voix de l’issue au 2nd tour ÷ exprimés du 1er tour (abandon : 1 − exprimés du 2nd tour
+              ÷ exprimés du 1er tour), expliqué par les parts au 1er tour des quatre blocs (nuances non classées
+              avec la droite), aux moindres carrés sans constante et sans pondération. Erreurs types : s² = SCR ÷
+              (n − 4), multiplié par la diagonale de (X’X)⁻¹. L’option est{' '}
+              <strong>
+                {settings.transferCorrectionEnabled
+                  ? `activée, à ${pct(settings.transferCorrectionIntensity * 100, 0)} d’intensité`
+                  : 'désactivée'}
+              </strong>{' '}
+              dans le scénario en cours.
+            </p>
+          </div>
+          <Table caption="Reports de l’enquête Ipsos-Talan et votes réels de 2024 estimés (finaliste / RN / blanc, nul ou abstention, en %)">
+            <thead>
+              <tr className="border-b border-rule">
+                <th className={th}>Type de duel</th>
+                <th className={th}>Électorat</th>
+                <th className={th}>Enquête Ipsos-Talan</th>
+                <th className={th}>Votes réels 2024 (± erreur type)</th>
+                <th className={th}>Corrigé ?</th>
+              </tr>
+            </thead>
+            <tbody>
+              {transfers.profiles.flatMap((p) =>
+                BLOCS.map((bloc) => {
+                  const profile = dropoutData.legislatives2024.profiles[p.id]
+                  const est = actualTransfers(profile)[bloc]
+                  const fixed = correctedTransfer(transfers, dropoutData, p.id, bloc, 1)
+                  const row = p.rows[bloc]
+                  const f = (v: number) => num(v, 1)
+                  return (
+                    <tr key={`${p.id}-${bloc}`} className="border-b border-rule/60">
+                      <td className={td}>{bloc === 'gauche' ? DUEL_KIND[p.id] : ''}</td>
+                      <td className={td}>{BLOC_VOTERS[bloc]}</td>
+                      <td className={`${td} num whitespace-nowrap`}>
+                        {f(row.finalist)} / {f(row.rn)} / {f(row.abstention)}
+                      </td>
+                      <td className={`${td} num whitespace-nowrap`}>
+                        {f(est.estimate.finalist)} ± {f(est.se.finalist)} / {f(est.estimate.rn)} ± {f(est.se.rn)} /{' '}
+                        {f(est.estimate.abstention)} ± {f(est.se.abstention)}
+                      </td>
+                      <td className={td}>
+                        {fixed ? 'oui' : profile.finalistBlocs.includes(bloc) ? 'non : bloc du duel' : 'non'}
+                      </td>
+                    </tr>
+                  )
+                }),
+              )}
+            </tbody>
+          </Table>
+          <div className="prose-method">
+            <p>
+              <strong>Quelles lignes sont corrigées, et pourquoi.</strong> Seules celles des blocs absents du duel en
+              2024 (hors blocs des finalistes). Les lignes du camp d’un finaliste mesurent surtout ses propres
+              électeurs, chaque camp n’ayant qu’un candidat au 1er tour en 2024 : elles gardent les valeurs de
+              l’enquête. Le report vers le finaliste opposé au RN des électeurs des autres blocs s’écarte nettement
+              de l’enquête : par exemple, au centre face à LFI, {num(actualRow(dropoutData.legislatives2024.profiles.lfi_rn, 'centre')?.finalist ?? 0, 1)} % pour
+              le finaliste en réalité contre {num(transfers.profiles.find((p) => p.id === 'lfi_rn')!.rows.centre.finalist, 0)} % selon l’enquête.
+            </p>
+            <code className="formula">
+              ligne corrigée = enquête + intensité × (réel − enquête), puis bornée à [0 ; 100] et ramenée à 100
+            </code>
+            <p>
+              Le réel est lui-même borné à [0 ; 100] puis ramené à 100 avant le calcul. Une surcharge saisie dans
+              les réglages reste prioritaire sur la correction ; les taux de ralliement des alliances, calculés
+              depuis les profils, utilisent les profils corrigés. Le mode « camps » de l’abandon (étape 7) reste en
+              place : la correction change surtout la répartition finaliste / RN des électeurs qui votent, et
+              l’abstention brute utilisée quand le calage est uniforme.
+            </p>
+            {result.secondRoundSensitivity?.uncorrected && (
+              <p>
+                <strong>Effet dans le scénario en cours.</strong> Sans la correction, {cand(result.secondRoundSensitivity.uncorrected.winner).shortName} l’emporterait avec{' '}
+                {pct(result.secondRoundSensitivity.uncorrected.score)} ; avec elle,{' '}
+                {cand(sr.pct.a >= sr.pct.b ? sr.a : sr.b).shortName} obtient {pct(Math.max(sr.pct.a, sr.pct.b))}.{' '}
+                {result.secondRoundSensitivity.uncorrected.winnerChanges
+                  ? 'Le vainqueur change : la mention « 2nd tour serré » le signale.'
+                  : 'Le vainqueur ne change pas.'}
+              </p>
+            )}
+            <p>
+              <strong>Limites.</strong>
+            </p>
+            <ul>
+              <li>
+                Inférence écologique : les comportements sont déduits d’agrégats. Des estimations sortent de [0 ;
+                100] à cause du bruit et des abstentionnistes du 1er tour qui votent au 2nd ; elles sont bornées
+                puis renormalisées.
+              </li>
+              <li>Élection législative : candidats locaux, désistements, contexte différent d’une présidentielle.</li>
+              <li>Régression non pondérée : chaque circonscription pèse 1.</li>
+              <li>Les erreurs types vont de 2 à 6 points : la correction est un ordre de grandeur, d’où l’intensité réglable.</li>
+            </ul>
+          </div>
         </Step>
 
         <Step id="abstention" n={7} title="Blancs, nuls et abstention au 2nd tour">
@@ -1796,6 +1898,35 @@ export function Methodology({ result }: { result: SimulationResult }) {
                 son abandon, comme celui de 2022, sert seulement de variante de sensibilité.
               </li>
             </ul>
+          </div>
+          <div className="prose-method">
+            <p>
+              <strong>Écart historique des sondages de 2nd tour (affiché, jamais appliqué).</strong> Les sondages de
+              2nd tour publiés pour 2027 ne servent pas de référence au calcul. On mesure en revanche leur biais
+              passé : pour 2017 et 2022, on moyenne les sondages Macron – Le Pen dont la fin de terrain est à la
+              même distance du 1er tour que la base 2027 (± 20 jours), à défaut le plus proche, et on la compare au
+              résultat du 2nd tour. Écart = résultat − moyenne, pour le candidat opposé au RN.
+              {result.secondRoundPollBias.map((g) => (
+                <span key={g.year}>
+                  {' '}
+                  {g.year} :{' '}
+                  {g.nearest
+                    ? `aucun sondage dans la fenêtre, le plus proche (${g.nearest.institute}, ${date(g.nearest.end)}, J−${g.nearest.distance}) donne ${pct(g.estimate, 0)} pour ${pct(g.result, 2)} au résultat, soit ${pts(g.gap)}.`
+                    : `${g.pollCount} sondages, ${pct(g.estimate)} en moyenne pour ${pct(g.result, 2)} au résultat, soit ${pts(g.gap)}.`}
+                </span>
+              ))}{' '}
+              Ces écarts portent sur des duels Macron – Le Pen d’avant le 1er tour, pas sur le duel simulé ; ils sont
+              donnés pour information (
+              {simulationData.secondRoundPollBias.elections.map((e, i) => (
+                <span key={e.year}>
+                  {i > 0 && ', '}
+                  <a href={e.listSource.url} className="link" target="_blank" rel="noreferrer">
+                    {e.listSource.label}
+                  </a>
+                </span>
+              ))}
+              ).
+            </p>
           </div>
         </Step>
 

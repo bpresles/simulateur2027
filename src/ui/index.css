@@ -135,6 +135,10 @@
     text-decoration: underline dashed var(--ballpoint);
     text-underline-offset: 3px;
   }
+  .prov-reels {
+    text-decoration: underline solid var(--ballpoint);
+    text-underline-offset: 3px;
+  }
   .prov-camp {
     font-style: italic;
     color: var(--ink-2);

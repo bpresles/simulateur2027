@@ -165,3 +165,23 @@ describe('ScenarioBar : participation attendue', () => {
     expect(useSettings.getState()).toMatchObject({ turnoutEnabled: true, turnoutExpected: null })
   })
 })
+
+describe('ScenarioBar : correction des reports', () => {
+  const name = /Reports de voix tirés des votes réels de 2024, et non d’un sondage/
+  const slider = () => screen.getByRole('slider', { name: 'Intensité de la correction des reports' })
+
+  it('activée par défaut, à 100 %', () => {
+    render(<Harness />)
+    expect(screen.getByRole('switch', { name }).getAttribute('aria-checked')).toBe('true')
+    expect(slider().getAttribute('aria-valuenow')).toBe('100')
+  })
+  it('désactivée, elle grise le curseur et abaisse Mélenchon au 2nd tour', () => {
+    const before = simulate(simulationData, selectSettings(useSettings.getState()))
+    render(<Harness />)
+    act(() => fireEvent.click(screen.getByRole('switch', { name })))
+    expect(useSettings.getState().transferCorrectionEnabled).toBe(false)
+    expect(slider().hasAttribute('data-disabled')).toBe(true)
+    const after = simulate(simulationData, selectSettings(useSettings.getState()))
+    expect(after.secondRound.pct.b).toBeLessThan(before.secondRound.pct.b)
+  })
+})

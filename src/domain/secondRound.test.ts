@@ -1,5 +1,5 @@
 import { frozenData as simulationData } from '../test/frozenData'
-import { computeSecondRound, campDropout, duelCampRates, duelDropout, noIntentionRange, noRnDropout, presidentialDropout, profileDropout, secondRoundDropout } from './secondRound'
+import { computeSecondRound, campDropout, duelCampRates, pollBiasGaps, duelDropout, noIntentionRange, noRnDropout, presidentialDropout, profileDropout, secondRoundDropout } from './secondRound'
 import { blendProfiles, effectiveProfiles, fallbackSplit, resolveDuel } from './transfers'
 import type { Candidate, Entrant, SecondRoundPoll } from './types'
 
@@ -320,5 +320,23 @@ describe('fallbackSplit', () => {
     const split = fallbackSplit('centre', 'gauche', 'droite', transfers.fallback)
     expect(split.toA + split.toB + split.abstention).toBeCloseTo(100, 8)
     expect(split.toB).toBeGreaterThan(split.toA)
+  })
+})
+
+describe('pollBiasGaps (écart historique des sondages de 2nd tour)', () => {
+  const live = { asOf: '2026-11-03', electionDate: '2027-04-18' }
+  it('2022 : moyenne des sondages à la même distance du 1er tour (J−166, ± 20 jours)', () => {
+    const g = pollBiasGaps(simulationData.secondRoundPollBias, live).find((x) => x.year === 2022)!
+    expect(g.pollCount).toBe(13)
+    expect(g.estimate).toBeCloseTo(56.08, 2)
+    expect(g.gap).toBeCloseTo(2.47, 2)
+    expect(g.nearest).toBeNull()
+  })
+  it('2017 : aucun sondage dans la fenêtre, repli sur le plus proche (Ifop, 03/12/2016)', () => {
+    const g = pollBiasGaps(simulationData.secondRoundPollBias, live).find((x) => x.year === 2017)!
+    expect(g.pollCount).toBe(0)
+    expect(g.nearest).toEqual({ institute: 'Ifop', end: '2016-12-03', distance: 141 })
+    expect(g.estimate).toBe(62)
+    expect(g.gap).toBeCloseTo(4.1, 2)
   })
 })

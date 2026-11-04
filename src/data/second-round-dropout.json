@@ -136,6 +136,10 @@
             "code": "0105",
             "firstRoundExpressed": 51532,
             "secondRoundExpressed": 47004,
+            "secondRoundVotes": {
+              "finalist": 19964,
+              "rn": 27040
+            },
             "firstRoundVotesByBloc": {
               "gauche": 13632,
               "centre": 6036,
@@ -147,6 +151,10 @@
             "code": "0402",
             "firstRoundExpressed": 44785,
             "secondRoundExpressed": 42489,
+            "secondRoundVotes": {
+              "finalist": 20834,
+              "rn": 21655
+            },
             "firstRoundVotesByBloc": {
               "gauche": 15212,
               "centre": 10162,
@@ -158,6 +166,10 @@
             "code": "0602",
             "firstRoundExpressed": 59641,
             "secondRoundExpressed": 52166,
+            "secondRoundVotes": {
+              "finalist": 18893,
+              "rn": 33273
+            },
             "firstRoundVotesByBloc": {
               "gauche": 14016,
               "centre": 9856,
@@ -169,6 +181,10 @@
             "code": "1202",
             "firstRoundExpressed": 48087,
             "secondRoundExpressed": 43243,
+            "secondRoundVotes": {
+              "finalist": 24084,
+              "rn": 19159
+            },
             "firstRoundVotesByBloc": {
               "gauche": 16333,
               "centre": 14690,
@@ -180,6 +196,10 @@
             "code": "1305",
             "firstRoundExpressed": 50206,
             "secondRoundExpressed": 45925,
+            "secondRoundVotes": {
+              "finalist": 30287,
+              "rn": 15638
+            },
             "firstRoundVotesByBloc": {
               "gauche": 25106,
               "centre": 8985,
@@ -191,6 +211,10 @@
             "code": "1315",
             "firstRoundExpressed": 75769,
             "secondRoundExpressed": 67113,
+            "secondRoundVotes": {
+              "finalist": 23368,
+              "rn": 43745
+            },
             "firstRoundVotesByBloc": {
               "gauche": 15931,
               "centre": 12202,
@@ -202,6 +226,10 @@
             "code": "2204",
             "firstRoundExpressed": 57440,
             "secondRoundExpressed": 51567,
+            "secondRoundVotes": {
+              "finalist": 28234,
+              "rn": 23333
+            },
             "firstRoundVotesByBloc": {
               "gauche": 19331,
               "centre": 17555,
@@ -213,6 +241,10 @@
             "code": "2401",
             "firstRoundExpressed": 52815,
             "secondRoundExpressed": 48269,
+            "secondRoundVotes": {
+              "finalist": 24089,
+              "rn": 24180
+            },
             "firstRoundVotesByBloc": {
               "gauche": 16291,
               "centre": 12835,
@@ -224,6 +256,10 @@
             "code": "2602",
             "firstRoundExpressed": 64200,
             "secondRoundExpressed": 57914,
+            "secondRoundVotes": {
+              "finalist": 24159,
+              "rn": 33755
+            },
             "firstRoundVotesByBloc": {
               "gauche": 15346,
               "centre": 12158,
@@ -235,6 +271,10 @@
             "code": "3001",
             "firstRoundExpressed": 56698,
             "secondRoundExpressed": 52115,
+            "secondRoundVotes": {
+              "finalist": 23856,
+              "rn": 28259
+            },
             "firstRoundVotesByBloc": {
               "gauche": 17334,
               "centre": 11394,
@@ -246,6 +286,10 @@
             "code": "3005",
             "firstRoundExpressed": 67305,
             "secondRoundExpressed": 63264,
+            "secondRoundVotes": {
+              "finalist": 30635,
+              "rn": 32629
+            },
             "firstRoundVotesByBloc": {
               "gauche": 23189,
               "centre": 10362,
@@ -257,6 +301,10 @@
             "code": "3107",
             "firstRoundExpressed": 74408,
             "secondRoundExpressed": 69373,
+            "secondRoundVotes": {
+              "finalist": 35228,
+              "rn": 34145
+            },
             "firstRoundVotesByBloc": {
               "gauche": 25904,
               "centre": 18462,
@@ -268,6 +316,10 @@
             "code": "3312",
             "firstRoundExpressed": 62529,
             "secondRoundExpressed": 56548,
+            "secondRoundVotes": {
+              "finalist": 28514,
+              "rn": 28034
+            },
             "firstRoundVotesByBloc": {
               "gauche": 19063,
               "centre": 17270,
@@ -279,6 +331,10 @@
             "code": "3404",
             "firstRoundExpressed": 85354,
             "secondRoundExpressed": 79594,
+            "secondRoundVotes": {
+              "finalist": 39408,
+              "rn": 40186
+            },
             "firstRoundVotesByBloc": {
               "gauche": 29057,
               "centre": 19260,
@@ -290,6 +346,10 @@
             "code": "3408",
             "firstRoundExpressed": 64381,
             "secondRoundExpressed": 59287,
+            "secondRoundVotes": {
+              "finalist": 29841,
+              "rn": 29446
+            },
             "firstRoundVotesByBloc": {
               "gauche": 23613,
               "centre": 10854,
@@ -301,6 +361,10 @@
             "code": "3409",
             "firstRoundExpressed": 59666,
             "secondRoundExpressed": 54786,
+            "secondRoundVotes": {
+              "finalist": 26353,
+              "rn": 28433
+            },
             "firstRoundVotesByBloc": {
               "gauche": 17922,
               "centre": 14918,
@@ -312,6 +376,10 @@
             "code": "3504",
             "firstRoundExpressed": 68965,
             "secondRoundExpressed": 62866,
+            "secondRoundVotes": {
+              "finalist": 36195,
+              "rn": 26671
+            },
             "firstRoundVotesByBloc": {
               "gauche": 23007,
               "centre": 16595,
@@ -323,6 +391,10 @@
             "code": "3803",
             "firstRoundExpressed": 39530,
             "secondRoundExpressed": 35681,
+            "secondRoundVotes": {
+              "finalist": 24837,
+              "rn": 10844
+            },
             "firstRoundVotesByBloc": {
               "gauche": 20909,
               "centre": 8278,
@@ -334,6 +406,10 @@
             "code": "3806",
             "firstRoundExpressed": 61335,
             "secondRoundExpressed": 54884,
+            "secondRoundVotes": {
+              "finalist": 20768,
+              "rn": 34116
+            },
             "firstRoundVotesByBloc": {
               "gauche": 13640,
               "centre": 10712,
@@ -345,6 +421,10 @@
             "code": "3809",
             "firstRoundExpressed": 70825,
             "secondRoundExpressed": 63491,
+            "secondRoundVotes": {
+              "finalist": 33412,
+              "rn": 30079
+            },
             "firstRoundVotesByBloc": {
               "gauche": 21423,
               "centre": 19307,
@@ -356,6 +436,10 @@
             "code": "3810",
             "firstRoundExpressed": 66186,
             "secondRoundExpressed": 60317,
+            "secondRoundVotes": {
+              "finalist": 26904,
+              "rn": 33413
+            },
             "firstRoundVotesByBloc": {
               "gauche": 17832,
               "centre": 14688,
@@ -367,6 +451,10 @@
             "code": "4408",
             "firstRoundExpressed": 59115,
             "secondRoundExpressed": 53376,
+            "secondRoundVotes": {
+              "finalist": 32922,
+              "rn": 20454
+            },
             "firstRoundVotesByBloc": {
               "gauche": 27534,
               "centre": 11991,
@@ -378,6 +466,10 @@
             "code": "5403",
             "firstRoundExpressed": 45875,
             "secondRoundExpressed": 43356,
+            "secondRoundVotes": {
+              "finalist": 20104,
+              "rn": 23252
+            },
             "firstRoundVotesByBloc": {
               "gauche": 14090,
               "centre": 8248,
@@ -389,6 +481,10 @@
             "code": "5406",
             "firstRoundExpressed": 54168,
             "secondRoundExpressed": 51288,
+            "secondRoundVotes": {
+              "finalist": 23264,
+              "rn": 28024
+            },
             "firstRoundVotesByBloc": {
               "gauche": 16330,
               "centre": 8353,
@@ -400,6 +496,10 @@
             "code": "5708",
             "firstRoundExpressed": 50813,
             "secondRoundExpressed": 48582,
+            "secondRoundVotes": {
+              "finalist": 22147,
+              "rn": 26435
+            },
             "firstRoundVotesByBloc": {
               "gauche": 15973,
               "centre": 7986,
@@ -411,6 +511,10 @@
             "code": "5901",
             "firstRoundExpressed": 40268,
             "secondRoundExpressed": 35918,
+            "secondRoundVotes": {
+              "finalist": 27116,
+              "rn": 8802
+            },
             "firstRoundVotesByBloc": {
               "gauche": 22937,
               "centre": 7055,
@@ -422,6 +526,10 @@
             "code": "5908",
             "firstRoundExpressed": 35885,
             "secondRoundExpressed": 34330,
+            "secondRoundVotes": {
+              "finalist": 22080,
+              "rn": 12250
+            },
             "firstRoundVotesByBloc": {
               "gauche": 18057,
               "centre": 5766,
@@ -433,6 +541,10 @@
             "code": "6003",
             "firstRoundExpressed": 45218,
             "secondRoundExpressed": 42221,
+            "secondRoundVotes": {
+              "finalist": 20281,
+              "rn": 21940
+            },
             "firstRoundVotesByBloc": {
               "gauche": 14671,
               "centre": 10487,
@@ -444,6 +556,10 @@
             "code": "6501",
             "firstRoundExpressed": 59474,
             "secondRoundExpressed": 53182,
+            "secondRoundVotes": {
+              "finalist": 28245,
+              "rn": 24937
+            },
             "firstRoundVotesByBloc": {
               "gauche": 18097,
               "centre": 0,
@@ -455,6 +571,10 @@
             "code": "6601",
             "firstRoundExpressed": 47821,
             "secondRoundExpressed": 43675,
+            "secondRoundVotes": {
+              "finalist": 18525,
+              "rn": 25150
+            },
             "firstRoundVotesByBloc": {
               "gauche": 12558,
               "centre": 10048,
@@ -466,6 +586,10 @@
             "code": "6603",
             "firstRoundExpressed": 55660,
             "secondRoundExpressed": 51741,
+            "secondRoundVotes": {
+              "finalist": 22623,
+              "rn": 29118
+            },
             "firstRoundVotesByBloc": {
               "gauche": 16215,
               "centre": 11367,
@@ -477,6 +601,10 @@
             "code": "6914",
             "firstRoundExpressed": 44798,
             "secondRoundExpressed": 41482,
+            "secondRoundVotes": {
+              "finalist": 26974,
+              "rn": 14508
+            },
             "firstRoundVotesByBloc": {
               "gauche": 22669,
               "centre": 6996,
@@ -488,6 +616,10 @@
             "code": "7204",
             "firstRoundExpressed": 52424,
             "secondRoundExpressed": 48047,
+            "secondRoundVotes": {
+              "finalist": 24136,
+              "rn": 23911
+            },
             "firstRoundVotesByBloc": {
               "gauche": 14196,
               "centre": 13565,
@@ -499,6 +631,10 @@
             "code": "7304",
             "firstRoundExpressed": 55082,
             "secondRoundExpressed": 49667,
+            "secondRoundVotes": {
+              "finalist": 29313,
+              "rn": 20354
+            },
             "firstRoundVotesByBloc": {
               "gauche": 20794,
               "centre": 15359,
@@ -510,6 +646,10 @@
             "code": "7604",
             "firstRoundExpressed": 53091,
             "secondRoundExpressed": 49887,
+            "secondRoundVotes": {
+              "finalist": 26194,
+              "rn": 23693
+            },
             "firstRoundVotesByBloc": {
               "gauche": 18487,
               "centre": 13120,
@@ -521,6 +661,10 @@
             "code": "7706",
             "firstRoundExpressed": 51448,
             "secondRoundExpressed": 46403,
+            "secondRoundVotes": {
+              "finalist": 22041,
+              "rn": 24362
+            },
             "firstRoundVotesByBloc": {
               "gauche": 16715,
               "centre": 0,
@@ -532,6 +676,10 @@
             "code": "7707",
             "firstRoundExpressed": 56489,
             "secondRoundExpressed": 51200,
+            "secondRoundVotes": {
+              "finalist": 27137,
+              "rn": 24063
+            },
             "firstRoundVotesByBloc": {
               "gauche": 19144,
               "centre": 15831,
@@ -543,6 +691,10 @@
             "code": "7710",
             "firstRoundExpressed": 51341,
             "secondRoundExpressed": 46742,
+            "secondRoundVotes": {
+              "finalist": 32280,
+              "rn": 14462
+            },
             "firstRoundVotesByBloc": {
               "gauche": 23246,
               "centre": 10152,
@@ -554,6 +706,10 @@
             "code": "8001",
             "firstRoundExpressed": 52625,
             "secondRoundExpressed": 51191,
+            "secondRoundVotes": {
+              "finalist": 27108,
+              "rn": 24083
+            },
             "firstRoundVotesByBloc": {
               "gauche": 18503,
               "centre": 12709,
@@ -565,6 +721,10 @@
             "code": "8102",
             "firstRoundExpressed": 76040,
             "secondRoundExpressed": 69872,
+            "secondRoundVotes": {
+              "finalist": 35447,
+              "rn": 34425
+            },
             "firstRoundVotesByBloc": {
               "gauche": 24560,
               "centre": 16501,
@@ -576,6 +736,10 @@
             "code": "8202",
             "firstRoundExpressed": 66252,
             "secondRoundExpressed": 60181,
+            "secondRoundVotes": {
+              "finalist": 23166,
+              "rn": 37015
+            },
             "firstRoundVotesByBloc": {
               "gauche": 23029,
               "centre": 10335,
@@ -587,6 +751,10 @@
             "code": "8404",
             "firstRoundExpressed": 60516,
             "secondRoundExpressed": 54799,
+            "secondRoundVotes": {
+              "finalist": 18946,
+              "rn": 35853
+            },
             "firstRoundVotesByBloc": {
               "gauche": 12443,
               "centre": 12342,
@@ -598,6 +766,10 @@
             "code": "9002",
             "firstRoundExpressed": 31399,
             "secondRoundExpressed": 28755,
+            "secondRoundVotes": {
+              "finalist": 14209,
+              "rn": 14546
+            },
             "firstRoundVotesByBloc": {
               "gauche": 9296,
               "centre": 4794,
@@ -609,6 +781,10 @@
             "code": "9102",
             "firstRoundExpressed": 61064,
             "secondRoundExpressed": 55091,
+            "secondRoundVotes": {
+              "finalist": 26193,
+              "rn": 28898
+            },
             "firstRoundVotesByBloc": {
               "gauche": 19867,
               "centre": 13490,
@@ -620,6 +796,10 @@
             "code": "9110",
             "firstRoundExpressed": 37763,
             "secondRoundExpressed": 34617,
+            "secondRoundVotes": {
+              "finalist": 22556,
+              "rn": 12061
+            },
             "firstRoundVotesByBloc": {
               "gauche": 17875,
               "centre": 7137,
@@ -631,6 +811,10 @@
             "code": "9303",
             "firstRoundExpressed": 49537,
             "secondRoundExpressed": 44023,
+            "secondRoundVotes": {
+              "finalist": 30688,
+              "rn": 13335
+            },
             "firstRoundVotesByBloc": {
               "gauche": 21100,
               "centre": 10683,
@@ -642,6 +826,10 @@
             "code": "9509",
             "firstRoundExpressed": 42126,
             "secondRoundExpressed": 39682,
+            "secondRoundVotes": {
+              "finalist": 23918,
+              "rn": 15764
+            },
             "firstRoundVotesByBloc": {
               "gauche": 17778,
               "centre": 6149,
@@ -653,6 +841,10 @@
             "code": "9510",
             "firstRoundExpressed": 42442,
             "secondRoundExpressed": 38568,
+            "secondRoundVotes": {
+              "finalist": 26852,
+              "rn": 11716
+            },
             "firstRoundVotesByBloc": {
               "gauche": 18802,
               "centre": 9236,
@@ -723,6 +915,10 @@
             "code": "0301",
             "firstRoundExpressed": 59100,
             "secondRoundExpressed": 56250,
+            "secondRoundVotes": {
+              "finalist": 28411,
+              "rn": 27839
+            },
             "firstRoundVotesByBloc": {
               "gauche": 17679,
               "centre": 10114,
@@ -734,6 +930,10 @@
             "code": "0401",
             "firstRoundExpressed": 42026,
             "secondRoundExpressed": 39742,
+            "secondRoundVotes": {
+              "finalist": 18206,
+              "rn": 21536
+            },
             "firstRoundVotesByBloc": {
               "gauche": 11853,
               "centre": 8133,
@@ -745,6 +945,10 @@
             "code": "0501",
             "firstRoundExpressed": 41247,
             "secondRoundExpressed": 39197,
+            "secondRoundVotes": {
+              "finalist": 20242,
+              "rn": 18955
+            },
             "firstRoundVotesByBloc": {
               "gauche": 13211,
               "centre": 9312,
@@ -756,6 +960,10 @@
             "code": "0502",
             "firstRoundExpressed": 38714,
             "secondRoundExpressed": 36403,
+            "secondRoundVotes": {
+              "finalist": 20501,
+              "rn": 15902
+            },
             "firstRoundVotesByBloc": {
               "gauche": 13055,
               "centre": 10338,
@@ -767,6 +975,10 @@
             "code": "0603",
             "firstRoundExpressed": 57837,
             "secondRoundExpressed": 53781,
+            "secondRoundVotes": {
+              "finalist": 24897,
+              "rn": 28884
+            },
             "firstRoundVotesByBloc": {
               "gauche": 18301,
               "centre": 14670,
@@ -778,6 +990,10 @@
             "code": "0701",
             "firstRoundExpressed": 54412,
             "secondRoundExpressed": 53722,
+            "secondRoundVotes": {
+              "finalist": 28303,
+              "rn": 25419
+            },
             "firstRoundVotesByBloc": {
               "gauche": 21801,
               "centre": 6651,
@@ -789,6 +1005,10 @@
             "code": "0702",
             "firstRoundExpressed": 68290,
             "secondRoundExpressed": 64298,
+            "secondRoundVotes": {
+              "finalist": 30372,
+              "rn": 33926
+            },
             "firstRoundVotesByBloc": {
               "gauche": 17660,
               "centre": 11904,
@@ -800,6 +1020,10 @@
             "code": "0902",
             "firstRoundExpressed": 41268,
             "secondRoundExpressed": 41368,
+            "secondRoundVotes": {
+              "finalist": 23608,
+              "rn": 17760
+            },
             "firstRoundVotesByBloc": {
               "gauche": 21763,
               "centre": 0,
@@ -811,6 +1035,10 @@
             "code": "1003",
             "firstRoundExpressed": 41731,
             "secondRoundExpressed": 39224,
+            "secondRoundVotes": {
+              "finalist": 18624,
+              "rn": 20600
+            },
             "firstRoundVotesByBloc": {
               "gauche": 11497,
               "centre": 6994,
@@ -822,6 +1050,10 @@
             "code": "1101",
             "firstRoundExpressed": 66725,
             "secondRoundExpressed": 60300,
+            "secondRoundVotes": {
+              "finalist": 23251,
+              "rn": 37049
+            },
             "firstRoundVotesByBloc": {
               "gauche": 21265,
               "centre": 11717,
@@ -833,6 +1065,10 @@
             "code": "1102",
             "firstRoundExpressed": 60702,
             "secondRoundExpressed": 57665,
+            "secondRoundVotes": {
+              "finalist": 24092,
+              "rn": 33573
+            },
             "firstRoundVotesByBloc": {
               "gauche": 16213,
               "centre": 11727,
@@ -844,6 +1080,10 @@
             "code": "1103",
             "firstRoundExpressed": 62516,
             "secondRoundExpressed": 60518,
+            "secondRoundVotes": {
+              "finalist": 29004,
+              "rn": 31514
+            },
             "firstRoundVotesByBloc": {
               "gauche": 21011,
               "centre": 10023,
@@ -855,6 +1095,10 @@
             "code": "1301",
             "firstRoundExpressed": 53312,
             "secondRoundExpressed": 50671,
+            "secondRoundVotes": {
+              "finalist": 22367,
+              "rn": 28304
+            },
             "firstRoundVotesByBloc": {
               "gauche": 14742,
               "centre": 12585,
@@ -866,6 +1110,10 @@
             "code": "1302",
             "firstRoundExpressed": 58752,
             "secondRoundExpressed": 53466,
+            "secondRoundVotes": {
+              "finalist": 28677,
+              "rn": 24789
+            },
             "firstRoundVotesByBloc": {
               "gauche": 17816,
               "centre": 15870,
@@ -877,6 +1125,10 @@
             "code": "1303",
             "firstRoundExpressed": 46643,
             "secondRoundExpressed": 44903,
+            "secondRoundVotes": {
+              "finalist": 22034,
+              "rn": 22869
+            },
             "firstRoundVotesByBloc": {
               "gauche": 17687,
               "centre": 5417,
@@ -888,6 +1140,10 @@
             "code": "1306",
             "firstRoundExpressed": 50037,
             "secondRoundExpressed": 47282,
+            "secondRoundVotes": {
+              "finalist": 22537,
+              "rn": 24745
+            },
             "firstRoundVotesByBloc": {
               "gauche": 14645,
               "centre": 12578,
@@ -899,6 +1155,10 @@
             "code": "1309",
             "firstRoundExpressed": 66786,
             "secondRoundExpressed": 62118,
+            "secondRoundVotes": {
+              "finalist": 26066,
+              "rn": 36052
+            },
             "firstRoundVotesByBloc": {
               "gauche": 17976,
               "centre": 12465,
@@ -910,6 +1170,10 @@
             "code": "1311",
             "firstRoundExpressed": 63095,
             "secondRoundExpressed": 58869,
+            "secondRoundVotes": {
+              "finalist": 29570,
+              "rn": 29299
+            },
             "firstRoundVotesByBloc": {
               "gauche": 17756,
               "centre": 16581,
@@ -921,6 +1185,10 @@
             "code": "1313",
             "firstRoundExpressed": 58717,
             "secondRoundExpressed": 58791,
+            "secondRoundVotes": {
+              "finalist": 27707,
+              "rn": 31084
+            },
             "firstRoundVotesByBloc": {
               "gauche": 21760,
               "centre": 7239,
@@ -932,6 +1200,10 @@
             "code": "1316",
             "firstRoundExpressed": 59805,
             "secondRoundExpressed": 57655,
+            "secondRoundVotes": {
+              "finalist": 25296,
+              "rn": 32359
+            },
             "firstRoundVotesByBloc": {
               "gauche": 18797,
               "centre": 8900,
@@ -943,6 +1215,10 @@
             "code": "1402",
             "firstRoundExpressed": 46436,
             "secondRoundExpressed": 43584,
+            "secondRoundVotes": {
+              "finalist": 29761,
+              "rn": 13823
+            },
             "firstRoundVotesByBloc": {
               "gauche": 20209,
               "centre": 6503,
@@ -954,6 +1230,10 @@
             "code": "1603",
             "firstRoundExpressed": 60484,
             "secondRoundExpressed": 57658,
+            "secondRoundVotes": {
+              "finalist": 27548,
+              "rn": 30110
+            },
             "firstRoundVotesByBloc": {
               "gauche": 16497,
               "centre": 17122,
@@ -965,6 +1245,10 @@
             "code": "1701",
             "firstRoundExpressed": 76297,
             "secondRoundExpressed": 72749,
+            "secondRoundVotes": {
+              "finalist": 54353,
+              "rn": 18396
+            },
             "firstRoundVotesByBloc": {
               "gauche": 57874,
               "centre": 0,
@@ -976,6 +1260,10 @@
             "code": "1702",
             "firstRoundExpressed": 78062,
             "secondRoundExpressed": 71140,
+            "secondRoundVotes": {
+              "finalist": 37985,
+              "rn": 33155
+            },
             "firstRoundVotesByBloc": {
               "gauche": 21776,
               "centre": 19773,
@@ -987,6 +1275,10 @@
             "code": "1703",
             "firstRoundExpressed": 55715,
             "secondRoundExpressed": 52819,
+            "secondRoundVotes": {
+              "finalist": 26441,
+              "rn": 26378
+            },
             "firstRoundVotesByBloc": {
               "gauche": 17420,
               "centre": 15536,
@@ -998,6 +1290,10 @@
             "code": "1802",
             "firstRoundExpressed": 42517,
             "secondRoundExpressed": 40959,
+            "secondRoundVotes": {
+              "finalist": 20739,
+              "rn": 20220
+            },
             "firstRoundVotesByBloc": {
               "gauche": 13201,
               "centre": 8857,
@@ -1009,6 +1305,10 @@
             "code": "2102",
             "firstRoundExpressed": 49598,
             "secondRoundExpressed": 45680,
+            "secondRoundVotes": {
+              "finalist": 24496,
+              "rn": 21184
+            },
             "firstRoundVotesByBloc": {
               "gauche": 15467,
               "centre": 12225,
@@ -1020,6 +1320,10 @@
             "code": "2103",
             "firstRoundExpressed": 49113,
             "secondRoundExpressed": 46199,
+            "secondRoundVotes": {
+              "finalist": 24554,
+              "rn": 21645
+            },
             "firstRoundVotesByBloc": {
               "gauche": 16402,
               "centre": 11695,
@@ -1031,6 +1335,10 @@
             "code": "2402",
             "firstRoundExpressed": 57068,
             "secondRoundExpressed": 54283,
+            "secondRoundVotes": {
+              "finalist": 26027,
+              "rn": 28256
+            },
             "firstRoundVotesByBloc": {
               "gauche": 16947,
               "centre": 11173,
@@ -1042,6 +1350,10 @@
             "code": "2403",
             "firstRoundExpressed": 47581,
             "secondRoundExpressed": 45103,
+            "secondRoundVotes": {
+              "finalist": 22514,
+              "rn": 22589
+            },
             "firstRoundVotesByBloc": {
               "gauche": 14281,
               "centre": 11103,
@@ -1053,6 +1365,10 @@
             "code": "2404",
             "firstRoundExpressed": 63216,
             "secondRoundExpressed": 59934,
+            "secondRoundVotes": {
+              "finalist": 32750,
+              "rn": 27184
+            },
             "firstRoundVotesByBloc": {
               "gauche": 22458,
               "centre": 12425,
@@ -1064,6 +1380,10 @@
             "code": "2502",
             "firstRoundExpressed": 56084,
             "secondRoundExpressed": 51802,
+            "secondRoundVotes": {
+              "finalist": 31053,
+              "rn": 20749
+            },
             "firstRoundVotesByBloc": {
               "gauche": 19948,
               "centre": 15026,
@@ -1075,6 +1395,10 @@
             "code": "2504",
             "firstRoundExpressed": 41712,
             "secondRoundExpressed": 40607,
+            "secondRoundVotes": {
+              "finalist": 18333,
+              "rn": 22274
+            },
             "firstRoundVotesByBloc": {
               "gauche": 13322,
               "centre": 8527,
@@ -1086,6 +1410,10 @@
             "code": "2601",
             "firstRoundExpressed": 51948,
             "secondRoundExpressed": 48792,
+            "secondRoundVotes": {
+              "finalist": 27439,
+              "rn": 21353
+            },
             "firstRoundVotesByBloc": {
               "gauche": 17325,
               "centre": 8635,
@@ -1097,6 +1425,10 @@
             "code": "2603",
             "firstRoundExpressed": 80650,
             "secondRoundExpressed": 76844,
+            "secondRoundVotes": {
+              "finalist": 43483,
+              "rn": 33361
+            },
             "firstRoundVotesByBloc": {
               "gauche": 31526,
               "centre": 15396,
@@ -1108,6 +1440,10 @@
             "code": "2702",
             "firstRoundExpressed": 52636,
             "secondRoundExpressed": 49477,
+            "secondRoundVotes": {
+              "finalist": 22579,
+              "rn": 26898
+            },
             "firstRoundVotesByBloc": {
               "gauche": 11799,
               "centre": 9467,
@@ -1119,6 +1455,10 @@
             "code": "2704",
             "firstRoundExpressed": 61698,
             "secondRoundExpressed": 60409,
+            "secondRoundVotes": {
+              "finalist": 31914,
+              "rn": 28495
+            },
             "firstRoundVotesByBloc": {
               "gauche": 21837,
               "centre": 13635,
@@ -1130,6 +1470,10 @@
             "code": "2906",
             "firstRoundExpressed": 65116,
             "secondRoundExpressed": 61498,
+            "secondRoundVotes": {
+              "finalist": 38392,
+              "rn": 23106
+            },
             "firstRoundVotesByBloc": {
               "gauche": 26585,
               "centre": 18223,
@@ -1141,6 +1485,10 @@
             "code": "3003",
             "firstRoundExpressed": 66265,
             "secondRoundExpressed": 60818,
+            "secondRoundVotes": {
+              "finalist": 25133,
+              "rn": 35685
+            },
             "firstRoundVotesByBloc": {
               "gauche": 15886,
               "centre": 12727,
@@ -1152,6 +1500,10 @@
             "code": "3004",
             "firstRoundExpressed": 64421,
             "secondRoundExpressed": 60976,
+            "secondRoundVotes": {
+              "finalist": 25832,
+              "rn": 35144
+            },
             "firstRoundVotesByBloc": {
               "gauche": 18587,
               "centre": 10538,
@@ -1163,6 +1515,10 @@
             "code": "3006",
             "firstRoundExpressed": 55584,
             "secondRoundExpressed": 52219,
+            "secondRoundVotes": {
+              "finalist": 25381,
+              "rn": 26838
+            },
             "firstRoundVotesByBloc": {
               "gauche": 16369,
               "centre": 11521,
@@ -1174,6 +1530,10 @@
             "code": "3106",
             "firstRoundExpressed": 85317,
             "secondRoundExpressed": 78926,
+            "secondRoundVotes": {
+              "finalist": 47670,
+              "rn": 31256
+            },
             "firstRoundVotesByBloc": {
               "gauche": 32578,
               "centre": 25256,
@@ -1185,6 +1545,10 @@
             "code": "3108",
             "firstRoundExpressed": 58943,
             "secondRoundExpressed": 57478,
+            "secondRoundVotes": {
+              "finalist": 29813,
+              "rn": 27665
+            },
             "firstRoundVotesByBloc": {
               "gauche": 22287,
               "centre": 9484,
@@ -1196,6 +1560,10 @@
             "code": "3110",
             "firstRoundExpressed": 79014,
             "secondRoundExpressed": 73578,
+            "secondRoundVotes": {
+              "finalist": 44932,
+              "rn": 28646
+            },
             "firstRoundVotesByBloc": {
               "gauche": 29712,
               "centre": 23638,
@@ -1207,6 +1575,10 @@
             "code": "3202",
             "firstRoundExpressed": 52806,
             "secondRoundExpressed": 52066,
+            "secondRoundVotes": {
+              "finalist": 30912,
+              "rn": 21154
+            },
             "firstRoundVotesByBloc": {
               "gauche": 24666,
               "centre": 0,
@@ -1218,6 +1590,10 @@
             "code": "3304",
             "firstRoundExpressed": 63960,
             "secondRoundExpressed": 60407,
+            "secondRoundVotes": {
+              "finalist": 37141,
+              "rn": 23266
+            },
             "firstRoundVotesByBloc": {
               "gauche": 27826,
               "centre": 11045,
@@ -1229,6 +1605,10 @@
             "code": "3305",
             "firstRoundExpressed": 83781,
             "secondRoundExpressed": 80321,
+            "secondRoundVotes": {
+              "finalist": 40665,
+              "rn": 39656
+            },
             "firstRoundVotesByBloc": {
               "gauche": 27489,
               "centre": 18617,
@@ -1240,6 +1620,10 @@
             "code": "3401",
             "firstRoundExpressed": 61248,
             "secondRoundExpressed": 57732,
+            "secondRoundVotes": {
+              "finalist": 31864,
+              "rn": 25868
+            },
             "firstRoundVotesByBloc": {
               "gauche": 21342,
               "centre": 13806,
@@ -1251,6 +1635,10 @@
             "code": "3403",
             "firstRoundExpressed": 67755,
             "secondRoundExpressed": 63239,
+            "secondRoundVotes": {
+              "finalist": 36860,
+              "rn": 26379
+            },
             "firstRoundVotesByBloc": {
               "gauche": 25376,
               "centre": 19714,
@@ -1262,6 +1650,10 @@
             "code": "3405",
             "firstRoundExpressed": 67066,
             "secondRoundExpressed": 65343,
+            "secondRoundVotes": {
+              "finalist": 29172,
+              "rn": 36171
+            },
             "firstRoundVotesByBloc": {
               "gauche": 22449,
               "centre": 9369,
@@ -1273,6 +1665,10 @@
             "code": "3704",
             "firstRoundExpressed": 61812,
             "secondRoundExpressed": 57794,
+            "secondRoundVotes": {
+              "finalist": 33179,
+              "rn": 24615
+            },
             "firstRoundVotesByBloc": {
               "gauche": 19105,
               "centre": 17092,
@@ -1284,6 +1680,10 @@
             "code": "3802",
             "firstRoundExpressed": 52607,
             "secondRoundExpressed": 49709,
+            "secondRoundVotes": {
+              "finalist": 30855,
+              "rn": 18854
+            },
             "firstRoundVotesByBloc": {
               "gauche": 22846,
               "centre": 10114,
@@ -1295,6 +1695,10 @@
             "code": "3804",
             "firstRoundExpressed": 64787,
             "secondRoundExpressed": 61997,
+            "secondRoundVotes": {
+              "finalist": 37148,
+              "rn": 24849
+            },
             "firstRoundVotesByBloc": {
               "gauche": 28167,
               "centre": 7751,
@@ -1306,6 +1710,10 @@
             "code": "3805",
             "firstRoundExpressed": 76896,
             "secondRoundExpressed": 72195,
+            "secondRoundVotes": {
+              "finalist": 43281,
+              "rn": 28914
+            },
             "firstRoundVotesByBloc": {
               "gauche": 28623,
               "centre": 23152,
@@ -1317,6 +1725,10 @@
             "code": "3808",
             "firstRoundExpressed": 57232,
             "secondRoundExpressed": 53596,
+            "secondRoundVotes": {
+              "finalist": 24601,
+              "rn": 28995
+            },
             "firstRoundVotesByBloc": {
               "gauche": 14644,
               "centre": 11727,
@@ -1328,6 +1740,10 @@
             "code": "4003",
             "firstRoundExpressed": 70706,
             "secondRoundExpressed": 68028,
+            "secondRoundVotes": {
+              "finalist": 38537,
+              "rn": 29491
+            },
             "firstRoundVotesByBloc": {
               "gauche": 26748,
               "centre": 12451,
@@ -1339,6 +1755,10 @@
             "code": "4201",
             "firstRoundExpressed": 41588,
             "secondRoundExpressed": 39794,
+            "secondRoundVotes": {
+              "finalist": 24032,
+              "rn": 15762
+            },
             "firstRoundVotesByBloc": {
               "gauche": 17251,
               "centre": 9864,
@@ -1350,6 +1770,10 @@
             "code": "4502",
             "firstRoundExpressed": 57602,
             "secondRoundExpressed": 53309,
+            "secondRoundVotes": {
+              "finalist": 29934,
+              "rn": 23375
+            },
             "firstRoundVotesByBloc": {
               "gauche": 20139,
               "centre": 13263,
@@ -1361,6 +1785,10 @@
             "code": "4504",
             "firstRoundExpressed": 46785,
             "secondRoundExpressed": 43051,
+            "secondRoundVotes": {
+              "finalist": 16104,
+              "rn": 26947
+            },
             "firstRoundVotesByBloc": {
               "gauche": 10440,
               "centre": 7029,
@@ -1372,6 +1800,10 @@
             "code": "4702",
             "firstRoundExpressed": 51271,
             "secondRoundExpressed": 49306,
+            "secondRoundVotes": {
+              "finalist": 21103,
+              "rn": 28203
+            },
             "firstRoundVotesByBloc": {
               "gauche": 14716,
               "centre": 11272,
@@ -1383,6 +1815,10 @@
             "code": "5004",
             "firstRoundExpressed": 58259,
             "secondRoundExpressed": 54914,
+            "secondRoundVotes": {
+              "finalist": 32748,
+              "rn": 22166
+            },
             "firstRoundVotesByBloc": {
               "gauche": 20840,
               "centre": 10417,
@@ -1394,6 +1830,10 @@
             "code": "5301",
             "firstRoundExpressed": 49533,
             "secondRoundExpressed": 46517,
+            "secondRoundVotes": {
+              "finalist": 31428,
+              "rn": 15089
+            },
             "firstRoundVotesByBloc": {
               "gauche": 22948,
               "centre": 9957,
@@ -1405,6 +1845,10 @@
             "code": "5401",
             "firstRoundExpressed": 54722,
             "secondRoundExpressed": 50865,
+            "secondRoundVotes": {
+              "finalist": 32531,
+              "rn": 18334
+            },
             "firstRoundVotesByBloc": {
               "gauche": 21386,
               "centre": 14435,
@@ -1416,6 +1860,10 @@
             "code": "5405",
             "firstRoundExpressed": 51565,
             "secondRoundExpressed": 51290,
+            "secondRoundVotes": {
+              "finalist": 28073,
+              "rn": 23217
+            },
             "firstRoundVotesByBloc": {
               "gauche": 23207,
               "centre": 0,
@@ -1427,6 +1875,10 @@
             "code": "5802",
             "firstRoundExpressed": 52383,
             "secondRoundExpressed": 50208,
+            "secondRoundVotes": {
+              "finalist": 22686,
+              "rn": 27522
+            },
             "firstRoundVotesByBloc": {
               "gauche": 14636,
               "centre": 10708,
@@ -1438,6 +1890,10 @@
             "code": "5911",
             "firstRoundExpressed": 59263,
             "secondRoundExpressed": 55087,
+            "secondRoundVotes": {
+              "finalist": 33740,
+              "rn": 21347
+            },
             "firstRoundVotesByBloc": {
               "gauche": 24054,
               "centre": 16559,
@@ -1449,6 +1905,10 @@
             "code": "5917",
             "firstRoundExpressed": 45495,
             "secondRoundExpressed": 42786,
+            "secondRoundVotes": {
+              "finalist": 18913,
+              "rn": 23873
+            },
             "firstRoundVotesByBloc": {
               "gauche": 14326,
               "centre": 5739,
@@ -1460,6 +1920,10 @@
             "code": "6005",
             "firstRoundExpressed": 47611,
             "secondRoundExpressed": 44244,
+            "secondRoundVotes": {
+              "finalist": 19575,
+              "rn": 24669
+            },
             "firstRoundVotesByBloc": {
               "gauche": 10994,
               "centre": 7232,
@@ -1471,6 +1935,10 @@
             "code": "6101",
             "firstRoundExpressed": 44869,
             "secondRoundExpressed": 42315,
+            "secondRoundVotes": {
+              "finalist": 22804,
+              "rn": 19511
+            },
             "firstRoundVotesByBloc": {
               "gauche": 12740,
               "centre": 15063,
@@ -1482,6 +1950,10 @@
             "code": "6205",
             "firstRoundExpressed": 55564,
             "secondRoundExpressed": 53863,
+            "secondRoundVotes": {
+              "finalist": 26687,
+              "rn": 27176
+            },
             "firstRoundVotesByBloc": {
               "gauche": 17393,
               "centre": 11601,
@@ -1493,6 +1965,10 @@
             "code": "6208",
             "firstRoundExpressed": 58485,
             "secondRoundExpressed": 56961,
+            "secondRoundVotes": {
+              "finalist": 27186,
+              "rn": 29775
+            },
             "firstRoundVotesByBloc": {
               "gauche": 19896,
               "centre": 9824,
@@ -1504,6 +1980,10 @@
             "code": "6305",
             "firstRoundExpressed": 71835,
             "secondRoundExpressed": 69286,
+            "secondRoundVotes": {
+              "finalist": 38293,
+              "rn": 30993
+            },
             "firstRoundVotesByBloc": {
               "gauche": 27920,
               "centre": 11166,
@@ -1515,6 +1995,10 @@
             "code": "6403",
             "firstRoundExpressed": 59181,
             "secondRoundExpressed": 57833,
+            "secondRoundVotes": {
+              "finalist": 37303,
+              "rn": 20530
+            },
             "firstRoundVotesByBloc": {
               "gauche": 34038,
               "centre": 0,
@@ -1526,6 +2010,10 @@
             "code": "6405",
             "firstRoundExpressed": 70109,
             "secondRoundExpressed": 64828,
+            "secondRoundVotes": {
+              "finalist": 40607,
+              "rn": 24221
+            },
             "firstRoundVotesByBloc": {
               "gauche": 24687,
               "centre": 18667,
@@ -1537,6 +2025,10 @@
             "code": "6502",
             "firstRoundExpressed": 60709,
             "secondRoundExpressed": 56740,
+            "secondRoundVotes": {
+              "finalist": 29345,
+              "rn": 27395
+            },
             "firstRoundVotesByBloc": {
               "gauche": 17747,
               "centre": 15121,
@@ -1548,6 +2040,10 @@
             "code": "6604",
             "firstRoundExpressed": 69231,
             "secondRoundExpressed": 65440,
+            "secondRoundVotes": {
+              "finalist": 27395,
+              "rn": 38045
+            },
             "firstRoundVotesByBloc": {
               "gauche": 18538,
               "centre": 11454,
@@ -1559,6 +2055,10 @@
             "code": "6913",
             "firstRoundExpressed": 61671,
             "secondRoundExpressed": 55666,
+            "secondRoundVotes": {
+              "finalist": 26794,
+              "rn": 28872
+            },
             "firstRoundVotesByBloc": {
               "gauche": 17500,
               "centre": 14933,
@@ -1570,6 +2070,10 @@
             "code": "7104",
             "firstRoundExpressed": 54743,
             "secondRoundExpressed": 53555,
+            "secondRoundVotes": {
+              "finalist": 24283,
+              "rn": 29272
+            },
             "firstRoundVotesByBloc": {
               "gauche": 17518,
               "centre": 0,
@@ -1581,6 +2085,10 @@
             "code": "7202",
             "firstRoundExpressed": 51811,
             "secondRoundExpressed": 50009,
+            "secondRoundVotes": {
+              "finalist": 28660,
+              "rn": 21349
+            },
             "firstRoundVotesByBloc": {
               "gauche": 21476,
               "centre": 11962,
@@ -1592,6 +2100,10 @@
             "code": "7603",
             "firstRoundExpressed": 43173,
             "secondRoundExpressed": 40862,
+            "secondRoundVotes": {
+              "finalist": 27329,
+              "rn": 13533
+            },
             "firstRoundVotesByBloc": {
               "gauche": 21705,
               "centre": 5951,
@@ -1603,6 +2115,10 @@
             "code": "7605",
             "firstRoundExpressed": 63789,
             "secondRoundExpressed": 61902,
+            "secondRoundVotes": {
+              "finalist": 31994,
+              "rn": 29908
+            },
             "firstRoundVotesByBloc": {
               "gauche": 22244,
               "centre": 14259,
@@ -1614,6 +2130,10 @@
             "code": "7606",
             "firstRoundExpressed": 71784,
             "secondRoundExpressed": 70852,
+            "secondRoundVotes": {
+              "finalist": 34571,
+              "rn": 36281
+            },
             "firstRoundVotesByBloc": {
               "gauche": 25624,
               "centre": 0,
@@ -1625,6 +2145,10 @@
             "code": "7608",
             "firstRoundExpressed": 37849,
             "secondRoundExpressed": 36525,
+            "secondRoundVotes": {
+              "finalist": 23040,
+              "rn": 13485
+            },
             "firstRoundVotesByBloc": {
               "gauche": 16709,
               "centre": 8040,
@@ -1636,6 +2160,10 @@
             "code": "7709",
             "firstRoundExpressed": 55727,
             "secondRoundExpressed": 51684,
+            "secondRoundVotes": {
+              "finalist": 27726,
+              "rn": 23958
+            },
             "firstRoundVotesByBloc": {
               "gauche": 16947,
               "centre": 12023,
@@ -1647,6 +2175,10 @@
             "code": "7808",
             "firstRoundExpressed": 45452,
             "secondRoundExpressed": 43749,
+            "secondRoundVotes": {
+              "finalist": 27801,
+              "rn": 15948
+            },
             "firstRoundVotesByBloc": {
               "gauche": 20942,
               "centre": 9028,
@@ -1658,6 +2190,10 @@
             "code": "7809",
             "firstRoundExpressed": 62493,
             "secondRoundExpressed": 57519,
+            "secondRoundVotes": {
+              "finalist": 31042,
+              "rn": 26477
+            },
             "firstRoundVotesByBloc": {
               "gauche": 20901,
               "centre": 13340,
@@ -1669,6 +2205,10 @@
             "code": "7902",
             "firstRoundExpressed": 65945,
             "secondRoundExpressed": 63856,
+            "secondRoundVotes": {
+              "finalist": 37808,
+              "rn": 26048
+            },
             "firstRoundVotesByBloc": {
               "gauche": 26042,
               "centre": 10536,
@@ -1680,6 +2220,10 @@
             "code": "8201",
             "firstRoundExpressed": 63220,
             "secondRoundExpressed": 63207,
+            "secondRoundVotes": {
+              "finalist": 30813,
+              "rn": 32394
+            },
             "firstRoundVotesByBloc": {
               "gauche": 24449,
               "centre": 10230,
@@ -1691,6 +2235,10 @@
             "code": "8401",
             "firstRoundExpressed": 45051,
             "secondRoundExpressed": 41622,
+            "secondRoundVotes": {
+              "finalist": 22883,
+              "rn": 18739
+            },
             "firstRoundVotesByBloc": {
               "gauche": 19745,
               "centre": 7264,
@@ -1702,6 +2250,10 @@
             "code": "8402",
             "firstRoundExpressed": 58029,
             "secondRoundExpressed": 54746,
+            "secondRoundVotes": {
+              "finalist": 23551,
+              "rn": 31195
+            },
             "firstRoundVotesByBloc": {
               "gauche": 15011,
               "centre": 11260,
@@ -1713,6 +2265,10 @@
             "code": "8405",
             "firstRoundExpressed": 56444,
             "secondRoundExpressed": 53560,
+            "secondRoundVotes": {
+              "finalist": 23891,
+              "rn": 29669
+            },
             "firstRoundVotesByBloc": {
               "gauche": 15329,
               "centre": 11454,
@@ -1724,6 +2280,10 @@
             "code": "8702",
             "firstRoundExpressed": 69286,
             "secondRoundExpressed": 65430,
+            "secondRoundVotes": {
+              "finalist": 36679,
+              "rn": 28751
+            },
             "firstRoundVotesByBloc": {
               "gauche": 26810,
               "centre": 16937,
@@ -1735,6 +2295,10 @@
             "code": "8901",
             "firstRoundExpressed": 50707,
             "secondRoundExpressed": 46196,
+            "secondRoundVotes": {
+              "finalist": 22459,
+              "rn": 23737
+            },
             "firstRoundVotesByBloc": {
               "gauche": 13505,
               "centre": 8871,
@@ -1746,6 +2310,10 @@
             "code": "9103",
             "firstRoundExpressed": 67526,
             "secondRoundExpressed": 62360,
+            "secondRoundVotes": {
+              "finalist": 35365,
+              "rn": 26996
+            },
             "firstRoundVotesByBloc": {
               "gauche": 21587,
               "centre": 20189,
@@ -1757,6 +2325,10 @@
             "code": "9106",
             "firstRoundExpressed": 55983,
             "secondRoundExpressed": 52506,
+            "secondRoundVotes": {
+              "finalist": 38991,
+              "rn": 13515
+            },
             "firstRoundVotesByBloc": {
               "gauche": 35139,
               "centre": 0,
@@ -1768,6 +2340,10 @@
             "code": "9109",
             "firstRoundExpressed": 51296,
             "secondRoundExpressed": 47518,
+            "secondRoundVotes": {
+              "finalist": 29461,
+              "rn": 18057
+            },
             "firstRoundVotesByBloc": {
               "gauche": 20119,
               "centre": 13908,
@@ -1779,6 +2355,10 @@
             "code": "9308",
             "firstRoundExpressed": 38934,
             "secondRoundExpressed": 35777,
+            "secondRoundVotes": {
+              "finalist": 24476,
+              "rn": 11301
+            },
             "firstRoundVotesByBloc": {
               "gauche": 19729,
               "centre": 0,
@@ -1790,6 +2370,10 @@
             "code": "9312",
             "firstRoundExpressed": 38937,
             "secondRoundExpressed": 35570,
+            "secondRoundVotes": {
+              "finalist": 22974,
+              "rn": 12596
+            },
             "firstRoundVotesByBloc": {
               "gauche": 18342,
               "centre": 4893,
@@ -1801,6 +2385,10 @@
             "code": "9502",
             "firstRoundExpressed": 51453,
             "secondRoundExpressed": 47623,
+            "secondRoundVotes": {
+              "finalist": 28342,
+              "rn": 19281
+            },
             "firstRoundVotesByBloc": {
               "gauche": 17677,
               "centre": 13044,
@@ -1812,6 +2400,10 @@
             "code": "9503",
             "firstRoundExpressed": 63827,
             "secondRoundExpressed": 58349,
+            "secondRoundVotes": {
+              "finalist": 36489,
+              "rn": 21860
+            },
             "firstRoundVotesByBloc": {
               "gauche": 24507,
               "centre": 15013,
@@ -1823,6 +2415,10 @@
             "code": "9507",
             "firstRoundExpressed": 44271,
             "secondRoundExpressed": 40801,
+            "secondRoundVotes": {
+              "finalist": 24713,
+              "rn": 16088
+            },
             "firstRoundVotesByBloc": {
               "gauche": 17375,
               "centre": 10241,
@@ -1834,6 +2430,10 @@
             "code": "97102",
             "firstRoundExpressed": 26380,
             "secondRoundExpressed": 27358,
+            "secondRoundVotes": {
+              "finalist": 19801,
+              "rn": 7557
+            },
             "firstRoundVotesByBloc": {
               "gauche": 12682,
               "centre": 698,
@@ -1845,6 +2445,10 @@
             "code": "97103",
             "firstRoundExpressed": 29474,
             "secondRoundExpressed": 31402,
+            "secondRoundVotes": {
+              "finalist": 21715,
+              "rn": 9687
+            },
             "firstRoundVotesByBloc": {
               "gauche": 18959,
               "centre": 601,
@@ -1856,6 +2460,10 @@
             "code": "97401",
             "firstRoundExpressed": 41482,
             "secondRoundExpressed": 42144,
+            "secondRoundVotes": {
+              "finalist": 27276,
+              "rn": 14868
+            },
             "firstRoundVotesByBloc": {
               "gauche": 21762,
               "centre": 0,
@@ -1982,6 +2590,10 @@
             "code": "0102",
             "firstRoundExpressed": 71918,
             "secondRoundExpressed": 70739,
+            "secondRoundVotes": {
+              "finalist": 38973,
+              "rn": 31766
+            },
             "firstRoundVotesByBloc": {
               "gauche": 17715,
               "centre": 17414,
@@ -1993,6 +2605,10 @@
             "code": "0103",
             "firstRoundExpressed": 53720,
             "secondRoundExpressed": 52317,
+            "secondRoundVotes": {
+              "finalist": 32958,
+              "rn": 19359
+            },
             "firstRoundVotesByBloc": {
               "gauche": 13952,
               "centre": 17420,
@@ -2004,6 +2620,10 @@
             "code": "0104",
             "firstRoundExpressed": 65687,
             "secondRoundExpressed": 64623,
+            "secondRoundVotes": {
+              "finalist": 31437,
+              "rn": 33186
+            },
             "firstRoundVotesByBloc": {
               "gauche": 13818,
               "centre": 14367,
@@ -2015,6 +2635,10 @@
             "code": "0801",
             "firstRoundExpressed": 46480,
             "secondRoundExpressed": 45642,
+            "secondRoundVotes": {
+              "finalist": 21458,
+              "rn": 24184
+            },
             "firstRoundVotesByBloc": {
               "gauche": 9469,
               "centre": 12157,
@@ -2026,6 +2650,10 @@
             "code": "1201",
             "firstRoundExpressed": 55866,
             "secondRoundExpressed": 53254,
+            "secondRoundVotes": {
+              "finalist": 34706,
+              "rn": 18548
+            },
             "firstRoundVotesByBloc": {
               "gauche": 13120,
               "centre": 24349,
@@ -2037,6 +2665,10 @@
             "code": "1203",
             "firstRoundExpressed": 50891,
             "secondRoundExpressed": 49257,
+            "secondRoundVotes": {
+              "finalist": 29696,
+              "rn": 19561
+            },
             "firstRoundVotesByBloc": {
               "gauche": 16333,
               "centre": 16514,
@@ -2048,6 +2680,10 @@
             "code": "1308",
             "firstRoundExpressed": 69434,
             "secondRoundExpressed": 68209,
+            "secondRoundVotes": {
+              "finalist": 33940,
+              "rn": 34269
+            },
             "firstRoundVotesByBloc": {
               "gauche": 16162,
               "centre": 18563,
@@ -2059,6 +2695,10 @@
             "code": "1310",
             "firstRoundExpressed": 77149,
             "secondRoundExpressed": 74332,
+            "secondRoundVotes": {
+              "finalist": 32960,
+              "rn": 41372
+            },
             "firstRoundVotesByBloc": {
               "gauche": 18977,
               "centre": 16619,
@@ -2070,6 +2710,10 @@
             "code": "1403",
             "firstRoundExpressed": 52502,
             "secondRoundExpressed": 52107,
+            "secondRoundVotes": {
+              "finalist": 28545,
+              "rn": 23562
+            },
             "firstRoundVotesByBloc": {
               "gauche": 10691,
               "centre": 19144,
@@ -2081,6 +2725,10 @@
             "code": "1404",
             "firstRoundExpressed": 72013,
             "secondRoundExpressed": 70503,
+            "secondRoundVotes": {
+              "finalist": 41893,
+              "rn": 28610
+            },
             "firstRoundVotesByBloc": {
               "gauche": 14689,
               "centre": 23622,
@@ -2092,6 +2740,10 @@
             "code": "1405",
             "firstRoundExpressed": 65913,
             "secondRoundExpressed": 63894,
+            "secondRoundVotes": {
+              "finalist": 39408,
+              "rn": 24486
+            },
             "firstRoundVotesByBloc": {
               "gauche": 16612,
               "centre": 16208,
@@ -2103,6 +2755,10 @@
             "code": "1406",
             "firstRoundExpressed": 66402,
             "secondRoundExpressed": 63813,
+            "secondRoundVotes": {
+              "finalist": 35962,
+              "rn": 27851
+            },
             "firstRoundVotesByBloc": {
               "gauche": 16254,
               "centre": 24293,
@@ -2114,6 +2770,10 @@
             "code": "1602",
             "firstRoundExpressed": 55105,
             "secondRoundExpressed": 54003,
+            "secondRoundVotes": {
+              "finalist": 28350,
+              "rn": 25653
+            },
             "firstRoundVotesByBloc": {
               "gauche": 12497,
               "centre": 15091,
@@ -2125,6 +2785,10 @@
             "code": "1704",
             "firstRoundExpressed": 63065,
             "secondRoundExpressed": 61803,
+            "secondRoundVotes": {
+              "finalist": 30447,
+              "rn": 31356
+            },
             "firstRoundVotesByBloc": {
               "gauche": 11679,
               "centre": 17625,
@@ -2136,6 +2800,10 @@
             "code": "1705",
             "firstRoundExpressed": 82815,
             "secondRoundExpressed": 81984,
+            "secondRoundVotes": {
+              "finalist": 42725,
+              "rn": 39259
+            },
             "firstRoundVotesByBloc": {
               "gauche": 19395,
               "centre": 27124,
@@ -2147,6 +2815,10 @@
             "code": "1801",
             "firstRoundExpressed": 45322,
             "secondRoundExpressed": 45047,
+            "secondRoundVotes": {
+              "finalist": 25595,
+              "rn": 19452
+            },
             "firstRoundVotesByBloc": {
               "gauche": 12112,
               "centre": 14961,
@@ -2158,6 +2830,10 @@
             "code": "1803",
             "firstRoundExpressed": 54461,
             "secondRoundExpressed": 54180,
+            "secondRoundVotes": {
+              "finalist": 28602,
+              "rn": 25578
+            },
             "firstRoundVotesByBloc": {
               "gauche": 9902,
               "centre": 16991,
@@ -2169,6 +2845,10 @@
             "code": "2105",
             "firstRoundExpressed": 58520,
             "secondRoundExpressed": 57310,
+            "secondRoundVotes": {
+              "finalist": 28633,
+              "rn": 28677
+            },
             "firstRoundVotesByBloc": {
               "gauche": 12114,
               "centre": 18361,
@@ -2180,6 +2860,10 @@
             "code": "2202",
             "firstRoundExpressed": 76563,
             "secondRoundExpressed": 74054,
+            "secondRoundVotes": {
+              "finalist": 47119,
+              "rn": 26935
+            },
             "firstRoundVotesByBloc": {
               "gauche": 20321,
               "centre": 25730,
@@ -2191,6 +2875,10 @@
             "code": "2503",
             "firstRoundExpressed": 42381,
             "secondRoundExpressed": 42444,
+            "secondRoundVotes": {
+              "finalist": 20901,
+              "rn": 21543
+            },
             "firstRoundVotesByBloc": {
               "gauche": 9891,
               "centre": 12806,
@@ -2202,6 +2890,10 @@
             "code": "2701",
             "firstRoundExpressed": 55556,
             "secondRoundExpressed": 54875,
+            "secondRoundVotes": {
+              "finalist": 26984,
+              "rn": 27891
+            },
             "firstRoundVotesByBloc": {
               "gauche": 13000,
               "centre": 15837,
@@ -2213,6 +2905,10 @@
             "code": "2703",
             "firstRoundExpressed": 57310,
             "secondRoundExpressed": 55308,
+            "secondRoundVotes": {
+              "finalist": 23891,
+              "rn": 31417
+            },
             "firstRoundVotesByBloc": {
               "gauche": 10110,
               "centre": 18497,
@@ -2224,6 +2920,10 @@
             "code": "2705",
             "firstRoundExpressed": 58776,
             "secondRoundExpressed": 57371,
+            "secondRoundVotes": {
+              "finalist": 28033,
+              "rn": 29338
+            },
             "firstRoundVotesByBloc": {
               "gauche": 13177,
               "centre": 14333,
@@ -2235,6 +2935,10 @@
             "code": "2801",
             "firstRoundExpressed": 61131,
             "secondRoundExpressed": 59157,
+            "secondRoundVotes": {
+              "finalist": 35842,
+              "rn": 23315
+            },
             "firstRoundVotesByBloc": {
               "gauche": 15364,
               "centre": 20105,
@@ -2246,6 +2950,10 @@
             "code": "2803",
             "firstRoundExpressed": 45223,
             "secondRoundExpressed": 45293,
+            "secondRoundVotes": {
+              "finalist": 23815,
+              "rn": 21478
+            },
             "firstRoundVotesByBloc": {
               "gauche": 3107,
               "centre": 16439,
@@ -2257,6 +2965,10 @@
             "code": "2804",
             "firstRoundExpressed": 43698,
             "secondRoundExpressed": 43567,
+            "secondRoundVotes": {
+              "finalist": 22542,
+              "rn": 21025
+            },
             "firstRoundVotesByBloc": {
               "gauche": 6791,
               "centre": 17236,
@@ -2268,6 +2980,10 @@
             "code": "2903",
             "firstRoundExpressed": 67160,
             "secondRoundExpressed": 64297,
+            "secondRoundVotes": {
+              "finalist": 44449,
+              "rn": 19848
+            },
             "firstRoundVotesByBloc": {
               "gauche": 18816,
               "centre": 26139,
@@ -2279,6 +2995,10 @@
             "code": "2905",
             "firstRoundExpressed": 71168,
             "secondRoundExpressed": 67974,
+            "secondRoundVotes": {
+              "finalist": 46270,
+              "rn": 21704
+            },
             "firstRoundVotesByBloc": {
               "gauche": 19924,
               "centre": 21969,
@@ -2290,6 +3010,10 @@
             "code": "2908",
             "firstRoundExpressed": 64942,
             "secondRoundExpressed": 62086,
+            "secondRoundVotes": {
+              "finalist": 40112,
+              "rn": 21974
+            },
             "firstRoundVotesByBloc": {
               "gauche": 26908,
               "centre": 18031,
@@ -2301,6 +3025,10 @@
             "code": "2A01",
             "firstRoundExpressed": 33259,
             "secondRoundExpressed": 33057,
+            "secondRoundVotes": {
+              "finalist": 20893,
+              "rn": 12164
+            },
             "firstRoundVotesByBloc": {
               "gauche": 3258,
               "centre": 10210,
@@ -2312,6 +3040,10 @@
             "code": "3105",
             "firstRoundExpressed": 75653,
             "secondRoundExpressed": 73871,
+            "secondRoundVotes": {
+              "finalist": 41533,
+              "rn": 32338
+            },
             "firstRoundVotesByBloc": {
               "gauche": 21925,
               "centre": 22267,
@@ -2323,6 +3055,10 @@
             "code": "3201",
             "firstRoundExpressed": 52009,
             "secondRoundExpressed": 49905,
+            "secondRoundVotes": {
+              "finalist": 29185,
+              "rn": 20720
+            },
             "firstRoundVotesByBloc": {
               "gauche": 15800,
               "centre": 16072,
@@ -2334,6 +3070,10 @@
             "code": "3308",
             "firstRoundExpressed": 84776,
             "secondRoundExpressed": 82893,
+            "secondRoundVotes": {
+              "finalist": 46756,
+              "rn": 36137
+            },
             "firstRoundVotesByBloc": {
               "gauche": 16747,
               "centre": 26881,
@@ -2345,6 +3085,10 @@
             "code": "3309",
             "firstRoundExpressed": 72301,
             "secondRoundExpressed": 70527,
+            "secondRoundVotes": {
+              "finalist": 40190,
+              "rn": 30337
+            },
             "firstRoundVotesByBloc": {
               "gauche": 21531,
               "centre": 21714,
@@ -2356,6 +3100,10 @@
             "code": "3310",
             "firstRoundExpressed": 57167,
             "secondRoundExpressed": 55515,
+            "secondRoundVotes": {
+              "finalist": 28960,
+              "rn": 26555
+            },
             "firstRoundVotesByBloc": {
               "gauche": 15002,
               "centre": 17128,
@@ -2367,6 +3115,10 @@
             "code": "3505",
             "firstRoundExpressed": 78138,
             "secondRoundExpressed": 74224,
+            "secondRoundVotes": {
+              "finalist": 50267,
+              "rn": 23957
+            },
             "firstRoundVotesByBloc": {
               "gauche": 21693,
               "centre": 33147,
@@ -2378,6 +3130,10 @@
             "code": "3506",
             "firstRoundExpressed": 64509,
             "secondRoundExpressed": 61639,
+            "secondRoundVotes": {
+              "finalist": 40987,
+              "rn": 20652
+            },
             "firstRoundVotesByBloc": {
               "gauche": 17179,
               "centre": 27370,
@@ -2389,6 +3145,10 @@
             "code": "3601",
             "firstRoundExpressed": 49141,
             "secondRoundExpressed": 48749,
+            "secondRoundVotes": {
+              "finalist": 27060,
+              "rn": 21689
+            },
             "firstRoundVotesByBloc": {
               "gauche": 11414,
               "centre": 17256,
@@ -2400,6 +3160,10 @@
             "code": "3702",
             "firstRoundExpressed": 63837,
             "secondRoundExpressed": 62249,
+            "secondRoundVotes": {
+              "finalist": 37343,
+              "rn": 24906
+            },
             "firstRoundVotesByBloc": {
               "gauche": 15829,
               "centre": 20801,
@@ -2411,6 +3175,10 @@
             "code": "3703",
             "firstRoundExpressed": 67453,
             "secondRoundExpressed": 65924,
+            "secondRoundVotes": {
+              "finalist": 41028,
+              "rn": 24896
+            },
             "firstRoundVotesByBloc": {
               "gauche": 18300,
               "centre": 22174,
@@ -2422,6 +3190,10 @@
             "code": "3705",
             "firstRoundExpressed": 59914,
             "secondRoundExpressed": 58610,
+            "secondRoundVotes": {
+              "finalist": 34741,
+              "rn": 23869
+            },
             "firstRoundVotesByBloc": {
               "gauche": 15157,
               "centre": 16025,
@@ -2433,6 +3205,10 @@
             "code": "3901",
             "firstRoundExpressed": 44886,
             "secondRoundExpressed": 44147,
+            "secondRoundVotes": {
+              "finalist": 25097,
+              "rn": 19050
+            },
             "firstRoundVotesByBloc": {
               "gauche": 11138,
               "centre": 16231,
@@ -2444,6 +3220,10 @@
             "code": "4001",
             "firstRoundExpressed": 75576,
             "secondRoundExpressed": 73504,
+            "secondRoundVotes": {
+              "finalist": 41736,
+              "rn": 31768
+            },
             "firstRoundVotesByBloc": {
               "gauche": 21318,
               "centre": 22077,
@@ -2455,6 +3235,10 @@
             "code": "4002",
             "firstRoundExpressed": 86700,
             "secondRoundExpressed": 84231,
+            "secondRoundVotes": {
+              "finalist": 52064,
+              "rn": 32167
+            },
             "firstRoundVotesByBloc": {
               "gauche": 25484,
               "centre": 26051,
@@ -2466,6 +3250,10 @@
             "code": "4101",
             "firstRoundExpressed": 54153,
             "secondRoundExpressed": 53717,
+            "secondRoundVotes": {
+              "finalist": 32336,
+              "rn": 21381
+            },
             "firstRoundVotesByBloc": {
               "gauche": 10139,
               "centre": 21578,
@@ -2477,6 +3265,10 @@
             "code": "4103",
             "firstRoundExpressed": 55225,
             "secondRoundExpressed": 54932,
+            "secondRoundVotes": {
+              "finalist": 30055,
+              "rn": 24877
+            },
             "firstRoundVotesByBloc": {
               "gauche": 11781,
               "centre": 20014,
@@ -2488,6 +3280,10 @@
             "code": "4203",
             "firstRoundExpressed": 55791,
             "secondRoundExpressed": 55238,
+            "secondRoundVotes": {
+              "finalist": 30634,
+              "rn": 24604
+            },
             "firstRoundVotesByBloc": {
               "gauche": 16735,
               "centre": 16243,
@@ -2499,6 +3295,10 @@
             "code": "4407",
             "firstRoundExpressed": 82439,
             "secondRoundExpressed": 80956,
+            "secondRoundVotes": {
+              "finalist": 48531,
+              "rn": 32425
+            },
             "firstRoundVotesByBloc": {
               "gauche": 21109,
               "centre": 23489,
@@ -2510,6 +3310,10 @@
             "code": "4501",
             "firstRoundExpressed": 53079,
             "secondRoundExpressed": 51576,
+            "secondRoundVotes": {
+              "finalist": 34909,
+              "rn": 16667
+            },
             "firstRoundVotesByBloc": {
               "gauche": 17145,
               "centre": 20395,
@@ -2521,6 +3325,10 @@
             "code": "4505",
             "firstRoundExpressed": 48177,
             "secondRoundExpressed": 47334,
+            "secondRoundVotes": {
+              "finalist": 23999,
+              "rn": 23335
+            },
             "firstRoundVotesByBloc": {
               "gauche": 9953,
               "centre": 10604,
@@ -2532,6 +3340,10 @@
             "code": "4506",
             "firstRoundExpressed": 51090,
             "secondRoundExpressed": 50129,
+            "secondRoundVotes": {
+              "finalist": 31737,
+              "rn": 18392
+            },
             "firstRoundVotesByBloc": {
               "gauche": 15704,
               "centre": 15635,
@@ -2543,6 +3355,10 @@
             "code": "4701",
             "firstRoundExpressed": 60389,
             "secondRoundExpressed": 59160,
+            "secondRoundVotes": {
+              "finalist": 30952,
+              "rn": 28208
+            },
             "firstRoundVotesByBloc": {
               "gauche": 16179,
               "centre": 17155,
@@ -2554,6 +3370,10 @@
             "code": "4904",
             "firstRoundExpressed": 51621,
             "secondRoundExpressed": 50765,
+            "secondRoundVotes": {
+              "finalist": 30476,
+              "rn": 20289
+            },
             "firstRoundVotesByBloc": {
               "gauche": 11382,
               "centre": 18001,
@@ -2565,6 +3385,10 @@
             "code": "4906",
             "firstRoundExpressed": 67389,
             "secondRoundExpressed": 65180,
+            "secondRoundVotes": {
+              "finalist": 43226,
+              "rn": 21954
+            },
             "firstRoundVotesByBloc": {
               "gauche": 17806,
               "centre": 23776,
@@ -2576,6 +3400,10 @@
             "code": "5002",
             "firstRoundExpressed": 66541,
             "secondRoundExpressed": 64342,
+            "secondRoundVotes": {
+              "finalist": 40472,
+              "rn": 23870
+            },
             "firstRoundVotesByBloc": {
               "gauche": 12340,
               "centre": 26555,
@@ -2587,6 +3415,10 @@
             "code": "5003",
             "firstRoundExpressed": 75904,
             "secondRoundExpressed": 74629,
+            "secondRoundVotes": {
+              "finalist": 43785,
+              "rn": 30844
+            },
             "firstRoundVotesByBloc": {
               "gauche": 16209,
               "centre": 25232,
@@ -2598,6 +3430,10 @@
             "code": "5101",
             "firstRoundExpressed": 47446,
             "secondRoundExpressed": 45584,
+            "secondRoundVotes": {
+              "finalist": 27419,
+              "rn": 18165
+            },
             "firstRoundVotesByBloc": {
               "gauche": 13691,
               "centre": 16058,
@@ -2609,6 +3445,10 @@
             "code": "5102",
             "firstRoundExpressed": 48553,
             "secondRoundExpressed": 47370,
+            "secondRoundVotes": {
+              "finalist": 27511,
+              "rn": 19859
+            },
             "firstRoundVotesByBloc": {
               "gauche": 12281,
               "centre": 14756,
@@ -2620,6 +3460,10 @@
             "code": "5103",
             "firstRoundExpressed": 49936,
             "secondRoundExpressed": 49643,
+            "secondRoundVotes": {
+              "finalist": 24384,
+              "rn": 25259
+            },
             "firstRoundVotesByBloc": {
               "gauche": 10166,
               "centre": 15942,
@@ -2631,6 +3475,10 @@
             "code": "5104",
             "firstRoundExpressed": 49208,
             "secondRoundExpressed": 48928,
+            "secondRoundVotes": {
+              "finalist": 25550,
+              "rn": 23378
+            },
             "firstRoundVotesByBloc": {
               "gauche": 9535,
               "centre": 15245,
@@ -2642,6 +3490,10 @@
             "code": "5105",
             "firstRoundExpressed": 50981,
             "secondRoundExpressed": 52340,
+            "secondRoundVotes": {
+              "finalist": 26393,
+              "rn": 25947
+            },
             "firstRoundVotesByBloc": {
               "gauche": 5276,
               "centre": 21751,
@@ -2653,6 +3505,10 @@
             "code": "5201",
             "firstRoundExpressed": 44672,
             "secondRoundExpressed": 44107,
+            "secondRoundVotes": {
+              "finalist": 20335,
+              "rn": 23772
+            },
             "firstRoundVotesByBloc": {
               "gauche": 9973,
               "centre": 12529,
@@ -2664,6 +3520,10 @@
             "code": "5302",
             "firstRoundExpressed": 53301,
             "secondRoundExpressed": 51984,
+            "secondRoundVotes": {
+              "finalist": 33257,
+              "rn": 18727
+            },
             "firstRoundVotesByBloc": {
               "gauche": 12525,
               "centre": 18746,
@@ -2675,6 +3535,10 @@
             "code": "5303",
             "firstRoundExpressed": 47848,
             "secondRoundExpressed": 45540,
+            "secondRoundVotes": {
+              "finalist": 31379,
+              "rn": 14161
+            },
             "firstRoundVotesByBloc": {
               "gauche": 9670,
               "centre": 23294,
@@ -2686,6 +3550,10 @@
             "code": "5601",
             "firstRoundExpressed": 84561,
             "secondRoundExpressed": 80401,
+            "secondRoundVotes": {
+              "finalist": 57609,
+              "rn": 22792
+            },
             "firstRoundVotesByBloc": {
               "gauche": 26214,
               "centre": 35627,
@@ -2697,6 +3565,10 @@
             "code": "5602",
             "firstRoundExpressed": 82978,
             "secondRoundExpressed": 79679,
+            "secondRoundVotes": {
+              "finalist": 52138,
+              "rn": 27541
+            },
             "firstRoundVotesByBloc": {
               "gauche": 22304,
               "centre": 26667,
@@ -2708,6 +3580,10 @@
             "code": "5603",
             "firstRoundExpressed": 68573,
             "secondRoundExpressed": 65630,
+            "secondRoundVotes": {
+              "finalist": 37776,
+              "rn": 27854
+            },
             "firstRoundVotesByBloc": {
               "gauche": 15630,
               "centre": 18222,
@@ -2719,6 +3595,10 @@
             "code": "5606",
             "firstRoundExpressed": 65525,
             "secondRoundExpressed": 63329,
+            "secondRoundVotes": {
+              "finalist": 37983,
+              "rn": 25346
+            },
             "firstRoundVotesByBloc": {
               "gauche": 16774,
               "centre": 21675,
@@ -2730,6 +3610,10 @@
             "code": "5701",
             "firstRoundExpressed": 56689,
             "secondRoundExpressed": 56587,
+            "secondRoundVotes": {
+              "finalist": 31517,
+              "rn": 25070
+            },
             "firstRoundVotesByBloc": {
               "gauche": 15740,
               "centre": 15640,
@@ -2741,6 +3625,10 @@
             "code": "5702",
             "firstRoundExpressed": 48963,
             "secondRoundExpressed": 48355,
+            "secondRoundVotes": {
+              "finalist": 27875,
+              "rn": 20480
+            },
             "firstRoundVotesByBloc": {
               "gauche": 13489,
               "centre": 14795,
@@ -2752,6 +3640,10 @@
             "code": "5703",
             "firstRoundExpressed": 47986,
             "secondRoundExpressed": 48004,
+            "secondRoundVotes": {
+              "finalist": 29657,
+              "rn": 18347
+            },
             "firstRoundVotesByBloc": {
               "gauche": 14407,
               "centre": 16631,
@@ -2763,6 +3655,10 @@
             "code": "5709",
             "firstRoundExpressed": 63949,
             "secondRoundExpressed": 63770,
+            "secondRoundVotes": {
+              "finalist": 37070,
+              "rn": 26700
+            },
             "firstRoundVotesByBloc": {
               "gauche": 15412,
               "centre": 22460,
@@ -2774,6 +3670,10 @@
             "code": "5801",
             "firstRoundExpressed": 46238,
             "secondRoundExpressed": 45883,
+            "secondRoundVotes": {
+              "finalist": 24627,
+              "rn": 21256
+            },
             "firstRoundVotesByBloc": {
               "gauche": 10665,
               "centre": 13593,
@@ -2785,6 +3685,10 @@
             "code": "5906",
             "firstRoundExpressed": 67807,
             "secondRoundExpressed": 65445,
+            "secondRoundVotes": {
+              "finalist": 39467,
+              "rn": 25978
+            },
             "firstRoundVotesByBloc": {
               "gauche": 13930,
               "centre": 25831,
@@ -2796,6 +3700,10 @@
             "code": "5910",
             "firstRoundExpressed": 48601,
             "secondRoundExpressed": 46604,
+            "secondRoundVotes": {
+              "finalist": 28603,
+              "rn": 18001
+            },
             "firstRoundVotesByBloc": {
               "gauche": 12600,
               "centre": 17512,
@@ -2807,6 +3715,10 @@
             "code": "5921",
             "firstRoundExpressed": 48922,
             "secondRoundExpressed": 47459,
+            "secondRoundVotes": {
+              "finalist": 24485,
+              "rn": 22974
+            },
             "firstRoundVotesByBloc": {
               "gauche": 12016,
               "centre": 14280,
@@ -2818,6 +3730,10 @@
             "code": "6004",
             "firstRoundExpressed": 62378,
             "secondRoundExpressed": 60200,
+            "secondRoundVotes": {
+              "finalist": 32174,
+              "rn": 28026
+            },
             "firstRoundVotesByBloc": {
               "gauche": 11488,
               "centre": 20803,
@@ -2829,6 +3745,10 @@
             "code": "6006",
             "firstRoundExpressed": 48879,
             "secondRoundExpressed": 47783,
+            "secondRoundVotes": {
+              "finalist": 22725,
+              "rn": 25058
+            },
             "firstRoundVotesByBloc": {
               "gauche": 10647,
               "centre": 11207,
@@ -2840,6 +3760,10 @@
             "code": "6202",
             "firstRoundExpressed": 59603,
             "secondRoundExpressed": 56670,
+            "secondRoundVotes": {
+              "finalist": 31642,
+              "rn": 25028
+            },
             "firstRoundVotesByBloc": {
               "gauche": 13346,
               "centre": 21141,
@@ -2851,6 +3775,10 @@
             "code": "6204",
             "firstRoundExpressed": 59718,
             "secondRoundExpressed": 59465,
+            "secondRoundVotes": {
+              "finalist": 30237,
+              "rn": 29228
+            },
             "firstRoundVotesByBloc": {
               "gauche": 9236,
               "centre": 19244,
@@ -2862,6 +3790,10 @@
             "code": "6209",
             "firstRoundExpressed": 52558,
             "secondRoundExpressed": 49992,
+            "secondRoundVotes": {
+              "finalist": 22674,
+              "rn": 27318
+            },
             "firstRoundVotesByBloc": {
               "gauche": 9505,
               "centre": 17379,
@@ -2873,6 +3805,10 @@
             "code": "6304",
             "firstRoundExpressed": 70483,
             "secondRoundExpressed": 68043,
+            "secondRoundVotes": {
+              "finalist": 42380,
+              "rn": 25663
+            },
             "firstRoundVotesByBloc": {
               "gauche": 19906,
               "centre": 19299,
@@ -2884,6 +3820,10 @@
             "code": "6401",
             "firstRoundExpressed": 48244,
             "secondRoundExpressed": 46397,
+            "secondRoundVotes": {
+              "finalist": 30942,
+              "rn": 15455
+            },
             "firstRoundVotesByBloc": {
               "gauche": 17511,
               "centre": 12939,
@@ -2895,6 +3835,10 @@
             "code": "6402",
             "firstRoundExpressed": 60718,
             "secondRoundExpressed": 58589,
+            "secondRoundVotes": {
+              "finalist": 37347,
+              "rn": 21242
+            },
             "firstRoundVotesByBloc": {
               "gauche": 18110,
               "centre": 17972,
@@ -2906,6 +3850,10 @@
             "code": "6704",
             "firstRoundExpressed": 68325,
             "secondRoundExpressed": 67759,
+            "secondRoundVotes": {
+              "finalist": 41629,
+              "rn": 26130
+            },
             "firstRoundVotesByBloc": {
               "gauche": 14641,
               "centre": 22107,
@@ -2917,6 +3865,10 @@
             "code": "6705",
             "firstRoundExpressed": 71159,
             "secondRoundExpressed": 70902,
+            "secondRoundVotes": {
+              "finalist": 39124,
+              "rn": 31778
+            },
             "firstRoundVotesByBloc": {
               "gauche": 13292,
               "centre": 22993,
@@ -2928,6 +3880,10 @@
             "code": "6706",
             "firstRoundExpressed": 65657,
             "secondRoundExpressed": 65228,
+            "secondRoundVotes": {
+              "finalist": 35890,
+              "rn": 29338
+            },
             "firstRoundVotesByBloc": {
               "gauche": 10438,
               "centre": 18228,
@@ -2939,6 +3895,10 @@
             "code": "6708",
             "firstRoundExpressed": 59584,
             "secondRoundExpressed": 60299,
+            "secondRoundVotes": {
+              "finalist": 29284,
+              "rn": 31015
+            },
             "firstRoundVotesByBloc": {
               "gauche": 6477,
               "centre": 14006,
@@ -2950,6 +3910,10 @@
             "code": "6709",
             "firstRoundExpressed": 62264,
             "secondRoundExpressed": 62976,
+            "secondRoundVotes": {
+              "finalist": 34046,
+              "rn": 28930
+            },
             "firstRoundVotesByBloc": {
               "gauche": 10086,
               "centre": 18206,
@@ -2961,6 +3925,10 @@
             "code": "6801",
             "firstRoundExpressed": 49165,
             "secondRoundExpressed": 48760,
+            "secondRoundVotes": {
+              "finalist": 28349,
+              "rn": 20411
+            },
             "firstRoundVotesByBloc": {
               "gauche": 9068,
               "centre": 14945,
@@ -2972,6 +3940,10 @@
             "code": "6802",
             "firstRoundExpressed": 60959,
             "secondRoundExpressed": 60370,
+            "secondRoundVotes": {
+              "finalist": 34907,
+              "rn": 25463
+            },
             "firstRoundVotesByBloc": {
               "gauche": 9671,
               "centre": 19785,
@@ -2983,6 +3955,10 @@
             "code": "6803",
             "firstRoundExpressed": 56074,
             "secondRoundExpressed": 55911,
+            "secondRoundVotes": {
+              "finalist": 29028,
+              "rn": 26883
+            },
             "firstRoundVotesByBloc": {
               "gauche": 9701,
               "centre": 13980,
@@ -2994,6 +3970,10 @@
             "code": "6805",
             "firstRoundExpressed": 47680,
             "secondRoundExpressed": 47415,
+            "secondRoundVotes": {
+              "finalist": 31766,
+              "rn": 15649
+            },
             "firstRoundVotesByBloc": {
               "gauche": 13938,
               "centre": 17749,
@@ -3005,6 +3985,10 @@
             "code": "6806",
             "firstRoundExpressed": 58490,
             "secondRoundExpressed": 59095,
+            "secondRoundVotes": {
+              "finalist": 32651,
+              "rn": 26444
+            },
             "firstRoundVotesByBloc": {
               "gauche": 14224,
               "centre": 17660,
@@ -3016,6 +4000,10 @@
             "code": "6910",
             "firstRoundExpressed": 73642,
             "secondRoundExpressed": 71661,
+            "secondRoundVotes": {
+              "finalist": 45099,
+              "rn": 26562
+            },
             "firstRoundVotesByBloc": {
               "gauche": 17963,
               "centre": 23964,
@@ -3027,6 +4015,10 @@
             "code": "6911",
             "firstRoundExpressed": 68932,
             "secondRoundExpressed": 67283,
+            "secondRoundVotes": {
+              "finalist": 38214,
+              "rn": 29069
+            },
             "firstRoundVotesByBloc": {
               "gauche": 18289,
               "centre": 18564,
@@ -3038,6 +4030,10 @@
             "code": "7001",
             "firstRoundExpressed": 60337,
             "secondRoundExpressed": 59856,
+            "secondRoundVotes": {
+              "finalist": 27812,
+              "rn": 32044
+            },
             "firstRoundVotesByBloc": {
               "gauche": 11178,
               "centre": 18093,
@@ -3049,6 +4045,10 @@
             "code": "7101",
             "firstRoundExpressed": 50798,
             "secondRoundExpressed": 49781,
+            "secondRoundVotes": {
+              "finalist": 30145,
+              "rn": 19636
+            },
             "firstRoundVotesByBloc": {
               "gauche": 14446,
               "centre": 15546,
@@ -3060,6 +4060,10 @@
             "code": "7103",
             "firstRoundExpressed": 54201,
             "secondRoundExpressed": 52981,
+            "secondRoundVotes": {
+              "finalist": 26458,
+              "rn": 26523
+            },
             "firstRoundVotesByBloc": {
               "gauche": 11105,
               "centre": 13606,
@@ -3071,6 +4075,10 @@
             "code": "7201",
             "firstRoundExpressed": 49003,
             "secondRoundExpressed": 47696,
+            "secondRoundVotes": {
+              "finalist": 29050,
+              "rn": 18646
+            },
             "firstRoundVotesByBloc": {
               "gauche": 12968,
               "centre": 15111,
@@ -3082,6 +4090,10 @@
             "code": "7203",
             "firstRoundExpressed": 55558,
             "secondRoundExpressed": 55191,
+            "secondRoundVotes": {
+              "finalist": 28392,
+              "rn": 26799
+            },
             "firstRoundVotesByBloc": {
               "gauche": 11204,
               "centre": 16209,
@@ -3093,6 +4105,10 @@
             "code": "7205",
             "firstRoundExpressed": 57213,
             "secondRoundExpressed": 56108,
+            "secondRoundVotes": {
+              "finalist": 32006,
+              "rn": 24102
+            },
             "firstRoundVotesByBloc": {
               "gauche": 16160,
               "centre": 17898,
@@ -3104,6 +4120,10 @@
             "code": "7301",
             "firstRoundExpressed": 66349,
             "secondRoundExpressed": 64814,
+            "secondRoundVotes": {
+              "finalist": 37644,
+              "rn": 27170
+            },
             "firstRoundVotesByBloc": {
               "gauche": 17955,
               "centre": 23381,
@@ -3115,6 +4135,10 @@
             "code": "7401",
             "firstRoundExpressed": 78796,
             "secondRoundExpressed": 76547,
+            "secondRoundVotes": {
+              "finalist": 49164,
+              "rn": 27383
+            },
             "firstRoundVotesByBloc": {
               "gauche": 18655,
               "centre": 28079,
@@ -3126,6 +4150,10 @@
             "code": "7402",
             "firstRoundExpressed": 71476,
             "secondRoundExpressed": 68553,
+            "secondRoundVotes": {
+              "finalist": 47182,
+              "rn": 21371
+            },
             "firstRoundVotesByBloc": {
               "gauche": 19765,
               "centre": 23783,
@@ -3137,6 +4165,10 @@
             "code": "7405",
             "firstRoundExpressed": 67973,
             "secondRoundExpressed": 66968,
+            "secondRoundVotes": {
+              "finalist": 41609,
+              "rn": 25359
+            },
             "firstRoundVotesByBloc": {
               "gauche": 16469,
               "centre": 21124,
@@ -3148,6 +4180,10 @@
             "code": "7406",
             "firstRoundExpressed": 54232,
             "secondRoundExpressed": 53550,
+            "secondRoundVotes": {
+              "finalist": 31509,
+              "rn": 22041
+            },
             "firstRoundVotesByBloc": {
               "gauche": 12653,
               "centre": 18805,
@@ -3159,6 +4195,10 @@
             "code": "7514",
             "firstRoundExpressed": 55235,
             "secondRoundExpressed": 48004,
+            "secondRoundVotes": {
+              "finalist": 34722,
+              "rn": 13282
+            },
             "firstRoundVotesByBloc": {
               "gauche": 7816,
               "centre": 26765,
@@ -3170,6 +4210,10 @@
             "code": "7602",
             "firstRoundExpressed": 68499,
             "secondRoundExpressed": 66348,
+            "secondRoundVotes": {
+              "finalist": 39754,
+              "rn": 26594
+            },
             "firstRoundVotesByBloc": {
               "gauche": 17630,
               "centre": 18996,
@@ -3181,6 +4225,10 @@
             "code": "7607",
             "firstRoundExpressed": 56651,
             "secondRoundExpressed": 54473,
+            "secondRoundVotes": {
+              "finalist": 36050,
+              "rn": 18423
+            },
             "firstRoundVotesByBloc": {
               "gauche": 18113,
               "centre": 19734,
@@ -3192,6 +4240,10 @@
             "code": "7609",
             "firstRoundExpressed": 63998,
             "secondRoundExpressed": 62670,
+            "secondRoundVotes": {
+              "finalist": 31548,
+              "rn": 31122
+            },
             "firstRoundVotesByBloc": {
               "gauche": 12968,
               "centre": 20920,
@@ -3203,6 +4255,10 @@
             "code": "7610",
             "firstRoundExpressed": 76018,
             "secondRoundExpressed": 74721,
+            "secondRoundVotes": {
+              "finalist": 36115,
+              "rn": 38606
+            },
             "firstRoundVotesByBloc": {
               "gauche": 14287,
               "centre": 19420,
@@ -3214,6 +4270,10 @@
             "code": "7702",
             "firstRoundExpressed": 53872,
             "secondRoundExpressed": 52497,
+            "secondRoundVotes": {
+              "finalist": 31490,
+              "rn": 21007
+            },
             "firstRoundVotesByBloc": {
               "gauche": 15663,
               "centre": 18171,
@@ -3225,6 +4285,10 @@
             "code": "7705",
             "firstRoundExpressed": 57029,
             "secondRoundExpressed": 55213,
+            "secondRoundVotes": {
+              "finalist": 30038,
+              "rn": 25175
+            },
             "firstRoundVotesByBloc": {
               "gauche": 14996,
               "centre": 17923,
@@ -3236,6 +4300,10 @@
             "code": "7802",
             "firstRoundExpressed": 64265,
             "secondRoundExpressed": 59990,
+            "secondRoundVotes": {
+              "finalist": 43607,
+              "rn": 16383
+            },
             "firstRoundVotesByBloc": {
               "gauche": 17379,
               "centre": 22500,
@@ -3247,6 +4315,10 @@
             "code": "7803",
             "firstRoundExpressed": 60221,
             "secondRoundExpressed": 56472,
+            "secondRoundVotes": {
+              "finalist": 38824,
+              "rn": 17648
+            },
             "firstRoundVotesByBloc": {
               "gauche": 14519,
               "centre": 20768,
@@ -3258,6 +4330,10 @@
             "code": "7903",
             "firstRoundExpressed": 55584,
             "secondRoundExpressed": 54757,
+            "secondRoundVotes": {
+              "finalist": 31821,
+              "rn": 22936
+            },
             "firstRoundVotesByBloc": {
               "gauche": 11198,
               "centre": 17310,
@@ -3269,6 +4345,10 @@
             "code": "8004",
             "firstRoundExpressed": 57558,
             "secondRoundExpressed": 54744,
+            "secondRoundVotes": {
+              "finalist": 23276,
+              "rn": 31468
+            },
             "firstRoundVotesByBloc": {
               "gauche": 10609,
               "centre": 10631,
@@ -3280,6 +4360,10 @@
             "code": "8101",
             "firstRoundExpressed": 58776,
             "secondRoundExpressed": 57851,
+            "secondRoundVotes": {
+              "finalist": 32529,
+              "rn": 25322
+            },
             "firstRoundVotesByBloc": {
               "gauche": 17418,
               "centre": 17352,
@@ -3291,6 +4375,10 @@
             "code": "8103",
             "firstRoundExpressed": 72970,
             "secondRoundExpressed": 70849,
+            "secondRoundVotes": {
+              "finalist": 36127,
+              "rn": 34722
+            },
             "firstRoundVotesByBloc": {
               "gauche": 19292,
               "centre": 20870,
@@ -3302,6 +4390,10 @@
             "code": "8301",
             "firstRoundExpressed": 45492,
             "secondRoundExpressed": 43736,
+            "secondRoundVotes": {
+              "finalist": 23114,
+              "rn": 20622
+            },
             "firstRoundVotesByBloc": {
               "gauche": 10792,
               "centre": 14270,
@@ -3313,6 +4405,10 @@
             "code": "8303",
             "firstRoundExpressed": 69544,
             "secondRoundExpressed": 67273,
+            "secondRoundVotes": {
+              "finalist": 31543,
+              "rn": 35730
+            },
             "firstRoundVotesByBloc": {
               "gauche": 15127,
               "centre": 14057,
@@ -3324,6 +4420,10 @@
             "code": "8307",
             "firstRoundExpressed": 67807,
             "secondRoundExpressed": 64587,
+            "secondRoundVotes": {
+              "finalist": 28544,
+              "rn": 36043
+            },
             "firstRoundVotesByBloc": {
               "gauche": 14535,
               "centre": 14437,
@@ -3335,6 +4435,10 @@
             "code": "8501",
             "firstRoundExpressed": 81155,
             "secondRoundExpressed": 79598,
+            "secondRoundVotes": {
+              "finalist": 48477,
+              "rn": 31121
+            },
             "firstRoundVotesByBloc": {
               "gauche": 19871,
               "centre": 33743,
@@ -3346,6 +4450,10 @@
             "code": "8502",
             "firstRoundExpressed": 78115,
             "secondRoundExpressed": 76777,
+            "secondRoundVotes": {
+              "finalist": 46240,
+              "rn": 30537
+            },
             "firstRoundVotesByBloc": {
               "gauche": 19315,
               "centre": 30262,
@@ -3357,6 +4465,10 @@
             "code": "8503",
             "firstRoundExpressed": 94261,
             "secondRoundExpressed": 93026,
+            "secondRoundVotes": {
+              "finalist": 52496,
+              "rn": 40530
+            },
             "firstRoundVotesByBloc": {
               "gauche": 16283,
               "centre": 32889,
@@ -3368,6 +4480,10 @@
             "code": "8505",
             "firstRoundExpressed": 56270,
             "secondRoundExpressed": 55806,
+            "secondRoundVotes": {
+              "finalist": 32085,
+              "rn": 23721
+            },
             "firstRoundVotesByBloc": {
               "gauche": 11980,
               "centre": 19606,
@@ -3379,6 +4495,10 @@
             "code": "8603",
             "firstRoundExpressed": 48716,
             "secondRoundExpressed": 47968,
+            "secondRoundVotes": {
+              "finalist": 26100,
+              "rn": 21868
+            },
             "firstRoundVotesByBloc": {
               "gauche": 14125,
               "centre": 14704,
@@ -3390,6 +4510,10 @@
             "code": "8604",
             "firstRoundExpressed": 46951,
             "secondRoundExpressed": 46620,
+            "secondRoundVotes": {
+              "finalist": 25152,
+              "rn": 21468
+            },
             "firstRoundVotesByBloc": {
               "gauche": 10592,
               "centre": 16339,
@@ -3401,6 +4525,10 @@
             "code": "8802",
             "firstRoundExpressed": 47315,
             "secondRoundExpressed": 47470,
+            "secondRoundVotes": {
+              "finalist": 22422,
+              "rn": 25048
+            },
             "firstRoundVotesByBloc": {
               "gauche": 7808,
               "centre": 15517,
@@ -3412,6 +4540,10 @@
             "code": "8902",
             "firstRoundExpressed": 47173,
             "secondRoundExpressed": 47078,
+            "secondRoundVotes": {
+              "finalist": 23342,
+              "rn": 23736
+            },
             "firstRoundVotesByBloc": {
               "gauche": 10824,
               "centre": 13837,
@@ -3423,6 +4555,10 @@
             "code": "9104",
             "firstRoundExpressed": 68148,
             "secondRoundExpressed": 65658,
+            "secondRoundVotes": {
+              "finalist": 42392,
+              "rn": 23266
+            },
             "firstRoundVotesByBloc": {
               "gauche": 21800,
               "centre": 23108,
@@ -3443,6 +4579,10 @@
             "code": "0101",
             "firstRoundExpressed": 60495,
             "secondRoundExpressed": 60005,
+            "secondRoundVotes": {
+              "finalist": 33889,
+              "rn": 26116
+            },
             "firstRoundVotesByBloc": {
               "gauche": 14607,
               "centre": 7063,
@@ -3454,6 +4594,10 @@
             "code": "0202",
             "firstRoundExpressed": 45675,
             "secondRoundExpressed": 45342,
+            "secondRoundVotes": {
+              "finalist": 22933,
+              "rn": 22409
+            },
             "firstRoundVotesByBloc": {
               "gauche": 7330,
               "centre": 0,
@@ -3465,6 +4609,10 @@
             "code": "0303",
             "firstRoundExpressed": 53592,
             "secondRoundExpressed": 52603,
+            "secondRoundVotes": {
+              "finalist": 31075,
+              "rn": 21528
+            },
             "firstRoundVotesByBloc": {
               "gauche": 11858,
               "centre": 0,
@@ -3476,6 +4624,10 @@
             "code": "0607",
             "firstRoundExpressed": 65866,
             "secondRoundExpressed": 64627,
+            "secondRoundVotes": {
+              "finalist": 37955,
+              "rn": 26672
+            },
             "firstRoundVotesByBloc": {
               "gauche": 12889,
               "centre": 11510,
@@ -3487,6 +4639,10 @@
             "code": "0608",
             "firstRoundExpressed": 53836,
             "secondRoundExpressed": 53290,
+            "secondRoundVotes": {
+              "finalist": 28012,
+              "rn": 25278
+            },
             "firstRoundVotesByBloc": {
               "gauche": 8968,
               "centre": 6508,
@@ -3498,6 +4654,10 @@
             "code": "0609",
             "firstRoundExpressed": 54178,
             "secondRoundExpressed": 53613,
+            "secondRoundVotes": {
+              "finalist": 28407,
+              "rn": 25206
+            },
             "firstRoundVotesByBloc": {
               "gauche": 12023,
               "centre": 0,
@@ -3509,6 +4669,10 @@
             "code": "0802",
             "firstRoundExpressed": 36971,
             "secondRoundExpressed": 36695,
+            "secondRoundVotes": {
+              "finalist": 20415,
+              "rn": 16280
+            },
             "firstRoundVotesByBloc": {
               "gauche": 7260,
               "centre": 3467,
@@ -3520,6 +4684,10 @@
             "code": "0803",
             "firstRoundExpressed": 35263,
             "secondRoundExpressed": 35827,
+            "secondRoundVotes": {
+              "finalist": 19506,
+              "rn": 16321
+            },
             "firstRoundVotesByBloc": {
               "gauche": 4605,
               "centre": 0,
@@ -3531,6 +4699,10 @@
             "code": "1002",
             "firstRoundExpressed": 49780,
             "secondRoundExpressed": 48726,
+            "secondRoundVotes": {
+              "finalist": 25420,
+              "rn": 23306
+            },
             "firstRoundVotesByBloc": {
               "gauche": 8859,
               "centre": 4703,
@@ -3542,6 +4714,10 @@
             "code": "1501",
             "firstRoundExpressed": 44114,
             "secondRoundExpressed": 42998,
+            "secondRoundVotes": {
+              "finalist": 28330,
+              "rn": 14668
+            },
             "firstRoundVotesByBloc": {
               "gauche": 10351,
               "centre": 3377,
@@ -3553,6 +4729,10 @@
             "code": "1502",
             "firstRoundExpressed": 36110,
             "secondRoundExpressed": 35552,
+            "secondRoundVotes": {
+              "finalist": 21585,
+              "rn": 13967
+            },
             "firstRoundVotesByBloc": {
               "gauche": 5217,
               "centre": 3019,
@@ -3564,6 +4744,10 @@
             "code": "1902",
             "firstRoundExpressed": 64078,
             "secondRoundExpressed": 62314,
+            "secondRoundVotes": {
+              "finalist": 37354,
+              "rn": 24960
+            },
             "firstRoundVotesByBloc": {
               "gauche": 18372,
               "centre": 0,
@@ -3575,6 +4759,10 @@
             "code": "2104",
             "firstRoundExpressed": 46968,
             "secondRoundExpressed": 46659,
+            "secondRoundVotes": {
+              "finalist": 25179,
+              "rn": 21480
+            },
             "firstRoundVotesByBloc": {
               "gauche": 10556,
               "centre": 0,
@@ -3586,6 +4774,10 @@
             "code": "2203",
             "firstRoundExpressed": 64211,
             "secondRoundExpressed": 61235,
+            "secondRoundVotes": {
+              "finalist": 41619,
+              "rn": 19616
+            },
             "firstRoundVotesByBloc": {
               "gauche": 15168,
               "centre": 9127,
@@ -3597,6 +4789,10 @@
             "code": "2505",
             "firstRoundExpressed": 57831,
             "secondRoundExpressed": 56749,
+            "secondRoundVotes": {
+              "finalist": 35576,
+              "rn": 21173
+            },
             "firstRoundVotesByBloc": {
               "gauche": 10297,
               "centre": 7176,
@@ -3608,6 +4804,10 @@
             "code": "2802",
             "firstRoundExpressed": 46723,
             "secondRoundExpressed": 46149,
+            "secondRoundVotes": {
+              "finalist": 26422,
+              "rn": 19727
+            },
             "firstRoundVotesByBloc": {
               "gauche": 12848,
               "centre": 3381,
@@ -3619,6 +4819,10 @@
             "code": "3507",
             "firstRoundExpressed": 75114,
             "secondRoundExpressed": 72397,
+            "secondRoundVotes": {
+              "finalist": 50315,
+              "rn": 22082
+            },
             "firstRoundVotesByBloc": {
               "gauche": 17716,
               "centre": 3665,
@@ -3630,6 +4834,10 @@
             "code": "3602",
             "firstRoundExpressed": 58762,
             "secondRoundExpressed": 57665,
+            "secondRoundVotes": {
+              "finalist": 30423,
+              "rn": 27242
+            },
             "firstRoundVotesByBloc": {
               "gauche": 14714,
               "centre": 0,
@@ -3641,6 +4849,10 @@
             "code": "3807",
             "firstRoundExpressed": 67773,
             "secondRoundExpressed": 67057,
+            "secondRoundVotes": {
+              "finalist": 36434,
+              "rn": 30623
+            },
             "firstRoundVotesByBloc": {
               "gauche": 14057,
               "centre": 6507,
@@ -3652,6 +4864,10 @@
             "code": "3902",
             "firstRoundExpressed": 37595,
             "secondRoundExpressed": 35929,
+            "secondRoundVotes": {
+              "finalist": 23361,
+              "rn": 12568
+            },
             "firstRoundVotesByBloc": {
               "gauche": 9689,
               "centre": 0,
@@ -3663,6 +4879,10 @@
             "code": "3903",
             "firstRoundExpressed": 48711,
             "secondRoundExpressed": 47737,
+            "secondRoundVotes": {
+              "finalist": 26822,
+              "rn": 20915
+            },
             "firstRoundVotesByBloc": {
               "gauche": 12630,
               "centre": 0,
@@ -3674,6 +4894,10 @@
             "code": "4102",
             "firstRoundExpressed": 51516,
             "secondRoundExpressed": 52047,
+            "secondRoundVotes": {
+              "finalist": 24855,
+              "rn": 27192
+            },
             "firstRoundVotesByBloc": {
               "gauche": 10993,
               "centre": 2803,
@@ -3685,6 +4909,10 @@
             "code": "4204",
             "firstRoundExpressed": 70470,
             "secondRoundExpressed": 69323,
+            "secondRoundVotes": {
+              "finalist": 38420,
+              "rn": 30903
+            },
             "firstRoundVotesByBloc": {
               "gauche": 20068,
               "centre": 0,
@@ -3696,6 +4924,10 @@
             "code": "4206",
             "firstRoundExpressed": 78105,
             "secondRoundExpressed": 77248,
+            "secondRoundVotes": {
+              "finalist": 42621,
+              "rn": 34627
+            },
             "firstRoundVotesByBloc": {
               "gauche": 15174,
               "centre": 9721,
@@ -3707,6 +4939,10 @@
             "code": "4301",
             "firstRoundExpressed": 73398,
             "secondRoundExpressed": 69512,
+            "secondRoundVotes": {
+              "finalist": 42828,
+              "rn": 26684
+            },
             "firstRoundVotesByBloc": {
               "gauche": 14362,
               "centre": 6932,
@@ -3718,6 +4954,10 @@
             "code": "4302",
             "firstRoundExpressed": 55758,
             "secondRoundExpressed": 53662,
+            "secondRoundVotes": {
+              "finalist": 34629,
+              "rn": 19033
+            },
             "firstRoundVotesByBloc": {
               "gauche": 11693,
               "centre": 4607,
@@ -3729,6 +4969,10 @@
             "code": "4409",
             "firstRoundExpressed": 91804,
             "secondRoundExpressed": 89130,
+            "secondRoundVotes": {
+              "finalist": 56024,
+              "rn": 33106
+            },
             "firstRoundVotesByBloc": {
               "gauche": 28044,
               "centre": 0,
@@ -3740,6 +4984,10 @@
             "code": "4503",
             "firstRoundExpressed": 46943,
             "secondRoundExpressed": 46690,
+            "secondRoundVotes": {
+              "finalist": 23863,
+              "rn": 22827
+            },
             "firstRoundVotesByBloc": {
               "gauche": 9737,
               "centre": 0,
@@ -3751,6 +4999,10 @@
             "code": "4703",
             "firstRoundExpressed": 51528,
             "secondRoundExpressed": 51153,
+            "secondRoundVotes": {
+              "finalist": 27689,
+              "rn": 23464
+            },
             "firstRoundVotesByBloc": {
               "gauche": 17482,
               "centre": 0,
@@ -3762,6 +5014,10 @@
             "code": "4903",
             "firstRoundExpressed": 48481,
             "secondRoundExpressed": 46820,
+            "secondRoundVotes": {
+              "finalist": 26768,
+              "rn": 20052
+            },
             "firstRoundVotesByBloc": {
               "gauche": 10397,
               "centre": 8168,
@@ -3773,6 +5029,10 @@
             "code": "5001",
             "firstRoundExpressed": 58778,
             "secondRoundExpressed": 57577,
+            "secondRoundVotes": {
+              "finalist": 36531,
+              "rn": 21046
+            },
             "firstRoundVotesByBloc": {
               "gauche": 11620,
               "centre": 4723,
@@ -3784,6 +5044,10 @@
             "code": "5404",
             "firstRoundExpressed": 63194,
             "secondRoundExpressed": 63343,
+            "secondRoundVotes": {
+              "finalist": 33130,
+              "rn": 30213
+            },
             "firstRoundVotesByBloc": {
               "gauche": 13873,
               "centre": 0,
@@ -3795,6 +5059,10 @@
             "code": "5501",
             "firstRoundExpressed": 49384,
             "secondRoundExpressed": 50329,
+            "secondRoundVotes": {
+              "finalist": 24918,
+              "rn": 25411
+            },
             "firstRoundVotesByBloc": {
               "gauche": 7547,
               "centre": 0,
@@ -3806,6 +5074,10 @@
             "code": "5704",
             "firstRoundExpressed": 52190,
             "secondRoundExpressed": 53414,
+            "secondRoundVotes": {
+              "finalist": 29287,
+              "rn": 24127
+            },
             "firstRoundVotesByBloc": {
               "gauche": 6594,
               "centre": 4191,
@@ -3817,6 +5089,10 @@
             "code": "5705",
             "firstRoundExpressed": 43950,
             "secondRoundExpressed": 44803,
+            "secondRoundVotes": {
+              "finalist": 21219,
+              "rn": 23584
+            },
             "firstRoundVotesByBloc": {
               "gauche": 5892,
               "centre": 0,
@@ -3828,6 +5104,10 @@
             "code": "5905",
             "firstRoundExpressed": 68394,
             "secondRoundExpressed": 66037,
+            "secondRoundVotes": {
+              "finalist": 37411,
+              "rn": 28626
+            },
             "firstRoundVotesByBloc": {
               "gauche": 17473,
               "centre": 0,
@@ -3839,6 +5119,10 @@
             "code": "5914",
             "firstRoundExpressed": 65122,
             "secondRoundExpressed": 64417,
+            "secondRoundVotes": {
+              "finalist": 32303,
+              "rn": 32114
+            },
             "firstRoundVotesByBloc": {
               "gauche": 9967,
               "centre": 0,
@@ -3850,6 +5134,10 @@
             "code": "5915",
             "firstRoundExpressed": 65031,
             "secondRoundExpressed": 64198,
+            "secondRoundVotes": {
+              "finalist": 32228,
+              "rn": 31970
+            },
             "firstRoundVotesByBloc": {
               "gauche": 12931,
               "centre": 0,
@@ -3861,6 +5149,10 @@
             "code": "6001",
             "firstRoundExpressed": 53298,
             "secondRoundExpressed": 51894,
+            "secondRoundVotes": {
+              "finalist": 25070,
+              "rn": 26824
+            },
             "firstRoundVotesByBloc": {
               "gauche": 10499,
               "centre": 4790,
@@ -3872,6 +5164,10 @@
             "code": "6102",
             "firstRoundExpressed": 43739,
             "secondRoundExpressed": 43054,
+            "secondRoundVotes": {
+              "finalist": 23433,
+              "rn": 19621
+            },
             "firstRoundVotesByBloc": {
               "gauche": 7806,
               "centre": 3060,
@@ -3883,6 +5179,10 @@
             "code": "6103",
             "firstRoundExpressed": 47398,
             "secondRoundExpressed": 46008,
+            "secondRoundVotes": {
+              "finalist": 29782,
+              "rn": 16226
+            },
             "firstRoundVotesByBloc": {
               "gauche": 10845,
               "centre": 0,
@@ -3894,6 +5194,10 @@
             "code": "6207",
             "firstRoundExpressed": 56408,
             "secondRoundExpressed": 56459,
+            "secondRoundVotes": {
+              "finalist": 27177,
+              "rn": 29282
+            },
             "firstRoundVotesByBloc": {
               "gauche": 9885,
               "centre": 0,
@@ -3905,6 +5209,10 @@
             "code": "6707",
             "firstRoundExpressed": 55633,
             "secondRoundExpressed": 56544,
+            "secondRoundVotes": {
+              "finalist": 30986,
+              "rn": 25558
+            },
             "firstRoundVotesByBloc": {
               "gauche": 7326,
               "centre": 4734,
@@ -3916,6 +5224,10 @@
             "code": "6804",
             "firstRoundExpressed": 67435,
             "secondRoundExpressed": 67702,
+            "secondRoundVotes": {
+              "finalist": 34309,
+              "rn": 33393
+            },
             "firstRoundVotesByBloc": {
               "gauche": 12688,
               "centre": 0,
@@ -3927,6 +5239,10 @@
             "code": "6909",
             "firstRoundExpressed": 69098,
             "secondRoundExpressed": 67708,
+            "secondRoundVotes": {
+              "finalist": 40872,
+              "rn": 26836
+            },
             "firstRoundVotesByBloc": {
               "gauche": 16530,
               "centre": 9935,
@@ -3938,6 +5254,10 @@
             "code": "7102",
             "firstRoundExpressed": 52144,
             "secondRoundExpressed": 51337,
+            "secondRoundVotes": {
+              "finalist": 29977,
+              "rn": 21360
+            },
             "firstRoundVotesByBloc": {
               "gauche": 9801,
               "centre": 5094,
@@ -3949,6 +5269,10 @@
             "code": "7302",
             "firstRoundExpressed": 50468,
             "secondRoundExpressed": 49710,
+            "secondRoundVotes": {
+              "finalist": 30016,
+              "rn": 19694
+            },
             "firstRoundVotesByBloc": {
               "gauche": 11940,
               "centre": 0,
@@ -3960,6 +5284,10 @@
             "code": "7303",
             "firstRoundExpressed": 52877,
             "secondRoundExpressed": 51391,
+            "secondRoundVotes": {
+              "finalist": 31430,
+              "rn": 19961
+            },
             "firstRoundVotesByBloc": {
               "gauche": 12249,
               "centre": 0,
@@ -3971,6 +5299,10 @@
             "code": "7403",
             "firstRoundExpressed": 60936,
             "secondRoundExpressed": 60047,
+            "secondRoundVotes": {
+              "finalist": 33738,
+              "rn": 26309
+            },
             "firstRoundVotesByBloc": {
               "gauche": 15286,
               "centre": 0,
@@ -3982,6 +5314,10 @@
             "code": "7404",
             "firstRoundExpressed": 56019,
             "secondRoundExpressed": 54363,
+            "secondRoundVotes": {
+              "finalist": 37452,
+              "rn": 16911
+            },
             "firstRoundVotesByBloc": {
               "gauche": 15702,
               "centre": 2265,
@@ -3993,6 +5329,10 @@
             "code": "7703",
             "firstRoundExpressed": 50230,
             "secondRoundExpressed": 48810,
+            "secondRoundVotes": {
+              "finalist": 28560,
+              "rn": 20250
+            },
             "firstRoundVotesByBloc": {
               "gauche": 15163,
               "centre": 0,
@@ -4004,6 +5344,10 @@
             "code": "7704",
             "firstRoundExpressed": 57340,
             "secondRoundExpressed": 56321,
+            "secondRoundVotes": {
+              "finalist": 27203,
+              "rn": 29118
+            },
             "firstRoundVotesByBloc": {
               "gauche": 13056,
               "centre": 0,
@@ -4015,6 +5359,10 @@
             "code": "8003",
             "firstRoundExpressed": 55777,
             "secondRoundExpressed": 55259,
+            "secondRoundVotes": {
+              "finalist": 25383,
+              "rn": 29876
+            },
             "firstRoundVotesByBloc": {
               "gauche": 8974,
               "centre": 3490,
@@ -4026,6 +5374,10 @@
             "code": "8801",
             "firstRoundExpressed": 49478,
             "secondRoundExpressed": 49830,
+            "secondRoundVotes": {
+              "finalist": 29263,
+              "rn": 20567
+            },
             "firstRoundVotesByBloc": {
               "gauche": 9392,
               "centre": 0,
@@ -4037,6 +5389,10 @@
             "code": "8803",
             "firstRoundExpressed": 42733,
             "secondRoundExpressed": 42275,
+            "secondRoundVotes": {
+              "finalist": 27341,
+              "rn": 14934
+            },
             "firstRoundVotesByBloc": {
               "gauche": 7794,
               "centre": 0,
@@ -4048,6 +5404,10 @@
             "code": "8804",
             "firstRoundExpressed": 42755,
             "secondRoundExpressed": 42870,
+            "secondRoundVotes": {
+              "finalist": 20073,
+              "rn": 22797
+            },
             "firstRoundVotesByBloc": {
               "gauche": 7525,
               "centre": 519,
@@ -4059,6 +5419,10 @@
             "code": "9001",
             "firstRoundExpressed": 32015,
             "secondRoundExpressed": 31620,
+            "secondRoundVotes": {
+              "finalist": 17512,
+              "rn": 14108
+            },
             "firstRoundVotesByBloc": {
               "gauche": 7659,
               "centre": 3608,
@@ -4070,6 +5434,10 @@
             "code": "97602",
             "firstRoundExpressed": 22396,
             "secondRoundExpressed": 24127,
+            "secondRoundVotes": {
+              "finalist": 11153,
+              "rn": 12974
+            },
             "firstRoundVotesByBloc": {
               "gauche": 552,
               "centre": 7030,

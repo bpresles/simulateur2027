@@ -1,4 +1,5 @@
 import { simulationData } from '../../data/schema'
+import { correctedTransfer } from '../../domain/transferCorrection'
 import type { AllianceRate, SimulationResult } from '../../domain/types'
 import { useSettings } from '../../state/settingsStore'
 import { cand, profileLabel } from '../candidates'
@@ -42,6 +43,7 @@ function JoiningRate({
   editable: boolean
 }) {
   const setOverride = useSettings((s) => s.setAllianceOverride)
+  const correctionOn = useSettings((s) => s.transferCorrectionEnabled && s.transferCorrectionIntensity !== 0)
   const row = j.source ? transfers.profiles.find((p) => p.id === j.source!.profileId)!.rows[j.source.bloc] : null
   const from = cand(j.candidateId).shortName
   const to = cand(rate.leaderId).shortName
@@ -75,9 +77,10 @@ function JoiningRate({
         ) : row && j.source ? (
           <>
             Législatives 2024, profil « {profileLabel(j.source.profileId)} » :{' '}
-            <span className={provenanceClass(row.provenance.finalist)}>
-              {transfers.sources[row.provenance.finalist].label}
-            </span>
+            {(() => {
+              const p = correctionOn && j.source && correctedTransfer(transfers, simulationData.secondRoundDropout, j.source.profileId, j.source.bloc, 1) ? 'reels2024' : row.provenance.finalist
+              return <span className={provenanceClass(p)}>{transfers.sources[p].label}</span>
+            })()}
           </>
         ) : (
           'Aucun profil de reports pour ce leader : toutes les voix le suivent.'

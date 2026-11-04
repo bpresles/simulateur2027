@@ -1,3 +1,5 @@
+import { correctedTransfer } from './transferCorrection'
+import type { TransferCorrection } from './transferCorrection'
 import { BLOCS } from './types'
 import type {
   Bloc,
@@ -19,11 +21,14 @@ export type ProfileTable = Record<ProfileId, Record<Bloc, TransferValues>>
 /**
  * Profils de reports effectifs : surcharges de l'utilisateur, puis lignes « camp » converties
  * selon la fidélité (un électorat rattaché au camp RN vote RN au taux de fidélité, le reste s'abstient).
+ * Les autres lignes sont celles de l'enquête, corrigées d'après les votes réels de 2024 si l'option est
+ * activée (voir `correctedTransfer`) ; une surcharge saisie reste prioritaire sur la correction.
  */
 export function effectiveProfiles(
   transfers: TransfersData,
   overrides: Settings['transferOverrides'],
   fidelity: number,
+  correction: TransferCorrection | null = null,
 ): ProfileTable {
   const loyal = fidelity * 100
   return Object.fromEntries(
@@ -36,7 +41,10 @@ export function effectiveProfiles(
           const row = p.rows[b]
           if (row.camp === 'rn') return [b, { finalist: 0, rn: loyal, abstention: 100 - loyal }]
           if (row.camp === 'finalist') return [b, { finalist: loyal, rn: 0, abstention: 100 - loyal }]
-          return [b, { finalist: row.finalist, rn: row.rn, abstention: row.abstention }]
+          const corrected = correction
+            ? correctedTransfer(transfers, correction.dropout, p.id, b, correction.intensity)
+            : null
+          return [b, corrected ?? { finalist: row.finalist, rn: row.rn, abstention: row.abstention }]
         }),
       ),
     ]),

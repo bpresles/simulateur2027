@@ -1,3 +1,4 @@
+import { daysBetween } from './pollAverage'
 import { blendProfiles, fallbackSplit } from './transfers'
 import type { ProfileTable } from './transfers'
 import type {
@@ -7,10 +8,12 @@ import type {
   Entrant,
   CampRates,
   DropoutProfile,
+  PollBiasGap,
   PresidentialDuel,
   Reference2017,
   Reference2022,
   SecondRoundDropoutData,
+  SecondRoundPollBiasData,
   ReferencePart,
   ResolvedDuel,
   SecondRoundPoll,
@@ -129,6 +132,44 @@ export function duelDropout(duel: ResolvedDuel, data: SecondRoundDropoutData): n
   const total = parts.reduce((s, w) => s + w.weight, 0)
   if (total <= 0) return noRnDropout(data)
   return parts.reduce((s, w) => s + (w.weight * profileDropout(profiles[w.profileId])) / total, 0)
+}
+
+/** Demi-largeur (jours) de la fenêtre de distance au 1er tour pour comparer les sondages de 2nd tour. */
+export const POLL_BIAS_WINDOW_DAYS = 20
+
+/**
+ * Écart historique des sondages de 2nd tour : pour chaque année, moyenne des sondages Macron – Le Pen dont
+ * la fin de terrain est à la même distance du 1er tour que la base 2027 (± 20 jours) ; faute de sondage dans
+ * la fenêtre, le plus proche. Écart = résultat − moyenne, en points, pour le candidat opposé au RN. Cet écart
+ * est affiché, jamais appliqué au calcul : il mesure un biais passé des sondages, il ne s'y aligne pas.
+ */
+export function pollBiasGaps(
+  data: SecondRoundPollBiasData,
+  polls: { asOf: string; electionDate: string },
+): PollBiasGap[] {
+  const distance = daysBetween(polls.asOf, polls.electionDate)
+  return data.elections.flatMap((e) => {
+    const dated = e.polls.map((p) => ({ p, gap: Math.abs(daysBetween(p.end, e.electionDate) - distance) }))
+    if (dated.length === 0) return []
+    const inWindow = dated.filter((d) => d.gap <= POLL_BIAS_WINDOW_DAYS)
+    const nearest = inWindow.length > 0 ? null : dated.reduce((best, d) => (d.gap < best.gap ? d : best))
+    const estimate = nearest
+      ? nearest.p.antiRn
+      : inWindow.reduce((t, d) => t + d.p.antiRn, 0) / inWindow.length
+    return [
+      {
+        year: e.year,
+        duel: e.duel,
+        pollCount: inWindow.length,
+        estimate,
+        nearest: nearest
+          ? { institute: nearest.p.institute, end: nearest.p.end, distance: daysBetween(nearest.p.end, e.electionDate) }
+          : null,
+        result: e.result.antiRn,
+        gap: e.result.antiRn - estimate,
+      },
+    ]
+  })
 }
 
 /**

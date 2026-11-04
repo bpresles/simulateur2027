@@ -12,12 +12,14 @@ import type {
   SimulationData,
   TransfersData,
   SecondRoundDropoutData,
+  SecondRoundPollBiasData,
   TurnoutCertaintyData,
 } from '../domain/types'
 import pollsJson from './polls-2027.json'
 import reference2017Json from './reference-2017.json'
 import referenceJson from './reference-2022.json'
 import secondRoundDropoutJson from './second-round-dropout.json'
+import secondRoundPollBiasJson from './second-round-poll-bias.json'
 import transfersJson from './transfers-legislatives-2024.json'
 import turnoutCertaintyJson from './turnout-certainty.json'
 
@@ -25,7 +27,7 @@ const isoDate = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'date ISO AAAA-MM-JJ att
 const percent = z.number().min(0).max(100)
 const bloc = z.enum(['gauche', 'centre', 'droite', 'extreme_droite'])
 const profileId = z.enum(['lfi_rn', 'ecolo_ps_pcf_rn', 'ensemble_rn', 'lr_rn'])
-const provenance = z.enum(['franceinfo', 'publicsenat', 'lcp', 'derive', 'transpose', 'camp', 'hypothese'])
+const provenance = z.enum(['franceinfo', 'publicsenat', 'lcp', 'derive', 'transpose', 'camp', 'hypothese', 'reels2024'])
 const sourceLink = z.object({ label: z.string(), url: z.url() })
 const pollSource = sourceLink.extend({ kind: z.enum(['synthese', 'notice']).optional() })
 const fieldwork = z.object({ start: isoDate, end: isoDate })
@@ -234,6 +236,7 @@ const dropoutProfile = z.object({
         code: z.string(),
         firstRoundExpressed: z.number().int().positive(),
         secondRoundExpressed: z.number().int().positive(),
+        secondRoundVotes: z.object({ finalist: z.number().int().nonnegative(), rn: z.number().int().nonnegative() }),
         firstRoundVotesByBloc: z.record(bloc, z.number().int().nonnegative()),
       }),
     )
@@ -264,6 +267,23 @@ const secondRoundDropoutSchema: z.ZodType<SecondRoundDropoutData> = z.object({
     profiles: z.record(profileId, dropoutProfile),
     unclassified: z.array(z.object({ code: z.string(), dep: z.string(), nuance: z.string(), name: z.string() })),
   }),
+})
+
+const secondRoundPollBiasSchema: z.ZodType<SecondRoundPollBiasData> = z.object({
+  description: z.string(),
+  elections: z.array(
+    z.object({
+      year: z.number().int(),
+      duel: z.string(),
+      electionDate: isoDate,
+      secondRoundDate: isoDate,
+      result: z.object({ antiRn: percent, rn: percent, source: sourceLink }),
+      listSource: sourceLink,
+      polls: z.array(
+        z.object({ institute: z.string(), end: isoDate, antiRn: percent, rn: percent, url: z.url() }),
+      ),
+    }),
+  ),
 })
 
 const turnoutCertaintySchema: z.ZodType<TurnoutCertaintyData> = z.object({
@@ -425,6 +445,8 @@ export function validateData(data: SimulationData): string[] {
       // Tolérance : quelques voix d'écart entre les voix par nuance et les exprimés officiels (données du ministère).
       if (Math.abs(votes - c.firstRoundExpressed) > 5)
         errors.push(`Abandon 2024 ${id}/${c.code} : voix par bloc ≠ exprimés du 1er tour`)
+      if (Math.abs(c.secondRoundVotes.finalist + c.secondRoundVotes.rn - c.secondRoundExpressed) > 5)
+        errors.push(`Abandon 2024 ${id}/${c.code} : voix du finaliste et du RN ≠ exprimés du 2nd tour`)
       if (c.secondRoundExpressed > c.firstRoundExpressed * 1.2)
         errors.push(`Abandon 2024 ${id}/${c.code} : exprimés du 2nd tour invraisemblables`)
     }
@@ -433,6 +455,13 @@ export function validateData(data: SimulationData): string[] {
     for (const [label, r] of [['1er tour', e.firstRound], ['2nd tour', e.secondRound]] as const) {
       if (!(r.expressed <= r.voters && r.voters <= r.registered))
         errors.push(`Abandon ${e.year} ${label} : incohérent (exprimés ≤ votants ≤ inscrits attendu)`)
+    }
+  }
+  for (const e of data.secondRoundPollBias.elections) {
+    if (Math.abs(e.result.antiRn + e.result.rn - 100) > 0.01) errors.push(`Écart des sondages ${e.year} : résultat ≠ 100`)
+    for (const p of e.polls) {
+      if (Math.abs(p.antiRn + p.rn - 100) > 0.51) errors.push(`Écart des sondages ${e.year} ${p.institute} ${p.end} : scores ≠ 100`)
+      if (p.end >= e.electionDate) errors.push(`Écart des sondages ${e.year} ${p.institute} ${p.end} : postérieur au 1er tour`)
     }
   }
   if (!dropout.presidential.elections.some((e) => !e.rn)) errors.push('Abandon : aucun 2nd tour présidentiel sans RN pour le repli')
@@ -464,6 +493,7 @@ export function parseData(raw: {
   transfers: unknown
   turnoutCertainty: unknown
   secondRoundDropout: unknown
+  secondRoundPollBias: unknown
 }): SimulationData {
   const data: SimulationData = {
     polls: resolveGroupedLeaders(pollsSchema.parse(raw.polls)),
@@ -472,6 +502,7 @@ export function parseData(raw: {
     transfers: transfersSchema.parse(raw.transfers),
     turnoutCertainty: turnoutCertaintySchema.parse(raw.turnoutCertainty),
     secondRoundDropout: secondRoundDropoutSchema.parse(raw.secondRoundDropout),
+    secondRoundPollBias: secondRoundPollBiasSchema.parse(raw.secondRoundPollBias),
   }
   const errors = validateData(data)
   if (errors.length > 0) throw new Error(`Données invalides :\n- ${errors.join('\n- ')}`)
@@ -485,4 +516,5 @@ export const simulationData: SimulationData = parseData({
   transfers: transfersJson,
   turnoutCertainty: turnoutCertaintyJson,
   secondRoundDropout: secondRoundDropoutJson,
+  secondRoundPollBias: secondRoundPollBiasJson,
 })

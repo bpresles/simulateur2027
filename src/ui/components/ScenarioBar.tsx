@@ -1,5 +1,6 @@
 import { BLOG_BIAS_URL, totalBias } from '../../domain/blogBias'
 import { newestFirst } from '../../domain/pollAverage'
+import { correctionUncertainty } from '../../domain/transferCorrection'
 import type { SimulationResult, TurnoutBalance } from '../../domain/types'
 import { calibration, progression2022Stats } from '../../hooks/useSimulation'
 import { useSettings } from '../../state/settingsStore'
@@ -9,6 +10,8 @@ import { AllianceSwitches, GroupedAlliancesSwitch, UntestedAlliancesSwitch } fro
 import { Checkbox, Slider, Switch } from './controls'
 
 const allianceLabel = new Map(simulationData.polls.alliances.map((a) => [a.id, a.label]))
+/** Incertitude des reports tirés des votes réels de 2024 (erreurs types des lignes corrigées). */
+const TRANSFER_UNCERTAINTY = correctionUncertainty(simulationData.transfers, simulationData.secondRoundDropout)
 /** Période de la progression 2022 : même distance du scrutin que la base 2027, jusqu'au vote. */
 const PROGRESSION_PERIOD = `${ofMonth(progression2022Stats.asOf)} à ${month(simulationData.reference2022.electionDate)}`
 const { extreme_droite: farRightBias, gauche: leftBias } = calibration.blogBias
@@ -159,6 +162,29 @@ export function ScenarioBar({ result, onOpenSettings }: { result: SimulationResu
                 value={s.blogBiasIntensity}
                 onValueChange={s.setBlogBiasIntensity}
                 disabled={!s.blogBiasEnabled}
+              />
+            </div>
+            <div className="mt-4">
+              <Switch
+                id="transfer-correction"
+                checked={s.transferCorrectionEnabled}
+                onCheckedChange={s.setTransferCorrectionEnabled}
+                label="Reports de voix tirés des votes réels de 2024, et non d’un sondage"
+                description={`Sans cette option, les reports de voix au 2nd tour reprennent l’enquête Ipsos-Talan du 07/07/2024, un sondage où les électeurs déclaraient leur vote. Avec elle, les reports des électeurs dont le camp était absent du duel (par exemple le centre et la droite dans un duel RN – LFI) sont estimés à partir des résultats officiels des législatives 2024, en comparant les ${TRANSFER_UNCERTAINTY.constituencies} circonscriptions de ces duels.`}
+              />
+              <p className="ml-12 mt-1 text-sm text-ink-3">
+                Marge d’erreur : le vote étant secret, ces reports sont déduits des écarts entre circonscriptions, pas
+                observés. Erreur type de {num(TRANSFER_UNCERTAINTY.minSe, 1)} à {num(TRANSFER_UNCERTAINTY.maxSe, 1)}{' '}
+                points selon l’électorat, soit environ ±&#8239;{num(1.96 * TRANSFER_UNCERTAINTY.minSe, 0)} à{' '}
+                {num(1.96 * TRANSFER_UNCERTAINTY.maxSe, 0)} points à 95&#8239;%. Les électeurs du camp d’un finaliste
+                gardent les valeurs de l’enquête.
+              </p>
+              <Intensity
+                label="Intensité de la correction des reports"
+                hint="les reports estimés sur les votes réels ; 0 % garde l’enquête"
+                value={s.transferCorrectionIntensity}
+                onValueChange={s.setTransferCorrectionIntensity}
+                disabled={!s.transferCorrectionEnabled}
               />
             </div>
             <div className="mt-4">
