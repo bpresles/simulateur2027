@@ -11,11 +11,13 @@ import type {
   Reference2022,
   SimulationData,
   TransfersData,
+  SecondRoundDropoutData,
   TurnoutCertaintyData,
 } from '../domain/types'
 import pollsJson from './polls-2027.json'
 import reference2017Json from './reference-2017.json'
 import referenceJson from './reference-2022.json'
+import secondRoundDropoutJson from './second-round-dropout.json'
 import transfersJson from './transfers-legislatives-2024.json'
 import turnoutCertaintyJson from './turnout-certainty.json'
 
@@ -216,6 +218,45 @@ const transfersSchema: z.ZodType<TransfersData> = z.object({
   }),
 })
 
+const presidentialRound = z.object({
+  registered: z.number().int().positive(),
+  voters: z.number().int().positive(),
+  expressed: z.number().int().positive(),
+  source: sourceLink,
+})
+
+const dropoutProfile = z.object({
+  label: z.string(),
+  constituencies: z.array(z.string()).min(1),
+  firstRoundExpressed: z.number().int().positive(),
+  secondRoundExpressed: z.number().int().positive(),
+  leftParty: z.record(z.string(), z.string()).optional(),
+})
+
+// Un profil de reports manquant fait échouer la validation (clés d'enum exhaustives).
+const secondRoundDropoutSchema: z.ZodType<SecondRoundDropoutData> = z.object({
+  description: z.string(),
+  presidential: z.object({
+    description: z.string(),
+    elections: z.array(
+      z.object({
+        year: z.number().int(),
+        duel: z.string(),
+        rn: z.boolean(),
+        firstRound: presidentialRound,
+        secondRound: presidentialRound,
+      }),
+    ),
+  }),
+  legislatives2024: z.object({
+    description: z.string(),
+    method: z.string(),
+    sources: z.array(sourceLink).min(1),
+    profiles: z.record(profileId, dropoutProfile),
+    unclassified: z.array(z.object({ code: z.string(), dep: z.string(), nuance: z.string(), name: z.string() })),
+  }),
+})
+
 const turnoutCertaintySchema: z.ZodType<TurnoutCertaintyData> = z.object({
   description: z.string(),
   measures: z.array(
@@ -358,6 +399,26 @@ export function validateData(data: SimulationData): string[] {
     if (t2.voters > t2.registered) errors.push(`${label} : 2nd tour incohérent (votants > inscrits)`)
   }
 
+  const dropout = data.secondRoundDropout
+  for (const profile of transfers.profiles) {
+    if (!dropout.legislatives2024.profiles[profile.id]) errors.push(`Abandon 2024 : aucune estimation pour le profil « ${profile.id} »`)
+  }
+  for (const [id, p] of Object.entries(dropout.legislatives2024.profiles)) {
+    if (new Set(p.constituencies).size !== p.constituencies.length) errors.push(`Abandon 2024 ${id} : circonscriptions en double`)
+    if (p.leftParty) {
+      const parties = Object.keys(p.leftParty)
+      if (parties.length !== p.constituencies.length || parties.some((c) => !p.constituencies.includes(c)))
+        errors.push(`Abandon 2024 ${id} : partis de gauche incohérents avec la liste des circonscriptions`)
+    }
+  }
+  for (const e of dropout.presidential.elections) {
+    for (const [label, r] of [['1er tour', e.firstRound], ['2nd tour', e.secondRound]] as const) {
+      if (!(r.expressed <= r.voters && r.voters <= r.registered))
+        errors.push(`Abandon ${e.year} ${label} : incohérent (exprimés ≤ votants ≤ inscrits attendu)`)
+    }
+  }
+  if (!dropout.presidential.elections.some((e) => !e.rn)) errors.push('Abandon : aucun 2nd tour présidentiel sans RN pour le repli')
+
   const turnoutMeasures = data.turnoutCertainty.measures
   for (const m of turnoutMeasures) {
     if (m.fieldwork.start > m.fieldwork.end) errors.push(`Participation ${m.id} : dates de terrain inversées`)
@@ -384,6 +445,7 @@ export function parseData(raw: {
   reference2017: unknown
   transfers: unknown
   turnoutCertainty: unknown
+  secondRoundDropout: unknown
 }): SimulationData {
   const data: SimulationData = {
     polls: resolveGroupedLeaders(pollsSchema.parse(raw.polls)),
@@ -391,6 +453,7 @@ export function parseData(raw: {
     reference2017: reference2017Schema.parse(raw.reference2017),
     transfers: transfersSchema.parse(raw.transfers),
     turnoutCertainty: turnoutCertaintySchema.parse(raw.turnoutCertainty),
+    secondRoundDropout: secondRoundDropoutSchema.parse(raw.secondRoundDropout),
   }
   const errors = validateData(data)
   if (errors.length > 0) throw new Error(`Données invalides :\n- ${errors.join('\n- ')}`)
@@ -403,4 +466,5 @@ export const simulationData: SimulationData = parseData({
   reference2017: reference2017Json,
   transfers: transfersJson,
   turnoutCertainty: turnoutCertaintyJson,
+  secondRoundDropout: secondRoundDropoutJson,
 })

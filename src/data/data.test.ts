@@ -62,4 +62,21 @@ describe('données', () => {
     broken.reference2017.secondRound.blank += 1
     expect(validateData(broken)).toEqual([expect.stringMatching(/2017 : 2nd tour incohérent/)])
   })
+
+  it('une estimation d’abandon 2024 existe pour chaque profil de reports', () => {
+    const { profiles } = simulationData.secondRoundDropout.legislatives2024
+    for (const p of simulationData.transfers.profiles) {
+      expect(profiles[p.id].constituencies.length).toBeGreaterThan(0)
+      expect(profiles[p.id].firstRoundExpressed).toBeGreaterThan(profiles[p.id].secondRoundExpressed)
+    }
+    const broken = structuredClone(simulationData)
+    delete (broken.secondRoundDropout.legislatives2024.profiles as Partial<typeof profiles>).lr_rn
+    expect(validateData(broken)).toEqual([expect.stringMatching(/aucune estimation pour le profil « lr_rn »/)])
+  })
+
+  it('rejette un profil d’abandon sans circonscription ni parti cohérents', () => {
+    const broken = structuredClone(simulationData)
+    broken.secondRoundDropout.legislatives2024.profiles.lfi_rn.constituencies.pop()
+    expect(validateData(broken)).toEqual([expect.stringMatching(/partis de gauche incohérents/)])
+  })
 })

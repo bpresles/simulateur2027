@@ -1,9 +1,9 @@
 import { frozenData as simulationData } from '../test/frozenData'
-import { computeSecondRound, noIntentionRange, referenceDropout, secondRoundDropout } from './secondRound'
+import { computeSecondRound, duelDropout, noIntentionRange, noRnDropout, presidentialDropout, profileDropout, secondRoundDropout } from './secondRound'
 import { blendProfiles, effectiveProfiles, fallbackSplit, resolveDuel } from './transfers'
 import type { Candidate, Entrant, SecondRoundPoll } from './types'
 
-const { transfers, reference2022, reference2017 } = simulationData
+const { transfers, reference2022, reference2017, secondRoundDropout: dropoutData } = simulationData
 const profiles = effectiveProfiles(transfers, {}, 1)
 
 const cand = (id: string, bloc: Candidate['bloc'], duelProfile: Candidate['duelProfile'], isRN = false) =>
@@ -175,10 +175,46 @@ describe('secondRoundDropout', () => {
     expect(secondRoundDropout(reference2017)).toBeCloseTo(100 * (1 - 31_381_603 / 36_054_394), 10)
     expect(secondRoundDropout(reference2017)).toBeCloseTo(12.96, 2)
   })
-  it('référence : moyenne arithmétique pondérée de 2017 et 2022 (≈ 10,86 %)', () => {
-    const ref = referenceDropout({ 2022: reference2022, 2017: reference2017 })
-    expect(ref).toBeCloseTo((secondRoundDropout(reference2022) + secondRoundDropout(reference2017)) / 2, 10)
-    expect(ref).toBeCloseTo(10.86, 2)
+})
+
+describe('abandon par duel (législatives 2024, présidentielles 2002-2012)', () => {
+  const profiles = dropoutData.legislatives2024.profiles
+  const duel = (weights: [string, number][], kind: 'sourced' | 'fallback' = 'sourced') =>
+    ({
+      kind,
+      challengerId: null,
+      rnId: null,
+      profileWeights: weights.map(([profileId, weight]) => ({ profileId, weight })),
+    }) as Parameters<typeof duelDropout>[0]
+
+  it('taux par profil recalculés depuis les sommes d’exprimés', () => {
+    expect(profileDropout(profiles.lfi_rn)).toBeCloseTo(100 * (1 - 2_435_772 / 2_660_391), 10)
+    expect(profileDropout(profiles.lfi_rn)).toBeCloseTo(8.44, 2)
+    expect(profileDropout(profiles.ecolo_ps_pcf_rn)).toBeCloseTo(5.22, 2)
+    expect(profileDropout(profiles.ensemble_rn)).toBeCloseTo(2.37, 2)
+    expect(profileDropout(profiles.lr_rn)).toBeCloseTo(1.45, 2)
+  })
+  it('séries présidentielles : 2002 négatif, 2007 et 2012 proches de 2,6 et 2,9 %', () => {
+    const byYear = Object.fromEntries(dropoutData.presidential.elections.map((e) => [e.year, presidentialDropout(e)]))
+    expect(byYear[2002]).toBeCloseTo(-9.0, 1)
+    expect(byYear[2007]).toBeCloseTo(2.58, 2)
+    expect(byYear[2012]).toBeCloseTo(2.85, 2)
+  })
+  it('repli sans RN : moyenne de 2007 et 2012 (≈ 2,72 %)', () => {
+    expect(noRnDropout(dropoutData)).toBeCloseTo((2.58 + 2.85) / 2, 1)
+    expect(duelDropout(duel([], 'fallback'), dropoutData)).toBeCloseTo(noRnDropout(dropoutData), 10)
+  })
+  it('duel sourcé : abandon de son profil ; alliance : moyenne pondérée des profils', () => {
+    expect(duelDropout(duel([['lfi_rn', 1]]), dropoutData)).toBeCloseTo(profileDropout(profiles.lfi_rn), 10)
+    expect(
+      duelDropout(
+        duel([
+          ['lfi_rn', 0.75],
+          ['ensemble_rn', 0.25],
+        ]),
+        dropoutData,
+      ),
+    ).toBeCloseTo(0.75 * profileDropout(profiles.lfi_rn) + 0.25 * profileDropout(profiles.ensemble_rn), 10)
   })
 })
 

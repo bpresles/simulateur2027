@@ -8,11 +8,12 @@ import { useSettings } from '../../state/settingsStore'
 import { BLOC_VOTERS, MINOR_CANDIDATES, cand, colorVars, transferLabel } from '../candidates'
 import { num, pct, pts, ratio } from '../format'
 import { referenceParts } from '../../domain/references'
-import { referenceDropout, secondRoundDropout } from '../../domain/secondRound'
+import { duelDropout, secondRoundDropout } from '../../domain/secondRound'
 import { minorTransfer } from '../../domain/transfers'
 import { AllianceRates } from './AllianceRates'
 import { AllianceSwitches, GroupedAlliancesSwitch, UntestedAlliancesSwitch } from './AllianceSwitches'
 import { Segmented, Slider, Switch, TextButton } from './controls'
+import { DROPOUT_ROWS, dropoutBasis } from '../dropout'
 import { provenanceClass } from '../provenance'
 import { ProvenanceLegend } from './Provenance'
 
@@ -71,7 +72,7 @@ export function SettingsSheet({
                 <AlliancesPanel result={result} />
               </Tabs.Content>
               <Tabs.Content value="reports">
-                <TransfersEditor />
+                <TransfersEditor result={result} />
               </Tabs.Content>
             </div>
           </Tabs.Root>
@@ -258,10 +259,10 @@ function AlliancesPanel({ result }: { result: SimulationResult }) {
   )
 }
 
-function SecondRoundPanel() {
+function SecondRoundPanel({ result }: { result: SimulationResult }) {
   const s = useSettings()
   const fidelity = s.fidelity ?? transfers.defaultFidelity
-  const reference = referenceDropout({ 2022: simulationData.reference2022, 2017: simulationData.reference2017 })
+  const reference = duelDropout(result.secondRound.duel, simulationData.secondRoundDropout)
   const target = s.abstentionTarget ?? reference
   return (
     <div className="space-y-6 border-b border-rule pb-6">
@@ -271,7 +272,7 @@ function SecondRoundPanel() {
           checked={s.abstentionCalibration}
           onCheckedChange={s.setAbstentionCalibration}
           label={`Caler blancs, nuls et abstention : ${pct(target, 2)}`}
-          description={`Part des électeurs exprimés du 1er tour qui ne s’expriment pas au 2nd. Par défaut, moyenne des 2nds tours de 2017 et 2022 (${pct(reference, 2)} ; rappel : 2017 ${pct(secondRoundDropout(simulationData.reference2017), 2)}, 2022 ${pct(secondRoundDropout(simulationData.reference2022), 2)}). Désactivé : taux bruts des législatives 2024.`}
+          description={`Part des électeurs exprimés du 1er tour qui ne s’expriment pas au 2nd. Par défaut, estimation pour le duel en cours : ${pct(reference, 2)} (${dropoutBasis(result.secondRound.duel)}). Rappel : 2nd tour de 2017 ${pct(secondRoundDropout(simulationData.reference2017), 2)}, de 2022 ${pct(secondRoundDropout(simulationData.reference2022), 2)}. Désactivé : taux bruts des législatives 2024.`}
         />
         <div className="mt-3 pl-12">
           <Slider
@@ -285,11 +286,23 @@ function SecondRoundPanel() {
           />
           {s.abstentionTarget !== null && (
             <TextButton className="mt-2" onClick={() => s.setAbstentionTarget(null)}>
-              Revenir à la moyenne 2017-2022
+              Revenir à l’estimation par duel
             </TextButton>
           )}
         </div>
       </div>
+      <table className="w-full text-sm">
+        <caption className="pb-1 text-left text-ink-3">Estimation par type de duel (abandon net, législatives 2024)</caption>
+        <tbody>
+          {DROPOUT_ROWS.map((row) => (
+            <tr key={row.label} className="border-b border-rule/60">
+              <td className="py-1">{row.label}</td>
+              <td className="num py-1 text-right text-ink-3">{row.count === null ? '' : `${row.count} circ.`}</td>
+              <td className="num py-1 text-right font-medium">{pct(row.dropout, 2)}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
       <div>
         <p className="text-[0.95rem] font-medium">Fidélité des électeurs des finalistes : {pct(fidelity * 100, 0)}</p>
         <p className="mb-3 mt-0.5 text-sm text-ink-3">
@@ -366,7 +379,7 @@ function MinorTransfersPanel() {
   )
 }
 
-function TransfersEditor() {
+function TransfersEditor({ result }: { result: SimulationResult }) {
   const [profileId, setProfileId] = useState<ProfileId>('lfi_rn')
   const s = useSettings()
   const profile = transfers.profiles.find((p) => p.id === profileId)!
@@ -384,7 +397,7 @@ function TransfersEditor() {
 
   return (
     <div className="space-y-5">
-      <SecondRoundPanel />
+      <SecondRoundPanel result={result} />
       <MinorTransfersPanel />
       <p className="text-sm text-ink-2">
         Taux de report de chaque électorat selon le type de duel. Le taux de blanc, nul ou abstention est

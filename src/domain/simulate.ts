@@ -16,7 +16,7 @@ import type { Calibration } from './calibration'
 import { applyCorrections } from './corrections'
 import { averagePolls } from './pollAverage'
 import { turnoutBalance, turnoutCoverage, turnoutWarnings } from './turnout'
-import { computeSecondRound, referenceDropout, secondRoundDropout } from './secondRound'
+import { computeSecondRound, duelDropout, secondRoundDropout } from './secondRound'
 import { allianceSplit2024, effectiveProfiles, minorTransferParts, resolveDuel } from './transfers'
 import type {
   Alliance,
@@ -199,40 +199,47 @@ export function simulate(
   const gap = third ? second.score - third.score : null
   const tight = gap !== null && gap < TIGHT_QUALIFICATION_GAP
 
-  const abstentionTarget = settings.abstentionCalibration
-    ? (settings.abstentionTarget ?? referenceDropout({ 2022: data.reference2022, 2017: data.reference2017 }))
-    : null
-  const duelAgainst = (opponent: Entrant, target = abstentionTarget) =>
-    computeSecondRound({
+  // Cible d'abandon : celle saisie dans les réglages, sinon l'estimation propre au duel (législatives 2024).
+  const duelAgainst = (opponent: Entrant, override?: number) => {
+    const duel = resolveDuel(first, opponent, candidatesById)
+    return computeSecondRound({
       electorate: corrected,
       a: first,
       b: opponent,
-      duel: resolveDuel(first, opponent, candidatesById),
+      duel,
       profiles,
       fallback: transfers.fallback,
       candidatesById,
       fidelity,
-      abstentionTarget: target,
+      abstentionTarget: settings.abstentionCalibration
+        ? (override ?? settings.abstentionTarget ?? duelDropout(duel, data.secondRoundDropout))
+        : null,
       secondRoundPolls: polls.secondRoundPolls,
       minorTransfers,
     })
+  }
   // Qualification serrée : le 2nd tour avec le 3e est aussi simulé, l'utilisateur choisit lequel afficher.
   const withSecond = duelAgainst(second)
   const withThird = tight && third ? duelAgainst(third) : null
   const picked = withThird && settings.qualificationPick === 'third' ? 'third' : 'second'
   const secondRound = picked === 'third' && withThird ? withThird : withSecond
 
-  // Sensibilité : le duel affiché, seul l'abandon change (celui de 2017, puis celui de 2022). Un vainqueur
-  // qui change est signalé sous le duel (comme la qualification serrée), pas dans les avertissements.
+  // Sensibilité : le duel affiché, seul l'abandon change (celui de 2017, puis celui de 2022).
   const sensitivity = (() => {
-    if (abstentionTarget === null) return null
-    const at = (year: 2017 | 2022) => {
-      const target = secondRoundDropout(year === 2017 ? data.reference2017 : data.reference2022)
-      const r = duelAgainst(picked === 'third' && withThird ? third! : second, target)
-      return { target, pct: r.pct }
+    if (secondRound.abstention.target === null) return null
+    const opponent = picked === 'third' && withThird ? third! : second
+    const leader = (r: { pct: { a: number; b: number } }) => r.pct.a >= r.pct.b
+    const variant = (ref: SimulationData['reference2017']) => {
+      const target = secondRoundDropout(ref)
+      const r = duelAgainst(opponent, target)
+      return { target, pct: r.pct, winnerChanges: leader(r) !== leader(secondRound) }
     }
-    const [r2017, r2022] = [at(2017), at(2022)]
-    return { 2017: r2017, 2022: r2022, winnerChanges: r2017.pct.a >= r2017.pct.b !== r2022.pct.a >= r2022.pct.b }
+    const variants = { 2017: variant(data.reference2017), 2022: variant(data.reference2022) }
+    return {
+      shown: { target: secondRound.abstention.target, pct: secondRound.pct },
+      variants,
+      winnerChanges: variants[2017].winnerChanges || variants[2022].winnerChanges,
+    }
   })()
 
   if (secondRound.duel.kind === 'fallback') {

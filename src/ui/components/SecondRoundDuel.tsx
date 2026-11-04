@@ -1,9 +1,11 @@
 import { motion } from 'motion/react'
+import { useSettings } from '../../state/settingsStore'
 import { simulationData } from '../../data/schema'
-import { noIntentionRange, referenceDropout, secondRoundDropout } from '../../domain/secondRound'
+import { noIntentionRange, secondRoundDropout } from '../../domain/secondRound'
 import type { Entrant, SimulationResult } from '../../domain/types'
 import { cand, colorVars, entrantLabel, profileLabel } from '../candidates'
 import { fieldwork, noIntentionLabel, pct, range, shownScore } from '../format'
+import { dropoutBasis } from '../dropout'
 import { Link } from '../Link'
 import { AnimatedNumber } from './AnimatedNumber'
 
@@ -20,6 +22,7 @@ export function SecondRoundDuel({ result }: { result: SimulationResult }) {
   const b = byId.get(sr.b)!
   const leaderA = sr.pct.a >= sr.pct.b
   const abstentionShare = sr.votes.abstention
+  const settings = useSettings()
 
   return (
     <section aria-labelledby="second-round-title">
@@ -44,9 +47,11 @@ export function SecondRoundDuel({ result }: { result: SimulationResult }) {
         tour,{' '}
         {sr.abstention.target === null
           ? 'selon les taux bruts des législatives 2024.'
-          : sr.abstention.target === DROPOUT_REFERENCE
-            ? 'moyenne des 2nds tours de 2017 et 2022.'
-            : 'niveau choisi dans les réglages.'}
+          : `${pct(sr.abstention.target, 2)} attendus : ${
+              settings.abstentionTarget === null
+                ? `estimation pour ce duel (${dropoutBasis(sr.duel)})`
+                : 'niveau choisi dans les réglages'
+            }.`}
       </p>
       <SensitivityLine result={result} />
 
@@ -55,22 +60,21 @@ export function SecondRoundDuel({ result }: { result: SimulationResult }) {
   )
 }
 
-/** Abandon de référence : moyenne de 2017 et 2022. */
-const DROPOUT_REFERENCE = referenceDropout({ 2022: simulationData.reference2022, 2017: simulationData.reference2017 })
-
-/** Signale un 2nd tour qui change de vainqueur selon l'abandon de 2017 ou celui de 2022. */
+/** Signale les abandons (2017, 2022) qui changeraient le vainqueur : seuls ceux-là sont cités. */
 function SensitivityLine({ result }: { result: SimulationResult }) {
   const sens = result.secondRoundSensitivity
   if (!sens?.winnerChanges) return null
   const sr = result.secondRound
-  const line = (year: 2017 | 2022, verb: string) => {
-    const r = sens[year]
-    return `${cand(r.pct.a >= r.pct.b ? sr.a : sr.b).shortName}${verb} (${pct(Math.max(r.pct.a, r.pct.b))})`
-  }
+  const parts = ([2017, 2022] as const)
+    .filter((year) => sens.variants[year].winnerChanges)
+    .map((year) => {
+      const v = sens.variants[year]
+      const winner = cand(v.pct.a >= v.pct.b ? sr.a : sr.b).shortName
+      return `avec l’abandon de ${year} (${pct(v.target, 2)}), ${winner} l’emporterait (${pct(Math.max(v.pct.a, v.pct.b))})`
+    })
   return (
     <p className="mt-2 text-sm font-medium text-ink-2" role="status">
-      2nd tour serré : avec l’abandon de 2017 ({pct(sens[2017].target, 2)}), {line(2017, ' l’emporte')} ; avec celui de
-      2022 ({pct(sens[2022].target, 2)}), {line(2022, '')}.
+      2nd tour serré : {parts.join(' ; ')}.
     </p>
   )
 }

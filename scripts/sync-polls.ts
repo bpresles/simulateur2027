@@ -13,6 +13,7 @@ import reference2017 from '../src/data/reference-2017.json'
 import reference2022 from '../src/data/reference-2022.json'
 import transfers from '../src/data/transfers-legislatives-2024.json'
 import turnoutCertainty from '../src/data/turnout-certainty.json'
+import secondRoundDropout from '../src/data/second-round-dropout.json'
 
 const POLLS_FILE = new URL('../src/data/polls-2027.json', import.meta.url)
 
@@ -56,13 +57,13 @@ const links = {
 
 // Fichier brut : l'ordre des champs est conservé à l'écriture.
 const current = JSON.parse(await readFile(POLLS_FILE, 'utf8')) as PollsData
-parseData({ polls: current, reference2022, reference2017, transfers, turnoutCertainty })
+parseData({ polls: current, reference2022, reference2017, transfers, turnoutCertainty, secondRoundDropout })
 const result = syncPolls(current, wikitext, today, links)
 if (!result) fail('Aucun sondage de 1er tour reconnu sur la page Wikipedia (format modifié ?).')
 const { data, report } = result!
 
 // Les données obtenues doivent passer la même validation que celle de l'application.
-parseData({ polls: data, reference2022, reference2017, transfers, turnoutCertainty })
+parseData({ polls: data, reference2022, reference2017, transfers, turnoutCertainty, secondRoundDropout })
 
 const list = (items: string[], none: string) => (items.length ? items.join(', ') : none)
 const lines = [
