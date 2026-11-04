@@ -1,12 +1,40 @@
+import { BLOG_BIAS_URL, totalBias } from '../../domain/blogBias'
 import { newestFirst } from '../../domain/pollAverage'
+import { BLOG_TURNOUT_RISE } from '../../domain/turnout'
 import type { SimulationResult } from '../../domain/types'
+import { calibration, progression2022Stats } from '../../hooks/useSimulation'
 import { useSettings } from '../../state/settingsStore'
-import { fieldwork, num } from '../format'
+import { distance, fieldwork, month, num, ofMonth, ratio } from '../format'
 import { simulationData } from '../../data/schema'
 import { AllianceSwitches, GroupedAlliancesSwitch, UntestedAlliancesSwitch } from './AllianceSwitches'
 import { Checkbox, Slider, Switch } from './controls'
 
 const allianceLabel = new Map(simulationData.polls.alliances.map((a) => [a.id, a.label]))
+/** Période de la progression 2022 : même distance du scrutin que la base 2027, jusqu'au vote. */
+const PROGRESSION_PERIOD = `${ofMonth(progression2022Stats.asOf)} à ${month(simulationData.reference2022.electionDate)}`
+const { extreme_droite: farRightBias, gauche: leftBias } = calibration.blogBias
+/** Biais du billet estimés sur 2017 et 2022 à la même distance du scrutin, par bloc. */
+const BLOG_BIAS_DESCRIPTION = [
+  `En 2017 et 2022, des sondages à ${distance(progression2022Stats.daysBefore)} du scrutin au résultat`,
+  [
+    farRightBias && `extrême droite ${ratio(totalBias(farRightBias))}`,
+    leftBias && `gauche ${ratio(totalBias(leftBias))}`,
+  ]
+    .filter(Boolean)
+    .join(', '),
+].join(' : ')
+
+/** Biais du billet déjà corrigés par les options activées : corrigés une seule fois. */
+function blogOverlapNote(progression: boolean, correction: boolean): string | null {
+  const once = 'à la plus forte des deux intensités'
+  if (progression && correction)
+    return `Progression et correction ci-dessus couvrent déjà ces biais : chacun n’est corrigé qu’une fois, ${once}.`
+  if (correction)
+    return `« Corriger la moyenne » couvre déjà l’écart entre derniers sondages et résultat : il n’est corrigé qu’une fois, ${once}.`
+  if (progression)
+    return `« Progression comme en 2022 » couvre déjà l’évolution des sondages : elle n’est corrigée qu’une fois, ${once}.`
+  return null
+}
 
 /** Candidats testés : hypothèse retenue (les alliances testées y retirent leurs ralliés), puis alliances estimées. */
 function firstRoundSummary(result: SimulationResult): string {
@@ -14,7 +42,7 @@ function firstRoundSummary(result: SimulationResult): string {
   return [result.hypothesisSet.description.replace(/\.$/, ''), ...estimated].join(', ') + '.'
 }
 
-export function ScenarioBar({ result }: { result: SimulationResult }) {
+export function ScenarioBar({ result, onOpenSettings }: { result: SimulationResult; onOpenSettings: () => void }) {
   const s = useSettings()
   const resetAll = useSettings((s) => s.resetAll)
   const singlePoll = result.institutesUsed === 1 ? result.pollUsage.find((u) => u.status === 'used')?.poll : undefined
@@ -69,7 +97,7 @@ export function ScenarioBar({ result }: { result: SimulationResult }) {
                 checked={s.progressionEnabled}
                 onCheckedChange={s.setProgressionEnabled}
                 label="Progression comme en 2022"
-                description="Estime les derniers sondages avant le vote selon l’évolution d’octobre 2021 à avril 2022"
+                description={`Estime les derniers sondages avant le vote selon l’évolution ${PROGRESSION_PERIOD}`}
               />
               <Intensity
                 label="Intensité de la progression"
@@ -84,15 +112,79 @@ export function ScenarioBar({ result }: { result: SimulationResult }) {
               checked={s.correctionsEnabled}
               onCheckedChange={s.setCorrectionsEnabled}
               label="Corriger la moyenne"
-              description="Selon l’écart réel entre derniers sondages et résultat en 2022"
+              description={
+                Object.keys(s.correctionOverrides).length > 0
+                  ? 'Selon les écarts saisis dans les réglages'
+                  : 'Selon une estimation basée sur les écarts réels entre les derniers sondages et résultats de 2017 et 2022'
+              }
             />
+            {/* Hors du <label> du switch : un clic ne doit pas le basculer. Aligné sur sa description. */}
+            <button type="button" className="link ml-12 mt-1 block text-sm" onClick={onOpenSettings}>
+              Modifier les écarts
+            </button>
             <Intensity
               label="Intensité de la correction"
-              hint="l’écart de 2022"
+              hint="l’écart estimé sur 2017 et 2022"
               value={s.correctionIntensity}
               onValueChange={s.setCorrectionIntensity}
               disabled={!s.correctionsEnabled}
             />
+            <div className="mt-4">
+              <Switch
+                id="blog-bias"
+                checked={s.blogBiasEnabled}
+                onCheckedChange={s.setBlogBiasEnabled}
+                label="Corriger les biais révélés dans le billet de blog d’Eliot Thibault"
+                aside={
+                  <a
+                    href={BLOG_BIAS_URL}
+                    target="_blank"
+                    rel="noreferrer"
+                    title="Lire le billet de blog d’Eliot Thibault (Club de Mediapart)"
+                    aria-label="Lire le billet de blog d’Eliot Thibault (Club de Mediapart, nouvel onglet)"
+                    className="rounded text-ink-3 transition-colors hover:text-ballpoint"
+                  >
+                    <ExternalLinkIcon />
+                  </a>
+                }
+                description={BLOG_BIAS_DESCRIPTION}
+              />
+              {s.blogBiasEnabled && blogOverlapNote(s.progressionEnabled, s.correctionsEnabled) && (
+                <p className="ml-12 mt-1 text-sm text-ink-3">
+                  {blogOverlapNote(s.progressionEnabled, s.correctionsEnabled)}
+                </p>
+              )}
+              <Intensity
+                label="Intensité de la correction des biais du billet"
+                hint="les écarts par bloc estimés"
+                value={s.blogBiasIntensity}
+                onValueChange={s.setBlogBiasIntensity}
+                disabled={!s.blogBiasEnabled}
+              />
+            </div>
+            <div className="mt-4">
+              <Switch
+                id="turnout"
+                checked={s.turnoutEnabled}
+                onCheckedChange={s.setTurnoutEnabled}
+                label="Ajouter la hausse de participation annoncée par le billet"
+                description={`${BLOG_TURNOUT_RISE} points d’inscrits de plus que dans les sondages, votant comme les abstentionnistes de 2017 venus voter en 2022`}
+              />
+              {s.turnoutEnabled && (
+                <p className="ml-12 mt-1 text-sm text-ink-3">
+                  Les sondages interrogent déjà les électeurs certains d’aller voter, dont la hausse fait partie :
+                  l’option teste l’hypothèse d’électeurs qu’ils ne captent pas. Pour une hausse en partie captée,
+                  baissez l’intensité.
+                </p>
+              )}
+              <Intensity
+                label="Intensité de la hausse de participation"
+                hint={`une hausse de ${BLOG_TURNOUT_RISE} points absente des sondages`}
+                value={s.turnoutIntensity}
+                onValueChange={s.setTurnoutIntensity}
+                disabled={!s.turnoutEnabled}
+              />
+            </div>
           </fieldset>
           <div>
             <button type="button" className="link text-sm" onClick={resetAll}>
@@ -219,7 +311,7 @@ function ExternalLinkIcon() {
   )
 }
 
-/** Curseur d'intensité d'un ajustement 2022 (1 = 100 %, reproduit 2022 à l'identique). */
+/** Curseur d'intensité d'un ajustement (1 = 100 %, reproduit exactement l'écart estimé). */
 function Intensity({
   label,
   hint,

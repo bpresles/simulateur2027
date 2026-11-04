@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { simulationData } from '../data/schema'
 import { noIntentionRange } from '../domain/secondRound'
 import type { SimulationResult } from '../domain/types'
-import { useSimulation } from '../hooks/useSimulation'
+import { progression2022Stats, useSimulation } from '../hooks/useSimulation'
 import { ElectedPresident } from './components/ElectedPresident'
 import { FirstRoundChart } from './components/FirstRoundChart'
 import { Methodology } from './components/Methodology'
@@ -12,7 +12,7 @@ import { ScenarioBar } from './components/ScenarioBar'
 import { SecondRoundDuel } from './components/SecondRoundDuel'
 import { SettingsSheet } from './components/SettingsSheet'
 import { VoteFlow } from './components/VoteFlow'
-import { date, range } from './format'
+import { date, month, range } from './format'
 import { Link } from './Link'
 import { useRoute } from './router'
 import type { Route } from './router'
@@ -135,9 +135,20 @@ function SimulatorPage({ result, onOpenSettings }: { result: SimulationResult; o
               <li>Les reports de voix des législatives 2024 entre le premier tour et le second tour</li>
               <li>
                 Les données réelles d’écarts entre les sondages d’avant premier tour et les résultats réels du premier
-                tour de la présidentielle 2022 (en option)
+                tour des présidentielles 2017 et 2022, combinées en une estimation (en option)
               </li>
-              <li>L’évolution des sondages de fin 2021 jusqu’aux derniers sondages de 2022 (en option)</li>
+              <li>
+                L’évolution des sondages de 2022 depuis la même distance du scrutin (
+                {month(progression2022Stats.asOf)}) jusqu’aux derniers sondages (en option)
+              </li>
+              <li>
+                Les écarts de la gauche et de l’extrême droite relevés par le billet de blog d’Eliot Thibault,
+                mesurés sur 2017 et 2022 à la même distance du scrutin (en option, activée par défaut)
+              </li>
+              <li>
+                La hausse de participation annoncée par ce billet, répartie selon le vote en 2022 des abstentionnistes
+                de 2017 (sondage jour du vote Ifop-Fiducial, en option, activée par défaut)
+              </li>
             </ul>
           </div>
           <p>
@@ -169,7 +180,7 @@ function SimulatorPage({ result, onOpenSettings }: { result: SimulationResult; o
         </div>
       </div>
 
-      <ScenarioBar result={result} />
+      <ScenarioBar result={result} onOpenSettings={onOpenSettings} />
 
       {result.warnings.length > 0 && (
         <ul aria-live="polite" className="mt-4 space-y-2">

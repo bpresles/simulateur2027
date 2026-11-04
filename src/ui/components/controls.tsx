@@ -10,6 +10,7 @@ export function Switch({
   description,
   id,
   disabled,
+  aside,
 }: {
   checked: boolean
   onCheckedChange: (v: boolean) => void
@@ -17,7 +18,10 @@ export function Switch({
   description?: ReactNode
   id: string
   disabled?: boolean
+  /** Élément interactif placé juste après le libellé, hors du <label> (un lien ne doit pas basculer le switch). */
+  aside?: ReactNode
 }) {
+  const cursor = disabled ? 'cursor-not-allowed' : 'cursor-pointer'
   return (
     <div className={`flex items-start gap-3 ${disabled ? 'opacity-50' : ''}`}>
       <SwitchPrimitive.Root
@@ -29,10 +33,26 @@ export function Switch({
       >
         <SwitchPrimitive.Thumb className="block h-4 w-4 translate-x-0.5 rounded-full bg-surface shadow transition-transform data-[state=checked]:translate-x-[18px]" />
       </SwitchPrimitive.Root>
-      <label htmlFor={id} className={`select-none leading-tight ${disabled ? 'cursor-not-allowed' : 'cursor-pointer'}`}>
-        <span className="block text-[0.95rem] font-medium text-ink">{label}</span>
-        {description && <span className="mt-0.5 block text-sm text-ink-3">{description}</span>}
-      </label>
+      {aside ? (
+        <div className="leading-tight">
+          <span className="flex items-center gap-1.5">
+            <label htmlFor={id} className={`select-none text-[0.95rem] font-medium text-ink ${cursor}`}>
+              {label}
+            </label>
+            {aside}
+          </span>
+          {description && (
+            <label htmlFor={id} className={`mt-0.5 block select-none text-sm text-ink-3 ${cursor}`}>
+              {description}
+            </label>
+          )}
+        </div>
+      ) : (
+        <label htmlFor={id} className={`select-none leading-tight ${cursor}`}>
+          <span className="block text-[0.95rem] font-medium text-ink">{label}</span>
+          {description && <span className="mt-0.5 block text-sm text-ink-3">{description}</span>}
+        </label>
+      )}
     </div>
   )
 }

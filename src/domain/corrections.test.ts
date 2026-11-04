@@ -1,10 +1,10 @@
 import { frozenData as simulationData } from '../test/frozenData'
-import { applyCorrections, computeReference2022, defaultCorrection } from './corrections'
+import { applyCorrections, computeReference, defaultCorrection } from './corrections'
 import type { Candidate } from './types'
 
-const stats = computeReference2022(simulationData.reference2022)
+const stats = computeReference(simulationData.reference2022)
 
-describe('computeReference2022', () => {
+describe('computeReference', () => {
   it('utilise le dernier sondage de chaque institut de la dernière semaine (11 instituts)', () => {
     expect(stats.pollsUsed).toHaveLength(11)
   })
@@ -29,6 +29,24 @@ describe('correction strictement identique à 2022', () => {
       correctionOverrides: {},
     })
     for (const r of rows) expect(r.corrected).toBeCloseTo(stats.result[r.candidateId]!, 10)
+  })
+})
+
+describe('correction strictement identique à 2017', () => {
+  const stats2017 = computeReference(simulationData.reference2017)
+  it('utilise le dernier sondage de chaque institut de la dernière semaine (9 instituts)', () => {
+    expect(stats2017.pollsUsed).toHaveLength(9)
+  })
+  it('appliquée aux derniers sondages de 2017, elle redonne exactement le résultat officiel', () => {
+    const candidates = simulationData.reference2017.candidates.map((c) => ({ id: c.id, ref2022: c.id })) as Candidate[]
+    const rows = applyCorrections(stats2017.pollAverage, candidates, stats2017, {
+      progressionEnabled: false,
+      correctionsEnabled: true,
+      correctionIntensity: 1,
+      correctionOverrides: {},
+    })
+    expect(rows).toHaveLength(simulationData.reference2017.candidates.length)
+    for (const r of rows) expect(r.corrected).toBeCloseTo(stats2017.result[r.candidateId]!, 10)
   })
 })
 

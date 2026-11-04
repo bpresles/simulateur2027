@@ -2,13 +2,15 @@ import { Fragment } from 'react'
 import type { CSSProperties } from 'react'
 import { motion } from 'motion/react'
 import type { AllianceLeak, Entrant, FirstRoundRow, SimulationResult } from '../../domain/types'
-import { reference2022Stats } from '../../hooks/useSimulation'
+import { EQUIVALENTS_2017 } from '../../domain/pastElections'
+import { calibration, reference2017Stats, reference2022Stats } from '../../hooks/useSimulation'
 import { simulationData } from '../../data/schema'
 import { cand, colorVars } from '../candidates'
 import { pct, pts, ratio, shownScore } from '../format'
 import { InfoTip } from './InfoTip'
 
 const ref2022Names = new Map(simulationData.reference2022.candidates.map((c) => [c.id, c.name]))
+const ref2017Names = new Map(simulationData.reference2017.candidates.map((c) => [c.id, c.name]))
 const spring = { type: 'spring', stiffness: 170, damping: 26 } as const
 
 export function FirstRoundChart({ result }: { result: SimulationResult }) {
@@ -183,6 +185,8 @@ function RowDetails({
         const c = cand(m.candidateId)
         if (!r) return null
         const single = r.references.length === 1 ? r.references[0]!.id : null
+        // Équivalent 2017 de la référence, s'il compte dans l'écart estimé.
+        const eq2017 = single && calibration.correction.ratio2017[single] !== undefined ? EQUIVALENTS_2017[single] : null
         const refLabel = r.references
           .map((p) =>
             r.references.length > 1
@@ -210,10 +214,8 @@ function RowDetails({
               </>
             )}
             <dt className="text-ink-3">Référence 2022</dt>
-            <dd className="num text-right">
-              {r.ratio2022 ? `${refLabel} ${ratio(r.ratio2022)}` : 'aucune'}
-            </dd>
-            {single && r.ratio2022 && (
+            <dd className="num text-right">{r.correctionRatio ? refLabel : 'aucune'}</dd>
+            {single && r.correctionRatio && (
               <>
                 <dt className="text-ink-3">Sondages → résultat 2022</dt>
                 <dd className="num text-right">
@@ -221,8 +223,36 @@ function RowDetails({
                 </dd>
               </>
             )}
+            {eq2017 && (
+              <>
+                <dt className="text-ink-3">
+                  Sondages → résultat 2017{eq2017 !== single ? ` (${ref2017Names.get(eq2017) ?? eq2017})` : ''}
+                </dt>
+                <dd className="num text-right">
+                  {pct(reference2017Stats.pollAverage[eq2017] ?? 0)} → {pct(reference2017Stats.result[eq2017] ?? 0)}
+                </dd>
+              </>
+            )}
+            {r.correctionRatio && (
+              <>
+                <dt className="text-ink-3">Écart estimé{single ? (eq2017 ? ' (2022 et 2017)' : ' (2022 seul)') : ''}</dt>
+                <dd className="num text-right">{ratio(r.correctionRatio)}</dd>
+              </>
+            )}
             <dt className="text-ink-3">Correction{r.isOverride ? ' (manuelle)' : ''}</dt>
             <dd className="num text-right">{pts(r.appliedCorrection)}</dd>
+            {r.blogBiasFactor !== null && Math.abs(r.blogBiasFactor - 1) > 1e-9 && (
+              <>
+                <dt className="text-ink-3">Biais du billet</dt>
+                <dd className="num text-right">{ratio(r.blogBiasFactor)}</dd>
+              </>
+            )}
+            {r.turnoutFactor !== null && Math.abs(r.turnoutFactor - 1) > 1e-9 && (
+              <>
+                <dt className="text-ink-3">Hausse de participation</dt>
+                <dd className="num text-right">{ratio(r.turnoutFactor)}</dd>
+              </>
+            )}
             {r.ceded > 1e-9 && (
               <>
                 <dt className="text-ink-3">Cédé aux petits candidats ajoutés</dt>

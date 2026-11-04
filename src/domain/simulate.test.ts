@@ -18,7 +18,8 @@ describe('simulate (données réelles)', () => {
     const res = run()
     expect(res.secondRound.abstention.target).toBeCloseTo(secondRoundDropout2022(simulationData.reference2022), 10)
     expect(res.secondRound.votes.abstention).toBeCloseTo(res.secondRound.abstention.target!, 8)
-    expect(res.secondRound.pct.b).toBeCloseTo(48, 0)
+    // Défauts : options du billet d'Eliot Thibault seules (biais et hausse de participation), à 100 %.
+    expect(res.secondRound.pct.b).toBeCloseTo(51, 0)
   })
 
   it('un seul sondage coché : base de ce sondage, sans alerte de moyenne fragile', () => {
@@ -52,20 +53,21 @@ describe('simulate (données réelles)', () => {
   })
 
   it('les finalistes dépendent des corrections (Philippe qualifié si on corrige Mélenchon à la baisse)', () => {
-    const res = run({ correctionOverrides: { melenchon: -3 } })
+    const res = run({ correctionsEnabled: true, blogBiasEnabled: false, turnoutEnabled: false, correctionOverrides: { melenchon: -3 } })
     expect([res.secondRound.a, res.secondRound.b]).toEqual(['lepen', 'philippe'])
     expect(res.secondRound.duel.profileWeights).toEqual([{ profileId: 'ensemble_rn', weight: 1 }])
   })
 
   it('qualification serrée : les deux seconds tours possibles sont simulés, le choix bascule l’affichage', () => {
-    const res = run({ correctionsEnabled: false })
+    // Moyenne brute : aucune option d'ajustement.
+    const res = run({ correctionsEnabled: false, blogBiasEnabled: false, turnoutEnabled: false })
     expect(res.qualification.tight).toBe(true)
     expect(res.qualification.gap).toBeLessThan(1)
     expect([res.qualification.withSecond.a, res.qualification.withSecond.b]).toEqual(['lepen', 'melenchon'])
     expect([res.qualification.withThird!.a, res.qualification.withThird!.b]).toEqual(['lepen', 'philippe'])
     expect(res.secondRound).toBe(res.qualification.withSecond)
 
-    const third = run({ correctionsEnabled: false, qualificationPick: 'third' })
+    const third = run({ correctionsEnabled: false, blogBiasEnabled: false, turnoutEnabled: false, qualificationPick: 'third' })
     expect(third.qualification.picked).toBe('third')
     expect([third.secondRound.a, third.secondRound.b]).toEqual(['lepen', 'philippe'])
   })
@@ -97,7 +99,7 @@ describe('simulate (données réelles)', () => {
   })
 
   it('duel sans RN : modèle de repli et avertissement', () => {
-    const res = run({ correctionOverrides: { lepen: -30 } })
+    const res = run({ correctionsEnabled: true, correctionOverrides: { lepen: -30 } })
     expect(res.secondRound.duel.kind).toBe('fallback')
     expect(res.warnings.some((w) => w.startsWith('Duel hors source'))).toBe(true)
   })

@@ -14,6 +14,10 @@ interface SettingsActions {
   setCorrectionOverride: (id: CandidateId, points: number | undefined) => void
   /** `undefined` rétablit le dosage des données pour cette référence composite. */
   setReferenceBlend: (id: CandidateId, weight: number | undefined) => void
+  setBlogBiasEnabled: (enabled: boolean) => void
+  setBlogBiasIntensity: (intensity: number) => void
+  setTurnoutEnabled: (enabled: boolean) => void
+  setTurnoutIntensity: (intensity: number) => void
   /** Remplace les alliances actives (celles qu'aucun sondage ne permet plus sont retirées). */
   setAlliances: (alliances: Record<string, boolean>) => void
   setUntestedAlliances: (enabled: boolean) => void
@@ -36,7 +40,7 @@ interface SettingsActions {
 export type SettingsStore = Settings & SettingsActions
 
 const STORAGE_KEY = 'simulateur2027:settings'
-const STORAGE_VERSION = 7
+const STORAGE_VERSION = 8
 
 export const useSettings = create<SettingsStore>()(
   persist(
@@ -62,6 +66,10 @@ export const useSettings = create<SettingsStore>()(
           const { [id]: _, ...rest } = s.referenceBlend
           return { referenceBlend: weight === undefined ? rest : { ...rest, [id]: weight } }
         }),
+      setBlogBiasEnabled: (blogBiasEnabled) => set({ blogBiasEnabled }),
+      setBlogBiasIntensity: (blogBiasIntensity) => set({ blogBiasIntensity }),
+      setTurnoutEnabled: (turnoutEnabled) => set({ turnoutEnabled }),
+      setTurnoutIntensity: (turnoutIntensity) => set({ turnoutIntensity }),
       setAlliances: (alliances) => set({ alliances }),
       setUntestedAlliances: (untestedAlliances) => set({ untestedAlliances }),
       setGroupedAlliances: (groupedAlliances) => set({ groupedAlliances }),
@@ -112,6 +120,10 @@ export const useSettings = create<SettingsStore>()(
         correctionIntensity: s.correctionIntensity,
         correctionOverrides: s.correctionOverrides,
         referenceBlend: s.referenceBlend,
+        blogBiasEnabled: s.blogBiasEnabled,
+        blogBiasIntensity: s.blogBiasIntensity,
+        turnoutEnabled: s.turnoutEnabled,
+        turnoutIntensity: s.turnoutIntensity,
         alliances: s.alliances,
         untestedAlliances: s.untestedAlliances,
         groupedAlliances: s.groupedAlliances,
@@ -130,9 +142,12 @@ export const useSettings = create<SettingsStore>()(
       // ≤ v5 : les intensités passent de 100 % à 70 % par défaut ; une intensité restée à 100 % suit.
       // ≤ v6 : les alliances passent par les hypothèses des sondages ; leurs taux modifiés ne servent plus
       // qu'aux alliances non testées (option désactivée par défaut).
+      // ≤ v7 : les intensités repassent à 100 % par défaut et seules les options du billet (biais et hausse de
+      // participation) sont activées ; une intensité restée à 70 % et « Corriger la moyenne » resté activé
+      // (anciens défauts) suivent.
       // Le reste du scénario est conservé ; les nouveaux réglages prennent leur valeur par défaut.
       migrate: (persisted, version) => {
-        if (version < 1 || version > 6) return defaultSettings()
+        if (version < 1 || version > 7) return defaultSettings()
         const {
           allianceEfficiency: _efficiency,
           hypothesisSetId,
@@ -145,8 +160,10 @@ export const useSettings = create<SettingsStore>()(
           ...old,
           alliances: hypothesisSetId === 'philippe-seul' ? { ...alliances, 'attal-philippe': true } : alliances,
           transferOverrides: version === 1 ? {} : (old.transferOverrides ?? {}),
-          ...(old.progressionIntensity === 1 && { progressionIntensity: defaultSettings().progressionIntensity }),
-          ...(old.correctionIntensity === 1 && { correctionIntensity: defaultSettings().correctionIntensity }),
+          ...(old.progressionIntensity === 0.7 && { progressionIntensity: defaultSettings().progressionIntensity }),
+          ...(old.correctionIntensity === 0.7 && { correctionIntensity: defaultSettings().correctionIntensity }),
+          ...(old.blogBiasIntensity === 0.7 && { blogBiasIntensity: defaultSettings().blogBiasIntensity }),
+          ...(old.correctionsEnabled === true && { correctionsEnabled: defaultSettings().correctionsEnabled }),
         }
       },
     },
@@ -162,6 +179,10 @@ export function selectSettings(s: SettingsStore): Settings {
     correctionIntensity: s.correctionIntensity,
     correctionOverrides: s.correctionOverrides,
     referenceBlend: s.referenceBlend,
+    blogBiasEnabled: s.blogBiasEnabled,
+    blogBiasIntensity: s.blogBiasIntensity,
+    turnoutEnabled: s.turnoutEnabled,
+    turnoutIntensity: s.turnoutIntensity,
     alliances: s.alliances,
     untestedAlliances: s.untestedAlliances,
     groupedAlliances: s.groupedAlliances,
