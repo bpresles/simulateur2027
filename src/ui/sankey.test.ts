@@ -1,6 +1,6 @@
 import { simulationData } from '../data/schema'
 import { defaultSettings, simulate } from '../domain/simulate'
-import { groupSmall, layoutSankey, placeLabels, ribbonPath } from './sankey'
+import { layoutSankey, placeLabels, ribbonPath } from './sankey'
 import type { SankeyInput, SankeyLayout, SankeyLink, SankeyOptions } from './sankey'
 
 const options: SankeyOptions = {
@@ -148,7 +148,7 @@ describe('mise en page du diagramme de Sankey', () => {
       { sources: ['x'], targets: ['a'], links: [{ source: 'x', target: 'a', value: 0 }] },
       options,
     )
-    expect(layout).toEqual({ sources: [], targets: [], links: [], scale: 0 })
+    expect(layout).toEqual({ sources: [], targets: [], links: [], scale: 0, bottom: options.bottom })
   })
 
   it('compte la place d’un flux négligeable sans tracer son ruban, sans fausser les totaux', () => {
@@ -185,6 +185,73 @@ describe('mise en page du diagramme de Sankey', () => {
     const [a] = layout.targets
     close((a!.y0 + a!.y1) / 2, (options.top + options.bottom) / 2)
     expectNoOverlap(layout, options)
+  })
+
+  it('écarte les nœuds de gauche pour centrer chaque étiquette sur son nœud, en allongeant le dessin', () => {
+    const input = defaultInput()
+    const tall = new Set(input.sources.filter((_, i) => i % 3 === 2))
+    const labels = { height: (id: string) => (tall.has(id) ? 36 : 20), gap: 2 }
+    const plain = layoutSankey(input, options)
+    const layout = layoutSankey(input, { ...options, sourceLabels: labels })
+
+    // Même échelle : seuls les écarts grandissent, et le dessin avec eux.
+    close(layout.scale, plain.scale)
+    expect(layout.bottom).toBeGreaterThan(options.bottom)
+    expectConservation(layout)
+    expectNoOverlap(layout, { ...options, bottom: layout.bottom })
+
+    const centers = layout.sources.map((n) => (n.y0 + n.y1) / 2)
+    layout.sources.forEach((n, i) => {
+      const next = layout.sources[i + 1]
+      if (next)
+        expect(centers[i + 1]! - centers[i]!).toBeGreaterThanOrEqual(
+          (labels.height(n.id) + labels.height(next.id)) / 2 + labels.gap - 1e-6,
+        )
+    })
+    expect(centers[0]! - labels.height(layout.sources[0]!.id) / 2).toBeGreaterThanOrEqual(options.top - 1e-6)
+    expect(centers.at(-1)! + labels.height(layout.sources.at(-1)!.id) / 2).toBeLessThanOrEqual(
+      layout.bottom + 1e-6,
+    )
+    // La colonne de droite occupe toute la nouvelle hauteur.
+    close(layout.targets[0]!.y0, options.top)
+    close(layout.targets.at(-1)!.y1, layout.bottom)
+  })
+
+  it('laisse la place d’une étiquette plus haute que son nœud, en haut comme en bas', () => {
+    const layout = layoutSankey(
+      {
+        sources: ['petit', 'gros', 'minuscule'],
+        targets: ['a'],
+        links: [
+          { source: 'petit', target: 'a', value: 0.1 },
+          { source: 'gros', target: 'a', value: 99.8 },
+          { source: 'minuscule', target: 'a', value: 0.1 },
+        ],
+      },
+      { ...options, sourceLabels: { height: () => 40, gap: 2 } },
+    )
+    const center = (i: number) => (layout.sources[i]!.y0 + layout.sources[i]!.y1) / 2
+    expect(center(0) - 20).toBeGreaterThanOrEqual(options.top - 1e-6)
+    expect(center(2) + 20).toBeLessThanOrEqual(layout.bottom + 1e-6)
+    expectConservation(layout)
+  })
+
+  it('ne change rien quand les étiquettes tiennent déjà', () => {
+    const input = defaultInput()
+    const plain = layoutSankey(input, options)
+    expect(plain.bottom).toBe(options.bottom)
+    expect(layoutSankey(input, { ...options, sourceLabels: { height: () => 0, gap: 0 } })).toEqual(plain)
+    const roomy: SankeyInput = {
+      sources: ['x', 'y'],
+      targets: ['a'],
+      links: [
+        { source: 'x', target: 'a', value: 50 },
+        { source: 'y', target: 'a', value: 50 },
+      ],
+    }
+    expect(layoutSankey(roomy, { ...options, sourceLabels: { height: () => 20, gap: 2 } })).toEqual(
+      layoutSankey(roomy, options),
+    )
   })
 
   it('trace chaque ruban avec deux courbes de Bézier cubiques aux tangentes horizontales', () => {
@@ -225,17 +292,35 @@ describe('mise en page du diagramme de Sankey', () => {
       ),
     )
   })
-})
 
-describe('regroupement des petits électorats', () => {
-  it('regroupe les suites d’au moins deux éléments sous le seuil, dans l’ordre', () => {
-    const groups = groupSmall([5, 0.4, 0.3, 2, 0.2, 0.1, 0.05], (v) => v, 1)
-    expect(groups).toEqual([[5], [0.4, 0.3], [2], [0.2, 0.1, 0.05]])
-  })
-
-  it('laisse seul un petit élément isolé', () => {
-    expect(groupSmall([5, 0.4, 2], (v) => v, 1)).toEqual([[5], [0.4], [2]])
-    expect(groupSmall([], (v: number) => v, 1)).toEqual([])
+  it('épaissit le tracé d’un ruban trop fin autour de sa position, sans rien changer d’autre', () => {
+    const input: SankeyInput = {
+      sources: ['x'],
+      targets: ['a', 'b'],
+      links: [
+        { source: 'x', target: 'a', value: 50 },
+        { source: 'x', target: 'b', value: 0.1 },
+      ],
+    }
+    const plain = layoutSankey(input, { ...options, linkGap: 1 })
+    const thick = layoutSankey(input, { ...options, linkGap: 1, minLinkWidth: 3 })
+    expect(thick.links.map((l) => [l.y0, l.y1, l.width])).toEqual(
+      plain.links.map((l) => [l.y0, l.y1, l.width]),
+    )
+    expect(thick.sources).toEqual(plain.sources)
+    const [big, thin] = thick.links as [SankeyLink, SankeyLink]
+    expect(thin.width).toBeLessThan(3)
+    // Le ruban fin mesure 3 px, centré sur sa place exacte ; le gros ruban n'est pas touché.
+    expect(thin.path).toBe(
+      ribbonPath(
+        options.sourceX + options.nodeWidth,
+        thin.y0 + thin.width / 2 - 1.5,
+        options.targetX,
+        thin.y1 + thin.width / 2 - 1.5,
+        3,
+      ),
+    )
+    expect(big.path).toBe(plain.links[0]!.path)
   })
 })
 

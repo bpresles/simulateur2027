@@ -45,6 +45,12 @@ describe('reports vers le second tour', () => {
     for (const name of [cand(sr.a).shortName, cand(sr.b).shortName, 'Blanc, abst.']) {
       expect(screen.getAllByRole('button', { name: new RegExp(name) }).length).toBeGreaterThan(0)
     }
+    // Chaque électorat a son étiquette, même minuscule : le graphique s'allonge au lieu d'en masquer.
+    for (const f of sr.flows.filter((f) => f.share > 0)) {
+      expect(
+        screen.getAllByRole('button', { name: new RegExp(`^${cand(f.candidateId).shortName}`) }).length,
+      ).toBeGreaterThan(0)
+    }
     const biggest = [...sr.flows].filter((f) => !f.isFinalistVoter).sort((x, y) => y.share - x.share)[0]!
     const label = screen.getByRole('button', { name: new RegExp(`^${cand(biggest.candidateId).shortName}`) })
     act(() => fireEvent.click(label))
