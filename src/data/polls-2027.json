@@ -1,5 +1,5 @@
 {
-  "asOf": "2026-11-03",
+  "asOf": "2026-11-05",
   "electionDate": "2027-04-18",
   "windowDays": 21,
   "collection": {
@@ -943,7 +943,7 @@
       "id": "ifop-fiducial-20261029",
       "origin": "wikipedia",
       "institute": "Ifop-Fiducial",
-      "sponsor": "Non indiqué",
+      "sponsor": "LCI",
       "fieldwork": {
         "start": "2026-10-27",
         "end": "2026-10-29"
@@ -951,8 +951,9 @@
       "sampleSize": 1501,
       "sources": [
         {
-          "label": "Publication",
-          "url": "https://www.tf1info.fr/politique/elections/presidentielle/sondage-lci-a-six-mois-de-la-presidentielle-2027-marine-le-pen-et-jean-luc-melenchon-sans-adversaires-au-premier-tour-philippe-attal-retailleau-lisnard-2473663.html"
+          "label": "Notice (Commission des sondages)",
+          "url": "https://www.commission-des-sondages.fr/notices/files/notices/2026/novembre/10352-pres-iv-ifop-lci-3-novembre.pdf",
+          "kind": "notice"
         },
         {
           "label": "Wikipedia – liste des sondages",
