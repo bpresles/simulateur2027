@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import type { SimulationResult, VoteFlow as Flow } from '../../domain/types'
 import { cand, colorVars, transferLabel } from '../candidates'
-import { num, pct } from '../format'
+import { num, pct, points } from '../format'
 import { Segmented } from './controls'
 import { InfoTip } from './InfoTip'
 import { VoteFlowSankey } from './VoteFlowSankey'
@@ -54,8 +54,20 @@ export function VoteFlow({ result }: { result: SimulationResult }) {
       ) : (
         <>
           <div className="mt-4 space-y-3">
-            <Composition label={a.shortName} flows={flows} pick={(f) => f.toA} total={sr.votes.a} />
-            <Composition label={b.shortName} flows={flows} pick={(f) => f.toB} total={sr.votes.b} />
+            <Composition
+              label={a.shortName}
+              flows={flows}
+              pick={(f) => f.toA}
+              total={sr.votes.a}
+              score={sr.pct.a}
+            />
+            <Composition
+              label={b.shortName}
+              flows={flows}
+              pick={(f) => f.toB}
+              total={sr.votes.b}
+              score={sr.pct.b}
+            />
           </div>
           <TransferTable flows={[...allies, ...transfers]} a={a.shortName} b={b.shortName} />
         </>
@@ -106,7 +118,9 @@ function FlowRow({ flow }: { flow: Flow }) {
           <span style={colorVars(c)} className="cand-fill h-2.5 w-2.5 shrink-0 rounded-full" />
           {c.shortName}
         </span>
-        {flow.like && <span className="block pl-[1.125rem] text-xs text-ink-3">comme {transferLabel(flow.like)}</span>}
+        {flow.like && (
+          <span className="block pl-[1.125rem] text-xs text-ink-3">comme {transferLabel(flow.like)}</span>
+        )}
       </td>
       <td className="num py-1.5 pr-2 text-right text-ink-2">{pct(flow.share)}</td>
       <td className="num py-1.5 pr-2 text-right">{num(rate(flow.toA), 0)}&#8239;%</td>
@@ -116,16 +130,22 @@ function FlowRow({ flow }: { flow: Flow }) {
   )
 }
 
+/**
+ * Composition des voix d'un finaliste. `total` : ses voix en points des électeurs du 1er tour (base des
+ * parts) ; `score` : son résultat en % des exprimés, le seul affiché, comme dans le graphique et le duel.
+ */
 function Composition({
   label,
   flows,
   pick,
   total,
+  score,
 }: {
   label: string
   flows: Flow[]
   pick: (f: Flow) => number
   total: number
+  score: number
 }) {
   const parts = flows.filter((f) => pick(f) > 0.05)
   return (
@@ -137,7 +157,7 @@ function Composition({
           return (
             <InfoTip
               key={f.candidateId}
-              content={`${c.shortName} : ${pct(pick(f))} des électeurs du 1er tour (${pct((pick(f) * 100) / total)} des voix de ${label})`}
+              content={`${c.shortName} : ${points(pick(f), 1, true)} des électeurs du 1er tour (${pct((pick(f) * 100) / total)} des voix de ${label})`}
             >
               <span
                 style={{ ...colorVars(c), flexGrow: pick(f), flexBasis: 0 }}
@@ -147,7 +167,7 @@ function Composition({
           )
         })}
       </div>
-      <span className="num text-right text-sm text-ink-2">{pct(total)}</span>
+      <span className="num text-right text-sm text-ink-2">{pct(score)}</span>
     </div>
   )
 }
