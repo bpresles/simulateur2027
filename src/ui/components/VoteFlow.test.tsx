@@ -6,6 +6,7 @@ import { act } from 'react'
 import { simulationData } from '../../data/schema'
 import { defaultSettings, simulate } from '../../domain/simulate'
 import { cand } from '../candidates'
+import { pct } from '../format'
 import { VoteFlow } from './VoteFlow'
 
 afterEach(cleanup)
@@ -33,6 +34,15 @@ describe('reports vers le second tour', () => {
     act(() => fireEvent.click(screen.getByRole('radio', { name: 'Tableau' })))
     expect(screen.getByRole('table')).toBeTruthy()
     expect(screen.queryByRole('img')).toBeNull()
+    // Les finalistes ont le même résultat qu'au graphique : en % des exprimés, pas en points des électeurs.
+    const sr = result.secondRound
+    for (const [score, votes] of [
+      [sr.pct.a, sr.votes.a],
+      [sr.pct.b, sr.votes.b],
+    ] as const) {
+      expect(document.body.textContent).toContain(pct(score))
+      expect(document.body.textContent).not.toContain(pct(votes))
+    }
 
     act(() => fireEvent.click(screen.getByRole('radio', { name: 'Graphique' })))
     expect(screen.queryByRole('table')).toBeNull()
