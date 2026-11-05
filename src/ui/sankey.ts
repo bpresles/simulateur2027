@@ -34,6 +34,17 @@ export interface SankeyOptions {
    * positions, et au plus la moitié de l'épaisseur d'un ruban.
    */
   linkGap?: number
+  /**
+   * Épaisseur minimale du tracé d'un ruban (px) : un ruban plus fin est épaissi de part et d'autre de sa
+   * position exacte, pour rester visible ; épaisseurs et positions comptées ne changent pas.
+   */
+  minLinkWidth?: number
+  /**
+   * Étiquettes des nœuds de gauche, centrées sur leur nœud : hauteur de chacune et écart minimal entre
+   * deux étiquettes. Les nœuds s'écartent autant qu'il le faut pour qu'aucune ne chevauche sa voisine ni
+   * ne dépasse `top` ; le dessin s'allonge alors au-delà de `bottom`, sans changer d'échelle.
+   */
+  sourceLabels?: { height: (id: string) => number; gap: number }
 }
 
 export interface SankeyNode {
@@ -66,6 +77,8 @@ export interface SankeyLayout {
   links: SankeyLink[]
   /** Pixels par unité de valeur, commune aux deux colonnes. */
   scale: number
+  /** Bas du dessin : `bottom`, ou plus bas si les étiquettes de gauche demandent plus de place. */
+  bottom: number
 }
 
 const EPS = 1e-9
@@ -76,8 +89,9 @@ const round = (v: number) => Math.round(v * 100) / 100
  * Positions des nœuds et des rubans. La hauteur d'un nœud est la somme de ses flux (les valeurs nulles,
  * négatives ou non finies sont ignorées ; un nœud sans flux disparaît). L'échelle est la même à gauche et
  * à droite : la colonne la plus chargée en nœuds garde l'espacement minimal, l'autre répartit la hauteur
- * restante entre ses nœuds. Au départ, les rubans suivent l'ordre des nœuds de droite ; à l'arrivée,
- * celui des nœuds de gauche, ce qui limite les croisements.
+ * restante entre ses nœuds. Avec `sourceLabels`, l'écart entre deux nœuds de gauche laisse aussi la place
+ * de leurs étiquettes, quitte à allonger les deux colonnes. Au départ, les rubans suivent l'ordre des nœuds
+ * de droite ; à l'arrivée, celui des nœuds de gauche, ce qui limite les croisements.
  */
 export function layoutSankey(input: SankeyInput, o: SankeyOptions): SankeyLayout {
   const sourceIds = new Set(input.sources)
@@ -100,18 +114,49 @@ export function layoutSankey(input: SankeyInput, o: SankeyOptions): SankeyLayout
   const fitted = Math.min(fit(left), fit(right))
   const scale = Number.isFinite(fitted) ? fitted : 0
 
-  const column = (col: { id: string; value: number }[], x0: number): SankeyNode[] => {
-    const free = height - scale * sum(col.map((n) => n.value))
-    const gap = col.length > 1 ? free / (col.length - 1) : 0
-    let y = o.top + (col.length > 1 ? 0 : free / 2)
+  // Place minimale de chaque colonne : marge au-dessus du premier nœud, écart après chaque nœud (aucun
+  // après le dernier) et marge sous le dernier. Seules les étiquettes de gauche l'élargissent.
+  interface Spacing {
+    lead: number
+    gaps: number[]
+    tail: number
+  }
+  const plain = (col: unknown[]): Spacing => ({
+    lead: 0,
+    gaps: col.map((_, i) => (i < col.length - 1 ? o.nodePadding : 0)),
+    tail: 0,
+  })
+  const labelled = (col: { id: string; value: number }[]): Spacing => {
+    const labels = o.sourceLabels
+    if (!labels || col.length === 0) return plain(col)
+    // Débord d'une étiquette au-delà de son nœud, de chaque côté.
+    const overhang = col.map((n) => Math.max(0, (labels.height(n.id) - n.value * scale) / 2))
+    return {
+      lead: overhang[0]!,
+      gaps: col.map((_, i) =>
+        i < col.length - 1 ? Math.max(o.nodePadding, overhang[i]! + labels.gap + overhang[i + 1]!) : 0,
+      ),
+      tail: overhang.at(-1)!,
+    }
+  }
+  const spacing: [Spacing, Spacing] = [labelled(left), plain(right)]
+  const needed = ([col, s]: [{ value: number }[], Spacing]) =>
+    s.lead + scale * sum(col.map((n) => n.value)) + sum(s.gaps) + s.tail
+  const span = Math.max(height, needed([left, spacing[0]]), needed([right, spacing[1]]))
+
+  const column = (col: { id: string; value: number }[], x0: number, s: Spacing): SankeyNode[] => {
+    // La hauteur en trop se répartit entre les nœuds ; un nœud seul est centré.
+    const free = span - needed([col, s])
+    const extra = col.length > 1 ? free / (col.length - 1) : 0
+    let y = o.top + s.lead + (col.length > 1 ? 0 : free / 2)
     return col.map((n, index) => {
       const node = { ...n, index, x0, x1: x0 + o.nodeWidth, y0: y, y1: y + n.value * scale }
-      y = node.y1 + gap
+      y = node.y1 + s.gaps[index]! + extra
       return node
     })
   }
-  const sources = column(left, o.sourceX)
-  const targets = column(right, o.targetX)
+  const sources = column(left, o.sourceX, spacing[0])
+  const targets = column(right, o.targetX, spacing[1])
   const sourceOf = new Map(sources.map((n) => [n.id, n]))
   const targetOf = new Map(targets.map((n) => [n.id, n]))
 
@@ -137,10 +182,13 @@ export function layoutSankey(input: SankeyInput, o: SankeyOptions): SankeyLayout
   stack(targets, 'target', (l) => sourceOf.get(l.source)!.index)
   for (const l of links) {
     const inset = Math.min((o.linkGap ?? 0) / 2, l.width / 4)
-    l.path = ribbonPath(o.sourceX + o.nodeWidth, l.y0 + inset, o.targetX, l.y1 + inset, l.width - 2 * inset)
+    const width = Math.max(l.width - 2 * inset, o.minLinkWidth ?? 0)
+    // Décalage du bord haut : le liseré, ou un débord négatif quand le ruban est épaissi.
+    const shift = (l.width - width) / 2
+    l.path = ribbonPath(o.sourceX + o.nodeWidth, l.y0 + shift, o.targetX, l.y1 + shift, width)
   }
 
-  return { sources, targets, links, scale }
+  return { sources, targets, links, scale, bottom: o.top + span }
 }
 
 /**
@@ -152,29 +200,6 @@ export function ribbonPath(x0: number, y0: number, x1: number, y1: number, width
   const [a, b, c, d] = [x0, x1, y0, y1].map(round) as [number, number, number, number]
   const [cw, dw] = [round(y0 + width), round(y1 + width)]
   return `M${a},${c}C${xm},${c} ${xm},${d} ${b},${d}L${b},${dw}C${xm},${dw} ${xm},${cw} ${a},${cw}Z`
-}
-
-/**
- * Regroupe les suites d'au moins deux éléments consécutifs de valeur inférieure à `threshold` ; les autres
- * restent seuls. L'ordre est conservé.
- */
-export function groupSmall<T>(items: T[], value: (item: T) => number, threshold: number): T[][] {
-  const groups: T[][] = []
-  let run: T[] = []
-  const flush = () => {
-    if (run.length >= 2) groups.push(run)
-    else groups.push(...run.map((item) => [item]))
-    run = []
-  }
-  for (const item of items) {
-    if (value(item) < threshold) run.push(item)
-    else {
-      flush()
-      groups.push([item])
-    }
-  }
-  flush()
-  return groups
 }
 
 export interface LabelRequest {

@@ -3,7 +3,7 @@ import type { CSSProperties } from 'react'
 import type { SecondRoundResult, VoteFlow as Flow } from '../../domain/types'
 import { cand, colorVars, transferLabel } from '../candidates'
 import { pct, points } from '../format'
-import { groupSmall, layoutSankey, placeLabels } from '../sankey'
+import { layoutSankey, placeLabels } from '../sankey'
 import type { PlacedLabel, SankeyLink, SankeyNode } from '../sankey'
 import { InfoTip } from './InfoTip'
 
@@ -12,14 +12,16 @@ type Target = (typeof TARGETS)[number]
 
 /** Flux plus petits (en points des électeurs du 1er tour) : place gardée dans les nœuds, ruban non tracé. */
 const MIN_DRAWN = 0.05
-/** Électorats de moins de 1 point qui se suivent : une seule étiquette « Autres ». */
-const SMALL_SHARE = 1
 /** En dessous, le graphique défile horizontalement dans son cadre plutôt que d'écraser les rubans. */
 const MIN_WIDTH = 280
+/** Hauteur minimale du graphique ; au-delà, elle suit le nombre d'électorats et la place de leurs noms. */
+const MIN_HEIGHT = 360
+/** Épaisseur minimale du tracé des petits rubans et des petits nœuds (px), pour qu'ils restent visibles. */
+const MIN_THICKNESS = 3
 
-/** Élément mis en avant : un électorat (ou un groupe d'électorats), un choix du 2nd tour ou un ruban. */
+/** Élément mis en avant : un électorat, un choix du 2nd tour ou un ruban. */
 type Active =
-  | { kind: 'source'; key: string; ids: string[] }
+  | { kind: 'source'; key: string; id: string }
   | { kind: 'target'; key: string; id: Target }
   | { kind: 'link'; key: string; source: string; target: Target }
 
@@ -48,7 +50,8 @@ function useWidth() {
 /**
  * Diagramme de Sankey des reports : à gauche l'électorat de chaque candidat au 1er tour (dans l'ordre du
  * tableau), à droite les deux finalistes puis les blancs, nuls et abstentions. L'épaisseur d'un ruban est
- * proportionnelle aux points des électeurs du 1er tour qui se reportent.
+ * proportionnelle aux points des électeurs du 1er tour qui se reportent. La hauteur n'est pas bornée : le
+ * graphique s'allonge pour nommer chaque électorat, même minuscule, en face de son nœud.
  */
 export function VoteFlowSankey({ sr, flows }: { sr: SecondRoundResult; flows: Flow[] }) {
   const [ref, measured] = useWidth()
@@ -73,11 +76,13 @@ export function VoteFlowSankey({ sr, flows }: { sr: SecondRoundResult; flows: Fl
   // Sur téléphone, la colonne des noms prend plus de place pour éviter de tronquer les noms courants.
   const sourceX = Math.round(compact ? clamp(W * 0.41, 112, 176) : clamp(W * 0.34, 104, 176))
   const targetX = Math.round(W - clamp(W * 0.22, 76, 136) - nodeWidth)
-  const H = Math.round(clamp(flows.length * 26 + 48, 360, 560))
   const line = compact ? 16 : 20
   const likeLine = compact ? 14 : 16
   const rightHeight = compact ? 38 : 48
+  const labelHeight = (id: string) => (flowOf.get(id)!.like ? line + likeLine : line)
 
+  // La hauteur de base fixe l'échelle des rubans ; la mise en page l'allonge ensuite, sans limite, pour
+  // que chaque nom tienne en face de son nœud.
   const layout = layoutSankey(
     {
       sources: flows.map((f) => f.candidateId),
@@ -91,36 +96,22 @@ export function VoteFlowSankey({ sr, flows }: { sr: SecondRoundResult; flows: Fl
       targetX,
       nodeWidth,
       top: 8,
-      bottom: H - 8,
+      bottom: Math.max(MIN_HEIGHT, flows.length * 26 + 48) - 8,
       nodePadding: compact ? 5 : 6,
       minDrawnValue: MIN_DRAWN,
       linkGap: 1,
+      minLinkWidth: MIN_THICKNESS,
+      sourceLabels: { height: labelHeight, gap: 2 },
     },
   )
+  const H = Math.ceil(layout.bottom) + 8
 
-  // Étiquettes de gauche : les petits électorats consécutifs partagent une étiquette ; faute de place,
-  // les moins gros ne sont pas nommés (l'infobulle des rubans et le tableau gardent l'information).
-  const groups = groupSmall(layout.sources, (n) => flowOf.get(n.id)!.share, SMALL_SHARE).map((nodes) => {
-    const members = nodes.map((n) => flowOf.get(n.id)!)
-    const single = members.length === 1 ? members[0]! : undefined
-    return {
-      key: single ? single.candidateId : `autres-${members[0]!.candidateId}`,
-      nodes,
-      members,
-      single,
-      share: members.reduce((s, f) => s + f.share, 0),
-    }
+  // Étiquettes de gauche : la mise en page leur a réservé la place, chacune est centrée sur son nœud.
+  const left: PlacedLabel[] = layout.sources.map((n) => {
+    const center = (n.y0 + n.y1) / 2
+    const h = labelHeight(n.id)
+    return { id: n.id, anchor: center, y0: center - h / 2, y1: center + h / 2 }
   })
-  type Group = (typeof groups)[number]
-  const left = placeLabels(
-    groups.map((g) => ({
-      id: g.key,
-      anchor: (g.nodes[0]!.y0 + g.nodes.at(-1)!.y1) / 2,
-      height: g.single?.like ? line + likeLine : line,
-      priority: g.share,
-    })),
-    { top: 0, bottom: H, gap: 2, maxShift: compact ? 30 : 40 },
-  )
   const right = placeLabels(
     layout.targets.map((n) => ({
       id: n.id,
@@ -130,16 +121,8 @@ export function VoteFlowSankey({ sr, flows }: { sr: SecondRoundResult; flows: Fl
     })),
     { top: 0, bottom: H, gap: 4, maxShift: H },
   )
-  const groupOf = new Map(groups.map((g) => [g.key, g]))
-  const hiddenNames = left.hidden.flatMap((key) =>
-    groupOf.get(key)!.members.map((f) => cand(f.candidateId).shortName),
-  )
 
-  const sourceActive = (g: Group): Active => ({
-    kind: 'source',
-    key: `s:${g.key}`,
-    ids: g.members.map((f) => f.candidateId),
-  })
+  const sourceActive = (id: string): Active => ({ kind: 'source', key: `s:${id}`, id })
   const targetActive = (t: Target): Active => ({ kind: 'target', key: `t:${t}`, id: t })
   const linkActive = (l: SankeyLink): Active => ({
     kind: 'link',
@@ -149,7 +132,7 @@ export function VoteFlowSankey({ sr, flows }: { sr: SecondRoundResult; flows: Fl
   })
   const related = (l: SankeyLink, x: Active) =>
     x.kind === 'source'
-      ? x.ids.includes(l.source)
+      ? l.source === x.id
       : x.kind === 'target'
         ? l.target === x.id
         : x.key === linkActive(l).key
@@ -172,14 +155,11 @@ export function VoteFlowSankey({ sr, flows }: { sr: SecondRoundResult; flows: Fl
     const f = flowOf.get(l.source)!
     return `Électeurs de ${cand(l.source).shortName} → ${targetName(l.target as Target)} : ${points(l.value, 1, true)} des électeurs du 1er tour (${rate(l.value, f.share)} de son électorat).`
   }
-  const sourceText = (g: Group) => {
-    const sum = (t: Target) => g.members.reduce((s, f) => s + pick(f, t), 0)
-    const who = g.single
-      ? `Électeurs de ${cand(g.single.candidateId).shortName} : ${pct(g.share)} des électeurs du 1er tour${
-          g.single.like ? `, qui se reportent comme ${transferLabel(g.single.like)}` : ''
-        }.`
-      : `Électeurs de ${g.members.map((f) => `${cand(f.candidateId).shortName} (${pct(f.share)})`).join(', ')} : ${pct(g.share)} des électeurs du 1er tour.`
-    return `${who} ${rate(sum('a'), g.share)} vers ${a.shortName}, ${rate(sum('b'), g.share)} vers ${b.shortName}, ${rate(sum('abstention'), g.share)} blanc, nul ou abstention.`
+  const sourceText = (f: Flow) => {
+    const who = `Électeurs de ${cand(f.candidateId).shortName} : ${pct(f.share)} des électeurs du 1er tour${
+      f.like ? `, qui se reportent comme ${transferLabel(f.like)}` : ''
+    }.`
+    return `${who} ${rate(f.toA, f.share)} vers ${a.shortName}, ${rate(f.toB, f.share)} vers ${b.shortName}, ${rate(f.abstention, f.share)} blanc, nul ou abstention.`
   }
   const targetText = (t: Target) => {
     const total = t === 'a' ? sr.votes.a : t === 'b' ? sr.votes.b : sr.votes.abstention
@@ -196,24 +176,24 @@ export function VoteFlowSankey({ sr, flows }: { sr: SecondRoundResult; flows: Fl
   }
   const describe = (x: Active) => {
     if (x.kind === 'target') return targetText(x.id)
-    if (x.kind === 'source') return sourceText(groups.find((g) => `s:${g.key}` === x.key)!)
+    if (x.kind === 'source') return sourceText(flowOf.get(x.id)!)
     return linkText(layout.links.find((l) => linkActive(l).key === x.key)!)
   }
 
   const opacity = (l: SankeyLink) => (!active ? 0.45 : related(l, active) ? 0.85 : 0.12)
   const nodeBox = (n: SankeyNode) => {
-    // Un électorat minuscule reste visible (1 px) ; sa place dans la colonne, elle, est exacte.
-    const h = Math.max(1, n.y1 - n.y0)
+    // Un électorat minuscule reste visible, aussi épais que ses rubans ; sa place, elle, est exacte.
+    const h = Math.max(MIN_THICKNESS, n.y1 - n.y0)
     return { x: n.x0, y: (n.y0 + n.y1) / 2 - h / 2, width: n.x1 - n.x0, height: h }
   }
-  const leader = (p: PlacedLabel, x0: number, x1: number, fromLabel: boolean) => {
+  // Trait de rappel entre un nœud de droite et son étiquette, quand celle-ci a dû s'en écarter.
+  const leader = (p: PlacedLabel, x0: number, x1: number) => {
     const center = (p.y0 + p.y1) / 2
     if (Math.abs(center - p.anchor) < 2) return null
-    const [y0, y1] = fromLabel ? [center, p.anchor] : [p.anchor, center]
     return (
       <path
         key={p.id}
-        d={`M${x0},${y0.toFixed(1)}L${x1},${y1.toFixed(1)}`}
+        d={`M${x0},${p.anchor.toFixed(1)}L${x1},${center.toFixed(1)}`}
         className="stroke-ink-3"
         fill="none"
       />
@@ -285,20 +265,18 @@ export function VoteFlowSankey({ sr, flows }: { sr: SecondRoundResult; flows: Fl
               )}
             </g>
             <g strokeWidth={1}>
-              {left.placed.map((p) => leader(p, sourceX - labelGap + 2, sourceX - 2, true))}
               {right.placed.map((p) =>
-                leader(p, targetX + nodeWidth + 2, targetX + nodeWidth + labelGap - 2, false),
+                leader(p, targetX + nodeWidth + 2, targetX + nodeWidth + labelGap - 2),
               )}
             </g>
           </svg>
 
-          {left.placed.map((p) => {
-            const g = groupOf.get(p.id)!
-            const x = sourceActive(g)
-            const name = g.single ? cand(g.single.candidateId).shortName : `Autres (${g.members.length})`
+          {left.map((p) => {
+            const f = flowOf.get(p.id)!
+            const x = sourceActive(p.id)
             return (
               // Sur grand écran, l'infobulle s'ouvre à droite pour ne pas recouvrir les étiquettes voisines.
-              <InfoTip key={p.id} content={sourceText(g)} side={compact ? 'top' : 'right'}>
+              <InfoTip key={p.id} content={sourceText(f)} side={compact ? 'top' : 'right'}>
                 <button
                   type="button"
                   aria-pressed={pinned?.key === x.key}
@@ -307,15 +285,15 @@ export function VoteFlowSankey({ sr, flows }: { sr: SecondRoundResult; flows: Fl
                   {...handlers(x)}
                 >
                   <span className="flex justify-end gap-1" style={{ lineHeight: `${line}px` }}>
-                    <span className="truncate font-medium text-ink">{name}</span>
-                    <span className="num shrink-0 text-ink-3">{pct(g.share)}</span>
+                    <span className="truncate font-medium text-ink">{cand(f.candidateId).shortName}</span>
+                    <span className="num shrink-0 text-ink-3">{pct(f.share)}</span>
                   </span>
-                  {g.single?.like && (
+                  {f.like && (
                     <span
                       className={`truncate text-ink-3 ${compact ? 'text-[11px]' : 'text-xs'}`}
                       style={{ lineHeight: `${likeLine}px` }}
                     >
-                      comme {transferLabel(g.single.like)}
+                      comme {transferLabel(f.like)}
                     </span>
                   )}
                 </button>
@@ -365,12 +343,6 @@ export function VoteFlowSankey({ sr, flows }: { sr: SecondRoundResult; flows: Fl
           ? describe(pinned)
           : 'Survolez ou touchez un nom ou un ruban pour le détail ; le mode Tableau donne tous les reports.'}
       </p>
-      {hiddenNames.length > 0 && (
-        <p className="mt-1 text-sm text-ink-3">
-          Faute de place, non nommés sur le graphique : {hiddenNames.join(', ')} (voir leurs rubans ou le mode
-          Tableau).
-        </p>
-      )}
     </div>
   )
 }
