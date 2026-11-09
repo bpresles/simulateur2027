@@ -1,5 +1,5 @@
 {
-  "asOf": "2026-11-05",
+  "asOf": "2026-11-09",
   "electionDate": "2027-04-18",
   "windowDays": 21,
   "collection": {
@@ -940,6 +940,120 @@
   ],
   "polls": [
     {
+      "id": "harris-interactive-toluna-20261105",
+      "origin": "wikipedia",
+      "institute": "Harris Interactive (Toluna)",
+      "sponsor": "Non indiqué",
+      "fieldwork": {
+        "start": "2026-11-03",
+        "end": "2026-11-05"
+      },
+      "sampleSize": 2101,
+      "sources": [
+        {
+          "label": "Synthèse de l’institut",
+          "url": "https://tolunacorporate.com/fr/intentions-de-vote-a-lelection-presidentielle-2027-6/",
+          "kind": "synthese"
+        },
+        {
+          "label": "Publication",
+          "url": "https://tolunacorporate.com/wp-content/uploads/2026/11/Rapport-Toluna-Barometre-Presidentielle-2027-Vague-9-M6-RTL-9-novembre-2026.pdf"
+        },
+        {
+          "label": "Wikipedia – liste des sondages",
+          "url": "https://fr.wikipedia.org/wiki/Liste_de_sondages_sur_l%27%C3%A9lection_pr%C3%A9sidentielle_fran%C3%A7aise_de_2027"
+        }
+      ],
+      "note": "Repris de Wikipedia : chiffres non revérifiés.",
+      "hypotheses": [
+        {
+          "id": "H1",
+          "label": "Philippe, Lisnard, Villepin",
+          "scores": {
+            "arthaud": 1,
+            "melenchon": 19,
+            "roussel": 1,
+            "tondelier": 2,
+            "glucksmann": 11,
+            "philippe": 12,
+            "lisnard": 9,
+            "retailleau": 5,
+            "dupont-aignan": 1,
+            "lepen": 34,
+            "zemmour": 3,
+            "villepin": 2
+          }
+        },
+        {
+          "id": "H2",
+          "label": "Attal, Lisnard, Villepin",
+          "scores": {
+            "arthaud": 1,
+            "melenchon": 19,
+            "roussel": 1,
+            "tondelier": 2,
+            "glucksmann": 12,
+            "attal": 9,
+            "lisnard": 9,
+            "retailleau": 6,
+            "dupont-aignan": 1,
+            "lepen": 35,
+            "zemmour": 3,
+            "villepin": 2
+          }
+        },
+        {
+          "id": "H3",
+          "label": "Attal, Philippe",
+          "scores": {
+            "arthaud": 1,
+            "melenchon": 18,
+            "roussel": 2,
+            "tondelier": 2,
+            "glucksmann": 11,
+            "attal": 6,
+            "philippe": 11,
+            "retailleau": 7,
+            "dupont-aignan": 2,
+            "lepen": 36,
+            "zemmour": 4
+          }
+        },
+        {
+          "id": "H4",
+          "label": "Philippe",
+          "scores": {
+            "arthaud": 1,
+            "melenchon": 19,
+            "roussel": 2,
+            "tondelier": 2,
+            "glucksmann": 12,
+            "philippe": 14,
+            "retailleau": 8,
+            "dupont-aignan": 2,
+            "lepen": 36,
+            "zemmour": 4
+          }
+        },
+        {
+          "id": "H5",
+          "label": "Attal",
+          "scores": {
+            "arthaud": 1,
+            "melenchon": 19,
+            "roussel": 2,
+            "tondelier": 3,
+            "glucksmann": 13,
+            "attal": 10,
+            "retailleau": 10,
+            "dupont-aignan": 2,
+            "lepen": 36,
+            "zemmour": 4
+          }
+        }
+      ]
+    },
+    {
       "id": "ifop-fiducial-20261029",
       "origin": "wikipedia",
       "institute": "Ifop-Fiducial",
@@ -1248,121 +1362,6 @@
             "lepen": 36,
             "zemmour": 4,
             "bouamrane": 0.5
-          }
-        }
-      ]
-    },
-    {
-      "id": "harris-interactive-toluna-20261021",
-      "origin": "wikipedia",
-      "institute": "Harris Interactive (Toluna)",
-      "sponsor": "Non indiqué",
-      "fieldwork": {
-        "start": "2026-10-19",
-        "end": "2026-10-21"
-      },
-      "sampleSize": 2094,
-      "sources": [
-        {
-          "label": "Synthèse de l’institut",
-          "url": "https://tolunacorporate.com/fr/intentions-de-vote-a-lelection-presidentielle-2027-5/",
-          "kind": "synthese"
-        },
-        {
-          "label": "Notice (Commission des sondages)",
-          "url": "https://www.commission-des-sondages.fr/notices/files/notices/2026/octobre/10332-pres-iv-toluna-harris-interactive-23-octobre.pdf",
-          "kind": "notice"
-        },
-        {
-          "label": "Wikipedia – liste des sondages",
-          "url": "https://fr.wikipedia.org/wiki/Liste_de_sondages_sur_l%27%C3%A9lection_pr%C3%A9sidentielle_fran%C3%A7aise_de_2027"
-        }
-      ],
-      "note": "Repris de Wikipedia : chiffres non revérifiés.",
-      "hypotheses": [
-        {
-          "id": "H1",
-          "label": "Philippe, Lisnard, Villepin",
-          "scores": {
-            "arthaud": 1,
-            "melenchon": 17,
-            "roussel": 2,
-            "tondelier": 2,
-            "glucksmann": 12,
-            "philippe": 15,
-            "lisnard": 7,
-            "retailleau": 4,
-            "dupont-aignan": 1,
-            "lepen": 33,
-            "zemmour": 5,
-            "villepin": 1
-          }
-        },
-        {
-          "id": "H2",
-          "label": "Attal, Lisnard, Villepin",
-          "scores": {
-            "arthaud": 1,
-            "melenchon": 17,
-            "roussel": 2,
-            "tondelier": 2,
-            "glucksmann": 14,
-            "attal": 10,
-            "lisnard": 8,
-            "retailleau": 5,
-            "dupont-aignan": 1,
-            "lepen": 33,
-            "zemmour": 5,
-            "villepin": 2
-          }
-        },
-        {
-          "id": "H3",
-          "label": "Attal, Philippe",
-          "scores": {
-            "arthaud": 1,
-            "melenchon": 17,
-            "roussel": 1,
-            "tondelier": 2,
-            "glucksmann": 12,
-            "attal": 5,
-            "philippe": 13,
-            "retailleau": 6,
-            "dupont-aignan": 2,
-            "lepen": 35,
-            "zemmour": 6
-          }
-        },
-        {
-          "id": "H4",
-          "label": "Philippe",
-          "scores": {
-            "arthaud": 1,
-            "melenchon": 17,
-            "roussel": 2,
-            "tondelier": 2,
-            "glucksmann": 13,
-            "philippe": 16,
-            "retailleau": 7,
-            "dupont-aignan": 2,
-            "lepen": 35,
-            "zemmour": 5
-          }
-        },
-        {
-          "id": "H5",
-          "label": "Attal",
-          "scores": {
-            "arthaud": 1,
-            "melenchon": 19,
-            "roussel": 2,
-            "tondelier": 2,
-            "glucksmann": 13,
-            "attal": 11,
-            "retailleau": 9,
-            "dupont-aignan": 2,
-            "lepen": 35,
-            "zemmour": 6
           }
         }
       ]
@@ -1683,6 +1682,51 @@
   "secondRoundPolls": [
     {
       "origin": "wikipedia",
+      "institute": "Harris Interactive (Toluna)",
+      "sponsor": "Non indiqué",
+      "fieldwork": {
+        "start": "2026-11-03",
+        "end": "2026-11-05"
+      },
+      "sampleSize": 2101,
+      "url": "https://tolunacorporate.com/wp-content/uploads/2026/11/Rapport-Toluna-Barometre-Presidentielle-2027-Vague-9-M6-RTL-9-novembre-2026.pdf",
+      "scores": {
+        "glucksmann": 40,
+        "lepen": 60
+      }
+    },
+    {
+      "origin": "wikipedia",
+      "institute": "Harris Interactive (Toluna)",
+      "sponsor": "Non indiqué",
+      "fieldwork": {
+        "start": "2026-11-03",
+        "end": "2026-11-05"
+      },
+      "sampleSize": 2101,
+      "url": "https://tolunacorporate.com/wp-content/uploads/2026/11/Rapport-Toluna-Barometre-Presidentielle-2027-Vague-9-M6-RTL-9-novembre-2026.pdf",
+      "scores": {
+        "melenchon": 32,
+        "lepen": 68
+      }
+    },
+    {
+      "origin": "wikipedia",
+      "institute": "Harris Interactive (Toluna)",
+      "sponsor": "Non indiqué",
+      "fieldwork": {
+        "start": "2026-11-03",
+        "end": "2026-11-05"
+      },
+      "sampleSize": 2101,
+      "url": "https://www.commission-des-sondages.fr/notices/files/notices/2026/octobre/10332-pres-iv-toluna-harris-interactive-23-octobre.pdf",
+      "scores": {
+        "philippe": 42,
+        "lepen": 58
+      }
+    },
+    {
+      "origin": "wikipedia",
       "institute": "OpinionWay",
       "sponsor": "CNews",
       "fieldwork": {
@@ -1747,78 +1791,6 @@
         "source": {
           "label": "Notice (Commission des sondages)",
           "url": "https://www.commission-des-sondages.fr/notices/files/notices/2026/octobre/10333-pres-iv-opinionway-cnews-22-octobre.pdf"
-        }
-      }
-    },
-    {
-      "origin": "wikipedia",
-      "institute": "Harris Interactive (Toluna)",
-      "sponsor": "Non indiqué",
-      "fieldwork": {
-        "start": "2026-10-19",
-        "end": "2026-10-21"
-      },
-      "sampleSize": 2094,
-      "url": "https://www.commission-des-sondages.fr/notices/files/notices/2026/octobre/10332-pres-iv-toluna-harris-interactive-23-octobre.pdf",
-      "scores": {
-        "glucksmann": 41,
-        "lepen": 59
-      },
-      "noIntention": {
-        "share": 25,
-        "base": "inscrits",
-        "calculation": "19 % de vote blanc ou nul + 6 % d’abstention, publiés séparément (« ne se prononce pas » : 0 %)",
-        "source": {
-          "label": "Notice (Commission des sondages)",
-          "url": "https://www.commission-des-sondages.fr/notices/files/notices/2026/octobre/10332-pres-iv-toluna-harris-interactive-23-octobre.pdf"
-        }
-      }
-    },
-    {
-      "origin": "wikipedia",
-      "institute": "Harris Interactive (Toluna)",
-      "sponsor": "Non indiqué",
-      "fieldwork": {
-        "start": "2026-10-19",
-        "end": "2026-10-21"
-      },
-      "sampleSize": 2094,
-      "url": "https://www.commission-des-sondages.fr/notices/files/notices/2026/octobre/10332-pres-iv-toluna-harris-interactive-23-octobre.pdf",
-      "scores": {
-        "melenchon": 30,
-        "lepen": 70
-      },
-      "noIntention": {
-        "share": 32,
-        "base": "inscrits",
-        "calculation": "25 % de vote blanc ou nul + 7 % d’abstention, publiés séparément (« ne se prononce pas » : 0 %)",
-        "source": {
-          "label": "Notice (Commission des sondages)",
-          "url": "https://www.commission-des-sondages.fr/notices/files/notices/2026/octobre/10332-pres-iv-toluna-harris-interactive-23-octobre.pdf"
-        }
-      }
-    },
-    {
-      "origin": "wikipedia",
-      "institute": "Harris Interactive (Toluna)",
-      "sponsor": "Non indiqué",
-      "fieldwork": {
-        "start": "2026-10-19",
-        "end": "2026-10-21"
-      },
-      "sampleSize": 2094,
-      "url": "https://www.commission-des-sondages.fr/notices/files/notices/2026/octobre/10332-pres-iv-toluna-harris-interactive-23-octobre.pdf",
-      "scores": {
-        "philippe": 43,
-        "lepen": 57
-      },
-      "noIntention": {
-        "share": 26,
-        "base": "inscrits",
-        "calculation": "19 % de vote blanc ou nul + 7 % d’abstention, publiés séparément (« ne se prononce pas » : 0 %)",
-        "source": {
-          "label": "Notice (Commission des sondages)",
-          "url": "https://www.commission-des-sondages.fr/notices/files/notices/2026/octobre/10332-pres-iv-toluna-harris-interactive-23-octobre.pdf"
         }
       }
     },
