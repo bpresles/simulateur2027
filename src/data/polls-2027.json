@@ -1,5 +1,5 @@
 {
-  "asOf": "2026-11-09",
+  "asOf": "2026-11-10",
   "electionDate": "2027-04-18",
   "windowDays": 21,
   "collection": {
@@ -956,8 +956,9 @@
           "kind": "synthese"
         },
         {
-          "label": "Publication",
-          "url": "https://tolunacorporate.com/wp-content/uploads/2026/11/Rapport-Toluna-Barometre-Presidentielle-2027-Vague-9-M6-RTL-9-novembre-2026.pdf"
+          "label": "Notice (Commission des sondages)",
+          "url": "https://www.commission-des-sondages.fr/notices/files/notices/2026/novembre/10362-pres-iv-toluna-harris-interactive-9-novembre.pdf",
+          "kind": "notice"
         },
         {
           "label": "Wikipedia – liste des sondages",
@@ -1689,7 +1690,7 @@
         "end": "2026-11-05"
       },
       "sampleSize": 2101,
-      "url": "https://tolunacorporate.com/wp-content/uploads/2026/11/Rapport-Toluna-Barometre-Presidentielle-2027-Vague-9-M6-RTL-9-novembre-2026.pdf",
+      "url": "https://www.commission-des-sondages.fr/notices/files/notices/2026/novembre/10362-pres-iv-toluna-harris-interactive-9-novembre.pdf",
       "scores": {
         "glucksmann": 40,
         "lepen": 60
@@ -1704,7 +1705,7 @@
         "end": "2026-11-05"
       },
       "sampleSize": 2101,
-      "url": "https://tolunacorporate.com/wp-content/uploads/2026/11/Rapport-Toluna-Barometre-Presidentielle-2027-Vague-9-M6-RTL-9-novembre-2026.pdf",
+      "url": "https://www.commission-des-sondages.fr/notices/files/notices/2026/novembre/10362-pres-iv-toluna-harris-interactive-9-novembre.pdf",
       "scores": {
         "melenchon": 32,
         "lepen": 68
@@ -1719,7 +1720,7 @@
         "end": "2026-11-05"
       },
       "sampleSize": 2101,
-      "url": "https://www.commission-des-sondages.fr/notices/files/notices/2026/octobre/10332-pres-iv-toluna-harris-interactive-23-octobre.pdf",
+      "url": "https://www.commission-des-sondages.fr/notices/files/notices/2026/novembre/10362-pres-iv-toluna-harris-interactive-9-novembre.pdf",
       "scores": {
         "philippe": 42,
         "lepen": 58
