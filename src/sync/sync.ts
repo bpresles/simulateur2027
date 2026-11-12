@@ -1,10 +1,11 @@
 // Synchronisation des sondages depuis la page Wikipedia de la liste des sondages : période la plus
 // récente du 1er tour, dernier sondage de chaque institut avec toutes ses hypothèses.
-import type { Poll, PollsData, SecondRoundPoll } from '../domain/types'
+import { meanByKey, normalize, pick } from '../domain/pollAverage'
+import type { Candidate, CandidateId, Poll, PollsData, SecondRoundPoll } from '../domain/types'
 import { CandidateResolver, FEEDS, canonicalInstitute } from './feeds'
 import { NO_LINKS, addLinks } from './links'
 import type { LinkSources } from './links'
-import { NO_SPONSOR, fromWikipedia } from './wikipedia'
+import { NO_SPONSOR, fromWikipedia, surname } from './wikipedia'
 
 /** Sérialisation à clés triées : compare le contenu indépendamment de l'ordre des champs. */
 export function stableStringify(value: unknown): string {
@@ -98,6 +99,120 @@ export function keepNoIntention(current: SecondRoundPoll[], duels: SecondRoundPo
   })
 }
 
+// ——— Candidats apparus dans les sondages ———
+
+/** Couleurs neutres (fond clair, fond sombre) des candidats ajoutés automatiquement, à remplacer à la main. */
+export const AUTO_COLORS: readonly (readonly [string, string])[] = [
+  ['#6b7280', '#9ca3af'],
+  ['#8a8170', '#b3aa98'],
+  ['#4b5563', '#7b8492'],
+  ['#7c8a96', '#a7b4bf'],
+  ['#5c5a66', '#8e8b99'],
+  ['#9a9187', '#c2b9ae'],
+]
+
+/**
+ * Candidats non simulés testés dans au moins une hypothèse des sondages, autrement qu'à la place d'un autre
+ * candidat (Hollande à la place de Glucksmann : une variante de candidature, pas un candidat de plus).
+ */
+export function testedNewcomers(polls: Poll[], simulated: ReadonlySet<CandidateId>): CandidateId[] {
+  const tested = polls
+    .flatMap((p) => p.hypotheses)
+    .flatMap((h) => Object.keys(h.scores).filter((id) => !(id in (h.replacing ?? {}))))
+  return [...new Set(tested)].filter((id) => !simulated.has(id))
+}
+
+/**
+ * Répartition par défaut des électeurs d'un candidat ajouté : comme l'ensemble des électeurs des candidats
+ * principaux dans les hypothèses qui le testent (scores normalisés, moyenne, poids arrondis à 5 points).
+ */
+function electorateParts(
+  id: CandidateId,
+  polls: Poll[],
+  main: CandidateId[],
+): { id: string; weight: number }[] {
+  const ids = new Set(main)
+  const shares = polls
+    .flatMap((p) => p.hypotheses)
+    .filter((h) => id in h.scores)
+    .map((h) => {
+      const scores = normalize(pick(h.scores, ids))
+      return Object.fromEntries(main.map((m) => [m, scores[m] ?? 0]))
+    })
+  const parts = Object.entries(normalize(meanByKey(shares)))
+    .map(([m, v]) => ({ id: m, weight: Math.round(v / 5) * 5 }))
+    .filter((p) => p.weight > 0)
+    .sort((a, b) => b.weight - a.weight || a.id.localeCompare(b.id))
+  return parts.length ? parts : main.map((m) => ({ id: m, weight: 1 }))
+}
+
+/**
+ * Candidat ajouté automatiquement : petit candidat (imputé dans les hypothèses qui ne le testent pas),
+ * avec des valeurs par défaut (nom court, parti, bloc non classé, couleurs neutres, reports au prorata)
+ * à compléter à la main.
+ */
+export function autoCandidate(
+  id: CandidateId,
+  name: string,
+  polls: Poll[],
+  candidates: Candidate[],
+): Candidate {
+  const used = new Set(candidates.map((c) => c.color))
+  const autos = candidates.filter((c) => c.auto).length
+  const [color, colorDark] =
+    AUTO_COLORS.find(([c]) => !used.has(c)) ?? AUTO_COLORS[autos % AUTO_COLORS.length]!
+  const main = candidates.filter((c) => !c.minor).map((c) => c.id)
+  return {
+    id,
+    name,
+    shortName: surname(name),
+    party: 'Non renseigné',
+    bloc: null,
+    color,
+    colorDark,
+    duelProfile: null,
+    ref2022: null,
+    ref2022Note: 'aucune référence 2022 : pas de correction ni de progression.',
+    minor: {
+      transfers: [
+        {
+          id: 'ensemble',
+          label: 'Comme l’ensemble des électeurs',
+          parts: electorateParts(id, polls, main),
+          note:
+            'Hypothèse par défaut, sans source : candidat ajouté automatiquement par la synchronisation des ' +
+            'sondages. Ses électeurs se reportent comme l’ensemble des électeurs des candidats principaux dans ' +
+            'les hypothèses qui le testent (poids arrondis à 5 points). À remplacer par une répartition sourcée.',
+        },
+      ],
+    },
+    auto: true,
+  }
+}
+
+/**
+ * Fait passer dans les candidats simulés ceux qui sont testés dans les sondages (`testedNewcomers`) : ils
+ * quittent les candidats non simulés et deviennent des candidats ajoutés automatiquement (`autoCandidate`).
+ * Un candidat cité dans un jeu d'hypothèses (Hollande, exclu de tous) reste non simulé : son traitement
+ * est déjà décidé dans les données, et un jeu d'hypothèses ne peut pas citer un petit candidat.
+ */
+export function promoteTested(data: PollsData): { data: PollsData; promoted: Candidate[] } {
+  const listed = new Set(data.hypothesisSets.flatMap((s) => [...s.require, ...s.exclude]))
+  const ids = testedNewcomers(data.polls, new Set(data.candidates.map((c) => c.id))).filter(
+    (id) => !listed.has(id),
+  )
+  if (!ids.length) return { data, promoted: [] }
+  const candidates = [...data.candidates]
+  for (const id of ids) {
+    const name = data.otherCandidates.find((c) => c.id === id)?.name ?? id
+    candidates.push(autoCandidate(id, name, data.polls, candidates))
+  }
+  return {
+    data: { ...data, candidates, otherCandidates: data.otherCandidates.filter((c) => !ids.includes(c.id)) },
+    promoted: candidates.slice(data.candidates.length),
+  }
+}
+
 export interface SyncReport {
   changed: boolean
   asOf: string
@@ -110,6 +225,9 @@ export interface SyncReport {
   missingNoIntention: string[]
   /** Synthèses et notices nouvellement associées, par sondage. */
   newLinks: string[]
+  /** Candidats apparus dans les sondages, ajoutés aux candidats simulés avec des valeurs par défaut. */
+  promoted: string[]
+  /** Nouveaux candidats non simulés (testés seulement à la place d'un autre candidat). */
   newCandidates: string[]
   /** Lignes de la période écartées. */
   skipped: string[]
@@ -117,8 +235,9 @@ export interface SyncReport {
 
 /**
  * Remplace les sondages par ceux de la période la plus récente de la page, avec la synthèse de chaque
- * institut et la notice de la Commission des sondages quand elles sont repérées (`links`). Les données ne
- * changent (et la date de référence n'avance) que si la période, un sondage, un lien ou un duel change.
+ * institut et la notice de la Commission des sondages quand elles sont repérées (`links`). Un candidat
+ * apparu dans les sondages est ajouté aux candidats simulés (`promoteTested`). Les données ne changent (et
+ * la date de référence n'avance) que si la période, un sondage, un candidat, un lien ou un duel change.
  * Renvoie undefined si la page ne contient aucun sondage reconnaissable (format modifié) : les données
  * restent alors inchangées.
  */
@@ -135,8 +254,7 @@ export function syncPolls(
 
   const selected = selectPolls(current.polls, wiki.polls, wiki.period.start)
   const polls = addLinks(selected, current.polls, links)
-  const secondRoundPolls = keepNoIntention(current.secondRoundPolls, selectDuels(wiki.secondRound))
-  const next: PollsData = {
+  const draft: PollsData = {
     ...current,
     asOf: today,
     period: wiki.period,
@@ -149,11 +267,17 @@ export function syncPolls(
     },
     otherCandidates: resolver.others,
     polls,
-    secondRoundPolls,
   }
+  const { data: promotedData, promoted } = promoteTested(draft)
+  // Les duels ne gardent que des candidats simulés : nouvelle lecture avec les candidats ajoutés.
+  const duels = promoted.length
+    ? fromWikipedia(wikitext, resolver, new Set(promotedData.candidates.map((c) => c.id)))!.secondRound
+    : wiki.secondRound
+  const secondRoundPolls = keepNoIntention(current.secondRoundPolls, selectDuels(duels))
+  const next: PollsData = { ...promotedData, secondRoundPolls }
 
   const content = (d: PollsData) =>
-    stableStringify([d.period, d.polls, d.secondRoundPolls, d.otherCandidates, d.collection])
+    stableStringify([d.period, d.candidates, d.polls, d.secondRoundPolls, d.otherCandidates, d.collection])
   const changed = content(next) !== content(current)
   const before = new Map(current.polls.map((p) => [p.id, stableStringify(p)]))
   const urlsBefore = new Map(current.polls.map((p) => [p.id, p.sources.map((s) => s.url)]))
@@ -179,7 +303,10 @@ export function syncPolls(
         const added = p.sources.filter((s) => s.kind && !known.has(s.url))
         return added.length ? [`${p.id} (${added.map((s) => s.label).join(', ')})`] : []
       }),
-      newCandidates: resolver.others.slice(current.otherCandidates.length).map((c) => c.name),
+      promoted: promoted.map((c) => c.name),
+      newCandidates: next.otherCandidates
+        .filter((c) => !current.otherCandidates.some((o) => o.id === c.id))
+        .map((c) => c.name),
       skipped: wiki.skipped,
     },
   }

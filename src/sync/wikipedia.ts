@@ -378,7 +378,8 @@ function periodStart(label: string): { year?: number; start?: string } {
   return { year, start: isoDate(year, first ?? (/second semestre/.test(folded) ? 6 : 0), 1) }
 }
 
-const surname = (name: string) => name.split(' ').slice(1).join(' ') || name
+/** Nom de famille (nom court par défaut) : « Christine Lagarde » → « Lagarde ». */
+export const surname = (name: string) => name.split(' ').slice(1).join(' ') || name
 
 export function fromWikipedia(
   text: string,

@@ -170,6 +170,45 @@ describe('computeSecondRound', () => {
     expect(own.flows.find((f) => f.candidateId === 'pt')).toMatchObject({ toB: 10, isFinalistVoter: true })
   })
 
+  it('électeurs d’un candidat sans bloc (ajouté automatiquement) : moyenne des quatre blocs', () => {
+    const auto = { ...cand('nv', null, null), minor: { transfers: [] }, auto: true } as Candidate
+    const candidatesById = new Map([...byId, ['nv', auto]])
+    const input = {
+      electorate: { rn: 40, ens: 30, lfi: 20, nv: 10 },
+      a: solo('rn', 40),
+      b: solo('ens', 30),
+      duel: resolveDuel(solo('rn', 40), solo('ens', 30), byId),
+      profiles,
+      fallback: transfers.fallback,
+      candidatesById,
+      fidelity: 1,
+      abstentionTarget: null,
+      secondRoundPolls: [],
+    }
+    const nv = computeSecondRound(input).flows.find((f) => f.candidateId === 'nv')!
+    const row = profiles.ensemble_rn
+    const mean = (k: 'finalist' | 'rn' | 'abstention') =>
+      (row.gauche[k] + row.centre[k] + row.droite[k] + row.extreme_droite[k]) / 4
+    expect(nv.bloc).toBeNull()
+    // Taux en % : 10 points d'électorat × moyenne des quatre lignes du profil Ensemble.
+    expect(nv.toB).toBeCloseTo((10 * mean('finalist')) / 100, 10)
+    expect(nv.toA).toBeCloseTo((10 * mean('rn')) / 100, 10)
+    expect(nv.abstention).toBeCloseTo((10 * mean('abstention')) / 100, 10)
+  })
+
+  it('modèle de repli : un bloc non classé prend la moyenne des quatre blocs', () => {
+    const { fallback } = transfers
+    const split = fallbackSplit(null, 'gauche', null, fallback)
+    const blocs = ['gauche', 'centre', 'droite', 'extreme_droite'] as const
+    const avg = (f: (b: (typeof blocs)[number]) => number) => blocs.reduce((s, b) => s + f(b), 0) / 4
+    const affA = avg((v) => fallback.affinity[v].gauche)
+    const affB = avg((v) => avg((t) => fallback.affinity[v][t]))
+    const abstention = avg((v) => fallback.abstention[v])
+    expect(split.abstention).toBeCloseTo(abstention, 10)
+    expect(split.toA).toBeCloseTo(((100 - abstention) * affA) / (affA + affB), 10)
+    expect(split.toA + split.toB + split.abstention).toBeCloseTo(100, 10)
+  })
+
   it('applique la fidélité aux électeurs des finalistes', () => {
     const res = run([solo('rn', 60), solo('lfi', 40)], { fidelity: 0.9 })
     expect(res.votes).toEqual({ a: 54, b: 36, abstention: expect.closeTo(10, 8) })

@@ -1,5 +1,5 @@
 import { daysBetween } from './pollAverage'
-import { blendProfiles, fallbackSplit } from './transfers'
+import { blendProfiles, blocRow, fallbackSplit } from './transfers'
 import type { ProfileTable } from './transfers'
 import type {
   Bloc,
@@ -241,9 +241,9 @@ export function computeSecondRound(input: SecondRoundInput): SecondRoundResult {
 
   const isRN = (e: Entrant) => e.members.some((m) => candidatesById.get(m.candidateId)?.isRN)
   /** Report des électeurs d'un bloc qui ne votaient pour aucun finaliste au 1er tour. */
-  const blocTransfer = (share: number, voterBloc: Bloc) => {
+  const blocTransfer = (share: number, voterBloc: Bloc | null) => {
     if (blended) {
-      const row = blended[voterBloc]
+      const row = blocRow(blended, voterBloc)
       const toChallenger = (share * row.finalist) / 100
       const toRN = (share * row.rn) / 100
       return {
@@ -292,7 +292,8 @@ export function computeSecondRound(input: SecondRoundInput): SecondRoundResult {
   // membre d'un finaliste, plus l'extrême droite face à un finaliste RN (les autres candidats du même bloc
   // prennent le taux des autres blocs). En 2024 chaque camp n'avait qu'un candidat au 1er tour : le taux du
   // camp mesure surtout le comportement des propres électeurs du finaliste.
-  const campBlocs = new Set([a, b].flatMap((e) => e.members.map((m) => bloc(m.candidateId))))
+  // Un électorat non classé (bloc null) n'est du camp d'aucun finaliste.
+  const campBlocs = new Set([a, b].flatMap((e) => e.members.flatMap((m) => bloc(m.candidateId) ?? [])))
   const finalistProfiles = new Set(
     [a, b].flatMap((e) => e.members.map((m) => candidatesById.get(m.candidateId)?.duelProfile)).filter(Boolean),
   )
@@ -300,7 +301,7 @@ export function computeSecondRound(input: SecondRoundInput): SecondRoundResult {
   const inFamily = (id: CandidateId) =>
     input.campScope === 'family'
       ? finalistProfiles.has(candidatesById.get(id)?.duelProfile) || (rnFinal && bloc(id) === 'extreme_droite')
-      : campBlocs.has(bloc(id))
+      : campBlocs.has(bloc(id)!)
   const rateFor = (id: CandidateId) => ((inFamily(id) ? rates!.camp : rates!.others) / 100)
   // Petit candidat (électeurs répartis entre plusieurs électorats, dont parfois un finaliste) : en variante
   // « famille », taux des autres électorats, faute de pouvoir le classer simplement ; sinon, son propre bloc.

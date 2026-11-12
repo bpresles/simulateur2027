@@ -6,7 +6,9 @@ import {
   latestPerInstitute,
   meanByKey,
   newestFirst,
+  imputeShares,
   normalize,
+  observedDonors,
 } from './pollAverage'
 
 const sum = (r: Record<string, number>) => Object.values(r).reduce((s, v) => s + v, 0)
@@ -148,39 +150,179 @@ describe('averagePolls, sondages décochés', () => {
   })
 })
 
-describe('petits candidats : facultatifs, à 0 % quand une hypothèse ne les teste pas', () => {
+describe('imputeShares : un candidat ajouté prend sa part aux candidats vers lesquels vont ses électeurs', () => {
+  it('prélève selon les poids des donneurs en lice ; le total reste 100', () => {
+    const donors = { m: [
+      { id: 'a', weight: 0.6 },
+      { id: 'b', weight: 0.2 },
+      { id: 'absent', weight: 0.2 },
+    ] }
+    expect(imputeShares({ a: 30, b: 20, c: 50 }, { m: 4 }, donors)).toEqual({ a: 27, b: 19, c: 50, m: 4 })
+  })
+  it('sans donneur en lice : prélève sur tous, au prorata de leur score', () => {
+    expect(imputeShares({ a: 50, c: 50 }, { m: 4 }, { m: [{ id: 'x', weight: 1 }] })).toEqual({ a: 48, c: 48, m: 4 })
+  })
+  it('un donneur ne cède pas plus que son score : l’excédent est pris aux autres au prorata', () => {
+    const r = imputeShares({ a: 2, b: 38, c: 60 }, { m: 10 }, { m: [{ id: 'a', weight: 1 }, { id: 'b', weight: 1 }] })
+    // a cède 2 au lieu de 5 ; les 3 points restants sont pris à b (33) et c (60) au prorata.
+    expect(r.a).toBe(0)
+    expect(r.m).toBe(10)
+    expect(r.b).toBeCloseTo(33 * (1 - 3 / 93), 10)
+    expect(r.c).toBeCloseTo(60 * (1 - 3 / 93), 10)
+    expect(sum(r)).toBeCloseTo(100, 10)
+  })
+  it('plusieurs candidats ajoutés : prélèvements cumulés, chacun garde sa part', () => {
+    const r = imputeShares({ a: 60, b: 40 }, { m: 4, n: 6 }, { m: [{ id: 'a', weight: 1 }], n: [{ id: 'b', weight: 1 }] })
+    expect(r).toEqual({ a: 56, b: 34, m: 4, n: 6 })
+  })
+})
+
+describe('petits candidats : imputés dans les hypothèses qui ne les testent pas', () => {
   const poll = (id: string, institute: string, hypotheses: { id: string; scores: Record<string, number> }[]) => ({
     id,
     institute,
     fieldwork: { start: '2026-10-10', end: '2026-10-11' },
     hypotheses,
   })
-  const polls = [
-    poll('p1', 'A', [
-      { id: 'H1', scores: { a: 60, b: 40 } },
-      { id: 'H2', scores: { a: 55, b: 41, m: 4 } },
-    ]),
-    poll('p2', 'B', [{ id: 'H1', scores: { a: 50, b: 50 } }]),
-  ]
-  const keep = new Set(['a', 'b', 'm', 'n'])
-  const average = (exclude: string[]) =>
-    averageHypothesisPolls(polls, '2026-10-18', 21, { require: ['a', 'b'], exclude }, keep, undefined, ['m', 'n'])
+  const pA = poll('p1', 'A', [
+    { id: 'H1', scores: { a: 60, b: 40 } },
+    { id: 'H2', scores: { a: 50, b: 40, t: 10 } },
+  ])
+  const pB = poll('p2', 'B', [{ id: 'H1', scores: { a: 50, b: 50 } }])
+  const pC = poll('p3', 'C', [{ id: 'H1', scores: { a: 40, b: 45, t: 15 } }])
+  const keep = new Set(['a', 'b', 't', 'u'])
+  // Les électeurs de t et de u vont à a en leur absence.
+  const donors = { t: [{ id: 'a', weight: 1 }], u: [{ id: 'a', weight: 1 }] }
+  const average = (polls: ReturnType<typeof poll>[], exclude: string[] = []) =>
+    averageHypothesisPolls(polls, '2026-10-18', 21, { require: ['a', 'b'], exclude }, keep, undefined, [], donors)
 
-  it('compte 0 % dans une hypothèse ou un sondage qui ne le teste pas, puis fait la moyenne', () => {
-    const r = average([])
-    expect(r.usage[0]!.matchedHypotheses).toEqual(['H1', 'H2'])
-    // A : (0 + 4) / 2 = 2 ; B : 0 → moyenne 1.
-    expect(r.average.m).toBeCloseTo(1, 10)
-    expect(r.average.a).toBeCloseTo((57.5 + 50) / 2, 10)
+  it('aucune hypothèse retenue ne le teste : absent', () => {
+    expect(average([pA, pB]).average).not.toHaveProperty('u')
+  })
+  it('un seul sondage le teste : score de ce sondage, total de 100', () => {
+    const r = average([pA, pB])
+    expect(r.average.t).toBeCloseTo(10, 10)
+    expect(sum(r.average)).toBeCloseTo(100, 10)
+    // A, H1 (sans t) : t vaut 10, sa part dans l'autre hypothèse du même sondage, prise à a → 50 / 40 / 10.
+    expect(r.usage[0]!.average).toEqual({ a: 50, b: 40, t: 10 })
+    // B (sans t) : t vaut 10, son score moyen, pris à a → 40 / 50 / 10.
+    expect(r.usage[1]!.average).toEqual({ a: 40, b: 50, t: 10 })
+    expect(r.average.a).toBeCloseTo(45, 10)
+    expect(r.average.b).toBeCloseTo(45, 10)
+  })
+  it('deux sondages ou plus le testent : moyenne de leurs scores', () => {
+    const r = average([pA, pB, pC])
+    expect(r.average.t).toBeCloseTo(12.5, 10)
+    expect(sum(r.average)).toBeCloseTo(100, 10)
+    // B ne le teste pas : 12,5 pris à a.
+    expect(r.usage[1]!.average).toEqual({ a: 37.5, b: 50, t: 12.5 })
+  })
+  it('un petit candidat exclu du scénario (rallié) n’est pas imputé', () => {
+    const r = average([pA, pB], ['t'])
+    expect(r.usage[0]!.matchedHypotheses).toEqual(['H1'])
+    expect(r.average).toEqual({ a: 55, b: 45 })
+  })
+  it('un candidat `optional` absent d’une hypothèse y compte pour 0 (scrutins passés)', () => {
+    const r = averageHypothesisPolls([pA, pB], '2026-10-18', 21, { require: ['a', 'b'], exclude: [] }, keep, undefined, ['t', 'u'])
+    // A : (0 + 10) / 2 = 5 ; B : 0 → moyenne 2,5 ; u, à 0 partout, n'est pas présenté.
+    expect(r.average.t).toBeCloseTo(2.5, 10)
+    expect(r.average).not.toHaveProperty('u')
     expect(sum(r.average)).toBeCloseTo(100, 10)
   })
-  it('n’affiche pas un petit candidat qu’aucune hypothèse retenue ne teste', () => {
-    expect(average([]).average).not.toHaveProperty('n')
+})
+
+describe('donneurs observés : à qui un petit candidat prend ses points, lu dans les sondages', () => {
+  const poll = (id: string, institute: string, hypotheses: { id: string; scores: Record<string, number> }[]) => ({
+    id,
+    institute,
+    fieldwork: { start: '2026-10-10', end: '2026-10-11' },
+    hypotheses,
   })
-  it('un petit candidat exclu du scénario (rallié) n’est pas compté à 0 %', () => {
-    const r = average(['m'])
-    expect(r.usage[0]!.matchedHypotheses).toEqual(['H1'])
-    expect(r.usage[0]!.average).not.toHaveProperty('m')
-    expect(r.usage[0]!.average).toHaveProperty('n', 0)
+  // Sans x : a 50, b 30, c 20 ; avec x (10) : a et c perdent 5 points chacun, b rien.
+  const p1 = poll('p1', 'A', [
+    { id: 'H1', scores: { a: 50, b: 30, c: 20 } },
+    { id: 'H2', scores: { a: 45, b: 30, c: 15, x: 10 } },
+  ])
+  const all = () => true
+
+  it('pertes de chaque candidat entre l’hypothèse sans lui et celle avec lui, en parts de leur total', () => {
+    expect(observedDonors([p1], ['x'], all)).toEqual({
+      x: {
+        parts: [
+          { id: 'a', weight: 0.5 },
+          { id: 'c', weight: 0.5 },
+        ],
+        pairs: [{ institute: 'A', without: 'H1', with: 'H2' }],
+      },
+    })
+  })
+  it('l’hypothèse avec lui doit contenir tous les candidats de l’autre', () => {
+    const swap = poll('p1', 'A', [
+      { id: 'H1', scores: { a: 50, b: 30, y: 20 } },
+      { id: 'H2', scores: { a: 45, b: 30, c: 15, x: 10 } },
+    ])
+    expect(observedDonors([swap], ['x'], all)).toEqual({})
+  })
+  it('seuls les candidats donneurs autorisés comptent', () => {
+    expect(observedDonors([p1], ['x'], (id) => id !== 'c').x!.parts).toEqual([{ id: 'a', weight: 1 }])
+  })
+  it('candidats ajoutés ensemble : mêmes parts', () => {
+    const group = poll('p1', 'A', [
+      { id: 'H1', scores: { a: 60, b: 40 } },
+      { id: 'H2', scores: { a: 48, b: 37, x: 10, y: 5 } },
+    ])
+    const r = observedDonors([group], ['x', 'y'], all)
+    expect(r.x!.parts).toEqual([
+      { id: 'a', weight: 0.8 },
+      { id: 'b', weight: 0.2 },
+    ])
+    expect(r.y).toEqual(r.x)
+  })
+  it('plusieurs paires : moyenne de leurs parts', () => {
+    const p2 = poll('p2', 'B', [
+      { id: 'H1', scores: { a: 50, b: 50 } },
+      { id: 'H2', scores: { a: 40, b: 50, x: 10 } },
+    ])
+    const r = observedDonors([p1, p2], ['x'], all).x!
+    expect(r.parts).toEqual([
+      { id: 'a', weight: 0.75 },
+      { id: 'c', weight: 0.25 },
+    ])
+    expect(r.pairs).toHaveLength(2)
+  })
+
+  describe('imputation', () => {
+    const p2 = poll('p2', 'B', [{ id: 'H1', scores: { a: 40, b: 40, c: 20 } }])
+    const keep = new Set(['a', 'b', 'c', 'x', 'y'])
+    // Répartition des réglages : tout pris à b.
+    const fallback = { x: [{ id: 'b', weight: 1 }], y: [{ id: 'b', weight: 1 }] }
+    const average = (polls: ReturnType<typeof poll>[]) =>
+      averageHypothesisPolls(polls, '2026-10-18', 21, { require: ['a'], exclude: [] }, keep, undefined, [], fallback)
+
+    it('les points imputés suivent les donneurs observés, pas la répartition des réglages', () => {
+      const r = average([p1, p2])
+      // A, H1 (sans x) : x vaut 10, pris à a et c pour moitié, comme dans H2.
+      expect(r.usage[0]!.average).toEqual({ a: 45, b: 30, c: 15, x: 10 })
+      expect(r.usage[1]!.average).toEqual({ a: 35, b: 40, c: 15, x: 10 })
+      expect(r.average).toEqual({ a: 40, b: 35, c: 15, x: 10 })
+      expect(r.donors.x!.pairs).toEqual([{ institute: 'A', without: 'H1', with: 'H2' }])
+    })
+    it('faute de paire, répartition des réglages', () => {
+      const only = poll('p1', 'A', [{ id: 'H2', scores: { a: 45, b: 30, c: 15, x: 10 } }])
+      const r = average([only, p2])
+      expect(r.usage[1]!.average).toEqual({ a: 40, b: 30, c: 20, x: 10 })
+      expect(r.donors.x).toEqual({ parts: fallback.x, pairs: [] })
+    })
+    it('un petit candidat n’est pas donneur d’un autre : chacun garde la moyenne des sondages qui le testent', () => {
+      const p3 = poll('p3', 'C', [
+        { id: 'H1', scores: { a: 50, b: 20, c: 10, y: 20 } },
+        { id: 'H2', scores: { a: 45, b: 20, c: 10, y: 15, x: 10 } },
+      ])
+      const r = average([p3, p2])
+      expect(r.donors.x!.parts).toEqual([{ id: 'a', weight: 1 }])
+      expect(r.average.x).toBeCloseTo(10, 10)
+      expect(r.average.y).toBeCloseTo(17.5, 10)
+      expect(sum(r.average)).toBeCloseTo(100, 10)
+    })
   })
 })

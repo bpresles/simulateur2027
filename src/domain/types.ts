@@ -11,7 +11,8 @@ export interface Candidate {
   name: string
   shortName: string
   party: string
-  bloc: Bloc
+  /** Bloc politique ; null : non classé (candidat ajouté par la synchronisation, à classer à la main). */
+  bloc: Bloc | null
   /** Couleur sur fond clair et sur fond sombre (palette validée pour le daltonisme). */
   color: string
   colorDark: string
@@ -26,11 +27,18 @@ export interface Candidate {
   ref2022Note?: string
   isRN?: boolean
   /**
-   * Petit candidat : testé dans une partie des hypothèses seulement. Il n'est jamais requis et compte pour
-   * 0 % dans une hypothèse qui ne le teste pas. Au 2nd tour, ses électeurs se reportent comme ceux de
+   * Petit candidat : testé dans une partie des hypothèses seulement, jamais requis. Dans une hypothèse
+   * retenue qui ne le teste pas, il est imputé : son score dans les hypothèses qui le testent, pris aux
+   * candidats vers lesquels vont ses électeurs. Au 2nd tour, ses électeurs se reportent comme ceux de
    * candidats principaux : première répartition par défaut, les autres au choix dans les réglages.
    */
   minor?: { transfers: MinorTransfer[] }
+  /**
+   * Ajouté automatiquement par la synchronisation : nom court, parti, bloc (non classé), couleurs et reports
+   * (au prorata des électorats principaux) sont des valeurs par défaut, à compléter à la main avant de
+   * retirer ce champ.
+   */
+  auto?: boolean
 }
 
 export interface ReferencePart {
@@ -549,6 +557,19 @@ export interface Settings {
 
 // ——— Résultats ———
 
+/**
+ * Candidats auxquels un petit candidat prend ses points, au 1er tour, dans les hypothèses qui ne le testent
+ * pas (poids de total 1).
+ */
+export interface ImputationDonors {
+  parts: ReferencePart[]
+  /**
+   * Paires d'hypothèses d'un même sondage, sans puis avec lui, où ces parts sont observées ; vide : faute de
+   * paire, répartition de ses électeurs choisie dans les réglages.
+   */
+  pairs: { institute: string; without: string; with: string }[]
+}
+
 export type PollStatus = 'used' | 'superseded' | 'excluded' | 'out-of-window' | 'no-matching-hypothesis'
 
 export interface PollUsage<P = Poll> {
@@ -661,7 +682,7 @@ export interface VoteFlow {
   toA: number
   toB: number
   abstention: number
-  bloc: Bloc
+  bloc: Bloc | null
   isFinalistVoter: boolean
   /** Petit candidat éliminé : électorats principaux dont ses électeurs suivent les reports. */
   like?: ReferencePart[]
@@ -708,6 +729,8 @@ export interface SimulationResult {
   allianceRates: AllianceRate[]
   allianceLeaks: AllianceLeak[]
   pollUsage: PollUsage[]
+  /** Donneurs de chaque petit candidat imputé dans les hypothèses retenues qui ne le testent pas. */
+  minorDonors: Record<CandidateId, ImputationDonors>
   /** Sondages retenus, un par institut au plus (1 = sondage seul, sans moyenne). */
   institutesUsed: number
   firstRound: FirstRoundRow[]

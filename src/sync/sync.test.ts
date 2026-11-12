@@ -1,9 +1,9 @@
-import { simulationData } from '../data/schema'
-import type { PollsData } from '../domain/types'
+import { parseData, simulationData } from '../data/schema'
+import type { Poll, PollsData } from '../domain/types'
 import { frozenData } from '../test/frozenData'
 import { WIKITEXT } from '../test/wikipediaFixture'
 import { CandidateResolver, canonicalInstitute } from './feeds'
-import { stableStringify, syncPolls } from './sync'
+import { AUTO_COLORS, autoCandidate, promoteTested, stableStringify, syncPolls, testedNewcomers } from './sync'
 
 const { polls: current } = frozenData
 
@@ -87,8 +87,11 @@ describe('syncPolls', () => {
 
   it('garde les petits candidats simulés et leurs reports, sans les rajouter aux candidats non simulés', () => {
     const live = syncPolls(simulationData.polls, WIKITEXT, '2026-10-20')!
-    expect(live.data.candidates).toEqual(simulationData.polls.candidates)
+    const known = simulationData.polls.candidates.length
+    expect(live.data.candidates.slice(0, known)).toEqual(simulationData.polls.candidates)
     expect(live.data.otherCandidates.map((c) => c.id)).not.toContain('lisnard')
+    // Olivier Faure, testé seul (Ifop H1) dans la page de test : ajouté aux candidats simulés.
+    expect(live.report.promoted).toEqual(['Olivier Faure'])
     expect(live.report.newCandidates).toEqual([])
     const scores = live.data.polls.flatMap((p) => p.hypotheses.map((h) => h.scores))
     expect(scores).toContainEqual(expect.objectContaining({ lisnard: 4, bouamrane: 0.5 }))
@@ -96,5 +99,100 @@ describe('syncPolls', () => {
 
   it('compare le contenu indépendamment de l’ordre des champs', () => {
     expect(stableStringify({ a: 1, b: { c: 2, d: 3 } })).toBe(stableStringify({ b: { d: 3, c: 2 }, a: 1 }))
+  })
+
+  it('ajoute aux candidats simulés ceux que les sondages testent, sauf ceux cités dans un jeu d’hypothèses', () => {
+    expect(report.promoted).toEqual(['Dominique de Villepin', 'Natacha Polony', 'Olivier Faure'])
+    expect(data.candidates.filter((c) => c.auto).map((c) => c.id)).toEqual(['villepin', 'polony', 'faure'])
+    const others = data.otherCandidates.map((c) => c.id)
+    expect(others).not.toContain('villepin')
+    // Exclus des jeux d'hypothèses : restent non simulés.
+    expect(others).toEqual(expect.arrayContaining(['hollande', 'lisnard']))
+    // Testé seulement à la place d'un autre candidat : reste non simulé.
+    expect(report.newCandidates).toEqual(['Jordan Bardella'])
+    expect(() => parseData({ ...frozenData, polls: data })).not.toThrow()
+  })
+})
+
+describe('candidats apparus dans les sondages', () => {
+  const hypothesis = (id: string, scores: Record<string, number>, replacing?: Record<string, string>) => ({
+    id,
+    scores,
+    ...(replacing && { replacing }),
+  })
+  const poll = (id: string, hypotheses: ReturnType<typeof hypothesis>[]): Poll => ({
+    id,
+    institute: id,
+    sponsor: '',
+    fieldwork: { start: '2026-10-10', end: '2026-10-11' },
+    sampleSize: 1000,
+    sources: [],
+    hypotheses,
+  })
+  const main = current.candidates.filter((c) => !c.minor)
+  const [first, second] = main.map((c) => c.id) as [string, string]
+  const polls = [
+    poll('a', [
+      hypothesis('H1', { [first]: 60, [second]: 30, nouveau: 10 }),
+      hypothesis('H2', { [first]: 50, remplaçant: 50 }, { remplaçant: second }),
+    ]),
+    poll('b', [hypothesis('H1', { [first]: 50, [second]: 50 })]),
+  ]
+  const others = [
+    { id: 'nouveau', name: 'Camille Nouveau' },
+    { id: 'remplaçant', name: 'Alex Remplaçant' },
+  ]
+  const input: PollsData = {
+    ...current,
+    candidates: current.candidates.filter((c) => !c.auto),
+    otherCandidates: others,
+    polls,
+  }
+
+  it('repère les candidats testés, sauf à la place d’un autre candidat', () => {
+    expect(testedNewcomers(polls, new Set([first, second]))).toEqual(['nouveau'])
+  })
+
+  it('les ajoute en petits candidats, avec des valeurs par défaut', () => {
+    const { data: out, promoted } = promoteTested(input)
+    expect(promoted.map((c) => c.id)).toEqual(['nouveau'])
+    expect(out.otherCandidates).toEqual([others[1]])
+    expect(out.candidates.at(-1)).toMatchObject({
+      id: 'nouveau',
+      name: 'Camille Nouveau',
+      shortName: 'Nouveau',
+      bloc: null,
+      duelProfile: null,
+      ref2022: null,
+      auto: true,
+      minor: { transfers: [expect.objectContaining({ id: 'ensemble' })] },
+    })
+    // Électeurs répartis comme l'ensemble des électeurs principaux de l'hypothèse qui le teste (2/3, 1/3).
+    expect(out.candidates.at(-1)!.minor!.transfers[0]!.parts).toEqual([
+      { id: first, weight: 65 },
+      { id: second, weight: 35 },
+    ])
+  })
+
+  it('donne à chaque candidat ajouté une couleur neutre non utilisée', () => {
+    const one = autoCandidate('x', 'X', polls, input.candidates)
+    const two = autoCandidate('y', 'Y', polls, [...input.candidates, one])
+    expect([one.color, two.color]).toEqual([AUTO_COLORS[0]![0], AUTO_COLORS[1]![0]])
+  })
+
+  it('laisse non simulé un candidat cité dans un jeu d’hypothèses (Hollande, exclu)', () => {
+    const withHollande: PollsData = {
+      ...input,
+      otherCandidates: [...others, { id: 'hollande', name: 'François Hollande' }],
+      polls: [...polls, poll('c', [hypothesis('H1', { [first]: 50, [second]: 45, hollande: 5 })])],
+    }
+    const { data: out, promoted } = promoteTested(withHollande)
+    expect(promoted.map((c) => c.id)).toEqual(['nouveau'])
+    expect(out.otherCandidates.map((c) => c.id)).toContain('hollande')
+  })
+
+  it('ne change rien quand aucun candidat non simulé n’est testé', () => {
+    const none = { ...input, polls: [polls[1]!] }
+    expect(promoteTested(none)).toEqual({ data: none, promoted: [] })
   })
 })

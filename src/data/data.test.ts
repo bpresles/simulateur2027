@@ -1,5 +1,5 @@
 import { acceptAlliances, alliancesConflict, availableAlliances, comboWith, testedShare } from '../domain/alliances'
-import type { Alliance } from '../domain/types'
+import type { Alliance, Poll } from '../domain/types'
 import { averagePolls } from '../domain/pollAverage'
 import { defaultSettings, simulate } from '../domain/simulate'
 import pollsJson from './polls-2027.json'
@@ -30,6 +30,86 @@ describe('données', () => {
     }
   })
 
+  it('les alliances de Lagarde et de Riner sont proposées par les hypothèses Cluster17 et Harris de novembre 2026', () => {
+    // Hypothèses figées (et non les données vivantes) : une synchronisation qui retire ces sondages de la
+    // période ne doit pas bloquer la mise à jour automatique des données.
+    const poll = (id: string, institute: string, end: string, hypotheses: Poll['hypotheses']): Poll => ({
+      id,
+      institute,
+      sponsor: 'Non indiqué',
+      fieldwork: { start: end, end },
+      sampleSize: 1000,
+      sources: [],
+      hypotheses,
+    })
+    const base = { arthaud: 1, roussel: 2, 'dupont-aignan': 2, zemmour: 3 }
+    const polls = [
+      poll('cluster17', 'Cluster17', '2026-11-10', [
+        {
+          id: 'H1',
+          label: 'Lagarde',
+          scores: {
+            ...base,
+            melenchon: 20.5,
+            tondelier: 1.5,
+            glucksmann: 10,
+            lisnard: 10,
+            retailleau: 5.5,
+            lepen: 30.5,
+            lagarde: 14,
+          },
+        },
+        {
+          id: 'H2',
+          label: 'Philippe',
+          scores: {
+            ...base,
+            melenchon: 20,
+            tondelier: 1.5,
+            glucksmann: 11,
+            philippe: 13.5,
+            lisnard: 10,
+            retailleau: 5,
+            lepen: 30.5,
+          },
+        },
+      ]),
+      poll('harris', 'Harris Interactive (Toluna)', '2026-11-05', [
+        {
+          id: 'H5',
+          label: 'Attal',
+          scores: {
+            ...base,
+            melenchon: 19,
+            tondelier: 3,
+            glucksmann: 13,
+            attal: 10,
+            retailleau: 10,
+            lepen: 36,
+          },
+        },
+      ]),
+    ]
+    const data = {
+      ...simulationData.polls,
+      asOf: '2026-11-12',
+      period: { label: 'Novembre 2026', start: '2026-11-01' },
+      polls,
+    }
+    const proposed = availableAlliances(data).map((a) => a.id)
+    expect(proposed).toEqual(
+      expect.arrayContaining([
+        'lagarde-philippe',
+        'lagarde-attal',
+        'lagarde-retailleau',
+        'philippe-lagarde',
+        'attal-lagarde',
+        'riner-attal',
+        'riner-philippe',
+      ]),
+    )
+  })
+
   it('alliances non évaluées : une alliance compatible avec une alliance active est appliquée (lue ou estimée)', () => {
     const { polls } = simulationData
     const testable = (a: Alliance) => a.members.every((id) => testedShare(polls, id) > 0)
@@ -46,6 +126,19 @@ describe('données', () => {
     const duel = broken.polls.secondRoundPolls[0]!
     duel.noIntention = { share: 20, base: 'votants', undecided: 25, source: { label: 'Notice', url: duel.url } }
     expect(validateData(broken)).toEqual([expect.stringMatching(/plus d'indécis/)])
+  })
+
+  it('rejette un candidat à la fois simulé et non simulé', () => {
+    const broken = structuredClone(simulationData)
+    const c = broken.polls.candidates[0]!
+    broken.polls.otherCandidates.push({ id: c.id, name: c.name })
+    expect(validateData(broken)).toContainEqual(expect.stringMatching(/à la fois candidat simulé et non simulé/))
+  })
+
+  it('les candidats ajoutés automatiquement sont des petits candidats, sans bloc', () => {
+    for (const c of simulationData.polls.candidates.filter((x) => x.auto)) {
+      expect(c).toMatchObject({ bloc: null, minor: { transfers: [expect.objectContaining({ id: 'ensemble' })] } })
+    }
   })
 
   it('rejette un candidat inconnu dans un sondage', () => {

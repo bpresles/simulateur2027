@@ -1,7 +1,7 @@
 import { Fragment } from 'react'
 import type { CSSProperties } from 'react'
 import { motion } from 'motion/react'
-import type { AllianceLeak, Entrant, FirstRoundRow, SimulationResult } from '../../domain/types'
+import type { AllianceLeak, Entrant, FirstRoundRow, ImputationDonors, SimulationResult } from '../../domain/types'
 import { EQUIVALENTS_2017 } from '../../domain/pastElections'
 import { calibration, reference2017Stats, reference2022Stats } from '../../hooks/useSimulation'
 import { simulationData } from '../../data/schema'
@@ -78,6 +78,7 @@ export function FirstRoundChart({ result }: { result: SimulationResult }) {
                 base={baseOf(e)}
                 width={w}
                 leaks={result.allianceLeaks}
+                donors={result.minorDonors}
                 baseLabel={baseLabel}
               />
             </motion.li>
@@ -97,11 +98,13 @@ function CandidateRow({
   base,
   width,
   leaks,
+  donors,
   baseLabel,
 }: {
   entrant: Entrant
   rows: Map<string, FirstRoundRow>
   leaks: AllianceLeak[]
+  donors: Record<string, ImputationDonors>
   baseLabel: string
   qualified: boolean
   rank: number
@@ -115,7 +118,7 @@ function CandidateRow({
   const label = entrant.members.map((m) => cand(m.candidateId).shortName).join(' + ')
 
   return (
-    <InfoTip content={<RowDetails entrant={entrant} rows={rows} leaks={leaks} baseLabel={baseLabel} />}>
+    <InfoTip content={<RowDetails entrant={entrant} rows={rows} leaks={leaks} donors={donors} baseLabel={baseLabel} />}>
       <div
         tabIndex={0}
         aria-label={`${rank}e : ${label}, ${pct(shown)}`}
@@ -171,11 +174,13 @@ function RowDetails({
   entrant,
   rows,
   leaks,
+  donors,
   baseLabel,
 }: {
   entrant: Entrant
   rows: Map<string, FirstRoundRow>
   leaks: AllianceLeak[]
+  donors: Record<string, ImputationDonors>
   baseLabel: string
 }) {
   return (
@@ -202,8 +207,14 @@ function RowDetails({
             {c.minor && (
               <>
                 <dt className="text-ink-3">Hypothèses sans {c.shortName}</dt>
-                <dd className="text-right">comptées à 0 %</dd>
+                <dd className="text-right">score imputé</dd>
+                {donors[c.id] && <DonorsNote donors={donors[c.id]!} />}
               </>
+            )}
+            {c.auto && (
+              <dd className="col-span-2 max-w-[16rem] text-xs text-ink-3">
+                Ajouté automatiquement par la synchronisation : bloc non classé, reports par défaut.
+              </dd>
             )}
             {Math.abs(r.projected - r.base) > 1e-9 && (
               <>
@@ -285,5 +296,21 @@ function RowDetails({
         )
       })}
     </div>
+  )
+}
+
+/** « pris à Philippe 31 %, Le Pen 19 %, Glucksmann 17 %… (observé : Cluster17) » */
+function DonorsNote({ donors }: { donors: ImputationDonors }) {
+  const shown = donors.parts.filter((p) => p.weight >= 0.005)
+  const top = shown.slice(0, 3).map((p) => `${cand(p.id).shortName} ${pct(p.weight * 100, 0)}`)
+  const institutes = [...new Set(donors.pairs.map((p) => p.institute))]
+  return (
+    <dd className="col-span-2 max-w-[16rem] text-xs text-ink-3">
+      pris à {top.join(', ')}
+      {shown.length > 3 ? '…' : ''}{' '}
+      {institutes.length > 0
+        ? `(observé dans ${institutes.join(', ')} : hypothèses avec et sans lui)`
+        : '(répartition de ses électeurs, étape 6 : aucun sondage ne le mesure)'}
+    </dd>
   )
 }

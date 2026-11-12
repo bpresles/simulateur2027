@@ -353,7 +353,10 @@ function MinorTransfersPanel() {
         <p className="mt-0.5 text-sm text-ink-3">
           Éliminés au 1er tour, leurs électeurs se reportent comme ceux des candidats principaux indiqués,
           selon leurs poids : fidèles à ce candidat s’il est finaliste ou allié d’un finaliste, sinon comme
-          les électeurs de son bloc. Ces répartitions sont des hypothèses, appuyées sur les sources citées.
+          les électeurs de son bloc. Au 1er tour, ses points dans les hypothèses qui ne le testent pas sont pris
+          aux candidats qui en perdent quand un sondage l’ajoute ; à défaut d’un tel sondage, selon cette
+          répartition. Ces répartitions sont des hypothèses, appuyées sur
+          les sources citées.
         </p>
       </div>
       {MINOR_CANDIDATES.map((c) => {
@@ -364,6 +367,7 @@ function MinorTransfersPanel() {
             <legend className="flex items-center gap-2 text-sm font-medium">
               <span style={colorVars(c)} className="cand-fill h-2.5 w-2.5 rounded-full" />
               {c.name}
+              {c.auto && <span className="text-xs font-normal text-ink-3">ajouté automatiquement, sans source</span>}
             </legend>
             <div className="mt-2 space-y-1.5">
               {variants.map((t, i) => (

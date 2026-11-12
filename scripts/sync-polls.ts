@@ -76,6 +76,7 @@ const lines = [
   `Duels de 2nd tour : ${report.secondRound}`,
   `Duels sans part sans intention de vote (à saisir d'après la notice) : ${list(report.missingNoIntention, 'aucun')}`,
   `Liens ajoutés : ${list(report.newLinks, 'aucun')}`,
+  `Candidats ajoutés aux simulés (bloc, couleurs et reports par défaut, à compléter) : ${list(report.promoted, 'aucun')}`,
   `Nouveaux candidats non simulés : ${list(report.newCandidates, 'aucun')}`,
   `Lignes écartées : ${report.skipped.length ? report.skipped.join(' ; ') : 'aucune'}`,
   ...(warnings.length ? [`Avertissements : ${warnings.join(' ; ')} — liens déjà trouvés conservés.`] : []),

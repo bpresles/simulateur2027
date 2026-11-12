@@ -46,7 +46,7 @@ const pollsSchema: z.ZodType<PollsData> = z.object({
       name: z.string(),
       shortName: z.string(),
       party: z.string(),
-      bloc,
+      bloc: bloc.nullable(),
       color: z.string().regex(/^#[0-9a-f]{6}$/i),
       colorDark: z.string().regex(/^#[0-9a-f]{6}$/i),
       duelProfile: profileId.nullable(),
@@ -70,6 +70,7 @@ const pollsSchema: z.ZodType<PollsData> = z.object({
             .min(1),
         })
         .optional(),
+      auto: z.boolean().optional(),
     }),
   ),
   otherCandidates: z.array(z.object({ id: z.string(), name: z.string() })),
@@ -370,8 +371,12 @@ export function validateData(data: SimulationData): string[] {
       }
     }
     if (c.minor && c.isRN) errors.push(`${c.id} : le candidat RN ne peut pas être un petit candidat`)
+    if (!c.bloc && !c.minor) errors.push(`${c.id} : un candidat principal doit avoir un bloc`)
   }
   if (polls.candidates.filter((c) => c.isRN).length !== 1) errors.push('Il faut exactement un candidat marqué isRN')
+  for (const c of polls.otherCandidates) {
+    if (simulated.has(c.id)) errors.push(`${c.id} : à la fois candidat simulé et non simulé`)
+  }
 
   for (const set of polls.hypothesisSets) {
     for (const id of [...set.require, ...set.exclude]) {
@@ -384,6 +389,7 @@ export function validateData(data: SimulationData): string[] {
   for (const a of polls.alliances) {
     for (const id of a.members) {
       if (!simulated.has(id)) errors.push(`Alliance ${a.id} : candidat non simulé « ${id} »`)
+      else if (!polls.candidates.find((c) => c.id === id)!.bloc) errors.push(`Alliance ${a.id} : candidat sans bloc « ${id} »`)
     }
     if (!a.members.includes(a.leader)) errors.push(`Alliance ${a.id} : le leader n'est pas membre`)
     if (a.grouped && !a.estimatedOnly) errors.push(`Alliance ${a.id} : une alliance groupée est toujours estimée`)

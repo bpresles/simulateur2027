@@ -51,6 +51,13 @@ export function effectiveProfiles(
   ) as ProfileTable
 }
 
+/** Ligne d'un bloc ; bloc non classé (null) : moyenne des lignes des quatre blocs. */
+export function blocRow(rows: Record<Bloc, TransferValues>, bloc: Bloc | null): TransferValues {
+  if (bloc) return rows[bloc]
+  const avg = (key: keyof TransferValues) => mean(BLOCS.map((b) => rows[b][key]))
+  return { finalist: avg('finalist'), rn: avg('rn'), abstention: avg('abstention') }
+}
+
 /** Moyenne des lignes de plusieurs profils, pondérée par le poids de chaque membre de l'alliance. */
 export function blendProfiles(table: ProfileTable, weights: ProfileWeight[]): Record<Bloc, TransferValues> {
   return Object.fromEntries(
@@ -98,16 +105,24 @@ export function resolveDuel(
   }
 }
 
-/** Modèle de repli : abstention fixe par bloc, le reste au prorata des affinités avec chaque finaliste. */
+const mean = (values: number[]) => values.reduce((s, v) => s + v, 0) / values.length
+
+/**
+ * Modèle de repli : abstention fixe par bloc, le reste au prorata des affinités avec chaque finaliste. Un
+ * bloc non classé (null) prend la moyenne des quatre blocs.
+ */
 export function fallbackSplit(
-  voterBloc: Bloc,
-  blocA: Bloc,
-  blocB: Bloc,
+  voterBloc: Bloc | null,
+  blocA: Bloc | null,
+  blocB: Bloc | null,
   fallback: TransfersData['fallback'],
 ): { toA: number; toB: number; abstention: number } {
-  const abstention = fallback.abstention[voterBloc]
-  const affA = fallback.affinity[voterBloc][blocA]
-  const affB = fallback.affinity[voterBloc][blocB]
+  const voters = voterBloc ? [voterBloc] : BLOCS
+  const affinity = (target: Bloc | null) =>
+    mean(voters.flatMap((v) => (target ? [target] : BLOCS).map((t) => fallback.affinity[v][t])))
+  const abstention = mean(voters.map((v) => fallback.abstention[v]))
+  const affA = affinity(blocA)
+  const affB = affinity(blocB)
   const expressed = 100 - abstention
   if (affA + affB <= 0) return { toA: expressed / 2, toB: expressed / 2, abstention }
   return { toA: (expressed * affA) / (affA + affB), toB: (expressed * affB) / (affA + affB), abstention }
@@ -148,6 +163,6 @@ export function allianceSplit2024(
   profiles: ProfileTable,
 ): { leader: number; rn: number } {
   if (!leader.duelProfile) return { leader: 1, rn: 0 }
-  const row = profiles[leader.duelProfile][joining.bloc]
+  const row = blocRow(profiles[leader.duelProfile], joining.bloc)
   return { leader: row.finalist / 100, rn: row.rn / 100 }
 }

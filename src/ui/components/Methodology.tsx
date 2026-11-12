@@ -116,6 +116,8 @@ const COMBOS = [
   ).values(),
 ]
 const MINORS = polls.candidates.filter((c) => c.minor)
+const AUTO = polls.candidates.filter((c) => c.auto)
+const names = (cs: { shortName: string }[]) => listFr(cs.map((c) => c.shortName))
 
 const INCOMPATIBLE = PROPOSED.flatMap((x, i) =>
   PROPOSED.slice(i + 1).flatMap((y) => (alliancesConflict(x, y) ? [[x, y] as const] : [])),
@@ -262,14 +264,35 @@ export function Methodology({ result }: { result: SimulationResult }) {
               non simulés sont retirés et l’hypothèse est ramenée à 100 %.
             </p>
             {MINORS.length > 0 && (
-              <p>
-                Les <strong>petits candidats</strong> ({MINORS.map((c) => c.name).join(', ')}) ne sont testés que
-                dans une partie des hypothèses : ils ne sont jamais requis, et une hypothèse retenue qui ne les
-                teste pas les compte à <strong>0 %</strong> (ses sondés répartissent leurs électeurs entre les
-                autres candidats). Leur score est ensuite moyenné comme celui des autres : entre les hypothèses
-                retenues de chaque sondage, puis entre instituts. Un petit candidat qu’aucune hypothèse retenue
-                ne teste n’apparaît pas.
-              </p>
+              <>
+                <p>
+                  Les <strong>petits candidats</strong> ({MINORS.map((c) => c.name).join(', ')}) ne sont testés
+                  que dans une partie des hypothèses : ils ne sont jamais requis. Dans une hypothèse retenue qui
+                  ne le teste pas, un petit candidat est <strong>imputé</strong> : il y reçoit son score dans les
+                  autres hypothèses retenues du même sondage, à défaut son score moyen dans les sondages qui le
+                  testent. Ces points sont pris aux candidats principaux selon ce que mesurent les sondages : quand
+                  un sondage retenu teste deux hypothèses dont l’une, avec lui, contient tous les candidats de
+                  l’autre, les points que chacun perd de l’une à l’autre indiquent à qui il les prend (moyenne
+                  des paires ; des candidats ajoutés ensemble reçoivent les mêmes parts). Faute de telle paire,
+                  on suit la répartition de ses électeurs choisie dans les réglages (étape 6). Les points sont
+                  pris au prorata de ces parts, parmi les candidats en lice ; aucun ne cède plus que son score,
+                  l’excédent étant pris aux autres au prorata. Chaque hypothèse
+                  garde ainsi un total de 100 %, sans double compte, et le score d’un petit candidat est celui de
+                  l’unique sondage qui le teste, ou la moyenne des sondages qui le testent. Un petit candidat
+                  qu’aucune hypothèse retenue ne teste n’apparaît pas ; un petit candidat rallié (étape 4) n’est
+                  pas imputé.
+                </p>
+                {AUTO.length > 0 && (
+                  <p>
+                    {names(AUTO)} {AUTO.length > 1 ? 'ont été ajoutés' : 'a été ajouté'} automatiquement par la
+                    synchronisation des sondages : {AUTO.length > 1 ? 'leur' : 'son'} bloc n’est pas classé, et{' '}
+                    {AUTO.length > 1 ? 'leurs' : 'ses'} électeurs se reportent par défaut au 2nd tour (et, au 1er
+                    tour, cèdent leurs points faute de paire d’hypothèses observée) comme l’ensemble des électeurs des candidats principaux dans les
+                    hypothèses qui {AUTO.length > 1 ? 'les' : 'le'} testent (étape 6), en attendant une saisie
+                    manuelle : cette répartition n’a pas de source.
+                  </p>
+                )}
+              </>
             )}
             <p>
               {result.allianceIds.length > 0
@@ -910,7 +933,7 @@ export function Methodology({ result }: { result: SimulationResult }) {
               {(() => {
                 const unreferenced = result.firstRound.filter((r) => {
                   const { bloc } = cand(r.candidateId)
-                  return r.correctionRatio === null && bloc !== undefined && calibration.blogBias[bloc]
+                  return r.correctionRatio === null && bloc !== null && calibration.blogBias[bloc]
                 })
                 return unreferenced.length > 0
                   ? ` (${unreferenced.map((r) => cand(r.candidateId).shortName).join(', ')} dans le scénario en cours)`
@@ -2025,10 +2048,11 @@ export function Methodology({ result }: { result: SimulationResult }) {
             </li>
             {MINORS.length > 0 && (
               <li>
-                Les petits candidats comptent pour 0 % dans les hypothèses qui ne les testent pas : leur score
-                moyen dépend du nombre d’hypothèses où les sondeurs les testent, et il est plus faible que
-                dans les seules hypothèses où ils figurent. Le report de leurs électeurs au 2nd tour est une
-                hypothèse (étape 6).
+                Le score d’un petit candidat peut reposer sur un seul sondage. Les candidats auxquels il prend
+                ses points dans les hypothèses qui ne le testent pas sont lus dans les sondages, souvent dans
+                une seule paire d’hypothèses où d’autres candidats entrent avec lui : les points que ceux-ci
+                prennent (Attal à Philippe, par exemple) lui sont attribués aussi. Faute de paire, ils suivent
+                la répartition de ses électeurs, qui est une hypothèse (étape 6), comme leur report au 2nd tour.
               </li>
             )}
             <li>

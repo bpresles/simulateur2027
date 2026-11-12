@@ -498,6 +498,225 @@
           }
         ]
       }
+    },
+    {
+      "id": "lagarde",
+      "name": "Christine Lagarde",
+      "shortName": "Lagarde",
+      "party": "LR",
+      "bloc": "droite",
+      "color": "#6a85c5",
+      "colorDark": "#7a92cf",
+      "duelProfile": null,
+      "ref2022": null,
+      "ref2022Note": "aucune référence 2022 : pas de correction ni de progression.",
+      "minor": {
+        "transfers": [
+          {
+            "id": "cluster17-philippe",
+            "label": "Électorat proche de Philippe (Cluster17)",
+            "parts": [
+              {
+                "id": "philippe",
+                "weight": 100
+              }
+            ],
+            "note": "Dans le sondage Cluster17 pour Politico (09-10/11/2026), Lagarde, testée à la place de Philippe, recueille 14 % contre 13,5 % pour lui ; les autres scores bougent d’un point au plus (Le Pen 30,5 % dans les deux). Elle prend la place de Philippe, et on suppose que ses électeurs se reportent au 2nd tour comme les siens. Échantillon de 1 164 personnes : ordre de grandeur.",
+            "sources": [
+              {
+                "label": "Cluster17 / Politico, 09-10/11/2026",
+                "url": "https://cluster17.com/wp-content/uploads/2026/11/Sondage_Cluster17_ITV_P2027-Politico.pdf"
+              }
+            ]
+          },
+          {
+            "id": "retailleau",
+            "label": "Comme les électeurs de Retailleau",
+            "parts": [
+              {
+                "id": "retailleau",
+                "weight": 100
+              }
+            ],
+            "note": "Hypothèse fondée sur son classement à droite (LR), sans source."
+          },
+          {
+            "id": "ensemble",
+            "label": "Comme l’ensemble des électeurs",
+            "parts": [
+              {
+                "id": "lepen",
+                "weight": 40
+              },
+              {
+                "id": "melenchon",
+                "weight": 25
+              },
+              {
+                "id": "glucksmann",
+                "weight": 10
+              },
+              {
+                "id": "dupont-aignan",
+                "weight": 5
+              },
+              {
+                "id": "philippe",
+                "weight": 5
+              },
+              {
+                "id": "retailleau",
+                "weight": 5
+              },
+              {
+                "id": "roussel",
+                "weight": 5
+              },
+              {
+                "id": "zemmour",
+                "weight": 5
+              }
+            ],
+            "note": "Hypothèse sans source, calculée lors de l’ajout automatique : ses électeurs se reportent comme l’ensemble des électeurs des candidats principaux dans les hypothèses qui le testent (poids arrondis à 5 points)."
+          }
+        ]
+      }
+    },
+    {
+      "id": "asselineau",
+      "name": "François Asselineau",
+      "shortName": "Asselineau",
+      "party": "UPR",
+      "bloc": null,
+      "color": "#8a8170",
+      "colorDark": "#b3aa98",
+      "duelProfile": null,
+      "ref2022": null,
+      "ref2022Note": "aucune référence 2022 : pas de correction ni de progression.",
+      "minor": {
+        "transfers": [
+          {
+            "id": "dupont-aignan",
+            "label": "Comme les électeurs de Dupont-Aignan",
+            "parts": [
+              {
+                "id": "dupont-aignan",
+                "weight": 100
+              }
+            ],
+            "note": "Hypothèse fondée sur leur positionnement souverainiste commun (l’UPR prône la sortie de l’Union européenne) ; aucun institut ne publie le détail de ses électeurs."
+          },
+          {
+            "id": "ensemble",
+            "label": "Comme l’ensemble des électeurs",
+            "parts": [
+              {
+                "id": "lepen",
+                "weight": 35
+              },
+              {
+                "id": "melenchon",
+                "weight": 25
+              },
+              {
+                "id": "glucksmann",
+                "weight": 10
+              },
+              {
+                "id": "philippe",
+                "weight": 10
+              },
+              {
+                "id": "attal",
+                "weight": 5
+              },
+              {
+                "id": "dupont-aignan",
+                "weight": 5
+              },
+              {
+                "id": "retailleau",
+                "weight": 5
+              },
+              {
+                "id": "zemmour",
+                "weight": 5
+              }
+            ],
+            "note": "Hypothèse sans source, calculée lors de l’ajout automatique : ses électeurs se reportent comme l’ensemble des électeurs des candidats principaux dans les hypothèses qui le testent (poids arrondis à 5 points)."
+          }
+        ]
+      }
+    },
+    {
+      "id": "riner",
+      "name": "Teddy Riner",
+      "shortName": "Riner",
+      "party": "Sans étiquette",
+      "bloc": "centre",
+      "color": "#f77602",
+      "colorDark": "#fd7c0e",
+      "duelProfile": null,
+      "ref2022": null,
+      "ref2022Note": "aucune référence 2022 : pas de correction ni de progression.",
+      "minor": {
+        "transfers": [
+          {
+            "id": "attal-philippe",
+            "label": "Comme les électeurs d’Attal et de Philippe",
+            "parts": [
+              {
+                "id": "attal",
+                "weight": 50
+              },
+              {
+                "id": "philippe",
+                "weight": 50
+              }
+            ],
+            "note": "Hypothèse fondée sur son positionnement au centre, proche de la majorité présidentielle ; aucun institut ne publie le détail de ses électeurs."
+          },
+          {
+            "id": "ensemble",
+            "label": "Comme l’ensemble des électeurs",
+            "parts": [
+              {
+                "id": "lepen",
+                "weight": 35
+              },
+              {
+                "id": "melenchon",
+                "weight": 25
+              },
+              {
+                "id": "glucksmann",
+                "weight": 10
+              },
+              {
+                "id": "philippe",
+                "weight": 10
+              },
+              {
+                "id": "attal",
+                "weight": 5
+              },
+              {
+                "id": "dupont-aignan",
+                "weight": 5
+              },
+              {
+                "id": "retailleau",
+                "weight": 5
+              },
+              {
+                "id": "zemmour",
+                "weight": 5
+              }
+            ],
+            "note": "Hypothèse sans source, calculée lors de l’ajout automatique : ses électeurs se reportent comme l’ensemble des électeurs des candidats principaux dans les hypothèses qui le testent (poids arrondis à 5 points)."
+          }
+        ]
+      }
     }
   ],
   "otherCandidates": [
@@ -576,18 +795,6 @@
     {
       "id": "maurel",
       "name": "Emmanuel Maurel"
-    },
-    {
-      "id": "lagarde",
-      "name": "Christine Lagarde"
-    },
-    {
-      "id": "asselineau",
-      "name": "François Asselineau"
-    },
-    {
-      "id": "riner",
-      "name": "Teddy Riner"
     }
   ],
   "hypothesisSets": [
@@ -884,15 +1091,80 @@
       "leader": "lisnard"
     },
     {
+      "id": "lagarde-philippe",
+      "label": "Lagarde rejoint Philippe",
+      "members": [
+        "philippe",
+        "lagarde"
+      ],
+      "leader": "philippe"
+    },
+    {
+      "id": "lagarde-attal",
+      "label": "Lagarde rejoint Attal",
+      "members": [
+        "attal",
+        "lagarde"
+      ],
+      "leader": "attal"
+    },
+    {
+      "id": "lagarde-retailleau",
+      "label": "Lagarde rejoint Retailleau",
+      "members": [
+        "retailleau",
+        "lagarde"
+      ],
+      "leader": "retailleau"
+    },
+    {
+      "id": "philippe-lagarde",
+      "label": "Philippe rejoint Lagarde",
+      "members": [
+        "lagarde",
+        "philippe"
+      ],
+      "leader": "lagarde"
+    },
+    {
+      "id": "attal-lagarde",
+      "label": "Attal rejoint Lagarde",
+      "members": [
+        "lagarde",
+        "attal"
+      ],
+      "leader": "lagarde"
+    },
+    {
+      "id": "riner-attal",
+      "label": "Riner rejoint Attal",
+      "members": [
+        "attal",
+        "riner"
+      ],
+      "leader": "attal"
+    },
+    {
+      "id": "riner-philippe",
+      "label": "Riner rejoint Philippe",
+      "members": [
+        "philippe",
+        "riner"
+      ],
+      "leader": "philippe"
+    },
+    {
       "id": "groupe-droite-centre",
       "label": "Alliance de la droite et du centre large",
-      "description": "Glucksmann, Attal, Philippe, Retailleau, Lisnard",
+      "description": "Glucksmann, Attal, Philippe, Retailleau, Lisnard, Lagarde, Riner",
       "members": [
         "glucksmann",
         "attal",
         "philippe",
         "retailleau",
-        "lisnard"
+        "lisnard",
+        "lagarde",
+        "riner"
       ],
       "grouped": true,
       "estimatedOnly": true
@@ -900,11 +1172,12 @@
     {
       "id": "groupe-centre",
       "label": "Alliance du centre",
-      "description": "Glucksmann, Attal, Philippe",
+      "description": "Glucksmann, Attal, Philippe, Riner",
       "members": [
         "glucksmann",
         "attal",
-        "philippe"
+        "philippe",
+        "riner"
       ],
       "grouped": true,
       "estimatedOnly": true
@@ -964,7 +1237,7 @@
       "sources": [
         {
           "label": "Synthèse de l’institut",
-          "url": "https://cluster17.com/presidentielle-2027-les-francais-favorables-au-principe-dune-primaire-mais-aucun-scenario-ne-convainc/",
+          "url": "https://cluster17.com/wp-content/uploads/2026/11/Sondage_Cluster17_ITV_P2027-Politico.pdf",
           "kind": "synthese"
         },
         {

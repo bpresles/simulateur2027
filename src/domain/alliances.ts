@@ -1,4 +1,4 @@
-import { averagePolls, hypothesisMatches, latestPerInstitute, normalize, windowDaysOf } from './pollAverage'
+import { averagePolls, hypothesisMatches, imputeShares, latestPerInstitute, normalize, windowDaysOf } from './pollAverage'
 import type {
   Alliance,
   AllianceLeak,
@@ -84,7 +84,7 @@ export function scenarioFilter(data: PollsData, alliances: Alliance[]): Pick<Hyp
  * mais Attal en lice : rien ne dit que ses électeurs suivent Glucksmann).
  */
 export function campRivals(data: PollsData, alliances: Alliance[]): CandidateId[] {
-  const blocOf = new Map<CandidateId, Bloc>(data.candidates.map((c) => [c.id, c.bloc]))
+  const blocOf = new Map<CandidateId, Bloc | null>(data.candidates.map((c) => [c.id, c.bloc]))
   const rallied = alliances.flatMap(ralliedOf)
   const main = defaultSet(data).require.filter((id) => !rallied.includes(id))
   return [
@@ -145,11 +145,22 @@ export function acceptAlliances(data: PollsData, active: Record<string, boolean>
     .reduce<Alliance[]>((best, c) => (c.length > best.length ? c : best), [])
 }
 
-/** Plus petite combinaison testée qui ajoute cette alliance aux alliances retenues (undefined sinon). */
+/**
+ * Plus petite combinaison testée qui ajoute cette alliance aux alliances retenues (undefined sinon). À taille
+ * égale, celle dont les autres alliances rallient le même leader (« Philippe rejoint Lagarde » avec « Attal
+ * rejoint Lagarde », plutôt qu'avec « Attal rejoint Retailleau »), puis l'ordre des données.
+ */
 export function comboWith(data: PollsData, accepted: Alliance[], alliance: Alliance): Alliance[] | undefined {
+  const sameLeader = (c: Alliance[]) => c.filter((b) => b.leader === alliance.leader).length
   return allianceCombos(data)
     .filter((c) => c.includes(alliance) && accepted.every((a) => c.includes(a)))
-    .reduce<Alliance[] | undefined>((best, c) => (!best || c.length < best.length ? c : best), undefined)
+    .reduce<Alliance[] | undefined>(
+      (best, c) =>
+        !best || c.length < best.length || (c.length === best.length && sameLeader(c) > sameLeader(best))
+          ? c
+          : best,
+      undefined,
+    )
 }
 
 const sameIds = (a: string[], b: string[]) => a.length === b.length && a.every((id) => b.includes(id))
@@ -190,8 +201,9 @@ export function testedShare(data: PollsData, id: CandidateId, excluded: Readonly
 /**
  * Ajoute à une moyenne un petit candidat qu'aucune de ses hypothèses ne teste (Ruffin, testé seulement avec
  * Attal, quand Attal rejoint Philippe), pour estimer son ralliement : sa part, reprise des hypothèses qui le
- * testent, est prélevée sur les candidats vers lesquels vont ses électeurs en son absence (`donors`, au
- * prorata de ceux qui sont en lice ; à défaut, sur tous au prorata de leur score). Total ramené à 100.
+ * testent, est prélevée sur ses donneurs (`donors` : observés dans les sondages, à défaut les candidats vers
+ * lesquels vont ses électeurs ; au prorata de ceux qui sont en lice, sinon de tous au prorata de leur score).
+ * Total ramené à 100.
  */
 export function insertMinor(
   average: Record<CandidateId, number>,
@@ -199,12 +211,7 @@ export function insertMinor(
   share: number,
   donors: ReferencePart[],
 ): Record<CandidateId, number> {
-  const present = donors.filter((p) => (average[p.id] ?? 0) > 0)
-  const from = present.length > 0 ? present : Object.entries(average).map(([k, v]) => ({ id: k, weight: v }))
-  const total = from.reduce((s, p) => s + p.weight, 0)
-  const scores = { ...average }
-  for (const p of from) scores[p.id] = Math.max(0, scores[p.id]! - (share * p.weight) / total)
-  return normalize({ ...scores, [id]: share })
+  return normalize(imputeShares(average, { [id]: share }, { [id]: donors }))
 }
 
 export interface AllianceResult {

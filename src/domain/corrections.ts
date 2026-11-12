@@ -133,7 +133,7 @@ export function applyCorrections(
           settings.turnoutExpected ?? null,
         )
       : null
-  const turnoutOf = balance ? turnoutFactors(raw, (id) => blocs.get(id), turnout!, balance.v0, balance.delta) : null
+  const turnoutOf = balance ? turnoutFactors(raw, (id) => blocs.get(id) ?? undefined, turnout!, balance.v0, balance.delta) : null
   const corrected = normalize(
     Object.fromEntries(draft.map((d) => [d.c.id, d.raw * (turnoutOf?.[d.c.id] ?? 1)])),
   )

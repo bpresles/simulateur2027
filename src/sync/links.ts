@@ -136,18 +136,21 @@ const isNotice = (s: PollSource) => s.kind === 'notice' || /commission-des-sonda
 
 /**
  * Ajoute à chaque sondage la synthèse de l'institut, en premier, et sa notice si la page n'en donne pas.
- * Un lien trouvé lors d'une synchronisation précédente est gardé quand il n'est plus repérable (site
- * injoignable, publication sortie du flux) ; une synthèse saisie à la main l'est aussi.
+ * Le flux ne sert qu'à trouver une synthèse manquante : une synthèse déjà enregistrée (trouvée lors d'une
+ * synchronisation précédente ou corrigée à la main) est gardée, même si le flux en propose une autre.
+ * Une notice déjà trouvée est gardée quand elle n'est plus repérable (site injoignable).
  */
 export function addLinks(polls: Poll[], previous: Poll[], sources: LinkSources): Poll[] {
   const before = new Map(previous.map((p) => [p.id, p.sources]))
   return polls.map((poll) => {
     const kept = before.get(poll.id) ?? []
     const own = poll.sources.map((s): PollSource => (isNotice(s) ? { ...s, kind: 'notice' } : s))
-    const item = findSynthesis(poll, sources.publications[canonicalInstitute(poll.institute)] ?? [])
-    const synthesis: PollSource | undefined = item
-      ? { label: SYNTHESIS_LABEL, url: item.url, kind: 'synthese' }
-      : [...own, ...kept].find((s) => s.kind === 'synthese')
+    const known = [...own, ...kept].find((s) => s.kind === 'synthese')
+    const item = known
+      ? undefined
+      : findSynthesis(poll, sources.publications[canonicalInstitute(poll.institute)] ?? [])
+    const synthesis: PollSource | undefined =
+      known ?? (item && { label: SYNTHESIS_LABEL, url: item.url, kind: 'synthese' })
     const hasNotice = own.some(isNotice)
     const entry = hasNotice ? undefined : findNotice(poll, sources.notices)
     const notices: PollSource[] = hasNotice

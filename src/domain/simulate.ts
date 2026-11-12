@@ -21,6 +21,7 @@ import { allianceSplit2024, effectiveProfiles, minorTransferParts, resolveDuel }
 import type {
   Alliance,
   AllianceRate,
+  Bloc,
   CandidateId,
   Entrant,
   FirstRoundRow,
@@ -89,11 +90,13 @@ export function simulate(
   // Les sondages retenus sont ceux qui testent la combinaison testée, avec ou sans l'option : celle-ci
   // n'ajoute que les alliances qu'aucune hypothèse ne permet, estimées sur ces mêmes sondages.
   const excluded = new Set(settings.excludedPolls)
-  let selection = averagePolls(polls, scenarioFilter(polls, tested), excluded)
+  // Un petit candidat absent d'une hypothèse y est imputé, pris aux candidats vers lesquels vont ses électeurs
+  // selon la répartition choisie dans les réglages.
+  let selection = averagePolls(polls, scenarioFilter(polls, tested), excluded, settings.minorTransfers)
   let hypothesisSet = scenarioSet(polls, tested, name)
   // Si aucun sondage ne teste tous les candidats simulés, la base se contente des candidats principaux.
   if (selection.institutesUsed === 0 && tested.length === 0) {
-    selection = averagePolls(polls, defaultSet(polls), excluded)
+    selection = averagePolls(polls, defaultSet(polls), excluded, settings.minorTransfers)
     hypothesisSet = defaultSet(polls)
     warnings.push('Aucun sondage ne teste tous les candidats simulés : hypothèses des seuls candidats principaux.')
   }
@@ -139,7 +142,10 @@ export function simulate(
   // Le petit candidat est ajouté après les corrections : sa part est prélevée sur les scores déjà
   // corrigés de ses donneurs, qui gardent ainsi leur correction 2022 sur les électeurs qu'ils cèdent.
   const insert = (scores: Record<CandidateId, number>) =>
-    inserted.reduce((acc, id) => insertMinor(acc, id, minorShare(id), minorTransfers[id] ?? []), scores)
+    inserted.reduce(
+      (acc, id) => insertMinor(acc, id, minorShare(id), selection.donors[id]?.parts ?? minorTransfers[id] ?? []),
+      scores,
+    )
   const correct = (scores: Record<CandidateId, number>) =>
     applyCorrections(
       scores,
@@ -181,7 +187,7 @@ export function simulate(
   }
   for (const id of inserted) {
     warnings.push(
-      `Aucune hypothèse retenue ne teste ${name(id)} : pour estimer son ralliement, score de ${minorShare(id).toFixed(1).replace('.', ',')} % repris des autres hypothèses des sondages retenus et prélevé sur les candidats vers lesquels se reportent ses électeurs en son absence.`,
+      `Aucune hypothèse retenue ne teste ${name(id)} : pour estimer son ralliement, score de ${minorShare(id).toFixed(1).replace('.', ',')} % repris des autres hypothèses des sondages retenus et prélevé sur les candidats auxquels il prend ses voix (observés dans les sondages, à défaut répartition de ses électeurs).`,
     )
   }
   const allianceRates: AllianceRate[] = polls.alliances
@@ -191,6 +197,9 @@ export function simulate(
     )
     .map((al) => {
       const leaderProfile = candidatesById.get(al.leader)!.duelProfile
+      // Ligne du profil du leader pour le bloc du rallié ; sans bloc (candidat non classé), pas de source.
+      const sourceOf = (profileId: typeof leaderProfile, bloc: Bloc | null) =>
+        profileId && bloc ? { profileId, bloc } : null
       return {
         allianceId: al.id,
         leaderId: al.leader,
@@ -198,7 +207,7 @@ export function simulate(
           candidateId: id,
           ...split(al.id, al.leader, id),
           default2024: split2024(al.leader, id),
-          source: leaderProfile ? { profileId: leaderProfile, bloc: candidatesById.get(id)!.bloc } : null,
+          source: sourceOf(leaderProfile, candidatesById.get(id)!.bloc),
           isOverride: settings.allianceOverrides[al.id] !== undefined,
         })),
       }
@@ -299,6 +308,7 @@ export function simulate(
     allianceRates,
     allianceLeaks: leaks,
     pollUsage: usage,
+    minorDonors: selection.donors,
     institutesUsed,
     firstRound,
     entrants,

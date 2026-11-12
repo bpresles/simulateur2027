@@ -118,6 +118,26 @@ describe('alliances testées par les sondages', () => {
     expect(comboWith(polls, [byId('attal-philippe')], byId('philippe-retailleau'))).toBeUndefined()
   })
 
+  it('à taille égale, la combinaison ajoutée rallie le même leader', () => {
+    // Lagarde testée sans Attal ni Philippe : « Attal rejoint Retailleau » décrit aussi l'absence d'Attal.
+    const withLagarde = [...main, liveData.polls.candidates.find((c) => c.id === 'lagarde')!]
+    const lagarde: PollsData = {
+      ...polls,
+      candidates: withLagarde,
+      alliances: liveData.polls.alliances.filter((a) =>
+        a.members.every((id) => withLagarde.some((c) => c.id === id)),
+      ),
+      polls: [poll('c', 'Cluster17', [without('H1', ['attal', 'philippe'], 'retailleau', { lagarde: 0 })])],
+    }
+    const find = (id: string) => lagarde.alliances.find((a) => a.id === id)!
+    expect(allianceCombos(lagarde).map(ids)).toContainEqual(['attal-retailleau', 'philippe-lagarde'])
+    expect(ids(comboWith(lagarde, [], find('philippe-lagarde'))!)).toEqual([
+      'philippe-lagarde',
+      'attal-lagarde',
+    ])
+    expect(ids(comboWith(lagarde, [], find('attal-lagarde'))!)).toEqual(['philippe-lagarde', 'attal-lagarde'])
+  })
+
   it('nomme le scénario d’après un jeu des données, sinon par les ralliés absents', () => {
     const name = (id: string) => polls.candidates.find((c) => c.id === id)!.name
     expect(scenarioSet(polls, [byId('attal-philippe')], name).label).toBe('Philippe seul')
@@ -287,12 +307,13 @@ describe('petits candidats : alliances lues dans les hypothèses', () => {
     expect(combos.flat()).not.toContain('ruffin-melenchon')
   })
 
-  it('simulation : 0 % dans les hypothèses sans lui, retiré quand il rallie son leader', () => {
+  it('simulation : imputé dans les hypothèses sans lui, retiré quand il rallie son leader', () => {
     const base = simulate(minorData, defaultSettings())
     expect(base.pollUsage[0]!.matchedHypotheses).toEqual(['H1', 'H2'])
     const lisnard = base.firstRound.find((r) => r.candidateId === 'lisnard')!
-    // (4 + 0) / 2 dans le seul sondage retenu.
-    expect(lisnard.base).toBeCloseTo(2, 8)
+    // 4 % dans H1 ; imputé à 4 % dans H2, sans lui, pris à ses donneurs : total de 100, sans double compte.
+    expect(lisnard.base).toBeCloseTo(4, 8)
+    expect(base.firstRound.reduce((s, r) => s + r.base, 0)).toBeCloseTo(100, 8)
     expect(base.firstRound.map((r) => r.candidateId)).not.toContain('villepin')
 
     const rallied = simulate(minorData, { ...defaultSettings(), alliances: { 'lisnard-retailleau': true } })

@@ -163,4 +163,18 @@ describe('liens ajoutés par la synchronisation', () => {
     expect(again.report.changed).toBe(false)
     expect(again.data).toBe(data)
   })
+
+  it('garde une synthèse corrigée à la main, même si le flux en propose une autre', () => {
+    const pdf = { label: SYNTHESIS_LABEL, url: 'https://elabe.fr/resultats.pdf', kind: 'synthese' as const }
+    const fixed = {
+      ...data,
+      polls: data.polls.map((p) =>
+        p.id === 'elabe-20261016'
+          ? { ...p, sources: [pdf, ...p.sources.filter((s) => s.kind !== 'synthese')] }
+          : p,
+      ),
+    }
+    const again = syncPolls(fixed, WIKITEXT, '2026-10-21', links)!
+    expect(again.data.polls.find((p) => p.id === 'elabe-20261016')!.sources[0]).toEqual(pdf)
+  })
 })
