@@ -3,6 +3,7 @@
 import { cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { act } from 'react'
 import { simulationData } from '../../data/schema'
+import { testedShare } from '../../domain/alliances'
 import { simulate } from '../../domain/simulate'
 import { selectSettings, useSettings } from '../../state/settingsStore'
 import { AllianceSwitches } from './AllianceSwitches'
@@ -36,7 +37,13 @@ describe('alliances non évaluées : petits candidats', () => {
     render(<Harness />)
     for (const a of minorAlliances.filter((x) => !x.members.includes('attal') && !x.members.includes('philippe'))) {
       const toggle = screen.getByRole('switch', { name: new RegExp(a.label) })
-      expect(toggle.hasAttribute('disabled')).toBe(false)
+      // Petit candidat qu'aucun sondage de la période ne teste (Bouamrane quand le seul sondage qui le
+      // testait en sort) : pas de score à reprendre, l'alliance reste désactivée.
+      if (a.members.some((id) => testedShare(simulationData.polls, id) <= 0)) {
+        expect(toggle.hasAttribute('disabled'), a.label).toBe(true)
+        continue
+      }
+      expect(toggle.hasAttribute('disabled'), a.label).toBe(false)
       act(() => fireEvent.click(toggle))
       expect(toggle.getAttribute('aria-checked'), a.label).toBe('true')
       act(() => fireEvent.click(toggle))
