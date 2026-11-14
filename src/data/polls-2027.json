@@ -1,5 +1,5 @@
 {
-  "asOf": "2026-11-13",
+  "asOf": "2026-11-14",
   "electionDate": "2027-04-18",
   "windowDays": 21,
   "collection": {
@@ -1225,6 +1225,68 @@
   ],
   "polls": [
     {
+      "id": "opinionway-20261112",
+      "origin": "wikipedia",
+      "institute": "OpinionWay",
+      "sponsor": "Non indiqué",
+      "fieldwork": {
+        "start": "2026-11-10",
+        "end": "2026-11-12"
+      },
+      "sampleSize": 1001,
+      "sources": [
+        {
+          "label": "Publication",
+          "url": "https://www.cnews.fr/france/2026-11-12/presidentielle-2027-marine-le-pen-reste-en-tete-des-intentions-de-vote-teddy"
+        },
+        {
+          "label": "Wikipedia – liste des sondages",
+          "url": "https://fr.wikipedia.org/wiki/Liste_de_sondages_sur_l%27%C3%A9lection_pr%C3%A9sidentielle_fran%C3%A7aise_de_2027"
+        }
+      ],
+      "note": "Repris de Wikipedia : chiffres non revérifiés.",
+      "hypotheses": [
+        {
+          "id": "H1",
+          "label": "Riner",
+          "scores": {
+            "arthaud": 1,
+            "melenchon": 16,
+            "roussel": 2,
+            "tondelier": 3,
+            "glucksmann": 10,
+            "attal": 3,
+            "philippe": 12,
+            "lisnard": 9,
+            "retailleau": 4,
+            "dupont-aignan": 2,
+            "lepen": 31,
+            "zemmour": 3,
+            "bouamrane": 0.5,
+            "riner": 4
+          }
+        },
+        {
+          "id": "H2",
+          "scores": {
+            "arthaud": 1,
+            "melenchon": 16,
+            "roussel": 2,
+            "tondelier": 3,
+            "glucksmann": 10,
+            "attal": 4,
+            "philippe": 12,
+            "lisnard": 10,
+            "retailleau": 5,
+            "dupont-aignan": 2,
+            "lepen": 32,
+            "zemmour": 2,
+            "bouamrane": 0.5
+          }
+        }
+      ]
+    },
+    {
       "id": "cluster17-20261110",
       "origin": "wikipedia",
       "institute": "Cluster17",
@@ -1325,82 +1387,6 @@
             "riner": 2,
             "ruffin": 1.5,
             "villepin": 1
-          }
-        }
-      ]
-    },
-    {
-      "id": "opinionway-20261110",
-      "origin": "wikipedia",
-      "institute": "OpinionWay",
-      "sponsor": "Non indiqué",
-      "fieldwork": {
-        "start": "2026-11-09",
-        "end": "2026-11-10"
-      },
-      "sampleSize": 982,
-      "sources": [
-        {
-          "label": "Publication",
-          "url": "https://f.dviz.factoviz.com/UserFiles/0/9/2/2027/OpinionWay%20pour%20Les%20Echos%20et%20Radio%20Classique%20-%20Barom%C3%A8tre%20Pr%C3%A9sitrack%202027%20Vague%204%20-%20Novembre%202026.pdf"
-        },
-        {
-          "label": "Wikipedia – liste des sondages",
-          "url": "https://fr.wikipedia.org/wiki/Liste_de_sondages_sur_l%27%C3%A9lection_pr%C3%A9sidentielle_fran%C3%A7aise_de_2027"
-        }
-      ],
-      "note": "Repris de Wikipedia : chiffres non revérifiés.",
-      "hypotheses": [
-        {
-          "id": "H1",
-          "label": "Attal, Philippe",
-          "scores": {
-            "arthaud": 1,
-            "melenchon": 17,
-            "roussel": 1,
-            "tondelier": 3,
-            "glucksmann": 11,
-            "attal": 4,
-            "philippe": 11,
-            "lisnard": 10,
-            "retailleau": 4,
-            "dupont-aignan": 1,
-            "lepen": 34,
-            "zemmour": 3
-          }
-        },
-        {
-          "id": "H2",
-          "label": "Philippe",
-          "scores": {
-            "arthaud": 1,
-            "melenchon": 16,
-            "roussel": 2,
-            "tondelier": 3,
-            "glucksmann": 12,
-            "philippe": 12,
-            "lisnard": 11,
-            "retailleau": 4,
-            "dupont-aignan": 2,
-            "lepen": 34,
-            "zemmour": 3
-          }
-        },
-        {
-          "id": "H3",
-          "label": "Attal",
-          "scores": {
-            "arthaud": 1,
-            "melenchon": 16,
-            "roussel": 1,
-            "tondelier": 3,
-            "glucksmann": 13,
-            "attal": 10,
-            "lisnard": 12,
-            "retailleau": 6,
-            "dupont-aignan": 1,
-            "lepen": 34,
-            "zemmour": 3
           }
         }
       ]
