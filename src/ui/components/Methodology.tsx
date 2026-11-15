@@ -1361,9 +1361,11 @@ export function Methodology({ result }: { result: SimulationResult }) {
                 .filter((al) => al.grouped)
                 .map((al) => `« ${al.label} » (${al.description}, autour de ${cand(al.leader).name})`)
                 .join(' ; ')}
-              . Le candidat derrière lequel l’alliance se rassemble est celui qui a le plus d’intentions de vote
-              au 1er tour dans la moyenne des sondages (jeu d’hypothèses par défaut, avant corrections) ; il est
-              recalculé à chaque synchronisation. Aucun sondage ne teste ces alliances : elles sont toujours
+              . Le leader est le candidat principal qui a le plus d’intentions de vote au 1er tour dans la moyenne
+              des sondages (jeu d’hypothèses par défaut, avant corrections) ; un petit candidat ne mène une alliance
+              groupée estimée que si elle ne compte que des petits candidats, car son score est en partie imputé
+              (testée par un seul institut, Lagarde reçoit un score dans les hypothèses de tous les autres) ; le
+              leader est recalculé à chaque synchronisation. Aucun sondage ne teste ces alliances : elles sont toujours
               estimées, comme les alliances non évaluées (reports des législatives 2024), pour chaque candidat
               rallié. Un candidat ne rallie qu’une alliance : elles sont incompatibles avec une alliance qui
               partage l’un de leurs membres sans le même leader.

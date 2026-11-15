@@ -128,7 +128,8 @@ export interface Alliance {
   leader: CandidateId
   /**
    * Alliance groupée (option) : le leader n'est pas fixé dans les données mais déduit au chargement, c'est
-   * le membre en tête de la moyenne des sondages au 1er tour. Toujours estimée (`estimatedOnly`).
+   * le candidat principal en tête de la moyenne des sondages au 1er tour (un petit candidat seulement si tous
+   * les membres le sont). Toujours estimée (`estimatedOnly`).
    */
   grouped?: boolean
   /**

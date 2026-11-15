@@ -35,14 +35,17 @@ export function alliancesConflict(a: Alliance, b: Alliance): boolean {
 }
 
 /**
- * Alliances groupées : plusieurs candidats rassemblés derrière celui qui a le plus d'intentions de vote au
- * 1er tour, selon la moyenne des sondages du jeu par défaut (le score parmi les hypothèses qui le testent
- * pour un petit candidat, absent de ce jeu). À égalité, le premier membre.
+ * Alliances groupées : plusieurs candidats rassemblés derrière le candidat principal qui a le plus
+ * d'intentions de vote au 1er tour, selon la moyenne des sondages du jeu par défaut. Le score d'un petit
+ * candidat est en partie imputé (Lagarde, testée par un seul institut, reçoit un score dans les hypothèses de
+ * tous) : il ne mène une alliance groupée que si elle ne compte que des petits candidats (alors, son score
+ * parmi les hypothèses qui le testent). À égalité, le premier membre.
  */
 export function groupedLeader(data: PollsData, members: CandidateId[]): CandidateId {
   const { average } = averagePolls(data, defaultSet(data))
   const score = (id: CandidateId) => average[id] ?? testedShare(data, id)
-  return members.reduce((best, id) => (score(id) > score(best) ? id : best))
+  const principal = members.filter((id) => !data.candidates.find((c) => c.id === id)?.minor)
+  return (principal.length > 0 ? principal : members).reduce((best, id) => (score(id) > score(best) ? id : best))
 }
 
 /** Données dont les alliances groupées ont leur leader : à appeler une fois, au chargement. */
