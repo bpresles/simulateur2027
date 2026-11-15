@@ -22,21 +22,27 @@ const lastNumber = (line: string) => {
   return found ? toNumber(found.at(-1)!) : undefined
 }
 
-/** Date de terrain en toutes lettres : « du 27 au 29 octobre 2026 », « les 12 et 13 novembre 2026 », « le 14 novembre 2026 ». */
-export function parseFieldworkText(raw: string): { start: string; end: string } | undefined {
-  const t = raw.replace(/\s+/g, ' ')
+/**
+ * Date de terrain en toutes lettres : « du 27 au 29 octobre 2026 », « les 12 et 13 novembre 2026 », « le 14
+ * novembre 2026 ». Une heure entre parenthèses (« du 4 (18h00) au 6 décembre ») est ignorée ; sans année, celle
+ * de `fallbackYear` (les rolling de 2022 la donnent seulement dans l'en-tête de la notice).
+ */
+export function parseFieldworkText(raw: string, fallbackYear?: number): { start: string; end: string } | undefined {
+  const t = raw.replace(/\s*\([^)]*\)/g, '').replace(/\s+/g, ' ')
   const day = String.raw`(\d{1,2})(?:er)?`
   const word = String.raw`(\p{L}+\.?)`
   const year = String.raw`(\d{4})`
   const range = t.match(
-    new RegExp(String.raw`\bdu ${day}(?: ${word})?(?: ${year})? au ${day} ${word} ${year}`, 'iu'),
+    new RegExp(String.raw`\bdu ${day}(?: ${word})?(?: ${year})? au ${day} ${word}(?: ${year})?`, 'iu'),
   )
+  if (range && range[6] === undefined && fallbackYear === undefined) return undefined
   if (range) {
+    const endYear = range[6] ? Number(range[6]) : fallbackYear!
     const endMonth = month(range[5]!)
     const startMonth = range[2] ? month(range[2]) : endMonth
     if (endMonth < 0 || startMonth < 0) return undefined
-    const end = isoDate(Number(range[6]), endMonth, Number(range[4]))
-    const start = isoDate(range[3] ? Number(range[3]) : Number(range[6]), startMonth, Number(range[1]))
+    const end = isoDate(endYear, endMonth, Number(range[4]))
+    const start = isoDate(range[3] ? Number(range[3]) : startMonth > endMonth ? endYear - 1 : endYear, startMonth, Number(range[1]))
     return start && end && start <= end ? { start, end } : undefined
   }
   const pair = t.match(new RegExp(String.raw`\bles ${day} et ${day} ${word} ${year}`, 'iu'))
@@ -112,9 +118,10 @@ export function parseTurnoutNotice(text: string, source: TurnoutSource): Turnout
   if (envisage === undefined || certain === undefined) return null
   if (envisage < 50 || envisage > 100 || certain < 30 || certain > 100) return null
 
-  const online = flat.match(/en ligne ((?:du|les?) .{3,70}?\d{4})/i)
+  const online = flat.match(/en ligne ((?:du|les?) [^.]{3,80})/i)
+  const headerYear = flat.match(/\b(?:janvier|f[ée]vrier|mars|avril|mai|juin|juillet|ao[uû]t|septembre|octobre|novembre|d[ée]cembre)\s+(20\d{2})\b/i)
   // Sans « en ligne … » on ne devine pas : la date de l'élection citée dans la question serait prise pour le terrain.
-  const fieldwork = online ? parseFieldworkText(online[1]!) : undefined
+  const fieldwork = online ? parseFieldworkText(online[1]!, headerYear ? Number(headerYear[1]) : undefined) : undefined
   if (!fieldwork) return null
 
   const sponsor = sponsorOf(flat, source)

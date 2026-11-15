@@ -1015,10 +1015,14 @@ export function Methodology({ result }: { result: SimulationResult }) {
             <p>
               Les mesures de l’Ifop sont reprises automatiquement des notices de la Commission des sondages à
               chaque synchronisation (les deux questions, chiffres redressés ; les notices qui ne les posent pas
-              sont ignorées). La série 2022 a été complétée une fois avec les notices Ifop de la même série qui
-              posent ces questions (vague 4, du 29/09 au 01/10/2021, en plus de la vague 5). Les autres rapports
-              Ifop de l’automne 2021 à mars 2022 ne les posent pas : il n’y a donc pas de mesure de campagne
-              pour les mois de novembre 2021 à mars 2022, et aucune valeur n’y est interpolée.
+              sont ignorées). La série 2022 a été complétée une fois avec les
+              notices Ifop de la Commission des sondages qui posent les mêmes questions : vague 4 (29/09 au
+              01/10/2021), baromètres et sondages de novembre 2021 à avril 2022, et notices du rolling
+              Ifop-Fiducial pour Paris Match, LCI et Sud Radio (quasi quotidiennes de janvier à avril 2022,
+              terrains qui se recouvrent). Ces notices publient les mêmes deux questions, en chiffres redressés,
+              ce que ne font pas les rapports du rolling (ROL22), qui ne donnent que l’indice de participation :
+              seule la mesure finale utilise cet indice. Deux notices qui se terminent le même jour ne comptent
+              qu’une fois. Aucune valeur n’est interpolée.
             </p>
             <p>
               <strong>Ce que la campagne ajoute, mesuré en 2022.</strong> Entre la mesure de la campagne 2022 la plus proche et la dernière

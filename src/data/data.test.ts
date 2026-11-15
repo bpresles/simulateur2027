@@ -10,6 +10,9 @@ import {
   testedShare,
 } from '../domain/alliances'
 import type { Alliance, Poll } from '../domain/types'
+import { computeCalibration } from '../domain/calibration'
+import { TURNOUT_DISTANCE_TOLERANCE_DAYS, closestMeasure } from '../domain/turnout'
+import { daysBetween } from '../domain/pollAverage'
 import { averagePolls, hypothesisMatches, latestPerInstitute, windowDaysOf } from '../domain/pollAverage'
 import { defaultSettings, simulate } from '../domain/simulate'
 import pollsJson from './polls-2027.json'
@@ -70,6 +73,16 @@ describe('données', () => {
     const def = broken.polls.hypothesisSets.find((s) => s.default)!
     def.require.push('lagarde')
     expect(validateData(broken)).toEqual([expect.stringMatching(/petit candidat « lagarde »/)])
+  })
+
+  it('participation : toute mesure 2027 entre J−190 et J−5 trouve une référence 2022 à moins de 30 jours', () => {
+    const { measures } = simulationData.turnoutCertainty
+    const { electionDateRef } = computeCalibration(simulationData, simulationData.polls).turnout
+    for (let distance = 5; distance <= 190; distance++) {
+      const ref = closestMeasure(measures, 2022, electionDateRef, distance)!
+      const gap = Math.abs(daysBetween(ref.fieldwork.end, electionDateRef) - distance)
+      expect(gap, `J−${distance}`).toBeLessThanOrEqual(TURNOUT_DISTANCE_TOLERANCE_DAYS)
+    }
   })
 
   it('chaque alliance proposée est retenue une fois activée (avec sa combinaison)', () => {
