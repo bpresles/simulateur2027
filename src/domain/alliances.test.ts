@@ -393,22 +393,37 @@ describe('alliances groupées', () => {
   const { polls: live } = liveData
   const grouped = live.alliances.filter((a) => a.grouped)
 
+  // Données synthétiques : Lagarde, testée par un seul sondage, est imputée dans l'autre hypothèse.
+  const minorCatalog = (...ids: string[]): PollsData => {
+    const candidates = [...main, ...live.candidates.filter((c) => ids.includes(c.id))]
+    return {
+      ...live,
+      candidates,
+      alliances: live.alliances.filter((a) => !a.grouped && a.members.every((id) => candidates.some((c) => c.id === id))),
+      asOf: '2026-10-20',
+      period: { label: 'Octobre-décembre 2026', start: '2026-10-01' },
+      polls: [
+        poll('x', 'Cluster17', [
+          { id: 'H1', scores: FULL },
+          { id: 'H2', scores: { ...FULL, lagarde: 16, lisnard: 9 } },
+        ]),
+      ],
+    }
+  }
+
   it('leader : un petit candidat, même en tête de la moyenne (score imputé), ne mène pas l’alliance', () => {
-    const lagarde = live.candidates.find((c) => c.id === 'lagarde')!
-    const { average } = averagePolls(live, defaultSet(live))
-    // Lagarde est imputée à un score plus haut que Philippe dans la moyenne du jeu par défaut.
+    const d = minorCatalog('lagarde', 'lisnard')
+    const { average } = averagePolls(d, defaultSet(d))
     expect(average['lagarde']!).toBeGreaterThan(average['philippe']!)
-    expect(lagarde.minor).toBeTruthy()
-    expect(groupedLeader(live, ['philippe', 'attal', 'lagarde'])).toBe('philippe')
-    expect(live.alliances.find((a) => a.id === 'groupe-droite-centre')!.leader).toBe('philippe')
+    expect(groupedLeader(d, ['philippe', 'attal', 'lagarde'])).toBe('philippe')
+    expect(groupedLeader(d, ['lagarde', 'philippe'])).toBe('philippe')
   })
 
   it('leader : seulement des petits candidats, repli sur celui qui a le plus d’intentions de vote', () => {
-    const tested = live.candidates.filter((c) => c.minor && testedShare(live, c.id) > 0).map((c) => c.id)
-    const [low, high] = [...tested].sort((a, b) => testedShare(live, a) - testedShare(live, b)).slice(-2)
-    expect(testedShare(live, high!)).toBeGreaterThan(testedShare(live, low!))
-    expect(groupedLeader(live, [low!, high!])).toBe(high)
-    expect(groupedLeader(live, [high!, low!])).toBe(high)
+    const d = minorCatalog('lagarde', 'lisnard')
+    expect(testedShare(d, 'lagarde')).toBeGreaterThan(testedShare(d, 'lisnard'))
+    expect(groupedLeader(d, ['lisnard', 'lagarde'])).toBe('lagarde')
+    expect(groupedLeader(d, ['lagarde', 'lisnard'])).toBe('lagarde')
   })
 
   it('leader : le candidat principal en tête de la moyenne des sondages (jeu par défaut)', () => {

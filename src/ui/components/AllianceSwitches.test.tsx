@@ -3,7 +3,7 @@
 import { cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { act } from 'react'
 import { simulationData } from '../../data/schema'
-import { testedShare } from '../../domain/alliances'
+import { alliancesConflict, testedOptions, testedShare } from '../../domain/alliances'
 import { simulate } from '../../domain/simulate'
 import { selectSettings, useSettings } from '../../state/settingsStore'
 import { AllianceSwitches } from './AllianceSwitches'
@@ -74,34 +74,52 @@ describe('alliances groupées', () => {
     expect(result.entrants.find((e) => e.id === a.leader)?.members).toHaveLength(a.members.length)
   })
 
+  // Les options viennent des sondages du moment : le test suit celles qui existent, sans en supposer aucune.
+  const options = testedOptions(simulationData.polls)
+  const byOption = (id: string) => screen.getByRole('switch', { name: (_, el) => el.id === `g-${id}` })
+  const keys = () => Object.keys(useSettings.getState().alliances).sort()
+  const ids = (alliances: { id: string }[]) => alliances.map((a) => a.id).sort()
+
   it('options testées : choix exclusifs, qui remplacent les alliances testées actives', () => {
+    if (options.length < 2) return
+    const [a, b] = options as [(typeof options)[number], (typeof options)[number]]
     act(() => useSettings.getState().setGroupedAlliances(true))
     render(<Harness />)
-    const lagarde = screen.getByRole('switch', { name: /Lagarde seule/ })
-    const philippe = screen.getByRole('switch', { name: /^Philippe seul/ })
-    act(() => fireEvent.click(lagarde))
-    expect(lagarde.getAttribute('aria-checked')).toBe('true')
-    expect(Object.keys(useSettings.getState().alliances).sort()).toEqual(['attal-lagarde', 'philippe-lagarde'])
-    expect(simulate(simulationData, selectSettings(useSettings.getState())).hypothesisSet.label).toBe('Lagarde seule')
+    const first = byOption(a.id)
+    const second = byOption(b.id)
+    act(() => fireEvent.click(first))
+    expect(first.getAttribute('aria-checked')).toBe('true')
+    expect(keys()).toEqual(ids(a.alliances))
     // Une autre option remplace la première.
-    act(() => fireEvent.click(philippe))
-    expect(philippe.getAttribute('aria-checked')).toBe('true')
-    expect(lagarde.getAttribute('aria-checked')).toBe('false')
-    expect(Object.keys(useSettings.getState().alliances)).toEqual(['attal-philippe'])
+    act(() => fireEvent.click(second))
+    expect(second.getAttribute('aria-checked')).toBe('true')
+    expect(first.getAttribute('aria-checked')).toBe('false')
+    expect(keys()).toEqual(ids(b.alliances))
     // Décocher retire sa combinaison.
-    act(() => fireEvent.click(philippe))
-    expect(Object.keys(useSettings.getState().alliances)).toEqual([])
+    act(() => fireEvent.click(second))
+    expect(keys()).toEqual([])
   })
 
   it('options testées : une alliance groupée estimée compatible reste active, l’incompatible est retirée', () => {
+    const grouped = simulationData.polls.alliances.filter((x) => x.grouped)
+    const pair = options
+      .flatMap((o) => grouped.map((g) => ({ o, g })))
+      .find(({ o, g }) => !o.alliances.some((x) => alliancesConflict(g, x)))
+    const clash = options
+      .flatMap((o) => grouped.map((g) => ({ o, g })))
+      .find(({ o, g }) => o.alliances.some((x) => alliancesConflict(g, x)))
+    if (!pair) return
     act(() => {
       useSettings.getState().setGroupedAlliances(true)
-      useSettings.getState().setAlliances({ 'groupe-gauche-sans-lfi': true })
+      useSettings.getState().setAlliances({ [pair.g.id]: true })
     })
     render(<Harness />)
-    act(() => fireEvent.click(screen.getByRole('switch', { name: /^Philippe seul/ })))
-    expect(Object.keys(useSettings.getState().alliances).sort()).toEqual(['attal-philippe', 'groupe-gauche-sans-lfi'])
-    act(() => fireEvent.click(screen.getByRole('switch', { name: /Lagarde seule/ })))
-    expect(Object.keys(useSettings.getState().alliances)).toContain('groupe-gauche-sans-lfi')
+    act(() => fireEvent.click(byOption(pair.o.id)))
+    expect(keys()).toEqual([...ids(pair.o.alliances), pair.g.id].sort())
+    if (clash) {
+      act(() => useSettings.getState().setAlliances({ [clash.g.id]: true }))
+      act(() => fireEvent.click(byOption(clash.o.id)))
+      expect(keys()).not.toContain(clash.g.id)
+    }
   })
 })

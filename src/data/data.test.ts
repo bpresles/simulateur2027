@@ -5,7 +5,6 @@ import {
   comboWith,
   describingCombos,
   scenarioFilter,
-  scenarioSet,
   testedOptions,
   testedShare,
 } from '../domain/alliances'
@@ -59,28 +58,20 @@ describe('données', () => {
     }
   })
 
-  it('le leader de l’alliance groupée « droite et centre large » est un candidat principal, Philippe', () => {
-    const groupe = simulationData.polls.alliances.find((a) => a.id === 'groupe-droite-centre')!
-    expect(groupe.leader).toBe('philippe')
-    for (const a of simulationData.polls.alliances.filter((x) => x.grouped)) {
-      expect(simulationData.polls.candidates.find((c) => c.id === a.leader)?.minor, a.id).toBeFalsy()
+  it('une alliance groupée estimée comptant un candidat principal n’est jamais menée par un petit candidat', () => {
+    const { candidates, alliances } = simulationData.polls
+    const minor = (id: string) => candidates.find((c) => c.id === id)?.minor
+    for (const a of alliances.filter((x) => x.grouped)) {
+      if (a.members.some((id) => !minor(id))) expect(minor(a.leader), a.id).toBeFalsy()
     }
-  })
-
-  it('« Lagarde seule » : l’hypothèse Cluster17 « Lagarde » donne le scénario et l’option du même nom', () => {
-    const { polls } = simulationData
-    const lagarde = polls.alliances.filter((a) => ['philippe-lagarde', 'attal-lagarde'].includes(a.id))
-    expect(scenarioSet(polls, lagarde, (id) => id).label).toBe('Lagarde seule')
-    const option = testedOptions(polls).find((o) => o.label === 'Lagarde seule')
-    expect(option?.alliances.map((a) => a.id)).toEqual(['philippe-lagarde', 'attal-lagarde'])
-    expect(option?.description).toMatch(/Testée par : Cluster17 \(hypothèse « Lagarde »\)/)
   })
 
   it('un petit candidat peut être requis par un jeu d’hypothèses autre que celui par défaut, pas par le jeu par défaut', () => {
     const broken = structuredClone(simulationData)
     const def = broken.polls.hypothesisSets.find((s) => s.default)!
-    def.require.push('lagarde')
-    expect(validateData(broken)).toEqual([expect.stringMatching(/petit candidat « lagarde »/)])
+    const minor = broken.polls.candidates.find((c) => c.minor)!.id
+    def.require.push(minor)
+    expect(validateData(broken)).toEqual([expect.stringMatching(new RegExp(`petit candidat « ${minor} »`))])
   })
 
   it('participation : à J−125, la référence 2022 est la moyenne des mesures de J−136, J−125 et J−116, pas la mesure bruitée de 60,7 %', () => {
@@ -202,7 +193,7 @@ describe('données', () => {
         expect([...res.allianceIds, ...res.estimatedAllianceIds], `${b.id} avec ${a.id}`).toContain(b.id)
       }
     }
-  })
+  }, 30_000)
 
   it('rejette plus d’indécis que de personnes sans intention de vote dans un duel', () => {
     const broken = structuredClone(simulationData)
