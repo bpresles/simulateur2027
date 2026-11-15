@@ -1,6 +1,16 @@
-import { acceptAlliances, alliancesConflict, availableAlliances, comboWith, testedShare } from '../domain/alliances'
+import {
+  acceptAlliances,
+  alliancesConflict,
+  availableAlliances,
+  comboWith,
+  describingCombos,
+  scenarioFilter,
+  scenarioSet,
+  testedOptions,
+  testedShare,
+} from '../domain/alliances'
 import type { Alliance, Poll } from '../domain/types'
-import { averagePolls } from '../domain/pollAverage'
+import { averagePolls, hypothesisMatches, latestPerInstitute, windowDaysOf } from '../domain/pollAverage'
 import { defaultSettings, simulate } from '../domain/simulate'
 import pollsJson from './polls-2027.json'
 import { profileTotals } from '../domain/secondRound'
@@ -19,6 +29,47 @@ describe('données', () => {
 
   it('sans alliance, au moins un sondage teste tous les candidats simulés', () => {
     expect(simulate(simulationData, defaultSettings()).institutesUsed).toBeGreaterThan(0)
+  })
+
+  it('chaque hypothèse retenue décrite par une combinaison appartient à une option testée qui la décrit', () => {
+    const { polls } = simulationData
+    const { latest } = latestPerInstitute(polls.polls, polls.asOf, windowDaysOf(polls))
+    const options = testedOptions(polls)
+    const key = (c: Alliance[]) => c.map((a) => a.id).sort().join('|')
+    for (const poll of latest) {
+      for (const h of poll.hypotheses) {
+        // Une hypothèse qui décrit déjà le scénario de base (un petit candidat absent n'est pas rallié) n'a pas d'option.
+        if (hypothesisMatches(h, scenarioFilter(polls, []))) continue
+        const described = describingCombos(polls, h).map(key)
+        if (described.length === 0) continue
+        const option = options.find((o) => o.testedBy.some((t) => t.institute === poll.institute))
+        expect(option, `${poll.institute} / ${h.label ?? h.id}`).toBeDefined()
+        expect(
+          options.some((o) => described.includes(key(o.alliances)) && o.testedBy.some((t) => t.institute === poll.institute && t.hypothesis === h.label)),
+          `${poll.institute} / ${h.label ?? h.id}`,
+        ).toBe(true)
+      }
+    }
+    // Chaque option est une combinaison que `acceptAlliances` retient telle quelle.
+    for (const o of options) {
+      expect(acceptAlliances(polls, Object.fromEntries(o.alliances.map((a) => [a.id, true])))).toEqual(o.alliances)
+    }
+  })
+
+  it('« Lagarde seule » : l’hypothèse Cluster17 « Lagarde » donne le scénario et l’option du même nom', () => {
+    const { polls } = simulationData
+    const lagarde = polls.alliances.filter((a) => ['philippe-lagarde', 'attal-lagarde'].includes(a.id))
+    expect(scenarioSet(polls, lagarde, (id) => id).label).toBe('Lagarde seule')
+    const option = testedOptions(polls).find((o) => o.label === 'Lagarde seule')
+    expect(option?.alliances.map((a) => a.id)).toEqual(['philippe-lagarde', 'attal-lagarde'])
+    expect(option?.description).toMatch(/Testée par : Cluster17 \(hypothèse « Lagarde »\)/)
+  })
+
+  it('un petit candidat peut être requis par un jeu d’hypothèses autre que celui par défaut, pas par le jeu par défaut', () => {
+    const broken = structuredClone(simulationData)
+    const def = broken.polls.hypothesisSets.find((s) => s.default)!
+    def.require.push('lagarde')
+    expect(validateData(broken)).toEqual([expect.stringMatching(/petit candidat « lagarde »/)])
   })
 
   it('chaque alliance proposée est retenue une fois activée (avec sa combinaison)', () => {
