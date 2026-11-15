@@ -1,5 +1,5 @@
 {
-  "asOf": "2026-11-14",
+  "asOf": "2026-11-15",
   "electionDate": "2027-04-18",
   "windowDays": 21,
   "collection": {
@@ -1225,19 +1225,153 @@
   ],
   "polls": [
     {
+      "id": "elabe-20261113",
+      "origin": "wikipedia",
+      "institute": "Elabe",
+      "sponsor": "Non indiqué",
+      "fieldwork": {
+        "start": "2026-11-12",
+        "end": "2026-11-13"
+      },
+      "sampleSize": 1500,
+      "sources": [
+        {
+          "label": "Synthèse de l’institut",
+          "url": "https://elabe.fr/presidentielle-2027-novembre/",
+          "kind": "synthese"
+        },
+        {
+          "label": "Publication",
+          "url": "https://elabe.fr/fichier-pdf/13399-les-francais-et-lelection-presidentielle-2027/"
+        },
+        {
+          "label": "Wikipedia – liste des sondages",
+          "url": "https://fr.wikipedia.org/wiki/Liste_de_sondages_sur_l%27%C3%A9lection_pr%C3%A9sidentielle_fran%C3%A7aise_de_2027"
+        }
+      ],
+      "note": "Repris de Wikipedia : chiffres non revérifiés.",
+      "hypotheses": [
+        {
+          "id": "H1",
+          "label": "Tondelier, Philippe, Villepin",
+          "scores": {
+            "arthaud": 0.5,
+            "melenchon": 17,
+            "roussel": 2,
+            "tondelier": 3,
+            "glucksmann": 13.5,
+            "philippe": 15,
+            "retailleau": 6,
+            "dupont-aignan": 3,
+            "lepen": 33,
+            "zemmour": 4.5,
+            "villepin": 2.5
+          }
+        },
+        {
+          "id": "H2",
+          "label": "Tondelier, Attal, Villepin",
+          "scores": {
+            "arthaud": 1,
+            "melenchon": 17.5,
+            "roussel": 2.5,
+            "tondelier": 3,
+            "glucksmann": 14,
+            "attal": 10,
+            "retailleau": 9,
+            "dupont-aignan": 2.5,
+            "lepen": 33,
+            "zemmour": 4.5,
+            "villepin": 3
+          }
+        },
+        {
+          "id": "H3",
+          "label": "Tondelier, Attal, Philippe",
+          "scores": {
+            "arthaud": 0.5,
+            "melenchon": 17.5,
+            "roussel": 2,
+            "tondelier": 3.5,
+            "glucksmann": 13,
+            "attal": 5.5,
+            "philippe": 12,
+            "retailleau": 6,
+            "dupont-aignan": 3,
+            "lepen": 33,
+            "zemmour": 4
+          }
+        },
+        {
+          "id": "H4",
+          "label": "Attal, Lisnard, Ruffin",
+          "scores": {
+            "arthaud": 0.5,
+            "melenchon": 17.5,
+            "roussel": 1.5,
+            "glucksmann": 14,
+            "attal": 8.5,
+            "lisnard": 10.5,
+            "retailleau": 6,
+            "dupont-aignan": 2.5,
+            "lepen": 32,
+            "zemmour": 4,
+            "ruffin": 3
+          }
+        },
+        {
+          "id": "H5",
+          "label": "Philippe, Lisnard",
+          "scores": {
+            "arthaud": 0.5,
+            "melenchon": 18.5,
+            "roussel": 2.5,
+            "glucksmann": 13.5,
+            "philippe": 13,
+            "lisnard": 9,
+            "retailleau": 4,
+            "dupont-aignan": 3,
+            "lepen": 32.5,
+            "zemmour": 3.5
+          }
+        },
+        {
+          "id": "H6",
+          "label": "Tondelier, Attal, Philippe, Lisnard, Polony, Riner",
+          "scores": {
+            "arthaud": 0.5,
+            "melenchon": 17,
+            "roussel": 1.5,
+            "tondelier": 3,
+            "glucksmann": 10.5,
+            "attal": 4,
+            "philippe": 9.5,
+            "lisnard": 8,
+            "retailleau": 4,
+            "dupont-aignan": 2,
+            "lepen": 31,
+            "zemmour": 3,
+            "polony": 1.5,
+            "riner": 4.5
+          }
+        }
+      ]
+    },
+    {
       "id": "opinionway-20261112",
       "origin": "wikipedia",
       "institute": "OpinionWay",
-      "sponsor": "Non indiqué",
+      "sponsor": "CNews",
       "fieldwork": {
         "start": "2026-11-10",
         "end": "2026-11-12"
       },
-      "sampleSize": 1001,
+      "sampleSize": 964,
       "sources": [
         {
-          "label": "Publication",
-          "url": "https://www.cnews.fr/france/2026-11-12/presidentielle-2027-marine-le-pen-reste-en-tete-des-intentions-de-vote-teddy"
+          "label": "Notice (Commission des sondages)",
+          "url": "http://www.commission-des-sondages.fr/notices/files/notices/2026/novembre/10371-pres-iv-opinionway-cnews-12-novembre.pdf",
+          "kind": "notice"
         },
         {
           "label": "Wikipedia – liste des sondages",
@@ -1271,9 +1405,9 @@
           "scores": {
             "arthaud": 1,
             "melenchon": 16,
-            "roussel": 2,
+            "roussel": 1,
             "tondelier": 3,
-            "glucksmann": 10,
+            "glucksmann": 11,
             "attal": 4,
             "philippe": 12,
             "lisnard": 10,
@@ -1281,7 +1415,7 @@
             "dupont-aignan": 2,
             "lepen": 32,
             "zemmour": 2,
-            "bouamrane": 0.5
+            "bouamrane": 1
           }
         }
       ]
@@ -1690,138 +1824,6 @@
       ]
     },
     {
-      "id": "elabe-20261016",
-      "origin": "wikipedia",
-      "institute": "Elabe",
-      "sponsor": "Non indiqué",
-      "fieldwork": {
-        "start": "2026-10-14",
-        "end": "2026-10-16"
-      },
-      "sampleSize": 1701,
-      "sources": [
-        {
-          "label": "Synthèse de l’institut",
-          "url": "https://elabe.fr/presidentielle-2027-octobre/",
-          "kind": "synthese"
-        },
-        {
-          "label": "Notice (Commission des sondages)",
-          "url": "https://www.commission-des-sondages.fr/notices/files/notices/2026/octobre/10324-pres-iv-elabe-17-octobre.pdf",
-          "kind": "notice"
-        },
-        {
-          "label": "Wikipedia – liste des sondages",
-          "url": "https://fr.wikipedia.org/wiki/Liste_de_sondages_sur_l%27%C3%A9lection_pr%C3%A9sidentielle_fran%C3%A7aise_de_2027"
-        }
-      ],
-      "note": "Repris de Wikipedia : chiffres non revérifiés.",
-      "hypotheses": [
-        {
-          "id": "H1",
-          "label": "Tondelier, Philippe, Villepin",
-          "scores": {
-            "arthaud": 1,
-            "melenchon": 15,
-            "roussel": 1.5,
-            "tondelier": 3,
-            "glucksmann": 15.5,
-            "philippe": 16.5,
-            "retailleau": 7,
-            "dupont-aignan": 2.5,
-            "lepen": 32.5,
-            "zemmour": 3.5,
-            "villepin": 2
-          }
-        },
-        {
-          "id": "H2",
-          "label": "Tondelier, Attal, Villepin",
-          "scores": {
-            "arthaud": 1,
-            "melenchon": 16,
-            "roussel": 2,
-            "tondelier": 2.5,
-            "glucksmann": 16.5,
-            "attal": 10.5,
-            "retailleau": 9.5,
-            "dupont-aignan": 2,
-            "lepen": 33.5,
-            "zemmour": 3.5,
-            "villepin": 3
-          }
-        },
-        {
-          "id": "H3",
-          "label": "Tondelier, Philippe, Lisnard",
-          "scores": {
-            "arthaud": 0.5,
-            "melenchon": 15.5,
-            "roussel": 1.5,
-            "tondelier": 2.5,
-            "glucksmann": 15,
-            "philippe": 15.5,
-            "lisnard": 5.5,
-            "retailleau": 6.5,
-            "dupont-aignan": 3,
-            "lepen": 31.5,
-            "zemmour": 3
-          }
-        },
-        {
-          "id": "H4",
-          "label": "Attal, Lisnard, Ruffin",
-          "scores": {
-            "arthaud": 0.5,
-            "melenchon": 16,
-            "roussel": 1.5,
-            "glucksmann": 16.5,
-            "attal": 9.5,
-            "lisnard": 6.5,
-            "retailleau": 9,
-            "dupont-aignan": 2.5,
-            "lepen": 31,
-            "zemmour": 3.5,
-            "ruffin": 3
-          }
-        },
-        {
-          "id": "H5",
-          "label": "Tondelier, Attal, Philippe",
-          "scores": {
-            "arthaud": 0.5,
-            "melenchon": 15.5,
-            "roussel": 1.5,
-            "tondelier": 2.5,
-            "glucksmann": 15.5,
-            "attal": 4.5,
-            "philippe": 13.5,
-            "retailleau": 7.5,
-            "dupont-aignan": 3,
-            "lepen": 32.5,
-            "zemmour": 3.5
-          }
-        },
-        {
-          "id": "H6",
-          "label": "Tondelier, Philippe, Polony",
-          "scores": {
-            "arthaud": 1,
-            "melenchon": 15,
-            "roussel": 1,
-            "tondelier": 2.5,
-            "glucksmann": 16,
-            "philippe": 16.5,
-            "retailleau": 7.5,
-            "dupont-aignan": 2.5,
-            "lepen": 33.5,
-            "zemmour": 3,
-            "polony": 1.5
-          }
-        }
-      ]
-    },
-    {
       "id": "yougov-20261015",
       "origin": "wikipedia",
       "institute": "YouGov",
@@ -2005,6 +2007,96 @@
   "secondRoundPolls": [
     {
       "origin": "wikipedia",
+      "institute": "Elabe",
+      "sponsor": "Non indiqué",
+      "fieldwork": {
+        "start": "2026-11-12",
+        "end": "2026-11-13"
+      },
+      "sampleSize": 1500,
+      "url": "https://elabe.fr/fichier-pdf/13399-les-francais-et-lelection-presidentielle-2027/",
+      "scores": {
+        "glucksmann": 45,
+        "lepen": 55
+      }
+    },
+    {
+      "origin": "wikipedia",
+      "institute": "Elabe",
+      "sponsor": "Non indiqué",
+      "fieldwork": {
+        "start": "2026-11-12",
+        "end": "2026-11-13"
+      },
+      "sampleSize": 1500,
+      "url": "https://elabe.fr/fichier-pdf/13399-les-francais-et-lelection-presidentielle-2027/",
+      "scores": {
+        "melenchon": 31.5,
+        "lepen": 68.5
+      }
+    },
+    {
+      "origin": "wikipedia",
+      "institute": "Elabe",
+      "sponsor": "Non indiqué",
+      "fieldwork": {
+        "start": "2026-11-12",
+        "end": "2026-11-13"
+      },
+      "sampleSize": 1500,
+      "url": "https://elabe.fr/fichier-pdf/13399-les-francais-et-lelection-presidentielle-2027/",
+      "scores": {
+        "philippe": 45,
+        "lepen": 55
+      }
+    },
+    {
+      "origin": "wikipedia",
+      "institute": "OpinionWay",
+      "sponsor": "CNews",
+      "fieldwork": {
+        "start": "2026-11-10",
+        "end": "2026-11-12"
+      },
+      "sampleSize": 964,
+      "url": "https://www.commission-des-sondages.fr/notices/files/notices/2026/novembre/10371-pres-iv-opinionway-cnews-12-novembre.pdf",
+      "scores": {
+        "glucksmann": 42,
+        "lepen": 58
+      }
+    },
+    {
+      "origin": "wikipedia",
+      "institute": "OpinionWay",
+      "sponsor": "CNews",
+      "fieldwork": {
+        "start": "2026-11-10",
+        "end": "2026-11-12"
+      },
+      "sampleSize": 964,
+      "url": "https://www.commission-des-sondages.fr/notices/files/notices/2026/novembre/10371-pres-iv-opinionway-cnews-12-novembre.pdf",
+      "scores": {
+        "melenchon": 32,
+        "lepen": 68
+      }
+    },
+    {
+      "origin": "wikipedia",
+      "institute": "OpinionWay",
+      "sponsor": "CNews",
+      "fieldwork": {
+        "start": "2026-11-10",
+        "end": "2026-11-12"
+      },
+      "sampleSize": 964,
+      "url": "https://www.commission-des-sondages.fr/notices/files/notices/2026/novembre/10371-pres-iv-opinionway-cnews-12-novembre.pdf",
+      "scores": {
+        "philippe": 44,
+        "lepen": 56
+      }
+    },
+    {
+      "origin": "wikipedia",
       "institute": "Harris Interactive (Toluna)",
       "sponsor": "Non indiqué",
       "fieldwork": {
@@ -2046,75 +2138,6 @@
       "scores": {
         "philippe": 42,
         "lepen": 58
-      }
-    },
-    {
-      "origin": "wikipedia",
-      "institute": "OpinionWay",
-      "sponsor": "CNews",
-      "fieldwork": {
-        "start": "2026-10-21",
-        "end": "2026-10-22"
-      },
-      "sampleSize": 973,
-      "url": "https://www.commission-des-sondages.fr/notices/files/notices/2026/octobre/10333-pres-iv-opinionway-cnews-22-octobre.pdf",
-      "scores": {
-        "glucksmann": 44,
-        "lepen": 56
-      },
-      "noIntention": {
-        "share": 24,
-        "base": "inscrits",
-        "source": {
-          "label": "Notice (Commission des sondages)",
-          "url": "https://www.commission-des-sondages.fr/notices/files/notices/2026/octobre/10333-pres-iv-opinionway-cnews-22-octobre.pdf"
-        }
-      }
-    },
-    {
-      "origin": "wikipedia",
-      "institute": "OpinionWay",
-      "sponsor": "CNews",
-      "fieldwork": {
-        "start": "2026-10-21",
-        "end": "2026-10-22"
-      },
-      "sampleSize": 973,
-      "url": "https://www.commission-des-sondages.fr/notices/files/notices/2026/octobre/10333-pres-iv-opinionway-cnews-22-octobre.pdf",
-      "scores": {
-        "melenchon": 31,
-        "lepen": 69
-      },
-      "noIntention": {
-        "share": 33,
-        "base": "inscrits",
-        "source": {
-          "label": "Notice (Commission des sondages)",
-          "url": "https://www.commission-des-sondages.fr/notices/files/notices/2026/octobre/10333-pres-iv-opinionway-cnews-22-octobre.pdf"
-        }
-      }
-    },
-    {
-      "origin": "wikipedia",
-      "institute": "OpinionWay",
-      "sponsor": "CNews",
-      "fieldwork": {
-        "start": "2026-10-21",
-        "end": "2026-10-22"
-      },
-      "sampleSize": 973,
-      "url": "https://www.commission-des-sondages.fr/notices/files/notices/2026/octobre/10333-pres-iv-opinionway-cnews-22-octobre.pdf",
-      "scores": {
-        "philippe": 44,
-        "lepen": 56
-      },
-      "noIntention": {
-        "share": 28,
-        "base": "inscrits",
-        "source": {
-          "label": "Notice (Commission des sondages)",
-          "url": "https://www.commission-des-sondages.fr/notices/files/notices/2026/octobre/10333-pres-iv-opinionway-cnews-22-octobre.pdf"
-        }
       }
     },
     {
@@ -2210,75 +2233,6 @@
         "source": {
           "label": "Notice (Commission des sondages)",
           "url": "https://www.commission-des-sondages.fr/notices/files/notices/2026/octobre/10327-pres-barometre-election-v7-ifop-20-octobre.pdf"
-        }
-      }
-    },
-    {
-      "origin": "wikipedia",
-      "institute": "Elabe",
-      "sponsor": "Non indiqué",
-      "fieldwork": {
-        "start": "2026-10-14",
-        "end": "2026-10-16"
-      },
-      "sampleSize": 1701,
-      "url": "https://www.commission-des-sondages.fr/notices/files/notices/2026/octobre/10324-pres-iv-elabe-17-octobre.pdf",
-      "scores": {
-        "glucksmann": 46.5,
-        "lepen": 53.5
-      },
-      "noIntention": {
-        "share": 19,
-        "base": "votants",
-        "source": {
-          "label": "Notice (Commission des sondages)",
-          "url": "https://www.commission-des-sondages.fr/notices/files/notices/2026/octobre/10324-pres-iv-elabe-17-octobre.pdf"
-        }
-      }
-    },
-    {
-      "origin": "wikipedia",
-      "institute": "Elabe",
-      "sponsor": "Non indiqué",
-      "fieldwork": {
-        "start": "2026-10-14",
-        "end": "2026-10-16"
-      },
-      "sampleSize": 1701,
-      "url": "https://www.commission-des-sondages.fr/notices/files/notices/2026/octobre/10324-pres-iv-elabe-17-octobre.pdf",
-      "scores": {
-        "melenchon": 31,
-        "lepen": 69
-      },
-      "noIntention": {
-        "share": 30,
-        "base": "votants",
-        "source": {
-          "label": "Notice (Commission des sondages)",
-          "url": "https://www.commission-des-sondages.fr/notices/files/notices/2026/octobre/10324-pres-iv-elabe-17-octobre.pdf"
-        }
-      }
-    },
-    {
-      "origin": "wikipedia",
-      "institute": "Elabe",
-      "sponsor": "Non indiqué",
-      "fieldwork": {
-        "start": "2026-10-14",
-        "end": "2026-10-16"
-      },
-      "sampleSize": 1701,
-      "url": "https://www.commission-des-sondages.fr/notices/files/notices/2026/octobre/10324-pres-iv-elabe-17-octobre.pdf",
-      "scores": {
-        "philippe": 47.5,
-        "lepen": 52.5
-      },
-      "noIntention": {
-        "share": 22,
-        "base": "votants",
-        "source": {
-          "label": "Notice (Commission des sondages)",
-          "url": "https://www.commission-des-sondages.fr/notices/files/notices/2026/octobre/10324-pres-iv-elabe-17-octobre.pdf"
         }
       }
     },
