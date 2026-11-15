@@ -393,7 +393,25 @@ describe('alliances groupées', () => {
   const { polls: live } = liveData
   const grouped = live.alliances.filter((a) => a.grouped)
 
-  it('leader : le membre en tête de la moyenne des sondages (jeu par défaut)', () => {
+  it('leader : un petit candidat, même en tête de la moyenne (score imputé), ne mène pas l’alliance', () => {
+    const lagarde = live.candidates.find((c) => c.id === 'lagarde')!
+    const { average } = averagePolls(live, defaultSet(live))
+    // Lagarde est imputée à un score plus haut que Philippe dans la moyenne du jeu par défaut.
+    expect(average['lagarde']!).toBeGreaterThan(average['philippe']!)
+    expect(lagarde.minor).toBeTruthy()
+    expect(groupedLeader(live, ['philippe', 'attal', 'lagarde'])).toBe('philippe')
+    expect(live.alliances.find((a) => a.id === 'groupe-droite-centre')!.leader).toBe('philippe')
+  })
+
+  it('leader : seulement des petits candidats, repli sur celui qui a le plus d’intentions de vote', () => {
+    const tested = live.candidates.filter((c) => c.minor && testedShare(live, c.id) > 0).map((c) => c.id)
+    const [low, high] = [...tested].sort((a, b) => testedShare(live, a) - testedShare(live, b)).slice(-2)
+    expect(testedShare(live, high!)).toBeGreaterThan(testedShare(live, low!))
+    expect(groupedLeader(live, [low!, high!])).toBe(high)
+    expect(groupedLeader(live, [high!, low!])).toBe(high)
+  })
+
+  it('leader : le candidat principal en tête de la moyenne des sondages (jeu par défaut)', () => {
     expect(grouped).toHaveLength(5)
     for (const a of grouped) {
       expect(a.estimatedOnly).toBe(true)
@@ -401,9 +419,13 @@ describe('alliances groupées', () => {
     }
     const { average } = averagePolls(live, defaultSet(live))
     const byId = Object.fromEntries(grouped.map((a) => [a.id, a]))
-    // Chaque leader a un score au moins égal à celui des autres membres testés dans le jeu par défaut.
+    // Chaque leader a un score au moins égal à celui des autres candidats principaux du groupe.
+    const minor = (id: string) => live.candidates.find((c) => c.id === id)?.minor
     for (const a of grouped) {
-      for (const id of a.members) expect(average[a.leader] ?? 0).toBeGreaterThanOrEqual(average[id] ?? 0)
+      expect(minor(a.leader), a.id).toBeFalsy()
+      for (const id of a.members.filter((m) => !minor(m))) {
+        expect(average[a.leader] ?? 0).toBeGreaterThanOrEqual(average[id] ?? 0)
+      }
     }
     expect(byId['groupe-droites']!.leader).toBe('lepen')
     expect(byId['groupe-gauche-sans-ps']!.leader).toBe('melenchon')

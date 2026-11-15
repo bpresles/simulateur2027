@@ -59,6 +59,14 @@ describe('données', () => {
     }
   })
 
+  it('le leader de l’alliance groupée « droite et centre large » est un candidat principal, Philippe', () => {
+    const groupe = simulationData.polls.alliances.find((a) => a.id === 'groupe-droite-centre')!
+    expect(groupe.leader).toBe('philippe')
+    for (const a of simulationData.polls.alliances.filter((x) => x.grouped)) {
+      expect(simulationData.polls.candidates.find((c) => c.id === a.leader)?.minor, a.id).toBeFalsy()
+    }
+  })
+
   it('« Lagarde seule » : l’hypothèse Cluster17 « Lagarde » donne le scénario et l’option du même nom', () => {
     const { polls } = simulationData
     const lagarde = polls.alliances.filter((a) => ['philippe-lagarde', 'attal-lagarde'].includes(a.id))
