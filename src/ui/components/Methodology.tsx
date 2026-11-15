@@ -24,6 +24,7 @@ import {
   TURNOUT_BLOCS_2022,
   TURNOUT_PROFILE_2022,
   TURNOUT_PROFILE_SOURCE,
+  TURNOUT_REFERENCE_WINDOW_DAYS,
 } from '../../domain/turnout'
 import {
   campDropout,
@@ -47,8 +48,15 @@ import { date, distance, fieldwork, integer, noIntentionLabel, num, pct, pts, ra
 import { correctedTransfer, actualRow, actualTransfers } from '../../domain/transferCorrection'
 import { DUEL_KIND, dropoutBasis } from '../dropout'
 import { Link } from '../Link'
+import type { CertainShare } from '../../domain/types'
 import { AllianceRates } from './AllianceRates'
 import { ProvenanceLegend, ProvenanceValue } from './Provenance'
+
+/** « moyenne de N mesures Ifop, terrains achevés du JJ/MM/AAAA au JJ/MM/AAAA », ou la mesure seule. */
+const referenceLabel = ({ measures, first, last }: CertainShare) =>
+  measures.length === 1
+    ? `mesure Ifop, terrain achevé le ${date(first)}`
+    : `moyenne de ${measures.length} mesures Ifop, terrains achevés du ${date(first)} au ${date(last)}`
 
 const { polls, reference2022, reference2017, transfers, turnoutCertainty } = simulationData
 const REFERENCES = { 2022: reference2022, 2017: reference2017 }
@@ -955,10 +963,20 @@ export function Methodology({ result }: { result: SimulationResult }) {
               terrain : l’Ifop-Fiducial, avec les mêmes questions (« envisagez-vous d’aller voter ? » puis «
               tout à fait certain », « pratiquement certain »…), mesure {pct(bal?.certainNow.share ?? 0, 1)} des
               inscrits certains d’aller voter à {bal ? distance(bal.distances.now) : '…'} du scrutin, contre{' '}
-              {pct(bal?.certainRef.share ?? 0, 1)} à une distance proche en 2021. Cette hausse est donc{' '}
+              {pct(bal?.certainRef.share ?? 0, 1)} en 2021-2022 à la même distance ({bal ? referenceLabel(bal.certainRef) : '…'}). Cette hausse est donc{' '}
               <strong>déjà dans les sondages</strong> : l’option « Participation attendue au 1er tour » ne la
               compte pas une seconde fois. Elle est{' '}
               <strong>{settings.turnoutEnabled ? 'activée' : 'désactivée'}</strong> dans le scénario en cours.
+            </p>
+            <p>
+              <strong>Référence 2022 : moyenne à ±15 jours.</strong> E2022 n’est pas la seule mesure de 2021-2022
+              la plus proche en distance : c’est la moyenne des mesures de campagne dont la distance au scrutin
+              (jours avant le 10/04/2022) est à ±{TURNOUT_REFERENCE_WINDOW_DAYS} jours de celle de la dernière
+              mesure 2027, hors mesure finale. Les mesures de l’automne 2021 sont bruitées (le sondage du 04 au
+              06/12/2021 donne 60,7 % des inscrits contre 67 à 72 % autour de lui) : une mesure isolée aurait
+              déplacé la participation attendue de plusieurs points. La fenêtre est la même règle que celle de
+              l’écart historique des sondages de 2nd tour (± 20 jours). Sans mesure dans la fenêtre, on garde la
+              mesure la plus proche, et l’écart de distance est signalé s’il dépasse 30 jours.
             </p>
             <p>
               <strong>Parts parmi ceux qui envisagent de voter, parts des inscrits.</strong> Le billet cite «
@@ -984,8 +1002,8 @@ export function Methodology({ result }: { result: SimulationResult }) {
                 const role = bal
                   ? m === bal.certainNow.measure
                     ? 'E2027 (dernière mesure)'
-                    : m === bal.certainRef.measure
-                      ? 'E2022 (même distance du scrutin)'
+                    : bal.certainRef.measures.includes(m)
+                      ? 'E2022 (moyenne à ±15 jours)'
                       : m === bal.finalRef.measure
                         ? 'F2022 (dernière vague avant le vote)'
                         : ''
@@ -1043,7 +1061,7 @@ export function Methodology({ result }: { result: SimulationResult }) {
               </thead>
               <tbody>
                 {[
-                  ['E2022', pct(bal.certainRef.share, 2), `certains en 2021, ${date(bal.certainRef.measure.fieldwork.end)} (J−${bal.distances.ref})`],
+                  ['E2022', pct(bal.certainRef.share, 2), `certains en 2021-2022 : ${referenceLabel(bal.certainRef)} (J−${Math.round(bal.distances.ref)} en moyenne)`],
                   ['F2022', pct(bal.finalRef.share, 2), `dernière vague avant le vote, ${date(bal.finalRef.measure.fieldwork.end)}`],
                   ['P2022', pct(bal.turnoutRef, 2), 'participation réelle au 1er tour 2022 (votants ÷ inscrits)'],
                   ['Mobilisation de campagne', pts(bal.campaign, 2), 'F2022 − E2022'],

@@ -75,6 +75,13 @@ export function turnoutAffinity(profile = TURNOUT_PROFILE_2022): Record<Bloc, nu
 /** Écart de distance au scrutin (jours) au-delà duquel les mesures ne sont plus jugées comparables. */
 export const TURNOUT_DISTANCE_TOLERANCE_DAYS = 30
 
+/**
+ * Demi-largeur (jours) de la fenêtre qui fixe la référence 2022 : moyenne des mesures de campagne dont la
+ * distance au scrutin est à ±15 jours de celle de la mesure 2027 (comme ±20 jours pour l'écart historique des
+ * sondages de 2nd tour). Une mesure isolée de l'automne 2021 est bruitée : une moyenne la lisse.
+ */
+export const TURNOUT_REFERENCE_WINDOW_DAYS = 15
+
 /** Part des inscrits certains d'aller voter (%) : publiée telle quelle, ou envisagent × tout à fait certains. */
 export function certainShare(m: TurnoutMeasure): number {
   return m.registeredShare ?? ((m.envisage ?? 0) * (m.certain ?? 0)) / 100
@@ -100,6 +107,34 @@ export function closestMeasure(
       const gap = Math.abs(daysBetween(m.fieldwork.end, electionDate) - distance)
       return !best || gap < Math.abs(daysBetween(best.fieldwork.end, electionDate) - distance) ? m : best
     }, null)
+}
+
+/**
+ * Référence de campagne à une distance donnée : moyenne de `certainShare` des mesures non finales dont la
+ * distance au scrutin est à ±`TURNOUT_REFERENCE_WINDOW_DAYS` de `distance` ; si la fenêtre est vide, la mesure
+ * la plus proche (`closestMeasure`). Renvoie null sans mesure de campagne.
+ */
+export function referenceShare(
+  measures: TurnoutMeasure[],
+  cycle: TurnoutMeasure['cycle'],
+  electionDate: string,
+  distance: number,
+): CertainShare | null {
+  const campaign = measures.filter((m) => m.cycle === cycle && !m.final)
+  const gap = (m: TurnoutMeasure) => Math.abs(daysBetween(m.fieldwork.end, electionDate) - distance)
+  const inWindow = campaign.filter((m) => gap(m) <= TURNOUT_REFERENCE_WINDOW_DAYS)
+  const nearest = closestMeasure(measures, cycle, electionDate, distance)
+  if (!nearest) return null
+  const used = inWindow.length > 0 ? inWindow : [nearest]
+  const ends = used.map((m) => m.fieldwork.end).sort()
+  return {
+    share: used.reduce((t, m) => t + certainShare(m), 0) / used.length,
+    // La mesure la plus proche sert de mesure principale (affichage, repères).
+    measure: used.reduce((best, m) => (gap(m) < gap(best) ? m : best)),
+    measures: used,
+    first: ends[0]!,
+    last: ends.at(-1)!,
+  }
 }
 
 /** Dernière vague avant le vote du scrutin visé (marquée finale). */
@@ -158,11 +193,17 @@ export function turnoutBalance(
   const final = finalMeasure(model.measures, 2022)
   if (!now || !final) return null
   const distanceNow = daysBetween(now.fieldwork.end, model.electionDate)
-  const ref = closestMeasure(model.measures, 2022, model.electionDateRef, distanceNow)
-  if (!ref) return null
-  const certainNow: CertainShare = { share: certainShare(now), measure: now }
-  const certainRef: CertainShare = { share: certainShare(ref), measure: ref }
-  const finalRef: CertainShare = { share: certainShare(final), measure: final }
+  const certainRef = referenceShare(model.measures, 2022, model.electionDateRef, distanceNow)
+  if (!certainRef) return null
+  const single = (m: TurnoutMeasure): CertainShare => ({
+    share: certainShare(m),
+    measure: m,
+    measures: [m],
+    first: m.fieldwork.end,
+    last: m.fieldwork.end,
+  })
+  const certainNow = single(now)
+  const finalRef = single(final)
   const campaign = finalRef.share - certainRef.share
   const late = model.turnoutRef - finalRef.share
   const covered = coverage.campaign * campaign + coverage.late * late
@@ -186,7 +227,9 @@ export function turnoutBalance(
     delta: Math.abs(gap) < 1e-9 ? 0 : gap,
     distances: {
       now: distanceNow,
-      ref: daysBetween(ref.fieldwork.end, model.electionDateRef),
+      ref:
+        certainRef.measures.reduce((t, m) => t + daysBetween(m.fieldwork.end, model.electionDateRef), 0) /
+        certainRef.measures.length,
       asOf: daysBetween(model.asOf, model.electionDate),
     },
   }

@@ -11,7 +11,7 @@ import {
 } from '../domain/alliances'
 import type { Alliance, Poll } from '../domain/types'
 import { computeCalibration } from '../domain/calibration'
-import { TURNOUT_DISTANCE_TOLERANCE_DAYS, closestMeasure } from '../domain/turnout'
+import { TURNOUT_DISTANCE_TOLERANCE_DAYS, certainShare, closestMeasure, referenceShare } from '../domain/turnout'
 import { daysBetween } from '../domain/pollAverage'
 import { averagePolls, hypothesisMatches, latestPerInstitute, windowDaysOf } from '../domain/pollAverage'
 import { defaultSettings, simulate } from '../domain/simulate'
@@ -73,6 +73,17 @@ describe('données', () => {
     const def = broken.polls.hypothesisSets.find((s) => s.default)!
     def.require.push('lagarde')
     expect(validateData(broken)).toEqual([expect.stringMatching(/petit candidat « lagarde »/)])
+  })
+
+  it('participation : à J−125, la référence 2022 est la moyenne des mesures de J−136, J−125 et J−116, pas la mesure bruitée de 60,7 %', () => {
+    const { measures } = simulationData.turnoutCertainty
+    const { electionDateRef } = computeCalibration(simulationData, simulationData.polls).turnout
+    const ref = referenceShare(measures, 2022, electionDateRef, 125)!
+    const noisy = measures.find((m) => m.fieldwork.end === '2021-12-06')!
+    expect(certainShare(noisy)).toBeCloseTo(60.7, 1)
+    expect(ref.measures.map((m) => daysBetween(m.fieldwork.end, electionDateRef))).toEqual([136, 125, 116])
+    expect(ref.share).toBeCloseTo(66.1, 1)
+    expect(ref.share).toBeCloseTo(ref.measures.reduce((t, m) => t + certainShare(m), 0) / 3, 10)
   })
 
   it('participation : toute mesure 2027 entre J−190 et J−5 trouve une référence 2022 à moins de 30 jours', () => {
