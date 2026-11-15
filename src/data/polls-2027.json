@@ -843,6 +843,22 @@
         "philippe",
         "hollande"
       ]
+    },
+    {
+      "id": "lagarde-seule",
+      "label": "Lagarde seule",
+      "description": "Christine Lagarde seule candidate du bloc central (sans Édouard Philippe ni Gabriel Attal), comme dans l’hypothèse « Lagarde » de Cluster17.",
+      "require": [
+        "melenchon",
+        "glucksmann",
+        "lagarde",
+        "lepen"
+      ],
+      "exclude": [
+        "philippe",
+        "attal",
+        "hollande"
+      ]
     }
   ],
   "alliances": [

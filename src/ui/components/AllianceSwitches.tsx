@@ -5,6 +5,8 @@ import {
   availableAlliances,
   comboWith,
   isEstimable,
+  isOptionChecked,
+  testedOptions,
   testedShare,
 } from '../../domain/alliances'
 import type { Alliance, SimulationResult } from '../../domain/types'
@@ -15,6 +17,8 @@ import { Switch } from './controls'
 const { polls } = simulationData
 /** Alliances que les hypothèses des sondages retenus permettent, seules ou combinées. */
 const proposed = availableAlliances(polls)
+/** Options des alliances groupées tirées des hypothèses testées par les sondeurs. */
+const testedChoices = testedOptions(polls)
 
 const ids = (alliances: Alliance[]) => Object.fromEntries(alliances.map((a) => [a.id, true]))
 /** Alliances que l'option désactivée ne permet plus d'estimer sont retirées ; les autres sont conservées. */
@@ -107,12 +111,48 @@ export function AllianceSwitches({
       ? polls.alliances.filter((a) => !a.grouped)
       : proposed
 
-  if (list.length === 0) {
+  // Les options testées sont des hypothèses complètes : cocher l'une remplace les alliances testées actives.
+  const choices = onlyGrouped && grouped ? testedChoices : []
+  const keepEstimated = (next: Alliance[]) => estimated.filter((e) => !next.some((b) => alliancesConflict(e, b)))
+  if (list.length === 0 && choices.length === 0) {
     if (onlyGrouped) return null
     return <p className="text-sm text-ink-3">Aucun sondage de la période ne teste de ralliement.</p>
   }
   return (
     <div className={columns ? 'grid gap-x-8 gap-y-3 sm:grid-cols-2' : 'space-y-3'}>
+      {choices.length > 0 && (
+        <p className="text-xs font-medium uppercase tracking-wide text-ink-3 sm:col-span-2">Testés par les sondeurs</p>
+      )}
+      {choices.map((o) => {
+        const checked = isOptionChecked(o, tested)
+        return (
+          <Switch
+            key={o.id}
+            id={`${idPrefix}-${o.id}`}
+            checked={checked}
+            onCheckedChange={(v) => {
+              const next = v ? o.alliances : acceptAlliances(polls, ids(tested.filter((b) => !o.alliances.includes(b))))
+              setAlliances(ids([...next, ...keepEstimated(next)]))
+            }}
+            label={
+              <span className="inline-flex items-center gap-2">
+                <span className="inline-flex gap-1" aria-hidden>
+                  {[...new Set(o.alliances.flatMap((a) => a.members))].map((id) => (
+                    <span key={id} style={colorVars(cand(id))} className="cand-fill h-2.5 w-2.5 rounded-full" />
+                  ))}
+                </span>
+                {o.label}
+              </span>
+            }
+            description={o.description}
+          />
+        )
+      })}
+      {choices.length > 0 && list.length > 0 && (
+        <p className="text-xs font-medium uppercase tracking-wide text-ink-3 sm:col-span-2">
+          Estimées (reports de 2024)
+        </p>
+      )}
       {list.map((a) => {
         const checked = applied.includes(a)
         const combo = comboWith(polls, tested, a)

@@ -2,7 +2,14 @@ import type { ReactNode } from 'react'
 import { simulationData } from '../../data/schema'
 import { BLOCS } from '../../domain/types'
 import type { NoIntention, PastElectionReference, PollOrigin, PollStatus, SimulationResult } from '../../domain/types'
-import { allianceCombos, alliancesConflict, availableAlliances, comboWith, defaultSet } from '../../domain/alliances'
+import {
+  allianceCombos,
+  alliancesConflict,
+  availableAlliances,
+  comboWith,
+  defaultSet,
+  testedOptions,
+} from '../../domain/alliances'
 import { BLOG_BIAS_BLOCS, BLOG_BIAS_URL, totalBias } from '../../domain/blogBias'
 import type { YearBlocBias } from '../../domain/blogBias'
 import { ELECTION_WEIGHTS, EQUIVALENTS_2017, PAST_YEARS } from '../../domain/pastElections'
@@ -1300,8 +1307,34 @@ export function Methodology({ result }: { result: SimulationResult }) {
             </p>
             <h3>Option : alliances groupées</h3>
             <p>
-              Désactivée par défaut, l’option « Alliances groupées » propose des alliances de plusieurs
-              candidats d’un même camp :{' '}
+              Désactivée par défaut, l’option « Alliances groupées » simplifie le choix : moins d’interrupteurs
+              pour arriver aux alliances les plus logiques. Elle propose d’abord des <strong>options testées par
+              les sondeurs</strong>, tirées des hypothèses des sondages retenus, puis des alliances groupées
+              estimées.
+            </p>
+            <p>
+              <strong>Options testées.</strong> Pour chaque hypothèse du dernier sondage de chaque institut que
+              des alliances simples décrivent, on retient la combinaison la plus petite ; à égalité, celle qui
+              a le plus de paires (rallié, leader) du même bloc, puis le moins de leaders distincts, puis celle
+              dont les leaders comptent le plus de petits candidats testés par l’hypothèse (« Philippe et Attal
+              derrière Lagarde » plutôt que derrière Retailleau quand Cluster17 teste Lagarde), puis l’ordre des
+              données. Chaque combinaison distincte donne une seule option, qui réunit les hypothèses des
+              instituts qui y mènent ; une hypothèse qui décrit déjà le scénario de base (le jeu par défaut, ou seul un petit candidat manque : un petit
+              candidat absent n’est pas rallié, il n’est jamais requis) n’en donne pas, c’est l’état sans option cochée. L’option porte le nom du jeu d’hypothèses correspondant (« Lagarde
+              seule », « Philippe seul »), sinon « Derrière Philippe : Attal ; derrière Lisnard : Retailleau ».
+              Les options sont des choix exclusifs : en cocher une remplace les alliances testées actives par sa
+              combinaison. Ce n’est qu’un raccourci d’interface : les réglages gardent les alliances simples,
+              rien n’est saisi dans les données et la liste suit la synchronisation. Les options couvrent ainsi
+              toutes les hypothèses des sondages retenus qu’une combinaison d’alliances permet de décrire (un
+              test le vérifie sur les données).{' '}
+              {testedOptions(polls).length > 0
+                ? `Dans les sondages actuels : ${testedOptions(polls)
+                    .map((o) => `« ${o.label} »`)
+                    .join(', ')}.`
+                : 'Aucune hypothèse des sondages actuels ne donne d’option.'}
+            </p>
+            <p>
+              <strong>Alliances groupées estimées</strong> (hypothèses qu’aucun sondage ne teste) :{' '}
               {polls.alliances
                 .filter((al) => al.grouped)
                 .map((al) => `« ${al.label} » (${al.description}, autour de ${cand(al.leader).name})`)

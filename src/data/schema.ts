@@ -381,7 +381,9 @@ export function validateData(data: SimulationData): string[] {
   for (const set of polls.hypothesisSets) {
     for (const id of [...set.require, ...set.exclude]) {
       if (!known.has(id)) errors.push(`Jeu d'hypothèses ${set.id} : candidat inconnu « ${id} »`)
-      else if (simulated.has(id) && !main.has(id)) errors.push(`Jeu d'hypothèses ${set.id} : petit candidat « ${id} »`)
+      // Un petit candidat peut être requis par un jeu autre que celui par défaut (« Lagarde seule »).
+      else if (simulated.has(id) && !main.has(id) && (set.default || !set.require.includes(id)))
+        errors.push(`Jeu d'hypothèses ${set.id} : petit candidat « ${id} »`)
     }
   }
   if (polls.hypothesisSets.filter((s) => s.default).length !== 1) errors.push('Il faut exactement un jeu par défaut')

@@ -194,7 +194,8 @@ export function autoCandidate(
  * Fait passer dans les candidats simulés ceux qui sont testés dans les sondages (`testedNewcomers`) : ils
  * quittent les candidats non simulés et deviennent des candidats ajoutés automatiquement (`autoCandidate`).
  * Un candidat cité dans un jeu d'hypothèses (Hollande, exclu de tous) reste non simulé : son traitement
- * est déjà décidé dans les données, et un jeu d'hypothèses ne peut pas citer un petit candidat.
+ * est déjà décidé dans les données. Un jeu d'hypothèses autre que celui par défaut peut requérir un petit
+ * candidat déjà simulé (« Lagarde seule »), jamais le jeu par défaut.
  */
 export function promoteTested(data: PollsData): { data: PollsData; promoted: Candidate[] } {
   const listed = new Set(data.hypothesisSets.flatMap((s) => [...s.require, ...s.exclude]))

@@ -10,9 +10,11 @@ import {
   defaultSet,
   groupedLeader,
   insertMinor,
+  isOptionChecked,
   ralliedOf,
   scenarioFilter,
   scenarioSet,
+  testedOptions,
   testedShare,
 } from './alliances'
 import { averagePolls } from './pollAverage'
@@ -425,5 +427,79 @@ describe('alliances groupées', () => {
     expect(a.leader).toBe('glucksmann')
     expect(ralliedOf(a)).toEqual(['attal'])
     expect(alliancesConflict(a, live.alliances.find((x) => x.id === 'attal-philippe')!)).toBe(true)
+  })
+})
+
+describe('options groupées tirées des hypothèses testées', () => {
+  const minorIds = ['lagarde', 'lisnard']
+  const candidates = [...main, ...liveData.polls.candidates.filter((c) => minorIds.includes(c.id))]
+  const withMinors = (pollList: Poll[]): PollsData => ({
+    ...polls,
+    candidates,
+    alliances: liveData.polls.alliances.filter((a) => a.members.every((id) => candidates.some((c) => c.id === id))),
+    polls: pollList,
+  })
+  const labelled = (label: string, h: Hypothesis): Hypothesis => ({ ...h, label })
+
+  it('hypothèse « Lagarde » : une option Philippe et Attal derrière Lagarde, nommée par le jeu « Lagarde seule »', () => {
+    const d = withMinors([
+      poll('c', 'Cluster17', [
+        labelled('Lagarde', without('H1', ['attal', 'philippe'], 'retailleau', { lagarde: 4, lisnard: 3 })),
+      ]),
+    ])
+    // Plusieurs combinaisons de taille 2 décrivent l'hypothèse.
+    expect(allianceCombos(d).map(ids)).toContainEqual(['attal-retailleau', 'philippe-lagarde'])
+    const options = testedOptions(d)
+    expect(options.map((o) => ids(o.alliances))).toEqual([['philippe-lagarde', 'attal-lagarde']])
+    expect(options[0]).toMatchObject({ id: 'teste-attal-lagarde-philippe-lagarde', label: 'Lagarde seule' })
+    expect(options[0]!.description).toBe(
+      'Candidats : Arthaud, Mélenchon, Roussel, Tondelier, Glucksmann, Retailleau, Dupont-Aignan, Le Pen, Zemmour, Lagarde ; selon les sondages, aussi : Lisnard. Testée par : Cluster17 (hypothèse « Lagarde »)',
+    )
+  })
+
+  it('hypothèse « Philippe, Lisnard » : une seule option aux deux leaders, au libellé neutre', () => {
+    const d = withMinors([
+      poll('i', 'Ifop-Fiducial', [
+        labelled('Philippe, Lisnard', without('H1', ['attal', 'retailleau'], 'philippe', { lisnard: 7 })),
+      ]),
+    ])
+    const options = testedOptions(d)
+    expect(options.map((o) => ids(o.alliances))).toEqual([['attal-philippe', 'retailleau-lisnard']])
+    expect(options[0]!.label).toBe('Derrière Philippe : Attal ; derrière Lisnard : Retailleau')
+    expect(options[0]!.description).toContain('Testée par : Ifop-Fiducial (hypothèse « Philippe, Lisnard »)')
+  })
+
+  it('deux instituts qui testent la même combinaison : une seule option, qui les cite', () => {
+    const d = withMinors([
+      poll('a', 'Elabe', [labelled('Philippe', without('H1', ['attal'], 'philippe'))]),
+      poll('b', 'Odoxa', [labelled('Philippe seul', without('H1', ['attal'], 'philippe'))]),
+    ])
+    const options = testedOptions(d)
+    expect(options).toHaveLength(1)
+    expect(options[0]).toMatchObject({ id: 'teste-attal-philippe', label: 'Philippe seul' })
+    expect(options[0]!.testedBy.map((t) => t.institute)).toEqual(['Elabe', 'Odoxa'])
+    expect(options[0]!.description).toMatch(
+      /Testée par : Elabe \(hypothèse « Philippe »\), Odoxa \(hypothèse « Philippe seul »\)$/,
+    )
+  })
+
+  it('une hypothèse sans alliance (jeu par défaut) ne donne aucune option', () => {
+    expect(testedOptions({ ...polls, polls: [poll('a', 'Elabe', [{ id: 'H1', scores: FULL }])] })).toEqual([])
+  })
+
+  it('une hypothèse avec Philippe et Attal mais sans Lisnard ni Lagarde ne donne aucune option', () => {
+    const d = withMinors([poll('a', 'Elabe', [labelled('Sans petits candidats', { id: 'H1', scores: FULL })])])
+    expect(testedOptions(d)).toEqual([])
+  })
+
+  it('option cochée seulement si les alliances testées retenues sont exactement sa combinaison', () => {
+    const d = withMinors([
+      poll('a', 'Elabe', [without('H1', ['attal'], 'philippe'), without('H2', ['attal', 'retailleau'], 'philippe')]),
+    ])
+    const [seul, deux] = testedOptions(d)
+    expect(ids(deux!.alliances)).toEqual(['attal-philippe', 'retailleau-philippe'])
+    expect(isOptionChecked(seul!, [byId('attal-philippe')])).toBe(true)
+    expect(isOptionChecked(seul!, deux!.alliances)).toBe(false)
+    expect(isOptionChecked(deux!, [byId('attal-philippe')])).toBe(false)
   })
 })

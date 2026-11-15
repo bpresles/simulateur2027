@@ -73,4 +73,35 @@ describe('alliances groupées', () => {
     expect(result.estimatedAllianceIds).toEqual([a.id])
     expect(result.entrants.find((e) => e.id === a.leader)?.members).toHaveLength(a.members.length)
   })
+
+  it('options testées : choix exclusifs, qui remplacent les alliances testées actives', () => {
+    act(() => useSettings.getState().setGroupedAlliances(true))
+    render(<Harness />)
+    const lagarde = screen.getByRole('switch', { name: /Lagarde seule/ })
+    const philippe = screen.getByRole('switch', { name: /^Philippe seul/ })
+    act(() => fireEvent.click(lagarde))
+    expect(lagarde.getAttribute('aria-checked')).toBe('true')
+    expect(Object.keys(useSettings.getState().alliances).sort()).toEqual(['attal-lagarde', 'philippe-lagarde'])
+    expect(simulate(simulationData, selectSettings(useSettings.getState())).hypothesisSet.label).toBe('Lagarde seule')
+    // Une autre option remplace la première.
+    act(() => fireEvent.click(philippe))
+    expect(philippe.getAttribute('aria-checked')).toBe('true')
+    expect(lagarde.getAttribute('aria-checked')).toBe('false')
+    expect(Object.keys(useSettings.getState().alliances)).toEqual(['attal-philippe'])
+    // Décocher retire sa combinaison.
+    act(() => fireEvent.click(philippe))
+    expect(Object.keys(useSettings.getState().alliances)).toEqual([])
+  })
+
+  it('options testées : une alliance groupée estimée compatible reste active, l’incompatible est retirée', () => {
+    act(() => {
+      useSettings.getState().setGroupedAlliances(true)
+      useSettings.getState().setAlliances({ 'groupe-gauche-sans-lfi': true })
+    })
+    render(<Harness />)
+    act(() => fireEvent.click(screen.getByRole('switch', { name: /^Philippe seul/ })))
+    expect(Object.keys(useSettings.getState().alliances).sort()).toEqual(['attal-philippe', 'groupe-gauche-sans-lfi'])
+    act(() => fireEvent.click(screen.getByRole('switch', { name: /Lagarde seule/ })))
+    expect(Object.keys(useSettings.getState().alliances)).toContain('groupe-gauche-sans-lfi')
+  })
 })
