@@ -340,10 +340,16 @@ export interface TurnoutCertaintyData {
   }
 }
 
-/** Une part d'inscrits certains d'aller voter (%) et la mesure dont elle est tirée. */
+/** Une part d'inscrits certains d'aller voter (%) et les mesures dont elle est tirée (une, ou la moyenne de la fenêtre de la référence). */
 export interface CertainShare {
   share: number
+  /** Mesure principale : l'unique mesure, ou la plus proche en distance parmi celles de la moyenne. */
   measure: TurnoutMeasure
+  /** Mesures retenues (leur nombre : `measures.length`). */
+  measures: TurnoutMeasure[]
+  /** Première et dernière fins de terrain des mesures retenues. */
+  first: string
+  last: string
 }
 
 /**
@@ -353,7 +359,7 @@ export interface CertainShare {
 export interface TurnoutBalance {
   /** E2027 : part des certains d'aller voter aujourd'hui, déjà dans les sondages. */
   certainNow: CertainShare
-  /** E2022 : part des certains à la même distance du scrutin en 2021. */
+  /** E2022 : moyenne des mesures de campagne 2022 à ±15 jours de la distance de E2027 (à défaut, la plus proche). */
   certainRef: CertainShare
   /** F2022 : part des certains dans la dernière vague avant le vote 2022. */
   finalRef: CertainShare
@@ -375,7 +381,7 @@ export interface TurnoutBalance {
   defaultExpected: number
   /** ΔV = P2027 − V₀ : supplément appliqué (négatif si les sondages corrigés dépassent la participation attendue). */
   delta: number
-  /** Distance au scrutin (jours) de E2027, de E2022 et de la date des sondages. */
+  /** Distance au scrutin (jours) de E2027, de E2022 (moyenne des mesures retenues) et de la date des sondages. */
   distances: { now: number; ref: number; asOf: number }
 }
 

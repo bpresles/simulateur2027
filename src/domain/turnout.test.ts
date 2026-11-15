@@ -4,6 +4,7 @@ import {
   blocShares,
   certainShare,
   closestMeasure,
+  referenceShare,
   finalMeasure,
   latestMeasure,
   turnoutAffinity,
@@ -63,6 +64,46 @@ describe('mesures des certains d’aller voter', () => {
     // Fin au 01/10/2021 : J−191 ; le 13/10/2021 : J−179.
     expect(closestMeasure([extra, byId('ifop-2021-10')], 2022, '2022-04-10', 189)!.id).toBe('proche')
     expect(closestMeasure([extra, byId('ifop-2021-10')], 2022, '2022-04-10', 180)!.id).toBe('ifop-2021-10')
+  })
+})
+
+describe('referenceShare : moyenne à ±15 jours', () => {
+  const at = (id: string, end: string, share: number, final = false): TurnoutMeasure => ({
+    id,
+    cycle: 2022,
+    ...(final ? { final: true } : {}),
+    fieldwork: { start: end, end },
+    registeredShare: share,
+    source: { label: id, url: `https://exemple.fr/${id}` },
+  })
+  // Scrutin le 10/04/2022 : 01/12/2021 = J−130, 06/12 = J−125, 16/12 = J−115, 10/01/2022 = J−90.
+  const series = [
+    at('a', '2021-12-01', 70),
+    at('b', '2021-12-06', 60),
+    at('c', '2021-12-16', 71),
+    at('d', '2022-01-10', 72),
+    at('final', '2022-04-08', 99, true),
+  ]
+  it('moyenne des mesures de la fenêtre, avec leur nombre et leurs fins de terrain', () => {
+    const ref = referenceShare(series, 2022, '2022-04-10', 125)!
+    expect(ref.share).toBeCloseTo(67, 10)
+    expect(ref.measures.map((m) => m.id)).toEqual(['a', 'b', 'c'])
+    expect([ref.first, ref.last]).toEqual(['2021-12-01', '2021-12-16'])
+    expect(ref.measure.id).toBe('b')
+  })
+  it('exclut la mesure finale, même dans la fenêtre', () => {
+    const ref = referenceShare(series, 2022, '2022-04-10', 3)!
+    expect(ref.measures.map((m) => m.id)).not.toContain('final')
+  })
+  it('fenêtre vide : repli sur la mesure la plus proche', () => {
+    const ref = referenceShare(series, 2022, '2022-04-10', 40)!
+    expect(ref.measures.map((m) => m.id)).toEqual(['d'])
+    expect(ref.share).toBe(72)
+  })
+  it('le bilan sur l’instantané figé n’a qu’une mesure dans la fenêtre', () => {
+    const b = turnoutBalance(model, full, null)!
+    expect(b.certainRef.measures).toHaveLength(1)
+    expect(b.certainRef.measure.id).toBe('ifop-2021-10')
   })
 })
 
