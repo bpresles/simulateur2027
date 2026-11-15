@@ -133,7 +133,7 @@ describe('turnoutWarnings', () => {
     expect(turnoutWarnings(b)).toHaveLength(1)
     expect(turnoutWarnings(b)[0]).toMatch(/loin des sondages/)
   })
-  it('mesure de 2021 trop éloignée de celle de 2026', () => {
+  it('mesure de référence 2022 trop éloignée de la mesure actuelle', () => {
     const only = measures.map((m) =>
       m.id === 'ifop-2021-10' ? { ...m, fieldwork: { start: '2021-06-01', end: '2021-06-05' } } : m,
     )

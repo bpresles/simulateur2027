@@ -1006,7 +1006,15 @@ export function Methodology({ result }: { result: SimulationResult }) {
               abstention 27 %). La part des inscrits des autres mesures se calcule : elle n’est pas saisie.
             </p>
             <p>
-              <strong>Ce que la campagne ajoute, mesuré en 2022.</strong> Entre la mesure de 2021 et la dernière
+              Les mesures de l’Ifop sont reprises automatiquement des notices de la Commission des sondages à
+              chaque synchronisation (les deux questions, chiffres redressés ; les notices qui ne les posent pas
+              sont ignorées). La série 2022 a été complétée une fois avec les notices Ifop de la même série qui
+              posent ces questions (vague 4, du 29/09 au 01/10/2021, en plus de la vague 5). Les autres rapports
+              Ifop de l’automne 2021 à mars 2022 ne les posent pas : il n’y a donc pas de mesure de campagne
+              pour les mois de novembre 2021 à mars 2022, et aucune valeur n’y est interpolée.
+            </p>
+            <p>
+              <strong>Ce que la campagne ajoute, mesuré en 2022.</strong> Entre la mesure de la campagne 2022 la plus proche et la dernière
               vague avant le vote, la part des certains a gagné F2022 − E2022 ; entre cette dernière vague et la
               participation réelle, P2022 − F2022. Ce sont les mobilisations que reproduisent déjà la
               progression (ou le billet) pour la campagne, et « Corriger la moyenne » (ou le billet) pour les

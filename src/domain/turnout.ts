@@ -203,7 +203,7 @@ export function turnoutWarnings(balance: TurnoutBalance): string[] {
   }
   if (Math.abs(ref - now) > TURNOUT_DISTANCE_TOLERANCE_DAYS) {
     warnings.push(
-      `Participation : la mesure de 2021 la plus proche est à J−${ref}, contre J−${now} pour 2026 : comparaison peu fiable.`,
+      `Participation : la mesure de la campagne 2022 la plus proche est à J−${ref}, contre J−${now} pour la mesure actuelle : comparaison peu fiable.`,
     )
   }
   return warnings

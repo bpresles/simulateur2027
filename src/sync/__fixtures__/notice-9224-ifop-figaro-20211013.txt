@@ -1,0 +1,63 @@
+NOTICE TECHNIQUE : Ifop-Fiducial pour LCI et Le Figaro
+Baromètre de l’élection présidentielle – Vague 5  Octobre 2021
+2
+Méthodologie
+Ce document présente les résultats d’une étude réalisée par l’Ifop. Elle respecte fidèlement
+les principes scientifiques et déontologiques de l’enquête par sondage. Les enseignements
+qu’elle indique reflètent un état de l’opinion à l’instant de sa réalisation et non pas une
+prédiction.
+Aucune publication totale ou partielle ne peut être faite sans l’accord exprès de l’Ifop.
+Etude Ifop-Fiducial pour LCI et Le Figaro
+Echantillon L’enquête a été menée auprès d’un échantillon de 4 503 personnes
+inscrites sur les listes électorales, extrait d’un échantillon de 5 025
+personnes, représentatif de la population française âgée de 18 ans
+et plus.
+Méthodologie
+La représentativité de l’échantillon a été assurée par la méthode des
+quotas (sexe, âge, profession de la personne interrogée) après
+stratification par région et catégorie d'agglomération.
+Mode de recueil
+Les interviews ont été réalisées par questionnaire auto-administré
+en ligne du 9 au 13 octobre 2021.
+Conditions
+d’interrogation
+Les questions ont été placées à la suite des questions permettant
+d’établir les quotas.
+Tout interviewé ayant complété un questionnaire a obtenu des
+points cumulables pour une valeur inférieure à 1 euro.
+L’enquête a fait l’objet d’un redressement sociodémographique (données INSEE 2017) et d’un redressement
+politique sur la base de la reconstitution des votes suivants : présidentielle 2017 1er tour, régionales 2021 1er
+tour.
+NOTICE TECHNIQUE : Ifop-Fiducial pour LCI et Le Figaro
+Baromètre de l’élection présidentielle – Vague 5  Octobre 2021
+7
+L’intention d’aller voter
+Question : [Aux personnes inscrites sur les listes électorales] Vous personnellement,
+envisagez-vous d’aller voter à la prochaine élection présidentielle qui aura lieu en
+avril 2022 ?
+Base : Ensemble des personnes inscrites sur les listes électorales Brut Redressé
+(%) (%)
+• Oui ............................................................................................... 94,2 94,6
+• Non .............................................................................................. 5,8 5,4
+TOTAL .......................................................................................... 100 100
+Question : [Aux personnes inscrites sur les listes électorales envisageant d’aller voter à la
+prochaine élection présidentielle] Et diriez-vous que… ?
+Brut Redressé
+(%) (%)
+• C’est tout à fait certain ............................................................... 69,1 69,4
+• C’est pratiquement certain ......................................................... 23,9 23,7
+• Il y a de grandes chances ............................................................ 5,9 5,8
+• Ce n’est pas certain ..................................................................... 1,1 1,2
+TOTAL .......................................................................................... 100 100
+Question : [Aux personnes inscrites sur les listes électorales] Nous aimerions mesurer
+précisément la probabilité que vous alliez voter au premier tour de l’élection
+présidentielle qui aura lieu en avril 2022. A partir d'une échelle allant de 1 à 10, 10
+signifiant que vous êtes tout à fait certain d'aller voter, et 1 que vous êtes tout à
+fait certain de ne pas aller voter, pouvez-vous indiquer où vous vous situez
+personnellement sur une telle échelle aujourd'hui ?
+Base : Ensemble des personnes inscrites sur les listes électorales Brut Redressé
+(%) (%)
+Note 10 ........................................................................................... 54,9 55,9
+Notes 1 à 9 ...................................................................................... 45,1 44,1
+TOTAL .......................................................................................... 100 100
+* En raison des arrondis, les totaux sont susceptibles d’être supérieurs ou inférieurs à 100 de 0,1 point.

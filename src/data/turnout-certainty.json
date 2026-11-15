@@ -2,6 +2,17 @@
   "description": "Part des inscrits certains d’aller voter au 1er tour, mesurée par l’Ifop-Fiducial avec les mêmes questions (« envisagez-vous d’aller voter ? » puis « tout à fait certain / pratiquement certain / … »), chiffres redressés. La part des inscrits se calcule : part des personnes qui envisagent de voter × part de « tout à fait certains » parmi elles. Le rolling 2022 ne publie que l’indice de participation, en % des inscrits.",
   "measures": [
     {
+      "id": "ifop-2021-10-01",
+      "cycle": 2022,
+      "fieldwork": { "start": "2021-09-29", "end": "2021-10-01" },
+      "envisage": 94.5,
+      "certain": 71.4,
+      "source": {
+        "label": "Ifop-Fiducial pour LCI et Le Figaro, 29/09–01/10/2021 (notice de la Commission des sondages)",
+        "url": "https://www.commission-des-sondages.fr/notices/files/notices/2021/octobre/9216-p-ifop-le-figaro-v4.pdf"
+      }
+    },
+    {
       "id": "ifop-2021-10",
       "cycle": 2022,
       "fieldwork": { "start": "2021-10-09", "end": "2021-10-13" },
@@ -43,6 +54,17 @@
       "source": {
         "label": "Ifop-Fiducial pour LCI, 12–14/10/2026 (notice de la Commission des sondages)",
         "url": "https://www.commission-des-sondages.fr/notices/files/notices/2026/octobre/10314-pres-climat-politique-post-primaire-ps-pp-ifop-lci-14-octobre.pdf"
+      }
+    },
+    {
+      "id": "ifop-2026-10-29",
+      "cycle": 2027,
+      "fieldwork": { "start": "2026-10-27", "end": "2026-10-29" },
+      "envisage": 96.7,
+      "certain": 78,
+      "source": {
+        "label": "Ifop-Fiducial pour LCI, 27–29/10/2026 (notice de la Commission des sondages)",
+        "url": "https://www.commission-des-sondages.fr/notices/files/notices/2026/novembre/10352-pres-iv-ifop-lci-3-novembre.pdf"
       }
     }
   ],
