@@ -1,5 +1,5 @@
 {
-  "asOf": "2026-11-15",
+  "asOf": "2026-11-17",
   "electionDate": "2027-04-18",
   "windowDays": 21,
   "collection": {
@@ -1255,6 +1255,11 @@
           "label": "Synthèse de l’institut",
           "url": "https://elabe.fr/presidentielle-2027-novembre/",
           "kind": "synthese"
+        },
+        {
+          "label": "Notice (Commission des sondages)",
+          "url": "https://www.commission-des-sondages.fr/notices/medias/fichiers/add/2394",
+          "kind": "notice"
         },
         {
           "label": "Publication",
