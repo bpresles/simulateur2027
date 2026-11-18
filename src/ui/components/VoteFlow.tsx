@@ -1,10 +1,10 @@
 import { useState } from 'react'
 import { simulationData } from '../../data/schema'
 import { firstRoundParticipation, grossFlows, newVoterRates } from '../../domain/newVoters'
-import type { GrossFlows } from '../../domain/newVoters'
+import type { GrossFlows, NewVoterRates } from '../../domain/newVoters'
 import type { SimulationResult, VoteFlow as Flow } from '../../domain/types'
 import { cand, colorVars, transferLabel } from '../candidates'
-import { num, pct } from '../format'
+import { num, pct, shownScore } from '../format'
 import { abstentionNote, unmeasuredNote } from '../newVotersText'
 import { Segmented } from './controls'
 import { InfoTip } from './InfoTip'
@@ -28,6 +28,14 @@ export function VoteFlow({ result }: { result: SimulationResult }) {
   const allies = flows.filter((f) => f.isFinalistVoter)
   const a = cand(sr.a)
   const b = cand(sr.b)
+  // Score d'un candidat en % des exprimés : celui de « Premier tour simulé » (arrondi comme lui) quand il y
+  // est seul ; avant alliances, c'est la part de son électorat dans les exprimés du 1er tour.
+  const scores = new Map(
+    flows.map((f) => {
+      const solo = result.entrants.find((e) => e.id === f.candidateId && e.members.length === 1)
+      return [f.candidateId, solo ? shownScore(result, solo) : f.share / gross.scale] as const
+    }),
+  )
 
   return (
     <section aria-labelledby="flow-title">
@@ -46,21 +54,19 @@ export function VoteFlow({ result }: { result: SimulationResult }) {
         />
       </div>
       <p className="mt-1 text-ink-2">
-        D’où viennent les voix de {a.shortName} et de {b.shortName}, en % des inscrits. Les nouveaux votants, des
-        abstentionnistes du 1er tour qui votent au 2nd, forment un flux à part : le résultat les comptait déjà,
-        en déduction des départs des électeurs du 1er tour, seul l’affichage change.
+        D’où viennent les voix de {a.shortName} et de {b.shortName} au 2nd tour, y compris celles des
+        abstentionnistes du 1er tour.
       </p>
 
       {view === 'chart' ? (
         <figure className="mt-4">
           <figcaption className="mb-2 text-sm text-ink-3">
-            À gauche, l’électorat de chaque candidat au 1er tour simulé (avant alliances), les votants blancs ou
-            nuls et les abstentionnistes du 1er tour ; à droite, les voix des finalistes (en % des exprimés),
-            ceux qui ne s’expriment pas et le vote non mesuré des blancs et nuls du 1er tour. L’épaisseur d’un
-            ruban est proportionnelle aux inscrits qui se reportent. Une alliance entre candidats éliminés ne
-            change pas ces reports.
+            Scores en % des exprimés, blancs et nuls en % des votants, abstention en % des inscrits ;
+            l’épaisseur des rubans suit le nombre d’électeurs. À gauche, les électorats du 1er tour (avant
+            alliances) ; à droite, les finalistes, ceux qui ne s’expriment pas et le vote non mesuré des blancs
+            et nuls. Une alliance entre candidats éliminés ne change pas ces reports.
           </figcaption>
-          <VoteFlowSankey sr={sr} gross={gross} flows={[...allies, ...transfers]} rates={rates} />
+          <VoteFlowSankey sr={sr} gross={gross} flows={[...allies, ...transfers]} rates={rates} scores={scores} />
         </figure>
       ) : (
         <>
@@ -82,16 +88,21 @@ export function VoteFlow({ result }: { result: SimulationResult }) {
               score={sr.pct.b}
             />
           </div>
-          <TransferTable flows={[...allies, ...transfers]} gross={gross} a={a.shortName} b={b.shortName} rates={rates} />
+          <TransferTable
+            flows={[...allies, ...transfers]}
+            gross={gross}
+            scores={scores}
+            a={a.shortName}
+            b={b.shortName}
+            rates={rates}
+          />
         </>
       )}
       <p className="mt-2 text-sm text-ink-3">
-        Les électeurs des finalistes et de leurs alliés leur restent fidèles à {pct(sr.fidelity * 100, 0)} dans le
-        résultat net. En flux bruts, chaque électorat perd en plus {pct(gross.addedDeparture * 100)} de ses voix
-        pour un finaliste (nouveaux votants ÷ exprimés du 2nd tour), compensées par les nouveaux votants : le taux
-        de report affiché est donc plus bas.
+        Une partie des électeurs du 1er tour ne vote pas au 2nd, et des abstentionnistes du 1er tour prennent
+        leur place : les taux de report affichés en tiennent compte.
         {flows.some((f) => f.like) &&
-          ' Ceux d’un petit candidat se reportent comme les électorats indiqués, selon leurs poids (réglages).'}
+          ' Les électeurs d’un petit candidat se reportent comme les électorats indiqués (réglages).'}
       </p>
     </section>
   )
@@ -100,15 +111,17 @@ export function VoteFlow({ result }: { result: SimulationResult }) {
 function TransferTable({
   flows,
   gross,
+  scores,
   a,
   b,
   rates,
 }: {
   flows: Flow[]
   gross: GrossFlows
+  scores: Map<string, number>
   a: string
   b: string
-  rates: Parameters<typeof abstentionNote>[0]
+  rates: Parameters<typeof abstentionNote>[0] & Pick<NewVoterRates, 'bnShare'>
 }) {
   const { abstainers, blankNull } = gross
   const share = (v: number) => (abstainers.volume > 0 ? (v * 100) / abstainers.volume : 0)
@@ -116,8 +129,8 @@ function TransferTable({
     <div className="mt-5 overflow-x-auto">
       <table className="w-full min-w-[22rem] text-sm">
         <caption className="mb-2 text-left text-ink-3">
-          Électorat de chaque candidat au 1er tour simulé (avant alliances) et son report au 2nd tour, en % des
-          inscrits ; taux de report bruts. Une alliance entre candidats éliminés ne change pas ces reports.
+          Électorats du 1er tour (avant alliances, en % des exprimés) et leurs reports au 2nd tour. Blancs et
+          nuls : % des votants ; abstention : % des inscrits.
         </caption>
         <thead>
           <tr className="border-b border-rule text-left text-ink-3">
@@ -130,7 +143,7 @@ function TransferTable({
         </thead>
         <tbody>
           {flows.map((f) => (
-            <FlowRow key={f.candidateId} flow={f} />
+            <FlowRow key={f.candidateId} flow={f} score={scores.get(f.candidateId) ?? 0} />
           ))}
           <tr className="border-b border-rule/70">
             <td className="py-1.5 pr-2">
@@ -141,7 +154,7 @@ function TransferTable({
               </InfoTip>
               <span className="block text-xs text-ink-3">nouveaux votants, répartis comme l’ensemble des votants</span>
             </td>
-            <td className="num py-1.5 pr-2 text-right text-ink-2">{pct(abstainers.volume)}</td>
+            <td className="num py-1.5 pr-2 text-right text-ink-2">{pct(abstainers.volume)} des inscrits</td>
             <td className="num py-1.5 pr-2 text-right">{num(share(abstainers.toA), 1)}&#8239;%</td>
             <td className="num py-1.5 pr-2 text-right">{num(share(abstainers.toB), 1)}&#8239;%</td>
             <td className="num py-1.5 text-right text-ink-2">{num(share(abstainers.nonExpressed), 1)}&#8239;%</td>
@@ -154,7 +167,7 @@ function TransferTable({
                 </span>
               </InfoTip>
             </td>
-            <td className="num py-1.5 pr-2 text-right text-ink-2">{pct(blankNull.volume)}</td>
+            <td className="num py-1.5 pr-2 text-right text-ink-2">{pct(rates.bnShare * 100)} des votants</td>
             <td colSpan={3} className="py-1.5 text-right text-ink-3">
               non mesuré
             </td>
@@ -165,7 +178,7 @@ function TransferTable({
   )
 }
 
-function FlowRow({ flow }: { flow: Flow }) {
+function FlowRow({ flow, score }: { flow: Flow; score: number }) {
   const c = cand(flow.candidateId)
   const rate = (v: number) => (flow.share > 0 ? (v * 100) / flow.share : 0)
   return (
@@ -179,7 +192,7 @@ function FlowRow({ flow }: { flow: Flow }) {
           <span className="block pl-[1.125rem] text-xs text-ink-3">comme {transferLabel(flow.like)}</span>
         )}
       </td>
-      <td className="num py-1.5 pr-2 text-right text-ink-2">{pct(flow.share)}</td>
+      <td className="num py-1.5 pr-2 text-right text-ink-2">{pct(score)}</td>
       <td className="num py-1.5 pr-2 text-right">{num(rate(flow.toA), 0)}&#8239;%</td>
       <td className="num py-1.5 pr-2 text-right">{num(rate(flow.toB), 0)}&#8239;%</td>
       <td className="num py-1.5 text-right text-ink-2">{num(rate(flow.abstention), 0)}&#8239;%</td>
