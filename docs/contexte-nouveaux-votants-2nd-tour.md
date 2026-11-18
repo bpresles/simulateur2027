@@ -1,6 +1,20 @@
-# Contexte : nouveaux votants au 2nd tour (partie 3, en attente)
+# Contexte : nouveaux votants au 2nd tour (partie 3)
 
-Fichier de reprise, rédigé le 15/11/2026. Il résume l'analyse, les décisions prises et ce qui reste à faire pour afficher les « nouveaux votants » dans les reports du 2nd tour. Rien de cette partie n'est encore codé.
+Fichier de reprise, rédigé le 15/11/2026 et mis à jour le 18/11/2026. Il résume l'analyse, les décisions prises et ce qui reste à faire pour afficher les « nouveaux votants » dans les reports du 2nd tour.
+
+## Statut au 18/11/2026
+
+**La piste 1 est en ligne.** Elle est sur `main` depuis le 18/11/2026, commits `7d2264a`, `f1c6ef1` et `ac1292f`.
+- Le graphique et le tableau des reports montrent les flux bruts.
+- Les abstentionnistes du 1er tour qui votent pour un finaliste sont mesurés à 13,96 % des abstentionnistes (Ifop 2022, recoupé par l'Insee). Leurs rubans sont en jaune soleil, et ils se répartissent entre finalistes comme l'ensemble des votants (règle de repli).
+- Les votants blancs et nuls du 1er tour sont affichés avec la mention « Non mesuré ».
+- Unités affichées : % des exprimés pour les candidats et les finalistes ; % des votants pour les blancs et nuls ; % des inscrits pour l'abstention et pour « Ne s'expriment pas ».
+- Le score des finalistes ne change pas.
+- Le calcul est dans `src/domain/newVoters.ts`, et les données dans le bloc `newVoters` de `src/data/second-round-dropout.json`.
+
+Les sections 6 et 7 ci-dessous décrivent le plan d'origine. Le code fait foi.
+
+**Reste à faire.** Obtenir du Cevipof le tableau agrégé de l'ENEF 2022, vague 11 (section 8), pour remplacer « Non mesuré » par des flux mesurés. Le texte de la demande est rédigé ; son envoi reste à confirmer. Si le tableau arrive : recalage sur les résultats officiels (section 6), puis remplacement du nœud « Non mesuré » par les flux mesurés, sans changer le score des finalistes.
 
 ## 1. Objet
 
