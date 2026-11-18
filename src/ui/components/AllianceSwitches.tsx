@@ -189,7 +189,7 @@ export function AllianceSwitches({
               : !checked && missing
                 ? `Aucun sondage retenu ne teste ${cand(missing).name}`
                 : isEstimated
-                  ? `${a.grouped ? `${a.description}. ` : ''}Estimée (reports 2024)${partners.length > 0 ? ` ; testée par les sondeurs avec ${quoted(partners)}` : ' : non testée par les sondeurs'}${a.grouped ? `, autour de ${cand(a.leader).name} (en tête de la moyenne des sondages)` : ''}`
+                  ? `${a.grouped ? `${a.description}. ` : ''}Estimée (reports 2024)${partners.length > 0 ? ` ; testée par les sondeurs avec ${quoted(partners)}` : ' : non testée par les sondeurs'}${a.grouped ? `, autour de ${cand(a.leader).name} (${a.leaderBasis === 'face-a-face' ? 'devant les autres membres dans les sondages qui les testent ensemble' : 'en tête de la moyenne des sondages'})` : ''}`
                   : a.description
           onCheckedChange = (v) => setAlliances(ids(v ? [...applied, a] : applied.filter((b) => b !== a)))
         }

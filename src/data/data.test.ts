@@ -4,6 +4,7 @@ import {
   availableAlliances,
   comboWith,
   describingCombos,
+  MIN_PAIR_INSTITUTES,
   scenarioFilter,
   testedOptions,
   testedShare,
@@ -58,11 +59,24 @@ describe('données', () => {
     }
   })
 
-  it('une alliance groupée estimée comptant un candidat principal n’est jamais menée par un petit candidat', () => {
-    const { candidates, alliances } = simulationData.polls
-    const minor = (id: string) => candidates.find((c) => c.id === id)?.minor
-    for (const a of alliances.filter((x) => x.grouped)) {
-      if (a.members.some((id) => !minor(id))) expect(minor(a.leader), a.id).toBeFalsy()
+  it('toute alliance groupée estimée a un leader membre, désigné par face-à-face ou par repli sur la moyenne', () => {
+    const { polls } = simulationData
+    const { latest } = latestPerInstitute(polls.polls, polls.asOf, windowDaysOf(polls))
+    const grouped = polls.alliances.filter((x) => x.grouped)
+    expect(grouped.length).toBeGreaterThan(0)
+    for (const a of grouped) {
+      expect(a.estimatedOnly, a.id).toBe(true)
+      expect(a.members, a.id).toContain(a.leader)
+      expect(['face-a-face', 'moyenne'], a.id).toContain(a.leaderBasis)
+      // Un leader désigné par face-à-face a au moins une paire testée par au moins 2 instituts.
+      const institutesWith = (other: string) =>
+        new Set(
+          latest
+            .filter((p) => p.hypotheses.some((h) => a.leader in h.scores && other in h.scores))
+            .map((p) => p.institute),
+        ).size
+      const best = Math.max(...a.members.filter((m) => m !== a.leader).map(institutesWith))
+      if (a.leaderBasis === 'face-a-face') expect(best, a.id).toBeGreaterThanOrEqual(MIN_PAIR_INSTITUTES)
     }
   })
 

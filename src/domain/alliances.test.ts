@@ -9,6 +9,9 @@ import {
   comboWith,
   defaultSet,
   groupedLeader,
+  groupedLeaderChoice,
+  headToHeads,
+  MIN_PAIR_INSTITUTES,
   insertMinor,
   isOptionChecked,
   ralliedOf,
@@ -17,7 +20,7 @@ import {
   testedOptions,
   testedShare,
 } from './alliances'
-import { averagePolls } from './pollAverage'
+import { averagePolls, latestPerInstitute, windowDaysOf } from './pollAverage'
 import { defaultSettings, simulate } from './simulate'
 import type { Alliance, Hypothesis, Poll, PollsData } from './types'
 
@@ -426,24 +429,35 @@ describe('alliances groupées', () => {
     expect(groupedLeader(d, ['lagarde', 'lisnard'])).toBe('lagarde')
   })
 
-  it('leader : le candidat principal en tête de la moyenne des sondages (jeu par défaut)', () => {
-    expect(grouped).toHaveLength(5)
+  it('leader (données vivantes) : un membre du groupe, avec sa base ; face-à-face seulement si une paire est testée par 2 instituts', () => {
+    expect(grouped.length).toBeGreaterThan(0)
     for (const a of grouped) {
       expect(a.estimatedOnly).toBe(true)
-      expect(groupedLeader(live, a.members)).toBe(a.leader)
+      expect(a.members, a.id).toContain(a.leader)
+      expect(groupedLeaderChoice(live, a.members)).toEqual({ id: a.leader, basis: a.leaderBasis })
+      const { pairs } = headToHeads(live, a.members)
+      expect(a.leaderBasis, a.id).toBe(pairs > 0 ? 'face-a-face' : 'moyenne')
     }
-    const { average } = averagePolls(live, defaultSet(live))
-    const byId = Object.fromEntries(grouped.map((a) => [a.id, a]))
-    // Chaque leader a un score au moins égal à celui des autres candidats principaux du groupe.
-    const minor = (id: string) => live.candidates.find((c) => c.id === id)?.minor
-    for (const a of grouped) {
-      expect(minor(a.leader), a.id).toBeFalsy()
-      for (const id of a.members.filter((m) => !minor(m))) {
-        expect(average[a.leader] ?? 0).toBeGreaterThanOrEqual(average[id] ?? 0)
-      }
+  })
+
+  it('leader (données vivantes) : le leader désigné par face-à-face a au moins une paire testée par 2 instituts', () => {
+    const { latest } = latestPerInstitute(live.polls, live.asOf, windowDaysOf(live))
+    for (const a of grouped.filter((x) => x.leaderBasis === 'face-a-face')) {
+      const institutes = (other: string) =>
+        new Set(
+          latest
+            .filter((p) => p.hypotheses.some((h) => a.leader in h.scores && other in h.scores))
+            .map((p) => p.institute),
+        ).size
+      const best = Math.max(...a.members.filter((m) => m !== a.leader).map(institutes))
+      expect(best, a.id).toBeGreaterThanOrEqual(MIN_PAIR_INSTITUTES)
     }
-    expect(byId['groupe-droites']!.leader).toBe('lepen')
-    expect(byId['groupe-gauche-sans-ps']!.leader).toBe('melenchon')
+  })
+
+  it('l’alliance de la primaire réunit Attal, Retailleau et Lisnard (Philippe n’en fait pas partie)', () => {
+    const a = grouped.find((x) => x.id === 'groupe-primaire-droite-centre')!
+    expect([...a.members].sort()).toEqual(['attal', 'lisnard', 'retailleau'])
+    expect(a.estimatedOnly).toBe(true)
   })
 
   it('estimées seulement avec leur option, appliquées avec tous leurs ralliés', () => {
@@ -494,7 +508,7 @@ describe('options groupées tirées des hypothèses testées', () => {
     )
   })
 
-  it('hypothèse « Philippe, Lisnard » : une seule option aux deux leaders, au libellé neutre', () => {
+  it('hypothèse « Philippe, Lisnard » : une seule option aux deux leaders, au libellé du jeu d’hypothèses', () => {
     const d = withMinors([
       poll('i', 'Ifop-Fiducial', [
         labelled('Philippe, Lisnard', without('H1', ['attal', 'retailleau'], 'philippe', { lisnard: 7 })),
@@ -502,8 +516,13 @@ describe('options groupées tirées des hypothèses testées', () => {
     ])
     const options = testedOptions(d)
     expect(options.map((o) => ids(o.alliances))).toEqual([['attal-philippe', 'retailleau-lisnard']])
-    expect(options[0]!.label).toBe('Derrière Philippe : Attal ; derrière Lisnard : Retailleau')
+    expect(options[0]!.label).toBe('Philippe au centre, Lisnard seul à droite')
     expect(options[0]!.description).toContain('Testée par : Ifop-Fiducial (hypothèse « Philippe, Lisnard »)')
+    // Le jeu d'hypothèses nomme la combinaison ; sans lui, libellé neutre.
+    const unnamed = { ...d, hypothesisSets: d.hypothesisSets.filter((x) => x.id !== 'philippe-lisnard') }
+    expect(testedOptions(unnamed)[0]!.label).toBe('Derrière Philippe : Attal ; derrière Lisnard : Retailleau')
+    const alliances = ['attal-philippe', 'retailleau-lisnard'].map((id) => d.alliances.find((a) => a.id === id)!)
+    expect(scenarioSet(d, alliances, (id) => id).label).toBe('Philippe au centre, Lisnard seul à droite')
   })
 
   it('deux instituts qui testent la même combinaison : une seule option, qui les cite', () => {
