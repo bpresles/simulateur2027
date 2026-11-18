@@ -340,6 +340,10 @@
     "blank": 2233904,
     "invalid": 805249,
     "expressed": 32057325,
+    "candidates": [
+      { "id": "macron", "votes": 18768639 },
+      { "id": "lepen", "votes": 13288686 }
+    ],
     "source": {
       "label": "Conseil constitutionnel – Décision n° 2022-197 PDR du 27/04/2022 (résultats du 2nd tour)",
       "url": "https://www.conseil-constitutionnel.fr/decision/2022/2022197PDR.htm"

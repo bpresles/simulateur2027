@@ -189,7 +189,12 @@ const secondRoundShape = z.object({
   source: sourceLink,
 })
 
-const referenceSchema: z.ZodType<Reference2022> = z.object({ ...pastElectionShape, secondRound: secondRoundShape })
+const referenceSchema: z.ZodType<Reference2022> = z.object({
+  ...pastElectionShape,
+  secondRound: secondRoundShape.extend({
+    candidates: z.array(z.object({ id: z.string(), votes: z.number().int().nonnegative() })).min(2),
+  }),
+})
 
 const reference2017Schema: z.ZodType<Reference2017> = z.object({ ...pastElectionShape, secondRound: secondRoundShape })
 
@@ -245,9 +250,46 @@ const dropoutProfile = z.object({
   leftParty: z.record(z.string(), z.string()).optional(),
 })
 
+const finalistShares = z.array(z.object({ id: z.string(), share: percent })).length(2)
+
+const newVotersSchema = z.object({
+  description: z.string(),
+  ifop2022: z.object({
+    description: z.string(),
+    source: sourceLink.extend({ pages: z.string() }),
+    abstainedFirstRound: finalistShares,
+    abstainersVote: finalistShares,
+    allVotersVote: finalistShares,
+    abstainersWhoVotedShare: percent,
+    roundingMargin: z.number().nonnegative(),
+  }),
+  insee: z.array(
+    z.object({
+      year: z.number().int(),
+      bothRounds: percent,
+      firstOnly: percent,
+      secondOnly: percent,
+      neither: percent,
+      scope: z.string(),
+      source: sourceLink,
+    }),
+  ),
+  legislatives2024: z.object({
+    constituencies: z.number().int().positive(),
+    votersFirstRound: z.number().int().positive(),
+    votersSecondRound: z.number().int().positive(),
+    expressedFirstRound: z.number().int().positive(),
+    expressedSecondRound: z.number().int().positive(),
+    note: z.string(),
+    sources: z.array(sourceLink).min(1),
+  }),
+  blankNullNote: z.string(),
+})
+
 // Un profil de reports manquant fait échouer la validation (clés d'enum exhaustives).
 const secondRoundDropoutSchema: z.ZodType<SecondRoundDropoutData> = z.object({
   description: z.string(),
+  newVoters: newVotersSchema,
   presidential: z.object({
     description: z.string(),
     elections: z.array(
@@ -413,6 +455,21 @@ export function validateData(data: SimulationData): string[] {
     }
   }
 
+  const finalists = reference2022.secondRound.candidates
+  if (finalists.some((c) => !ref2022Ids.has(c.id))) errors.push('2nd tour 2022 : finaliste inconnu du 1er tour')
+  if (finalists.reduce((t, c) => t + c.votes, 0) !== reference2022.secondRound.expressed)
+    errors.push('2022 : total des voix des finalistes ≠ exprimés du 2nd tour')
+  const { ifop2022, insee } = data.secondRoundDropout.newVoters
+  const ifopLists = [ifop2022.abstainedFirstRound, ifop2022.abstainersVote, ifop2022.allVotersVote]
+  if (ifopLists.some((l) => l.some((s) => !finalists.some((c) => c.id === s.id))))
+    errors.push('Nouveaux votants : un finaliste de l’Ifop n’est pas un finaliste de 2022')
+  for (const l of [ifop2022.abstainersVote, ifop2022.allVotersVote]) {
+    if (Math.abs(l.reduce((t, s) => t + s.share, 0) - 100) > 1e-9) errors.push('Nouveaux votants : parts Ifop de total ≠ 100 %')
+  }
+  for (const y of insee) {
+    if (Math.abs(y.bothRounds + y.firstOnly + y.secondOnly + y.neither - 100) > 0.5)
+      errors.push(`Nouveaux votants : parts Insee ${y.year} de total éloigné de 100 %`)
+  }
   errors.push(...validatePastElection('2022', reference2022), ...validatePastElection('2017', reference2017))
   for (const [id2022, id2017] of Object.entries(EQUIVALENTS_2017)) {
     if (!ref2022Ids.has(id2022)) errors.push(`Équivalent 2017 : candidat 2022 inconnu « ${id2022} »`)
