@@ -1,5 +1,5 @@
 {
-  "asOf": "2026-11-17",
+  "asOf": "2026-11-18",
   "electionDate": "2027-04-18",
   "windowDays": 21,
   "collection": {
@@ -1258,12 +1258,8 @@
         },
         {
           "label": "Notice (Commission des sondages)",
-          "url": "https://www.commission-des-sondages.fr/notices/medias/fichiers/add/2394",
+          "url": "https://www.commission-des-sondages.fr/notices/files/notices/2026/novembre/10375-pres-iv-elabe-14-novembre.pdf",
           "kind": "notice"
-        },
-        {
-          "label": "Publication",
-          "url": "https://elabe.fr/fichier-pdf/13399-les-francais-et-lelection-presidentielle-2027/"
         },
         {
           "label": "Wikipedia – liste des sondages",
@@ -1445,7 +1441,7 @@
       "id": "cluster17-20261110",
       "origin": "wikipedia",
       "institute": "Cluster17",
-      "sponsor": "Non indiqué",
+      "sponsor": "Politico",
       "fieldwork": {
         "start": "2026-11-09",
         "end": "2026-11-10"
@@ -1459,7 +1455,7 @@
         },
         {
           "label": "Notice (Commission des sondages)",
-          "url": "https://www.commission-des-sondages.fr/notices/medias/fichiers/add/2387",
+          "url": "https://www.commission-des-sondages.fr/notices/files/notices/2026/novembre/10368-pres-iv-cluster17-politico-11-novembre.pdf",
           "kind": "notice"
         },
         {
@@ -2035,7 +2031,7 @@
         "end": "2026-11-13"
       },
       "sampleSize": 1500,
-      "url": "https://elabe.fr/fichier-pdf/13399-les-francais-et-lelection-presidentielle-2027/",
+      "url": "https://www.commission-des-sondages.fr/notices/files/notices/2026/novembre/10375-pres-iv-elabe-14-novembre.pdf",
       "scores": {
         "glucksmann": 45,
         "lepen": 55
@@ -2050,7 +2046,7 @@
         "end": "2026-11-13"
       },
       "sampleSize": 1500,
-      "url": "https://elabe.fr/fichier-pdf/13399-les-francais-et-lelection-presidentielle-2027/",
+      "url": "https://www.commission-des-sondages.fr/notices/files/notices/2026/novembre/10375-pres-iv-elabe-14-novembre.pdf",
       "scores": {
         "melenchon": 31.5,
         "lepen": 68.5
@@ -2065,7 +2061,7 @@
         "end": "2026-11-13"
       },
       "sampleSize": 1500,
-      "url": "https://elabe.fr/fichier-pdf/13399-les-francais-et-lelection-presidentielle-2027/",
+      "url": "https://www.commission-des-sondages.fr/notices/files/notices/2026/novembre/10375-pres-iv-elabe-14-novembre.pdf",
       "scores": {
         "philippe": 45,
         "lepen": 55
