@@ -15,6 +15,7 @@ import {
   insertMinor,
   isOptionChecked,
   ralliedOf,
+  resolveGroupedLeaders,
   scenarioFilter,
   scenarioSet,
   testedOptions,
@@ -557,5 +558,137 @@ describe('options groupées tirées des hypothèses testées', () => {
     expect(isOptionChecked(seul!, [byId('attal-philippe')])).toBe(true)
     expect(isOptionChecked(seul!, deux!.alliances)).toBe(false)
     expect(isOptionChecked(deux!, [byId('attal-philippe')])).toBe(false)
+  })
+})
+
+describe('leader d’une alliance groupée : face-à-face', () => {
+  const minors = liveData.polls.candidates.filter((c) => c.id === 'lisnard' || c.id === 'lagarde')
+  const candidates = [...main, ...minors]
+  const build = (pollList: Poll[]): PollsData => ({
+    ...polls,
+    candidates,
+    alliances: liveData.polls.alliances.filter((a) => a.members.every((id) => candidates.some((c) => c.id === id))),
+    polls: pollList,
+  })
+  const hyp = (id: string, extra: Hypothesis['scores']): Hypothesis => ({ id, scores: { ...FULL, ...extra } })
+  const members = ['attal', 'retailleau', 'lisnard']
+
+  it('un petit candidat testé par plusieurs instituts gagne ses face-à-face et mène le groupe', () => {
+    const d = build([
+      poll('a', 'Elabe', [hyp('H1', { lisnard: 8 })]),
+      poll('b', 'Cluster17', [hyp('H1', { lisnard: 9 })]),
+    ])
+    expect(groupedLeaderChoice(d, members)).toEqual({ id: 'lisnard', basis: 'face-a-face' })
+    expect(groupedLeaderChoice(d, ['lisnard', 'attal'])).toEqual({ id: 'lisnard', basis: 'face-a-face' })
+  })
+
+  it('une paire testée par un seul institut est ignorée : repli sur le candidat principal en tête de la moyenne', () => {
+    const d = build([poll('a', 'Elabe', [hyp('H1', { lisnard: 20 })]), poll('b', 'Cluster17', [hyp('H1', {})])])
+    expect(headToHeads(d, ['attal', 'lisnard']).pairs).toBe(0)
+    expect(groupedLeaderChoice(d, ['lisnard', 'attal'])).toEqual({ id: 'attal', basis: 'moyenne' })
+  })
+
+  it('les scores sont ceux mesurés : un score imputé n’entre pas dans le face-à-face', () => {
+    // Lagarde n'est mesurée que par Cluster17 ; l'autre institut ne la teste pas.
+    const d = build([poll('a', 'Elabe', [hyp('H1', {})]), poll('b', 'Cluster17', [hyp('H1', { lagarde: 30 })])])
+    expect(headToHeads(d, ['philippe', 'lagarde']).pairs).toBe(0)
+    expect(groupedLeaderChoice(d, ['lagarde', 'philippe']).id).toBe('philippe')
+  })
+
+  it('égalité de face-à-face gagnés : la plus grande marge cumulée, avant le premier membre', () => {
+    // Chaque institut : H1 teste Attal et Retailleau, H2 (sans Attal) teste Retailleau et Lisnard.
+    const hypotheses = () => [hyp('H1', {}), without('H2', ['attal'], 'philippe', { lisnard: 9 })]
+    const d = build([poll('a', 'Elabe', hypotheses()), poll('b', 'Cluster17', hypotheses())])
+    const { record, pairs } = headToHeads(d, ['retailleau', 'lisnard', 'attal'])
+    expect(pairs).toBe(2)
+    expect(record.get('retailleau')).toEqual({ wins: 1, margin: -1 })
+    expect(record.get('lisnard')).toEqual({ wins: 1, margin: 2 })
+    expect(groupedLeaderChoice(d, ['retailleau', 'lisnard', 'attal']).id).toBe('lisnard')
+  })
+
+  it('à égalité parfaite, le premier membre', () => {
+    const d = build([
+      poll('a', 'Elabe', [hyp('H1', { lisnard: 7 })]),
+      poll('b', 'Cluster17', [hyp('H1', { lisnard: 7 })]),
+    ])
+    expect(groupedLeaderChoice(d, ['lisnard', 'retailleau']).id).toBe('lisnard')
+    expect(groupedLeaderChoice(d, ['retailleau', 'lisnard']).id).toBe('retailleau')
+  })
+
+  it('le groupe de la primaire est mené par le membre qui gagne ses face-à-face', () => {
+    const d = resolveGroupedLeaders(
+      build([
+        poll('a', 'Elabe', [hyp('H1', { lisnard: 8 })]),
+        poll('b', 'Cluster17', [hyp('H1', { lisnard: 9 })]),
+      ]),
+    )
+    const a = d.alliances.find((x) => x.id === 'groupe-primaire-droite-centre')!
+    expect(a).toMatchObject({ leader: 'lisnard', leaderBasis: 'face-a-face' })
+    // Philippe, hors de la primaire, n'entre dans aucun de ses face-à-face.
+    expect(a.members).not.toContain('philippe')
+  })
+
+  describe('estimation de la primaire avec Lisnard pour leader (profil « LR face au RN »)', () => {
+    const d = resolveGroupedLeaders(
+      build([
+        poll('a', 'Elabe', [hyp('H1', { lisnard: 8 })]),
+        poll('b', 'Cluster17', [hyp('H1', { lisnard: 9 })]),
+      ]),
+    )
+    const sim = { ...liveData, polls: d }
+    const settings = defaultSettings()
+    const score = (r: ReturnType<typeof simulate>, id: string) => r.entrants.find((e) => e.id === id)?.score
+    const finite = (v: unknown): boolean =>
+      typeof v === 'number' ? Number.isFinite(v) : v && typeof v === 'object' ? Object.values(v).every(finite) : true
+
+    const check = (res: ReturnType<typeof simulate>, base: ReturnType<typeof simulate>) => {
+      expect(score(res, 'lisnard')!).toBeGreaterThan(score(base, 'lisnard')!)
+      expect(res.entrants.reduce((t, e) => t + e.score, 0)).toBeCloseTo(100)
+      expect(res.entrants.every((e) => e.score >= 0 && e.members.every((m) => m.contribution >= 0))).toBe(true)
+      expect(finite(res)).toBe(true)
+      const rates = res.allianceRates.filter((r) => r.leaderId === 'lisnard')
+      expect(rates.length).toBeGreaterThan(0)
+      for (const r of rates) {
+        for (const j of r.joining) {
+          // Lisnard suit le profil « LR face au RN » : une partie seulement des électeurs le suit.
+          expect(j.source?.profileId).toBe('lr_rn')
+          expect(j.leader).toBeGreaterThan(0)
+          expect(j.leader).toBeLessThan(1)
+          expect(j.rn).toBeGreaterThanOrEqual(0)
+          expect(j.leader + j.rn).toBeLessThanOrEqual(1 + 1e-9)
+        }
+      }
+    }
+
+    it('alliance groupée : le score de Lisnard augmente d’une partie des voix d’Attal et de Retailleau', () => {
+      const base = simulate(sim, settings)
+      const res = simulate(sim, { ...settings, groupedAlliances: true, alliances: { 'groupe-primaire-droite-centre': true } })
+      expect(res.estimatedAllianceIds).toEqual(['groupe-primaire-droite-centre'])
+      check(res, base)
+      const lisnard = res.entrants.find((e) => e.id === 'lisnard')!
+      expect(lisnard.members.map((m) => m.candidateId).sort()).toEqual(['attal', 'lisnard', 'retailleau'])
+      // Plus de la moitié des voix reste à Lisnard et à ses ralliés, mais pas toutes : une part va au RN.
+      expect(score(res, 'lepen')!).toBeGreaterThan(score(base, 'lepen')!)
+    })
+
+    it('sans alliance, le score de Lisnard ne dépend pas de son profil de reports', () => {
+      const withoutProfile = {
+        ...sim,
+        polls: { ...d, candidates: d.candidates.map((c) => (c.id === 'lisnard' ? { ...c, duelProfile: null } : c)) },
+      }
+      expect(score(simulate(sim, settings), 'lisnard')).toBeCloseTo(score(simulate(withoutProfile, settings), 'lisnard')!, 10)
+    })
+
+    it('combinaison d’alliances simples : estimée, avec l’option des alliances non évaluées seulement', () => {
+      const active = { 'attal-lisnard': true, 'retailleau-lisnard': true }
+      const base = simulate(sim, settings)
+      // Sans l'option, aucune hypothèse ne teste la combinaison (Philippe reste au centre) : rien n'est appliqué.
+      expect(simulate(sim, { ...settings, alliances: active }).estimatedAllianceIds).toEqual([])
+      const res = simulate(sim, { ...settings, untestedAlliances: true, alliances: active })
+      expect([...res.estimatedAllianceIds].sort()).toEqual(['attal-lisnard', 'retailleau-lisnard'])
+      check(res, base)
+      const grouped = simulate(sim, { ...settings, groupedAlliances: true, alliances: { 'groupe-primaire-droite-centre': true } })
+      expect(score(res, 'lisnard')!).toBeCloseTo(score(grouped, 'lisnard')!, 8)
+    })
   })
 })
