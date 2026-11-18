@@ -199,8 +199,12 @@ function SimulatorPage({ result, onOpenSettings }: { result: SimulationResult; o
 
       <ElectedPresident result={result} />
 
-      <div className="mt-12 grid gap-x-12 gap-y-12 lg:grid-cols-[minmax(0,7fr)_minmax(0,5fr)]">
-        <div className="order-2 lg:order-1">
+      <div className="mt-12">
+        <SecondRoundDuel result={result} />
+      </div>
+
+      <div className="mt-12 grid items-start gap-x-12 gap-y-12 lg:grid-cols-2">
+        <div className="min-w-0">
           <FirstRoundChart result={result} />
           <p className="mt-4 text-sm text-ink-3">
             Survolez ou sélectionnez un candidat pour voir le détail du calcul. Les corrections se règlent
@@ -210,12 +214,9 @@ function SimulatorPage({ result, onOpenSettings }: { result: SimulationResult; o
             </button>
             .
           </p>
-          <VoteFlow result={result} />
         </div>
-        <div className="order-1 lg:order-2">
-          <div className="lg:sticky lg:top-6">
-            <SecondRoundDuel result={result} />
-          </div>
+        <div className="min-w-0">
+          <VoteFlow result={result} />
         </div>
       </div>
     </>

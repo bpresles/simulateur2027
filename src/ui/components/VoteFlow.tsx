@@ -30,7 +30,7 @@ export function VoteFlow({ result }: { result: SimulationResult }) {
   const b = cand(sr.b)
 
   return (
-    <section aria-labelledby="flow-title" className="mt-12">
+    <section aria-labelledby="flow-title">
       <div className="flex flex-wrap items-end justify-between gap-x-6 gap-y-2">
         <h2 id="flow-title" className="text-2xl font-bold tracking-tight">
           Reports vers le second tour
