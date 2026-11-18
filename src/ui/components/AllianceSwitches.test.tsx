@@ -48,7 +48,9 @@ describe('alliances non évaluées : petits candidats', () => {
       expect(toggle.getAttribute('aria-checked'), a.label).toBe('true')
       act(() => fireEvent.click(toggle))
     }
-  })
+    // Un rendu par alliance de petit candidat : la durée croît avec les données (≈ 2 s en local,
+    // davantage sous charge ou en CI). Délai relevé pour ne pas bloquer la synchronisation quotidienne.
+  }, 20_000)
 })
 
 describe('alliances groupées', () => {
