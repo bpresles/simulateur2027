@@ -859,6 +859,23 @@
         "attal",
         "hollande"
       ]
+    },
+    {
+      "id": "philippe-lisnard",
+      "label": "Philippe au centre, Lisnard seul à droite",
+      "description": "Édouard Philippe candidat du bloc central et David Lisnard seul candidat de la droite, sans Gabriel Attal ni Bruno Retailleau : correspond à une primaire de la droite et du centre gagnée par Lisnard, Philippe restant candidat.",
+      "require": [
+        "melenchon",
+        "glucksmann",
+        "philippe",
+        "lisnard",
+        "lepen"
+      ],
+      "exclude": [
+        "attal",
+        "retailleau",
+        "hollande"
+      ]
     }
   ],
   "alliances": [
@@ -1107,6 +1124,24 @@
       "leader": "lisnard"
     },
     {
+      "id": "attal-lisnard",
+      "label": "Attal rejoint Lisnard",
+      "members": [
+        "lisnard",
+        "attal"
+      ],
+      "leader": "lisnard"
+    },
+    {
+      "id": "lisnard-attal",
+      "label": "Lisnard rejoint Attal",
+      "members": [
+        "attal",
+        "lisnard"
+      ],
+      "leader": "attal"
+    },
+    {
       "id": "lagarde-philippe",
       "label": "Lagarde rejoint Philippe",
       "members": [
@@ -1194,6 +1229,18 @@
         "attal",
         "philippe",
         "riner"
+      ],
+      "grouped": true,
+      "estimatedOnly": true
+    },
+    {
+      "id": "groupe-primaire-droite-centre",
+      "label": "Primaire de la droite et du centre",
+      "description": "Attal, Retailleau, Lisnard",
+      "members": [
+        "attal",
+        "retailleau",
+        "lisnard"
       ],
       "grouped": true,
       "estimatedOnly": true

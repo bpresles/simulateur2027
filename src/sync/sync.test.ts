@@ -97,6 +97,17 @@ describe('syncPolls', () => {
     expect(scores).toContainEqual(expect.objectContaining({ lisnard: 4, bouamrane: 0.5 }))
   })
 
+  it('conserve les alliances (dont la primaire) et les jeux d’hypothèses des données', () => {
+    const live = syncPolls(simulationData.polls, WIKITEXT, '2026-10-20')!
+    const ids = (list: { id: string }[]) => list.map((x) => x.id)
+    expect(ids(live.data.alliances)).toEqual(ids(simulationData.polls.alliances))
+    expect(ids(live.data.alliances)).toEqual(
+      expect.arrayContaining(['groupe-primaire-droite-centre', 'attal-lisnard', 'lisnard-attal']),
+    )
+    expect(live.data.hypothesisSets).toEqual(simulationData.polls.hypothesisSets)
+    expect(ids(live.data.hypothesisSets)).toContain('philippe-lisnard')
+  })
+
   it('compare le contenu indépendamment de l’ordre des champs', () => {
     expect(stableStringify({ a: 1, b: { c: 2, d: 3 } })).toBe(stableStringify({ b: { d: 3, c: 2 }, a: 1 }))
   })

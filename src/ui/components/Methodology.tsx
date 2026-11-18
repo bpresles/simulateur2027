@@ -1368,11 +1368,24 @@ export function Methodology({ result }: { result: SimulationResult }) {
                 .filter((al) => al.grouped)
                 .map((al) => `« ${al.label} » (${al.description}, autour de ${cand(al.leader).name})`)
                 .join(' ; ')}
-              . Le leader est le candidat principal qui a le plus d’intentions de vote au 1er tour dans la moyenne
-              des sondages (jeu d’hypothèses par défaut, avant corrections) ; un petit candidat ne mène une alliance
-              groupée estimée que si elle ne compte que des petits candidats, car son score est en partie imputé
-              (testée par un seul institut, Lagarde reçoit un score dans les hypothèses de tous les autres) ; le
-              leader est recalculé à chaque synchronisation. Aucun sondage ne teste ces alliances : elles sont toujours
+              . Le leader est choisi par <strong>face-à-face</strong> : pour chaque paire de membres testée par au
+              moins 2 instituts distincts (dernier sondage de chaque institut), on compare la moyenne simple de
+              leurs scores dans les hypothèses qui les testent ensemble. Le membre qui gagne le plus de
+              face-à-face mène l’alliance ; à égalité, celui qui a la plus grande marge cumulée, puis le premier
+              membre. Seuls les scores mesurés comptent, jamais les scores imputés : le plus fort du groupe se
+              mesure là où ses membres sont testés ensemble, et les scores imputés des petits candidats rarement
+              testés (Lagarde, testée par un seul institut, reçoit un score dans les hypothèses de tous les autres)
+              sont exclus. Un petit candidat peut donc mener une alliance (Lisnard, testé par la plupart des
+              instituts). Si aucune paire n’est testée par au moins 2 instituts, repli : le candidat principal qui a
+              le plus d’intentions de vote dans la moyenne du jeu d’hypothèses par défaut (avant corrections) ; un
+              petit candidat ne mène alors que si le groupe ne compte que des petits candidats. Le leader est
+              recalculé à chaque synchronisation. L’alliance « Primaire de la droite et du centre » (Attal,
+              Retailleau, Lisnard ; Philippe n’y participe pas) en est un exemple. On peut aussi la simuler par une
+              combinaison d’alliances simples, « Attal rejoint Lisnard » avec « Retailleau rejoint Lisnard » : aucune
+              hypothèse ne la teste, car Philippe reste candidat au centre (règle du camp), elle n’est donc proposée
+              qu’avec l’option des alliances non évaluées, et elle est alors estimée. L’option testée par l’Ifop
+              (Attal derrière Philippe, Retailleau derrière Lisnard) s’affiche « Philippe au centre, Lisnard seul à
+              droite », d’après un jeu d’hypothèses des données. Aucun sondage ne teste ces alliances : elles sont toujours
               estimées, comme les alliances non évaluées (reports des législatives 2024), pour chaque candidat
               rallié. Un candidat ne rallie qu’une alliance : elles sont incompatibles avec une alliance qui
               partage l’un de leurs membres sans le même leader.

@@ -119,6 +119,9 @@ export interface HypothesisSet {
   exclude: CandidateId[]
 }
 
+/** Base d'un leader d'alliance groupée : face-à-face dans les sondages, ou repli sur la moyenne du jeu par défaut. */
+export type LeaderBasis = 'face-a-face' | 'moyenne'
+
 export interface Alliance {
   id: string
   label: string
@@ -127,11 +130,14 @@ export interface Alliance {
   /** Candidat que rejoignent les autres membres : il doit être testé dans les hypothèses retenues. */
   leader: CandidateId
   /**
-   * Alliance groupée (option) : le leader n'est pas fixé dans les données mais déduit au chargement, c'est
-   * le candidat principal en tête de la moyenne des sondages au 1er tour (un petit candidat seulement si tous
-   * les membres le sont). Toujours estimée (`estimatedOnly`).
+   * Alliance groupée (option) : le leader n'est pas fixé dans les données mais déduit au chargement : le
+   * membre qui gagne le plus de face-à-face dans les sondages qui les testent ensemble, à défaut le candidat
+   * principal en tête de la moyenne des sondages au 1er tour (voir `groupedLeaderChoice`). Toujours estimée
+   * (`estimatedOnly`).
    */
   grouped?: boolean
+  /** Base de la désignation du leader d'une alliance groupée, renseignée au chargement. */
+  leaderBasis?: LeaderBasis
   /**
    * Jamais lue dans les hypothèses des sondages, dont la lecture serait ambiguë (sans Retailleau, ses
    * électeurs ne vont pas tous vers Le Pen) : toujours estimée, avec l'option des alliances non évaluées.

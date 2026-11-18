@@ -8,6 +8,7 @@ import type {
   EntrantMember,
   Hypothesis,
   HypothesisSet,
+  LeaderBasis,
   PollsData,
   ReferencePart,
   Settings,
@@ -34,26 +35,88 @@ export function alliancesConflict(a: Alliance, b: Alliance): boolean {
   return a.members.some((id) => b.members.includes(id) && !(a.leader === id && b.leader === id))
 }
 
+/** Nombre minimal d'instituts distincts qui testent une paire de membres pour qu'elle compte. */
+export const MIN_PAIR_INSTITUTES = 2
+
+/** Leader d'une alliance groupée et base de la décision. */
+export interface GroupedLeader {
+  id: CandidateId
+  basis: LeaderBasis
+}
+
+/** Face-à-face gagnés et marge cumulée (en points) de chaque membre, et nombre de paires qui comptent. */
+export interface HeadToHeads {
+  record: Map<CandidateId, { wins: number; margin: number }>
+  pairs: number
+}
+
 /**
- * Alliances groupées : plusieurs candidats rassemblés derrière le candidat principal qui a le plus
- * d'intentions de vote au 1er tour, selon la moyenne des sondages du jeu par défaut. Le score d'un petit
- * candidat est en partie imputé (Lagarde, testée par un seul institut, reçoit un score dans les hypothèses de
- * tous) : il ne mène une alliance groupée que si elle ne compte que des petits candidats (alors, son score
+ * Face-à-face d'un groupe : pour chaque paire de membres testée par au moins 2 instituts distincts (dernier
+ * sondage de chaque institut, scores bruts jamais imputés), moyenne simple de leurs scores dans les hypothèses
+ * qui les testent ensemble. Le gagnant d'une paire est celui dont la moyenne est la plus haute ; l'écart
+ * s'ajoute à sa marge et se retranche de celle de l'autre.
+ */
+export function headToHeads(data: PollsData, members: CandidateId[]): HeadToHeads {
+  const { latest } = latestPerInstitute(data.polls, data.asOf, windowDaysOf(data))
+  const hypotheses = latest.flatMap((p) => p.hypotheses.map((h) => ({ institute: p.institute, scores: h.scores })))
+  const record = new Map(members.map((id) => [id, { wins: 0, margin: 0 }]))
+  let pairs = 0
+  for (const [i, a] of members.entries()) {
+    for (const b of members.slice(i + 1)) {
+      const both = hypotheses.filter((h) => a in h.scores && b in h.scores)
+      if (new Set(both.map((h) => h.institute)).size < MIN_PAIR_INSTITUTES) continue
+      pairs++
+      const mean = (id: CandidateId) => both.reduce((s, h) => s + h.scores[id]!, 0) / both.length
+      const gap = mean(a) - mean(b)
+      const [ra, rb] = [record.get(a)!, record.get(b)!]
+      ra.margin += gap
+      rb.margin -= gap
+      if (gap > 0) ra.wins++
+      else if (gap < 0) rb.wins++
+    }
+  }
+  return { record, pairs }
+}
+
+/**
+ * Alliances groupées : plusieurs candidats rassemblés derrière le membre qui gagne le plus de face-à-face
+ * (`headToHeads`) ; à égalité, celui qui a la plus grande marge cumulée, puis le premier membre. Le plus fort
+ * du groupe se mesure là où ses membres sont testés ensemble, et les scores imputés des petits candidats
+ * rarement testés (Lagarde, testée par un seul institut) n'y entrent pas. Si aucune paire n'est testée par au
+ * moins 2 instituts, repli : le candidat principal qui a le plus d'intentions de vote dans la moyenne du jeu
+ * par défaut ; un petit candidat ne mène alors que si le groupe ne compte que des petits candidats (son score
  * parmi les hypothèses qui le testent). À égalité, le premier membre.
  */
-export function groupedLeader(data: PollsData, members: CandidateId[]): CandidateId {
+export function groupedLeaderChoice(data: PollsData, members: CandidateId[]): GroupedLeader {
+  const { record, pairs } = headToHeads(data, members)
+  if (pairs > 0) {
+    const id = members.reduce((best, m) => {
+      const [x, y] = [record.get(m)!, record.get(best)!]
+      return x.wins > y.wins || (x.wins === y.wins && x.margin > y.margin) ? m : best
+    })
+    return { id, basis: 'face-a-face' }
+  }
   const { average } = averagePolls(data, defaultSet(data))
   const score = (id: CandidateId) => average[id] ?? testedShare(data, id)
   const principal = members.filter((id) => !data.candidates.find((c) => c.id === id)?.minor)
-  return (principal.length > 0 ? principal : members).reduce((best, id) => (score(id) > score(best) ? id : best))
+  const id = (principal.length > 0 ? principal : members).reduce((best, m) => (score(m) > score(best) ? m : best))
+  return { id, basis: 'moyenne' }
 }
 
-/** Données dont les alliances groupées ont leur leader : à appeler une fois, au chargement. */
+/** Leader d'une alliance groupée (voir `groupedLeaderChoice`). */
+export const groupedLeader = (data: PollsData, members: CandidateId[]): CandidateId =>
+  groupedLeaderChoice(data, members).id
+
+/** Données dont les alliances groupées ont leur leader et sa base : à appeler une fois, au chargement. */
 export function resolveGroupedLeaders(data: PollsData): PollsData {
   if (!data.alliances.some((a) => a.grouped)) return data
   return {
     ...data,
-    alliances: data.alliances.map((a) => (a.grouped ? { ...a, leader: groupedLeader(data, a.members) } : a)),
+    alliances: data.alliances.map((a) => {
+      if (!a.grouped) return a
+      const { id, basis } = groupedLeaderChoice(data, a.members)
+      return { ...a, leader: id, leaderBasis: basis }
+    }),
   }
 }
 
