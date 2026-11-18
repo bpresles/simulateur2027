@@ -17,6 +17,7 @@ import type { PastYear } from '../../domain/pastElections'
 import { windowDaysOf } from '../../domain/pollAverage'
 import { referenceParts } from '../../domain/references'
 import { minorTransfer } from '../../domain/transfers'
+import { firstRoundParticipation, grossFlows, newVoterRates } from '../../domain/newVoters'
 import { TIGHT_QUALIFICATION_GAP } from '../../domain/simulate'
 import {
   blocShares,
@@ -45,6 +46,7 @@ import {
 import { useSettings } from '../../state/settingsStore'
 import { anyName, BLOC_LABELS, BLOC_VOTERS, cand, entrantLabel, profileLabel, transferLabel } from '../candidates'
 import { date, distance, fieldwork, integer, noIntentionLabel, num, pct, pts, range, ratio, shownScore } from '../format'
+import { finalist2022Name } from '../newVotersText'
 import { correctedTransfer, actualRow, actualTransfers } from '../../domain/transferCorrection'
 import { DUEL_KIND, dropoutBasis } from '../dropout'
 import { Link } from '../Link'
@@ -69,6 +71,10 @@ const pastName = (year: PastYear, id: string) => {
 }
 /** Participation au 1er tour (% des inscrits). */
 const dropoutData = simulationData.secondRoundDropout
+const newVoters = dropoutData.newVoters
+const NEW_VOTER_RATES = newVoterRates(simulationData)
+/** 37,00 M : nombre de votants en millions, à deux décimales. */
+const millions = (v: number) => `${num(v / 1e6, 2)} M`
 const NO_RN_YEARS = dropoutData.presidential.elections.filter((e) => !e.rn).map((e) => e.year)
 /** Seconds tours présidentiels de 2002 à 2022 : ceux des données, plus 2017 et 2022 tirés des références. */
 const PRESIDENTIAL_ROWS = [
@@ -188,6 +194,7 @@ export function Methodology({ result }: { result: SimulationResult }) {
   const cutoffIso = cutoff.toISOString().slice(0, 10)
   const sr = result.secondRound
   const [a, b] = [result.entrants[0]!, result.entrants[1]!]
+  const gross = grossFlows(sr, firstRoundParticipation(result.turnoutBalance, NEW_VOTER_RATES), NEW_VOTER_RATES)
   const settings = useSettings()
   const bal = result.turnoutBalance
   const inWindow = result.pollUsage.filter((u) => u.status !== 'out-of-window')
@@ -2014,6 +2021,167 @@ export function Methodology({ result }: { result: SimulationResult }) {
                 </span>
               ))}
               ).
+            </p>
+          </div>
+          <div className="prose-method">
+            <h4 id="nouveaux-votants" className="text-lg font-bold tracking-tight">
+              Nouveaux votants du 2nd tour
+            </h4>
+            <p>
+              Le graphique « Reports vers le second tour » montre des flux <strong>bruts</strong>, en % des
+              inscrits, qui incluent les nouveaux votants : des électeurs qui n’ont pas voté au 1er tour
+              (abstention, blanc ou nul) et votent au 2nd. <strong>Le résultat tenait déjà compte de ces
+              électeurs</strong> : l’abandon de l’étape 7 est un solde net, tiré des résultats officiels, où ils
+              sont comptés en déduction des départs. Seul l’affichage change ; le score des finalistes et le total
+              des exprimés du 2nd tour sont les mêmes.
+            </p>
+            <p>
+              <strong>Ce que mesurent les scrutins passés.</strong> Les nouveaux votants existent : l’Insee observe,
+              sur les listes d’émargement, des inscrits qui votent au 2nd tour sans avoir voté au 1er. Les votants
+              et les exprimés du tableau ne baissent que d’un solde net entre ces arrivées et les départs.
+            </p>
+          </div>
+          <Table caption="Participation entre les deux tours : présidentielles de 2017 et de 2022, législatives de 2024">
+            <thead>
+              <tr className="border-b border-rule">
+                <th className={th} />
+                <th className={`${th} text-right`}>2017</th>
+                <th className={`${th} text-right`}>2022</th>
+                <th className={`${th} text-right`}>
+                  Législatives 2024 ({newVoters.legislatives2024.constituencies} circonscriptions avec 2nd tour)
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr className="border-b border-rule/60">
+                <td className={td}>Votants T1 → T2</td>
+                {[reference2017, reference2022].map((ref) => (
+                  <td key={ref.electionDate} className={`${td} num text-right`}>
+                    {millions(ref.voters)} → {millions(ref.secondRound.voters)}
+                  </td>
+                ))}
+                <td className={`${td} num text-right`}>
+                  {millions(newVoters.legislatives2024.votersFirstRound)} →{' '}
+                  {millions(newVoters.legislatives2024.votersSecondRound)}
+                </td>
+              </tr>
+              <tr className="border-b border-rule/60">
+                <td className={td}>Exprimés T1 → T2</td>
+                {[reference2017, reference2022].map((ref) => (
+                  <td key={ref.electionDate} className={`${td} num text-right`}>
+                    {pct(-secondRoundDropout(ref), 1)}
+                  </td>
+                ))}
+                <td className={`${td} num text-right`}>{pct(100 * (newVoters.legislatives2024.expressedSecondRound / newVoters.legislatives2024.expressedFirstRound - 1), 1)}</td>
+              </tr>
+              <tr className="border-b border-rule/60">
+                <td className={td}>Inscrits ayant voté au 2nd tour seulement (Insee)</td>
+                {[2017, 2022].map((year) => (
+                  <td key={year} className={`${td} num text-right`}>
+                    {pct(newVoters.insee.find((y) => y.year === year)?.secondOnly ?? 0, 1)}
+                  </td>
+                ))}
+                <td className={`${td} text-right`}>—</td>
+              </tr>
+            </tbody>
+          </Table>
+          <p className="text-sm text-ink-3">
+            Sources :{' '}
+            {[
+              reference2017.resultsSource,
+              reference2017.secondRound.source,
+              reference2022.resultsSource,
+              reference2022.secondRound.source,
+              ...newVoters.insee.map((y) => y.source),
+              ...newVoters.legislatives2024.sources,
+            ].map((src, i, all) => (
+              <span key={src.url}>
+                <a href={src.url} className="link" target="_blank" rel="noreferrer">
+                  {src.label}
+                </a>
+                {i === all.length - 1 ? '.' : ', '}
+              </span>
+            ))}{' '}
+            Champ de l’Insee : {newVoters.insee.map((y) => `${y.year} : ${y.scope}`).join(' ; ')}.{' '}
+            {newVoters.legislatives2024.note}
+          </p>
+          <div className="prose-method">
+            <p>
+              <strong>Part des abstentionnistes du 1er tour qui votent pour un finaliste (rAbs).</strong> Le
+              sondage Ifop-Fiducial du jour du vote du 2nd tour 2022 (
+              <a href={newVoters.ifop2022.source.url} className="link" target="_blank" rel="noreferrer">
+                {newVoters.ifop2022.source.label}
+              </a>
+              , {newVoters.ifop2022.source.pages}) donne, parmi les électeurs de chaque finaliste, la part qui
+              s’était abstenue au 1er tour :{' '}
+              {newVoters.ifop2022.abstainedFirstRound
+                .map((s) => `${pct(s.share, 0)} pour ${finalist2022Name(s.id)}`)
+                .join(', ')}
+              . Rapportée aux voix officielles du 2nd tour et aux abstentionnistes du 1er tour 2022 (inscrits −
+              votants) :
+            </p>
+            <code className="formula">
+              rAbs = (
+              {newVoters.ifop2022.abstainedFirstRound
+                .map((s) => `${pct(s.share, 0)} × voix de ${finalist2022Name(s.id)}`)
+                .join(' + ')}
+              ) ÷ abstentionnistes du 1er tour
+            </code>
+            <p>
+              soit {integer(Math.round(NEW_VOTER_RATES.finalistVotesFromAbstainers))} ÷{' '}
+              {integer(NEW_VOTER_RATES.abstainers2022)} ={' '}
+              <strong>{pct(NEW_VOTER_RATES.rAbs * 100, 2)}</strong>. L’Ifop arrondit ses parts à l’entier : avec ±{' '}
+              {num(newVoters.ifop2022.roundingMargin, 1)} point sur chacune, la fourchette va de{' '}
+              {num(NEW_VOTER_RATES.rAbsRange.min * 100, 1)} à {pct(NEW_VOTER_RATES.rAbsRange.max * 100, 1)}. Le taux
+              est calculé à partir des données, jamais saisi. La part des blancs et nuls parmi les votants du 1er
+              tour 2022, <code>bnShare</code>, se calcule de même : (votants − exprimés) ÷ votants ={' '}
+              {pct(NEW_VOTER_RATES.bnShare * 100, 2)}.
+            </p>
+            <p>
+              <strong>Contrôle Insee.</strong> Sur les listes d’émargement, la part des inscrits absents au 1er tour
+              qui votent au 2nd (blancs et nuls compris) est de{' '}
+              {NEW_VOTER_RATES.insee.map((y) => `${pct(y.share, 1)} en ${y.year}`).join(' et ')} (votants du 2nd tour
+              seulement ÷ inscrits qui n’ont pas voté au 1er tour). Elle est plus haute que rAbs : elle compte aussi
+              les blancs et nuls du 2nd tour, et son champ et sa source diffèrent de ceux de l’Ifop (sondage,
+              parts arrondies). Les données disponibles n’expliquent pas tout l’écart : rAbs peut sous-estimer les
+              nouveaux votants, et doit se lire comme une estimation prudente.
+            </p>
+            <p>
+              <strong>Règle de répartition de repli.</strong> Les nouveaux votants se répartissent entre les deux
+              finalistes <em>comme l’ensemble des votants du 2nd tour</em>, pour n’importe quel duel. En 2022, c’est
+              ce que mesure l’Ifop :{' '}
+              {pct(newVoters.ifop2022.abstainersVote[0]!.share, 0)} pour{' '}
+              {finalist2022Name(newVoters.ifop2022.abstainersVote[0]!.id)} chez les abstentionnistes du 1er tour,
+              contre {pct(newVoters.ifop2022.allVotersVote[0]!.share, 1)} au total. Aucune mesure n’existe pour un
+              autre duel : la règle ne dépend d’aucun réglage.
+            </p>
+            <p>
+              <strong>Taux de départ uniforme.</strong> Soit P la participation au 1er tour (% des inscrits). Les
+              abstentionnistes sont 100 − P, les blancs et nuls P × bnShare, les exprimés E1 = P − P × bnShare, et k
+              = E1 ÷ 100 convertit les points du résultat en % des inscrits. Les nouveaux votants sont N = rAbs × (100 − P),
+              et les exprimés du 2nd tour X = (A + B) × k, où A et B sont les voix des finalistes en points des
+              électeurs du 1er tour. Chaque électorat reçoit le même taux de départ ajouté u = N ÷ X :
+            </p>
+            <code className="formula">voix de F chez un électorat = point × k × (1 − u)</code>
+            <p>
+              Les nouveaux votants apportent N × A ÷ (A + B) voix à A (de même pour B). Le total de A est donc k × A × (1 − u)
+              + N × A ÷ (A + B) = k × A − k × A × N ÷ X + N × A ÷ (A + B), et comme X = (A + B) × k, les deux derniers
+              termes s’annulent : <strong>A reste égal à k × A, et B à k × B</strong>. Le score
+              A ÷ (A + B), comme le total des exprimés du 2nd tour, ne change pas. Les départs ajoutés (A + B) × k × u
+              s’ajoutent à ceux qui ne s’expriment pas : l’ensemble des flux totalise 100 % des inscrits.
+            </p>
+            <p>
+              Scénario en cours : P = {pct(gross.participation)}, abstentionnistes du 1er tour{' '}
+              {pct(gross.abstention1)}, blancs et nuls {pct(gross.blankNull1)}, nouveaux votants{' '}
+              {pct(gross.newVoters)}, taux de départ ajouté u = {pct(gross.addedDeparture * 100)}, ceux qui ne
+              s’expriment pas {pct(gross.totals.nonExpressed)}, exprimés du 2nd tour {pct(gross.expressed2)} des
+              inscrits.
+            </p>
+            <p>
+              <strong>Limite : les votants blancs ou nuls du 1er tour.</strong> {newVoters.blankNullNote} Le
+              graphique les dirige vers un nœud « Non mesuré » : s’ils votent pour un finaliste, les départs des
+              électeurs du 1er tour sont sous-estimés d’autant (au plus {pct(gross.blankNull1)} des inscrits dans le
+              scénario en cours). Le panel Cevipof ENEF 2022 pourrait lever cette limite.
             </p>
           </div>
         </Step>

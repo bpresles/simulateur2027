@@ -5492,5 +5492,75 @@
         "name": "Perceval GAILLARD"
       }
     ]
+  },
+  "newVoters": {
+    "description": "Nouveaux votants du 2nd tour : électeurs qui n'ont pas voté au 1er tour (abstention, blanc ou nul) et votent au 2nd. L'abandon net du calcul les compte déjà, en déduction ; ce bloc ne sert qu'à les afficher en flux bruts, en % des inscrits. Les taux (part des abstentionnistes du 1er tour qui votent pour un finaliste, part des blancs et nuls parmi les votants) se calculent à partir de ces chiffres et des résultats officiels de 2022, ils ne sont pas saisis.",
+    "ifop2022": {
+      "description": "Sondage Ifop-Fiducial « jour du vote » du 2nd tour 2022 : part des électeurs de chaque finaliste qui s'étaient abstenus au 1er tour (données en composition), vote au 2nd tour des abstentionnistes du 1er tour, comparé à celui de l'ensemble des votants. Parts arrondies à l'entier par l'institut, d'où une marge de ± 0,5 point.",
+      "source": {
+        "label": "Ifop-Fiducial – sondage jour du vote, 2nd tour de l'élection présidentielle 2022 (rapport complet)",
+        "url": "https://www.ifop.com/wp-content/uploads/2022/04/118997-rapport-jdv-pre22-t2-10h-complet-25.04.pdf",
+        "pages": "p. 26 (abstention au 1er tour parmi les électeurs de chaque finaliste), p. 24 (vote des abstentionnistes du 1er tour), p. 10 (part des abstentionnistes du 1er tour ayant voté au 2nd)"
+      },
+      "abstainedFirstRound": [
+        { "id": "macron", "share": 6 },
+        { "id": "lepen", "share": 5 }
+      ],
+      "abstainersVote": [
+        { "id": "macron", "share": 59 },
+        { "id": "lepen", "share": 41 }
+      ],
+      "allVotersVote": [
+        { "id": "macron", "share": 58.5 },
+        { "id": "lepen", "share": 41.5 }
+      ],
+      "abstainersWhoVotedShare": 32,
+      "roundingMargin": 0.5
+    },
+    "insee": [
+      {
+        "year": 2017,
+        "bothRounds": 72.7,
+        "firstOnly": 7.8,
+        "secondOnly": 4.8,
+        "neither": 14.6,
+        "scope": "Inscrits résidant en France, hors Mayotte",
+        "source": {
+          "label": "Insee Première n° 1670 – participation constatée sur les listes d'émargement, présidentielle 2017",
+          "url": "https://www.insee.fr/fr/statistiques/3138704"
+        }
+      },
+      {
+        "year": 2022,
+        "bothRounds": 70.2,
+        "firstOnly": 7.7,
+        "secondOnly": 5.6,
+        "neither": 16.8,
+        "scope": "France métropolitaine",
+        "source": {
+          "label": "Insee Flash Normandie n° 124 – participation constatée sur les listes d'émargement, présidentielle 2022 (chiffres de la France métropolitaine ; voir aussi l'Insee Première n° 1929 : participation de 77,9 % au 1er tour, en métropole)",
+          "url": "https://www.insee.fr/fr/statistiques/6657405"
+        }
+      }
+    ],
+    "legislatives2024": {
+      "constituencies": 501,
+      "votersFirstRound": 28961891,
+      "votersSecondRound": 28867759,
+      "expressedFirstRound": 28210532,
+      "expressedSecondRound": 27279713,
+      "note": "Recalculés à partir des deux fichiers du ministère de l'Intérieur ci-dessous, sur les 501 circonscriptions qui ont eu un 2nd tour, appariées par code de circonscription (le 1er tour écrit « 101 » ce que le 2nd tour écrit « 0101 » : zéros de tête retirés).",
+      "sources": [
+        {
+          "label": "Ministère de l'Intérieur – législatives 2024, résultats définitifs du 1er tour par circonscription (data.gouv.fr)",
+          "url": "https://static.data.gouv.fr/resources/elections-legislatives-des-30-juin-et-7-juillet-2024-resultats-definitifs-du-1er-tour/20240710-171413/resultats-definitifs-par-circonscriptions-legislatives.csv"
+        },
+        {
+          "label": "Ministère de l'Intérieur – législatives 2024, résultats définitifs du 2nd tour par circonscription (data.gouv.fr)",
+          "url": "https://static.data.gouv.fr/resources/elections-legislatives-des-30-juin-et-7-juillet-2024-resultats-definitifs-du-2nd-tour/20240710-170728/resultats-definitifs-par-circonscription.csv"
+        }
+      ]
+    },
+    "blankNullNote": "Comportement des votants blancs ou nuls du 1er tour au 2nd tour : non mesuré, aucune source publique. Le panel Cevipof ENEF 2022 le permettrait ; une demande de tableau agrégé est en cours."
   }
 }

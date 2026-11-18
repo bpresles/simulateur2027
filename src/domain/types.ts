@@ -254,8 +254,15 @@ export interface SecondRoundOfficial {
   source: SourceLink
 }
 
+/** Voix officielles d'un finaliste au 2nd tour. */
+export interface SecondRoundCandidateVotes {
+  id: CandidateId
+  votes: number
+}
+
 export interface Reference2022 extends PastElectionReference {
-  secondRound: SecondRoundOfficial
+  /** Chiffres officiels du 2nd tour, avec les voix de chaque finaliste. */
+  secondRound: SecondRoundOfficial & { candidates: SecondRoundCandidateVotes[] }
 }
 
 /** Présidentielle 2017 : second étalon des écarts entre sondages et résultat, et de l'abandon au 2nd tour. */
@@ -432,8 +439,59 @@ export interface DropoutProfile {
   leftParty?: Record<string, string>
 }
 
+/** Part (%) attachée à un finaliste de 2022. */
+export interface FinalistShare {
+  id: CandidateId
+  share: number
+}
+
+/** Participation constatée sur les listes d'émargement : part des inscrits selon les deux tours (%). */
+export interface InseeTurnoutPattern {
+  year: number
+  bothRounds: number
+  firstOnly: number
+  secondOnly: number
+  neither: number
+  /** Champ de l'Insee (inscrits résidant en France, France métropolitaine…). */
+  scope: string
+  source: SourceLink
+}
+
+/** Nouveaux votants du 2nd tour : sources et chiffres bruts, les taux étant calculés (`newVoters.ts`). */
+export interface NewVotersData {
+  description: string
+  ifop2022: {
+    description: string
+    source: SourceLink & { pages: string }
+    /** Part des électeurs de chaque finaliste qui s'étaient abstenus au 1er tour (%). */
+    abstainedFirstRound: FinalistShare[]
+    /** Vote au 2nd tour des abstentionnistes du 1er tour (%). */
+    abstainersVote: FinalistShare[]
+    /** Vote au 2nd tour de l'ensemble des votants (%). */
+    allVotersVote: FinalistShare[]
+    /** Part des abstentionnistes du 1er tour qui déclarent avoir voté au 2nd (%). */
+    abstainersWhoVotedShare: number
+    /** Demi-marge d'arrondi des parts de l'institut (points). */
+    roundingMargin: number
+  }
+  insee: InseeTurnoutPattern[]
+  legislatives2024: {
+    constituencies: number
+    /** Votants et exprimés des circonscriptions qui ont eu un 2nd tour, à chaque tour. */
+    votersFirstRound: number
+    votersSecondRound: number
+    expressedFirstRound: number
+    expressedSecondRound: number
+    note: string
+    sources: SourceLink[]
+  }
+  /** Comportement des votants blancs ou nuls du 1er tour au 2nd tour : non mesuré. */
+  blankNullNote: string
+}
+
 export interface SecondRoundDropoutData {
   description: string
+  newVoters: NewVotersData
   presidential: { description: string; elections: PresidentialDuel[] }
   legislatives2024: {
     description: string
