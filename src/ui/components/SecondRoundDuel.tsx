@@ -35,22 +35,31 @@ export function SecondRoundDuel({ result }: { result: SimulationResult }) {
           : `Les deux premiers du 1er tour simulé : ${entrantLabel(a)} (${pct(shownScore(result, a))}) et ${entrantLabel(b)} (${pct(shownScore(result, b))}).`}
       </p>
 
-      <div className="mt-5 grid grid-cols-2 gap-3 sm:gap-5">
-        <Ballot entrant={a} value={sr.pct.a} ahead={leaderA} />
-        <Ballot entrant={b} value={sr.pct.b} ahead={!leaderA} />
+      <div className="lg:grid lg:grid-cols-2 lg:items-start lg:gap-x-12">
+        <div className="min-w-0 max-w-prose lg:mt-5">
+          <div className="mt-5 grid grid-cols-2 gap-3 sm:gap-5 lg:mt-0">
+            <Ballot entrant={a} value={sr.pct.a} ahead={leaderA} />
+            <Ballot entrant={b} value={sr.pct.b} ahead={!leaderA} />
+          </div>
+
+          <SplitBar a={a} b={b} pctA={sr.pct.a} />
+
+          <p className="mt-3 text-sm text-ink-3">
+            En % des suffrages exprimés. Blancs, nuls et abstention : {pct(abstentionShare)} des électeurs du 1er
+            tour, {abstentionBasis(sr, settings.abstentionTarget !== null)} Détail des flux dans les{' '}
+            <Link to="simulateur" hash="flow-title" className="link">
+              reports
+            </Link>
+            , plus bas.
+          </p>
+          <SensitivityLine result={result} />
+        </div>
+
+        <div className="min-w-0 max-w-prose lg:mt-5">
+          <MethodLine result={result} />
+          <PollBiasLine result={result} />
+        </div>
       </div>
-
-      <SplitBar a={a} b={b} pctA={sr.pct.a} />
-
-      <p className="mt-3 text-sm text-ink-3">
-        En % des suffrages exprimés. Blancs, nuls et abstention : {pct(abstentionShare)} des électeurs du 1er
-        tour,{' '}
-        {abstentionBasis(sr, settings.abstentionTarget !== null)}
-      </p>
-      <SensitivityLine result={result} />
-
-      <MethodLine result={result} />
-      <PollBiasLine result={result} />
     </section>
   )
 }
@@ -172,7 +181,7 @@ function MethodLine({ result }: { result: SimulationResult }) {
   const withAlliance = result.entrants.some((e) => (e.id === a || e.id === b) && e.allianceIds.length > 0)
   const shown = directPolls.slice(0, MAX_DIRECT_POLLS)
   return (
-    <div className="mt-6 space-y-4 border-t border-rule pt-4">
+    <div className="mt-6 space-y-4 border-t border-rule pt-4 lg:mt-0 lg:border-t-0 lg:pt-0">
       {duel.kind === 'sourced' ? (
         <p className="text-sm text-ink-2">
           <span className="font-medium text-ink">Reports utilisés : </span>

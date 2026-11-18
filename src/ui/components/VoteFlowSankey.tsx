@@ -120,7 +120,7 @@ export function VoteFlowSankey({
   const nodeWidth = compact ? 8 : 10
   const labelGap = compact ? 10 : 12
   // Sur téléphone, la colonne des noms prend plus de place pour éviter de tronquer les noms courants.
-  const sourceX = Math.round(compact ? clamp(W * 0.41, 112, 176) : clamp(W * 0.34, 104, 176))
+  const sourceX = Math.round(compact ? clamp(W * 0.41, 112, 176) : clamp(W * 0.4, 104, 230))
   const targetX = Math.round(W - clamp(W * 0.26, 92, 150) - nodeWidth)
   const line = compact ? 16 : 20
   const likeLine = compact ? 14 : 16
