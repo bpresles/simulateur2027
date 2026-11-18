@@ -48,7 +48,7 @@ Sources :
 ## 5. Source retenue : panel Cevipof, Enquête électorale française 2022, vague 11
 
 - **Fiche** : [data.sciencespo.fr, doi:10.21410/7E4/I1Q0PI](https://data.sciencespo.fr/dataset.xhtml?persistentId=doi:10.21410/7E4/I1Q0PI). Terrain du 16 au 18/05/2022, 11 247 répondants, licence CC BY-SA 4.0.
-- **Accès** : les fichiers de données sont restreints. Une demande d'accès a été faite le 15/11/2026. L'archive téléchargée ce jour-là ne contenait que la documentation et le questionnaire. À télécharger une fois l'accès accordé : `fr_cdsp_ddi_enef2022_v11_csv.zip` (ou `fr_cdsp_ddi_enef2022_v11.tab`).
+- **Accès** : les fichiers de données sont restreints. Une demande d'accès a été faite le 15/11/2026 et **refusée par Sciences Po le 18/11/2026**. L'archive téléchargée le 15/11/2026 ne contenait que la documentation et le questionnaire. Seul un tableau agrégé, croisant le vote aux deux tours, serait utile : il ne contient aucune donnée individuelle (voir section 8). Fichiers concernés si l'accès est un jour accordé : `fr_cdsp_ddi_enef2022_v11_csv.zip` (ou `fr_cdsp_ddi_enef2022_v11.tab`).
 - **Variables** (d'après la documentation publique) :
   - `X11PRES22A`, vote au 1er tour : 1 à 12 pour les candidats, 97 abstention, 98 blanc ou nul, 6666 non concerné, 9999 sans réponse.
   - `X11PRES22B`, vote au 2nd tour : 1 Macron, 2 Le Pen, 97 abstention, 98 blanc ou nul, 9999 sans réponse.
@@ -65,6 +65,17 @@ Sources :
   Le panel sous-représente fortement les abstentionnistes, d'où le recalage décrit plus bas.
 - **Point à vérifier** : 756 répondants sont « non concernés » pour `X11PRES22A`. Ils avaient probablement déjà donné leur vote du 1er tour dans une vague précédente. La documentation parle d'une fusion avec la vague qui suit l'élection : leur vote du 1er tour peut se trouver dans la vague 10 (doi:10.21410/7E4/M9OMPY) ou dans l'enquête du 22/04/2022.
 - **RGPD et licence** : les réponses individuelles ne doivent **jamais** entrer dans le dépôt. Les ranger hors du dépôt, ou dans un dossier ignoré par git. Seuls des taux agrégés sont publiés, avec cette citation : « Sciences Po – CEVIPOF, Enquête électorale française 2022 (ENEF 2022), vague 11, doi:10.21410/7E4/I1Q0PI, CC BY-SA 4.0 ». La licence impose de diffuser ces tableaux dérivés sous la même licence. Faire valider les conditions d'utilisation de l'entrepôt avant la mise en ligne publique.
+
+### Autres sondages publics examinés le 18/11/2026
+
+- **Elabe, jour du vote, 2nd tour 2022** ([rapport](https://elabe.fr/fichier-pdf/9650-comprendre-le-vote-au-2nd-tour-de-lelection-presidentielle/), 1 900 inscrits, métropole). Il compte ensemble l'abstention et le vote blanc ou nul du 1er tour.
+  - Ce groupe a voté au 2nd tour à 64 % pour Macron et 36 % pour Le Pen (p. 9).
+  - Il forme 12 % des électeurs de Macron et 9 % de ceux de Le Pen (p. 10), soit environ 3,45 M d'exprimés. C'est plus que les 2,6 à 2,7 M de votants que l'Insee compte parmi ceux qui n'ont voté qu'au 2nd tour. Ce volume est donc surestimé (petit échantillon, réponses déclarées).
+  - L'Ifop (6 % et 5 %, abstention seule, 4 827 inscrits) est cohérent avec l'Insee.
+- **Harris Interactive, jour du vote, 2nd tour 2022** ([rapport](http://harris-interactive.fr/wp-content/uploads/sites/6/2022/04/JDV-24042022.pdf)) : aucun croisement avec l'abstention ou le vote blanc ou nul du 1er tour.
+- **Ipsos-Cevipof, vagues 10 et 11 (rapports publiés)** : aucune ligne pour l'abstention ou le vote blanc ou nul du 1er tour.
+
+Conclusion au 18/11/2026 : **aucune source publique n'isole les votants blancs et nuls du 1er tour**. Pour les abstentionnistes du 1er tour, l'Ifop 2022, recoupé par l'Insee, reste la meilleure mesure.
 
 ## 6. Méthode prévue
 
@@ -117,8 +128,8 @@ Validées par l'utilisateur :
 - Méthode de travail : plan relu par l'utilisateur, exécution par un agent Sonnet, un commit par partie.
 
 En attente :
-- L'accès aux données du panel (demandé le 15/11/2026).
-- Le traitement des votants blancs et nuls du 1er tour, qui dépend de ces données (la ligne 98 de `X11PRES22A`).
+- L'accès aux données du panel, demandé le 15/11/2026 et refusé le 18/11/2026. Piste restante : demander au Cevipof ou à l'entrepôt (CDSP) **uniquement le tableau agrégé** de `X11PRES22A` × `X11PRES22B` pondéré par `X11PPUB`, effectifs non pondérés compris. Ce tableau ne contient aucune donnée individuelle. Toute demande écrite à un tiers est relue par l'utilisateur avant envoi.
+- Le traitement des votants blancs et nuls du 1er tour. Sans ce tableau, plan B : afficher leur volume, connu (790 760 en 2022, soit 1,6 % des inscrits), avec la mention « comportement au 2nd tour non mesuré », sans flux inventé. Les abstentionnistes du 1er tour sont affichés avec les mesures de l'Ifop 2022, recoupées par l'Insee.
 
 ## 9. Pour reprendre
 
