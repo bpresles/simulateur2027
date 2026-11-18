@@ -28,7 +28,7 @@ export function abstentionNote(rates: Pick<NewVoterRates, 'insee'>): string {
   return [
     `Source : sondage Ifop-Fiducial du jour du vote, 2nd tour 2022 (${abstained} s’étaient abstenus au 1er tour).`,
     insee
-      ? `Contrôle Insee : en ${insee.year}, ${pct(insee.share, 1)} des inscrits qui n’avaient pas voté au 1er tour ont voté au 2nd (blancs et nuls compris).`
+      ? `Contrôle Insee : en ${insee.year}, ${pct(insee.share, 1)} des inscrits absents au 1er tour ont voté au 2nd (blancs et nuls compris).`
       : '',
     `Répartis comme l’ensemble des votants (mesuré en 2022 : ${pct(first.share, 0)} pour ${finalist2022Name(first.id)} chez eux, contre ${pct(overall.share, 1)} au total).`,
   ]
