@@ -1,5 +1,5 @@
 {
-  "asOf": "2026-11-18",
+  "asOf": "2026-11-19",
   "electionDate": "2027-04-18",
   "windowDays": 21,
   "collection": {
@@ -1288,6 +1288,256 @@
   ],
   "polls": [
     {
+      "id": "yougov-20261117",
+      "origin": "wikipedia",
+      "institute": "YouGov",
+      "sponsor": "Non indiqué",
+      "fieldwork": {
+        "start": "2026-11-12",
+        "end": "2026-11-17"
+      },
+      "sampleSize": 952,
+      "sources": [
+        {
+          "label": "Publication",
+          "url": "https://www.huffingtonpost.fr/politique/article/dans-notre-sondage-sur-la-presidentielle-2027-edouard-philippe-atteint-la-cote-d-alerte_360406.html"
+        },
+        {
+          "label": "Wikipedia – liste des sondages",
+          "url": "https://fr.wikipedia.org/wiki/Liste_de_sondages_sur_l%27%C3%A9lection_pr%C3%A9sidentielle_fran%C3%A7aise_de_2027"
+        }
+      ],
+      "note": "Repris de Wikipedia : chiffres non revérifiés.",
+      "hypotheses": [
+        {
+          "id": "H1",
+          "label": "Tondelier, Attal, Philippe, Lisnard, Retailleau",
+          "scores": {
+            "arthaud": 1,
+            "melenchon": 19,
+            "roussel": 2,
+            "tondelier": 4,
+            "glucksmann": 9,
+            "attal": 5,
+            "philippe": 8,
+            "lisnard": 9,
+            "retailleau": 6,
+            "dupont-aignan": 2,
+            "lepen": 32,
+            "zemmour": 3
+          }
+        },
+        {
+          "id": "H2",
+          "label": "Tondelier, Philippe, Lisnard, Retailleau",
+          "scores": {
+            "arthaud": 1,
+            "melenchon": 19,
+            "roussel": 3,
+            "tondelier": 4,
+            "glucksmann": 10,
+            "philippe": 9,
+            "lisnard": 10,
+            "retailleau": 7,
+            "dupont-aignan": 2,
+            "lepen": 33,
+            "zemmour": 3
+          }
+        },
+        {
+          "id": "H3",
+          "label": "Philippe",
+          "scores": {
+            "arthaud": 1,
+            "melenchon": 22,
+            "roussel": 3,
+            "glucksmann": 12,
+            "philippe": 16,
+            "dupont-aignan": 2,
+            "lepen": 40,
+            "zemmour": 4
+          }
+        },
+        {
+          "id": "H4",
+          "label": "Tondelier, Attal, Lisnard, Retailleau",
+          "scores": {
+            "arthaud": 1,
+            "melenchon": 19,
+            "roussel": 2,
+            "tondelier": 6,
+            "glucksmann": 10,
+            "attal": 7,
+            "lisnard": 10,
+            "retailleau": 8,
+            "dupont-aignan": 1,
+            "lepen": 34,
+            "zemmour": 3
+          }
+        },
+        {
+          "id": "H5",
+          "label": "Tondelier, Attal, Philippe, Lisnard, Retailleau, Riner, Villepin",
+          "scores": {
+            "arthaud": 1,
+            "melenchon": 17,
+            "roussel": 2,
+            "tondelier": 5,
+            "glucksmann": 9,
+            "attal": 4,
+            "philippe": 7,
+            "lisnard": 9,
+            "retailleau": 6,
+            "dupont-aignan": 2,
+            "lepen": 32,
+            "zemmour": 3,
+            "riner": 3,
+            "villepin": 2
+          }
+        }
+      ]
+    },
+    {
+      "id": "ifop-fiducial-20261116",
+      "origin": "wikipedia",
+      "institute": "Ifop-Fiducial",
+      "sponsor": "Non indiqué",
+      "fieldwork": {
+        "start": "2026-11-13",
+        "end": "2026-11-16"
+      },
+      "sampleSize": 1690,
+      "sources": [
+        {
+          "label": "Synthèse de l’institut",
+          "url": "https://www.ifopgroup.com/article/les-intentions-de-vote-a-lelection-presidentielle-2027",
+          "kind": "synthese"
+        },
+        {
+          "label": "Notice (Commission des sondages)",
+          "url": "https://www.commission-des-sondages.fr/notices/medias/fichiers/add/2406",
+          "kind": "notice"
+        },
+        {
+          "label": "Publication",
+          "url": "https://www.ifopgroup.com/wp-content/uploads/2026/11/122919-petit-dejeuner-electoral-intentions-de-vote-et-determinants-du-vote.pdf"
+        },
+        {
+          "label": "Wikipedia – liste des sondages",
+          "url": "https://fr.wikipedia.org/wiki/Liste_de_sondages_sur_l%27%C3%A9lection_pr%C3%A9sidentielle_fran%C3%A7aise_de_2027"
+        }
+      ],
+      "note": "Repris de Wikipedia : chiffres non revérifiés.",
+      "hypotheses": [
+        {
+          "id": "H1",
+          "label": "Attal, Philippe, Lisnard, Retailleau, Polony, Riner, Ruffin, Villepin",
+          "scores": {
+            "arthaud": 0,
+            "melenchon": 17,
+            "roussel": 1.5,
+            "tondelier": 2,
+            "glucksmann": 8,
+            "attal": 4.5,
+            "philippe": 10,
+            "lisnard": 8,
+            "retailleau": 4,
+            "dupont-aignan": 1.5,
+            "lepen": 32,
+            "zemmour": 3,
+            "polony": 1,
+            "riner": 4,
+            "ruffin": 2,
+            "villepin": 1.5
+          }
+        },
+        {
+          "id": "H2",
+          "label": "Attal, Philippe, Lisnard, Retailleau",
+          "scores": {
+            "arthaud": 0.5,
+            "melenchon": 19,
+            "roussel": 1.5,
+            "tondelier": 2.5,
+            "glucksmann": 10,
+            "attal": 4,
+            "philippe": 11,
+            "lisnard": 9,
+            "retailleau": 4,
+            "dupont-aignan": 1.5,
+            "lepen": 34,
+            "zemmour": 3
+          }
+        },
+        {
+          "id": "H3",
+          "label": "Philippe, Lisnard, Retailleau",
+          "scores": {
+            "arthaud": 0,
+            "melenchon": 19.5,
+            "roussel": 2.5,
+            "tondelier": 2.5,
+            "glucksmann": 10,
+            "philippe": 12,
+            "lisnard": 10,
+            "retailleau": 4,
+            "dupont-aignan": 1.5,
+            "lepen": 35,
+            "zemmour": 3
+          }
+        },
+        {
+          "id": "H4",
+          "label": "Attal, Lisnard, Retailleau",
+          "scores": {
+            "arthaud": 0.5,
+            "melenchon": 19,
+            "roussel": 2,
+            "tondelier": 2.5,
+            "glucksmann": 11,
+            "attal": 9,
+            "lisnard": 11,
+            "retailleau": 5,
+            "dupont-aignan": 2,
+            "lepen": 35,
+            "zemmour": 3
+          }
+        },
+        {
+          "id": "H5",
+          "label": "Philippe, Lisnard",
+          "scores": {
+            "arthaud": 0.5,
+            "melenchon": 19.5,
+            "roussel": 2,
+            "tondelier": 2.5,
+            "glucksmann": 11,
+            "philippe": 14,
+            "lisnard": 12,
+            "dupont-aignan": 1.5,
+            "lepen": 34,
+            "zemmour": 3
+          }
+        },
+        {
+          "id": "H6",
+          "label": "Philippe, Retailleau",
+          "scores": {
+            "arthaud": 0.5,
+            "melenchon": 19,
+            "roussel": 2.5,
+            "tondelier": 3,
+            "glucksmann": 11.5,
+            "philippe": 15,
+            "retailleau": 7,
+            "dupont-aignan": 3,
+            "lepen": 36,
+            "zemmour": 3.5
+          }
+        }
+      ]
+    },
+    {
       "id": "elabe-20261113",
       "origin": "wikipedia",
       "institute": "Elabe",
@@ -1705,98 +1955,6 @@
       ]
     },
     {
-      "id": "ifop-fiducial-20261029",
-      "origin": "wikipedia",
-      "institute": "Ifop-Fiducial",
-      "sponsor": "LCI",
-      "fieldwork": {
-        "start": "2026-10-27",
-        "end": "2026-10-29"
-      },
-      "sampleSize": 1501,
-      "sources": [
-        {
-          "label": "Notice (Commission des sondages)",
-          "url": "https://www.commission-des-sondages.fr/notices/files/notices/2026/novembre/10352-pres-iv-ifop-lci-3-novembre.pdf",
-          "kind": "notice"
-        },
-        {
-          "label": "Wikipedia – liste des sondages",
-          "url": "https://fr.wikipedia.org/wiki/Liste_de_sondages_sur_l%27%C3%A9lection_pr%C3%A9sidentielle_fran%C3%A7aise_de_2027"
-        }
-      ],
-      "note": "Repris de Wikipedia : chiffres non revérifiés.",
-      "hypotheses": [
-        {
-          "id": "H1",
-          "label": "Attal, Philippe, Lisnard, Retailleau",
-          "scores": {
-            "arthaud": 0.5,
-            "melenchon": 18,
-            "roussel": 2,
-            "tondelier": 3,
-            "glucksmann": 10,
-            "attal": 5,
-            "philippe": 9.5,
-            "lisnard": 7,
-            "retailleau": 4,
-            "dupont-aignan": 1.5,
-            "lepen": 35,
-            "zemmour": 4.5
-          }
-        },
-        {
-          "id": "H2",
-          "label": "Attal, Lisnard, Retailleau",
-          "scores": {
-            "arthaud": 0.5,
-            "melenchon": 17.5,
-            "roussel": 2,
-            "tondelier": 3,
-            "glucksmann": 13,
-            "attal": 9,
-            "lisnard": 7.5,
-            "retailleau": 5,
-            "dupont-aignan": 2,
-            "lepen": 36,
-            "zemmour": 4.5
-          }
-        },
-        {
-          "id": "H3",
-          "label": "Philippe, Retailleau",
-          "scores": {
-            "arthaud": 1,
-            "melenchon": 17.5,
-            "roussel": 1.5,
-            "tondelier": 3.5,
-            "glucksmann": 11.5,
-            "philippe": 15,
-            "retailleau": 7,
-            "dupont-aignan": 2,
-            "lepen": 37,
-            "zemmour": 4
-          }
-        },
-        {
-          "id": "H4",
-          "label": "Philippe, Lisnard",
-          "scores": {
-            "arthaud": 0.5,
-            "melenchon": 17.5,
-            "roussel": 2,
-            "tondelier": 3,
-            "glucksmann": 11,
-            "philippe": 15,
-            "lisnard": 9,
-            "dupont-aignan": 2,
-            "lepen": 36,
-            "zemmour": 4
-          }
-        }
-      ]
-    },
-    {
       "id": "ipsos-bva-20261022",
       "origin": "wikipedia",
       "institute": "Ipsos BVA",
@@ -1888,124 +2046,6 @@
       ]
     },
     {
-      "id": "yougov-20261015",
-      "origin": "wikipedia",
-      "institute": "YouGov",
-      "sponsor": "Le HuffPost",
-      "fieldwork": {
-        "start": "2026-10-12",
-        "end": "2026-10-15"
-      },
-      "sampleSize": 1094,
-      "sources": [
-        {
-          "label": "Synthèse de l’institut",
-          "url": "https://ygo-assets-websites-editorial-emea.yougov.net/documents/R%C3%A9sultats_YouGov_pour_le_HuffPost_Intentions_de_vote_Octobre_2026_as_sent_16.10.2026.pdf",
-          "kind": "synthese"
-        },
-        {
-          "label": "Notice (Commission des sondages)",
-          "url": "https://www.commission-des-sondages.fr/notices/files/notices/2026/octobre/10323-pres-iv-yougov-le-huffpost-18-octobre.pdf",
-          "kind": "notice"
-        },
-        {
-          "label": "Wikipedia – liste des sondages",
-          "url": "https://fr.wikipedia.org/wiki/Liste_de_sondages_sur_l%27%C3%A9lection_pr%C3%A9sidentielle_fran%C3%A7aise_de_2027"
-        }
-      ],
-      "note": "Repris de Wikipedia : chiffres non revérifiés.",
-      "hypotheses": [
-        {
-          "id": "H1",
-          "label": "Glucksmann, Attal, Philippe",
-          "scores": {
-            "arthaud": 0,
-            "melenchon": 15,
-            "roussel": 3,
-            "tondelier": 6,
-            "glucksmann": 12,
-            "attal": 6,
-            "philippe": 10,
-            "retailleau": 6,
-            "dupont-aignan": 3,
-            "lepen": 36,
-            "zemmour": 3
-          }
-        },
-        {
-          "id": "H2",
-          "label": "Glucksmann, Attal",
-          "scores": {
-            "arthaud": 0,
-            "melenchon": 15,
-            "roussel": 3,
-            "tondelier": 6,
-            "glucksmann": 14,
-            "attal": 10,
-            "retailleau": 9,
-            "dupont-aignan": 3,
-            "lepen": 37,
-            "zemmour": 4
-          }
-        },
-        {
-          "id": "H3",
-          "label": "Glucksmann, Philippe",
-          "scores": {
-            "arthaud": 0,
-            "melenchon": 15,
-            "roussel": 3,
-            "tondelier": 6,
-            "glucksmann": 13,
-            "philippe": 13,
-            "retailleau": 7,
-            "dupont-aignan": 3,
-            "lepen": 36,
-            "zemmour": 3
-          }
-        },
-        {
-          "id": "H4",
-          "label": "Hollande, Philippe",
-          "scores": {
-            "arthaud": 1,
-            "melenchon": 16,
-            "roussel": 3,
-            "tondelier": 6,
-            "hollande": 9,
-            "philippe": 15,
-            "retailleau": 7,
-            "dupont-aignan": 3,
-            "lepen": 37,
-            "zemmour": 4
-          },
-          "replacing": {
-            "hollande": "glucksmann"
-          }
-        },
-        {
-          "id": "H5",
-          "label": "Glucksmann, Attal, Philippe, Lisnard, Ruffin, Villepin",
-          "scores": {
-            "arthaud": 0,
-            "melenchon": 13,
-            "roussel": 2,
-            "tondelier": 5,
-            "glucksmann": 12,
-            "attal": 6,
-            "philippe": 8,
-            "lisnard": 4,
-            "retailleau": 5,
-            "dupont-aignan": 2,
-            "lepen": 35,
-            "zemmour": 4,
-            "ruffin": 2,
-            "villepin": 1
-          }
-        }
-      ]
-    },
-    {
       "id": "odoxa-20261007",
       "origin": "wikipedia",
       "institute": "Odoxa",
@@ -2069,6 +2109,81 @@
     }
   ],
   "secondRoundPolls": [
+    {
+      "origin": "wikipedia",
+      "institute": "YouGov",
+      "sponsor": "Non indiqué",
+      "fieldwork": {
+        "start": "2026-11-12",
+        "end": "2026-11-17"
+      },
+      "sampleSize": 952,
+      "url": "https://www.huffingtonpost.fr/politique/article/dans-notre-sondage-sur-la-presidentielle-2027-edouard-philippe-atteint-la-cote-d-alerte_360406.html",
+      "scores": {
+        "attal": 45,
+        "lepen": 55
+      }
+    },
+    {
+      "origin": "wikipedia",
+      "institute": "YouGov",
+      "sponsor": "Non indiqué",
+      "fieldwork": {
+        "start": "2026-11-12",
+        "end": "2026-11-17"
+      },
+      "sampleSize": 952,
+      "url": "https://www.huffingtonpost.fr/politique/article/dans-notre-sondage-sur-la-presidentielle-2027-edouard-philippe-atteint-la-cote-d-alerte_360406.html",
+      "scores": {
+        "glucksmann": 42,
+        "lepen": 58
+      }
+    },
+    {
+      "origin": "wikipedia",
+      "institute": "YouGov",
+      "sponsor": "Non indiqué",
+      "fieldwork": {
+        "start": "2026-11-12",
+        "end": "2026-11-17"
+      },
+      "sampleSize": 952,
+      "url": "https://www.huffingtonpost.fr/politique/article/dans-notre-sondage-sur-la-presidentielle-2027-edouard-philippe-atteint-la-cote-d-alerte_360406.html",
+      "scores": {
+        "melenchon": 37,
+        "lepen": 63
+      }
+    },
+    {
+      "origin": "wikipedia",
+      "institute": "YouGov",
+      "sponsor": "Non indiqué",
+      "fieldwork": {
+        "start": "2026-11-12",
+        "end": "2026-11-17"
+      },
+      "sampleSize": 952,
+      "url": "https://www.huffingtonpost.fr/politique/article/dans-notre-sondage-sur-la-presidentielle-2027-edouard-philippe-atteint-la-cote-d-alerte_360406.html",
+      "scores": {
+        "philippe": 46,
+        "lepen": 54
+      }
+    },
+    {
+      "origin": "wikipedia",
+      "institute": "YouGov",
+      "sponsor": "Non indiqué",
+      "fieldwork": {
+        "start": "2026-11-12",
+        "end": "2026-11-17"
+      },
+      "sampleSize": 952,
+      "url": "https://www.huffingtonpost.fr/politique/article/dans-notre-sondage-sur-la-presidentielle-2027-edouard-philippe-atteint-la-cote-d-alerte_360406.html",
+      "scores": {
+        "melenchon": 39,
+        "philippe": 61
+      }
+    },
     {
       "origin": "wikipedia",
       "institute": "Elabe",
@@ -2297,126 +2412,6 @@
         "source": {
           "label": "Notice (Commission des sondages)",
           "url": "https://www.commission-des-sondages.fr/notices/files/notices/2026/octobre/10327-pres-barometre-election-v7-ifop-20-octobre.pdf"
-        }
-      }
-    },
-    {
-      "origin": "wikipedia",
-      "institute": "YouGov",
-      "sponsor": "Le HuffPost",
-      "fieldwork": {
-        "start": "2026-10-12",
-        "end": "2026-10-15"
-      },
-      "sampleSize": 1094,
-      "url": "https://www.commission-des-sondages.fr/notices/files/notices/2026/octobre/10323-pres-iv-yougov-le-huffpost-18-octobre.pdf",
-      "scores": {
-        "attal": 45,
-        "lepen": 55
-      },
-      "noIntention": {
-        "share": 33.7,
-        "base": "inscrits",
-        "calculation": "(447 répondants non pris en compte − 118 non-inscrits) ÷ 976 inscrits interrogés (effectifs bruts)",
-        "source": {
-          "label": "Notice (Commission des sondages)",
-          "url": "https://www.commission-des-sondages.fr/notices/files/notices/2026/octobre/10323-pres-iv-yougov-le-huffpost-18-octobre.pdf"
-        }
-      }
-    },
-    {
-      "origin": "wikipedia",
-      "institute": "YouGov",
-      "sponsor": "Le HuffPost",
-      "fieldwork": {
-        "start": "2026-10-12",
-        "end": "2026-10-15"
-      },
-      "sampleSize": 1094,
-      "url": "https://www.commission-des-sondages.fr/notices/files/notices/2026/octobre/10323-pres-iv-yougov-le-huffpost-18-octobre.pdf",
-      "scores": {
-        "glucksmann": 45,
-        "lepen": 55
-      },
-      "noIntention": {
-        "share": 30.7,
-        "base": "inscrits",
-        "calculation": "(418 répondants non pris en compte − 118 non-inscrits) ÷ 976 inscrits interrogés (effectifs bruts)",
-        "source": {
-          "label": "Notice (Commission des sondages)",
-          "url": "https://www.commission-des-sondages.fr/notices/files/notices/2026/octobre/10323-pres-iv-yougov-le-huffpost-18-octobre.pdf"
-        }
-      }
-    },
-    {
-      "origin": "wikipedia",
-      "institute": "YouGov",
-      "sponsor": "Le HuffPost",
-      "fieldwork": {
-        "start": "2026-10-12",
-        "end": "2026-10-15"
-      },
-      "sampleSize": 1094,
-      "url": "https://www.commission-des-sondages.fr/notices/files/notices/2026/octobre/10323-pres-iv-yougov-le-huffpost-18-octobre.pdf",
-      "scores": {
-        "melenchon": 32,
-        "lepen": 68
-      },
-      "noIntention": {
-        "share": 37.6,
-        "base": "inscrits",
-        "calculation": "(485 répondants non pris en compte − 118 non-inscrits) ÷ 976 inscrits interrogés (effectifs bruts)",
-        "source": {
-          "label": "Notice (Commission des sondages)",
-          "url": "https://www.commission-des-sondages.fr/notices/files/notices/2026/octobre/10323-pres-iv-yougov-le-huffpost-18-octobre.pdf"
-        }
-      }
-    },
-    {
-      "origin": "wikipedia",
-      "institute": "YouGov",
-      "sponsor": "Le HuffPost",
-      "fieldwork": {
-        "start": "2026-10-12",
-        "end": "2026-10-15"
-      },
-      "sampleSize": 1094,
-      "url": "https://www.commission-des-sondages.fr/notices/files/notices/2026/octobre/10323-pres-iv-yougov-le-huffpost-18-octobre.pdf",
-      "scores": {
-        "philippe": 48,
-        "lepen": 52
-      },
-      "noIntention": {
-        "share": 32.5,
-        "base": "inscrits",
-        "calculation": "(435 répondants non pris en compte − 118 non-inscrits) ÷ 976 inscrits interrogés (effectifs bruts)",
-        "source": {
-          "label": "Notice (Commission des sondages)",
-          "url": "https://www.commission-des-sondages.fr/notices/files/notices/2026/octobre/10323-pres-iv-yougov-le-huffpost-18-octobre.pdf"
-        }
-      }
-    },
-    {
-      "origin": "wikipedia",
-      "institute": "YouGov",
-      "sponsor": "Le HuffPost",
-      "fieldwork": {
-        "start": "2026-10-12",
-        "end": "2026-10-15"
-      },
-      "sampleSize": 1094,
-      "url": "https://www.commission-des-sondages.fr/notices/files/notices/2026/octobre/10323-pres-iv-yougov-le-huffpost-18-octobre.pdf",
-      "scores": {
-        "melenchon": 34,
-        "philippe": 66
-      },
-      "noIntention": {
-        "share": 49.5,
-        "base": "inscrits",
-        "calculation": "(601 répondants non pris en compte − 118 non-inscrits) ÷ 976 inscrits interrogés (effectifs bruts)",
-        "source": {
-          "label": "Notice (Commission des sondages)",
-          "url": "https://www.commission-des-sondages.fr/notices/files/notices/2026/octobre/10323-pres-iv-yougov-le-huffpost-18-octobre.pdf"
         }
       }
     },

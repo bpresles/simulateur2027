@@ -781,6 +781,17 @@
         "label": "Ifop-Fiducial pour LCI, 27–29/10/2026 (notice de la Commission des sondages)",
         "url": "https://www.commission-des-sondages.fr/notices/files/notices/2026/novembre/10352-pres-iv-ifop-lci-3-novembre.pdf"
       }
+    },
+    {
+      "id": "ifop-2026-11-16",
+      "cycle": 2027,
+      "fieldwork": { "start": "2026-11-13", "end": "2026-11-16" },
+      "envisage": 94.7,
+      "certain": 79.3,
+      "source": {
+        "label": "Ifop-Fiducial pour TF1-LCI, Le Figaro et Sud Radio, 13–16/11/2026 (notice de la Commission des sondages)",
+        "url": "http://www.commission-des-sondages.fr/notices/files/notices/2026/novembre/10384-pres-iv-ifop-18-novembre.pdf"
+      }
     }
   ],
   "control": {
