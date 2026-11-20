@@ -1,5 +1,5 @@
 {
-  "asOf": "2026-11-19",
+  "asOf": "2026-11-20",
   "electionDate": "2027-04-18",
   "windowDays": 21,
   "collection": {
@@ -1291,7 +1291,7 @@
       "id": "yougov-20261117",
       "origin": "wikipedia",
       "institute": "YouGov",
-      "sponsor": "Non indiqué",
+      "sponsor": "Le HuffPost",
       "fieldwork": {
         "start": "2026-11-12",
         "end": "2026-11-17"
@@ -1299,8 +1299,9 @@
       "sampleSize": 952,
       "sources": [
         {
-          "label": "Publication",
-          "url": "https://www.huffingtonpost.fr/politique/article/dans-notre-sondage-sur-la-presidentielle-2027-edouard-philippe-atteint-la-cote-d-alerte_360406.html"
+          "label": "Notice (Commission des sondages)",
+          "url": "http://www.commission-des-sondages.fr/notices/files/notices/2026/novembre/10382-pres-iv-yougov-le-huffpost-19-novembre.pdf",
+          "kind": "notice"
         },
         {
           "label": "Wikipedia – liste des sondages",
@@ -1329,6 +1330,23 @@
         },
         {
           "id": "H2",
+          "label": "Tondelier, Attal, Lisnard, Retailleau",
+          "scores": {
+            "arthaud": 1,
+            "melenchon": 19,
+            "roussel": 2,
+            "tondelier": 6,
+            "glucksmann": 10,
+            "attal": 7,
+            "lisnard": 10,
+            "retailleau": 8,
+            "dupont-aignan": 1,
+            "lepen": 34,
+            "zemmour": 3
+          }
+        },
+        {
+          "id": "H3",
           "label": "Tondelier, Philippe, Lisnard, Retailleau",
           "scores": {
             "arthaud": 1,
@@ -1345,7 +1363,7 @@
           }
         },
         {
-          "id": "H3",
+          "id": "H4",
           "label": "Philippe",
           "scores": {
             "arthaud": 1,
@@ -1356,23 +1374,6 @@
             "dupont-aignan": 2,
             "lepen": 40,
             "zemmour": 4
-          }
-        },
-        {
-          "id": "H4",
-          "label": "Tondelier, Attal, Lisnard, Retailleau",
-          "scores": {
-            "arthaud": 1,
-            "melenchon": 19,
-            "roussel": 2,
-            "tondelier": 6,
-            "glucksmann": 10,
-            "attal": 7,
-            "lisnard": 10,
-            "retailleau": 8,
-            "dupont-aignan": 1,
-            "lepen": 34,
-            "zemmour": 3
           }
         },
         {
