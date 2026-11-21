@@ -1,5 +1,5 @@
 {
-  "asOf": "2026-11-20",
+  "asOf": "2026-11-21",
   "electionDate": "2027-04-18",
   "windowDays": 21,
   "collection": {
@@ -1312,7 +1312,7 @@
       "hypotheses": [
         {
           "id": "H1",
-          "label": "Tondelier, Attal, Philippe, Lisnard, Retailleau",
+          "label": "Tondelier, Attal, Philippe, Retailleau, Lisnard",
           "scores": {
             "arthaud": 1,
             "melenchon": 19,
@@ -1321,8 +1321,8 @@
             "glucksmann": 9,
             "attal": 5,
             "philippe": 8,
-            "lisnard": 9,
             "retailleau": 6,
+            "lisnard": 9,
             "dupont-aignan": 2,
             "lepen": 32,
             "zemmour": 3
@@ -1330,7 +1330,7 @@
         },
         {
           "id": "H2",
-          "label": "Tondelier, Attal, Lisnard, Retailleau",
+          "label": "Tondelier, Attal, Retailleau, Lisnard",
           "scores": {
             "arthaud": 1,
             "melenchon": 19,
@@ -1338,8 +1338,8 @@
             "tondelier": 6,
             "glucksmann": 10,
             "attal": 7,
-            "lisnard": 10,
             "retailleau": 8,
+            "lisnard": 10,
             "dupont-aignan": 1,
             "lepen": 34,
             "zemmour": 3
@@ -1347,7 +1347,7 @@
         },
         {
           "id": "H3",
-          "label": "Tondelier, Philippe, Lisnard, Retailleau",
+          "label": "Tondelier, Philippe, Retailleau, Lisnard",
           "scores": {
             "arthaud": 1,
             "melenchon": 19,
@@ -1355,8 +1355,8 @@
             "tondelier": 4,
             "glucksmann": 10,
             "philippe": 9,
-            "lisnard": 10,
             "retailleau": 7,
+            "lisnard": 10,
             "dupont-aignan": 2,
             "lepen": 33,
             "zemmour": 3
@@ -1378,7 +1378,7 @@
         },
         {
           "id": "H5",
-          "label": "Tondelier, Attal, Philippe, Lisnard, Retailleau, Riner, Villepin",
+          "label": "Tondelier, Attal, Philippe, Retailleau, Lisnard, Riner, Villepin",
           "scores": {
             "arthaud": 1,
             "melenchon": 17,
@@ -1387,8 +1387,8 @@
             "glucksmann": 9,
             "attal": 4,
             "philippe": 7,
-            "lisnard": 9,
             "retailleau": 6,
+            "lisnard": 9,
             "dupont-aignan": 2,
             "lepen": 32,
             "zemmour": 3,
@@ -1432,7 +1432,7 @@
       "hypotheses": [
         {
           "id": "H1",
-          "label": "Attal, Philippe, Lisnard, Retailleau, Polony, Riner, Ruffin, Villepin",
+          "label": "Attal, Philippe, Retailleau, Lisnard, Polony, Riner, Ruffin, Villepin",
           "scores": {
             "arthaud": 0,
             "melenchon": 17,
@@ -1441,8 +1441,8 @@
             "glucksmann": 8,
             "attal": 4.5,
             "philippe": 10,
-            "lisnard": 8,
             "retailleau": 4,
+            "lisnard": 8,
             "dupont-aignan": 1.5,
             "lepen": 32,
             "zemmour": 3,
@@ -1454,7 +1454,7 @@
         },
         {
           "id": "H2",
-          "label": "Attal, Philippe, Lisnard, Retailleau",
+          "label": "Attal, Philippe, Retailleau, Lisnard",
           "scores": {
             "arthaud": 0.5,
             "melenchon": 19,
@@ -1463,8 +1463,8 @@
             "glucksmann": 10,
             "attal": 4,
             "philippe": 11,
-            "lisnard": 9,
             "retailleau": 4,
+            "lisnard": 9,
             "dupont-aignan": 1.5,
             "lepen": 34,
             "zemmour": 3
@@ -1472,7 +1472,7 @@
         },
         {
           "id": "H3",
-          "label": "Philippe, Lisnard, Retailleau",
+          "label": "Philippe, Retailleau, Lisnard",
           "scores": {
             "arthaud": 0,
             "melenchon": 19.5,
@@ -1480,8 +1480,8 @@
             "tondelier": 2.5,
             "glucksmann": 10,
             "philippe": 12,
-            "lisnard": 10,
             "retailleau": 4,
+            "lisnard": 10,
             "dupont-aignan": 1.5,
             "lepen": 35,
             "zemmour": 3
@@ -1489,7 +1489,7 @@
         },
         {
           "id": "H4",
-          "label": "Attal, Lisnard, Retailleau",
+          "label": "Attal, Retailleau, Lisnard",
           "scores": {
             "arthaud": 0.5,
             "melenchon": 19,
@@ -1497,8 +1497,8 @@
             "tondelier": 2.5,
             "glucksmann": 11,
             "attal": 9,
-            "lisnard": 11,
             "retailleau": 5,
+            "lisnard": 11,
             "dupont-aignan": 2,
             "lepen": 35,
             "zemmour": 3
@@ -1626,8 +1626,8 @@
             "roussel": 1.5,
             "glucksmann": 14,
             "attal": 8.5,
-            "lisnard": 10.5,
             "retailleau": 6,
+            "lisnard": 10.5,
             "dupont-aignan": 2.5,
             "lepen": 32,
             "zemmour": 4,
@@ -1643,8 +1643,8 @@
             "roussel": 2.5,
             "glucksmann": 13.5,
             "philippe": 13,
-            "lisnard": 9,
             "retailleau": 4,
+            "lisnard": 9,
             "dupont-aignan": 3,
             "lepen": 32.5,
             "zemmour": 3.5
@@ -1661,8 +1661,8 @@
             "glucksmann": 10.5,
             "attal": 4,
             "philippe": 9.5,
-            "lisnard": 8,
             "retailleau": 4,
+            "lisnard": 8,
             "dupont-aignan": 2,
             "lepen": 31,
             "zemmour": 3,
@@ -1706,8 +1706,8 @@
             "glucksmann": 10,
             "attal": 3,
             "philippe": 12,
-            "lisnard": 9,
             "retailleau": 4,
+            "lisnard": 9,
             "dupont-aignan": 2,
             "lepen": 31,
             "zemmour": 3,
@@ -1725,8 +1725,8 @@
             "glucksmann": 11,
             "attal": 4,
             "philippe": 12,
-            "lisnard": 10,
             "retailleau": 5,
+            "lisnard": 10,
             "dupont-aignan": 2,
             "lepen": 32,
             "zemmour": 2,
@@ -1773,8 +1773,8 @@
             "tondelier": 1.5,
             "glucksmann": 11,
             "philippe": 13.5,
-            "lisnard": 10,
             "retailleau": 5,
+            "lisnard": 10,
             "dupont-aignan": 3,
             "lepen": 30.5,
             "zemmour": 3
@@ -1790,8 +1790,8 @@
             "tondelier": 1.5,
             "glucksmann": 11.5,
             "attal": 11,
-            "lisnard": 10,
             "retailleau": 6,
+            "lisnard": 10,
             "dupont-aignan": 3,
             "lepen": 31,
             "zemmour": 3
@@ -1806,8 +1806,8 @@
             "roussel": 2.5,
             "tondelier": 1.5,
             "glucksmann": 10,
-            "lisnard": 10,
             "retailleau": 5.5,
+            "lisnard": 10,
             "dupont-aignan": 2,
             "lepen": 30.5,
             "zemmour": 3,
@@ -1825,8 +1825,8 @@
             "glucksmann": 8,
             "attal": 2,
             "philippe": 8,
-            "lisnard": 8,
             "retailleau": 5,
+            "lisnard": 8,
             "dupont-aignan": 2,
             "lepen": 27,
             "zemmour": 2,
@@ -1878,8 +1878,8 @@
             "tondelier": 2,
             "glucksmann": 11,
             "philippe": 12,
-            "lisnard": 9,
             "retailleau": 5,
+            "lisnard": 9,
             "dupont-aignan": 1,
             "lepen": 34,
             "zemmour": 3,
@@ -1896,8 +1896,8 @@
             "tondelier": 2,
             "glucksmann": 12,
             "attal": 9,
-            "lisnard": 9,
             "retailleau": 6,
+            "lisnard": 9,
             "dupont-aignan": 1,
             "lepen": 35,
             "zemmour": 3,
@@ -2037,8 +2037,8 @@
             "tondelier": 3.5,
             "glucksmann": 13,
             "philippe": 14,
-            "lisnard": 6.5,
             "retailleau": 5.5,
+            "lisnard": 6.5,
             "dupont-aignan": 1.5,
             "lepen": 32,
             "zemmour": 4

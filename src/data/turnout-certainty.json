@@ -783,6 +783,17 @@
       }
     },
     {
+      "id": "ifop-2026-11-04",
+      "cycle": 2027,
+      "fieldwork": { "start": "2026-11-02", "end": "2026-11-04" },
+      "envisage": 95.1,
+      "certain": 78.6,
+      "source": {
+        "label": "Ifop-Fiducial pour Sud Radio, 02–04/11/2026 (notice de la Commission des sondages)",
+        "url": "http://www.commission-des-sondages.fr/notices/files/notices/2026/novembre/10392-pres-iv-ifop-sud-radio-20-novembre.pdf"
+      }
+    },
+    {
       "id": "ifop-2026-11-16",
       "cycle": 2027,
       "fieldwork": { "start": "2026-11-13", "end": "2026-11-16" },
