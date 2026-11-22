@@ -59,10 +59,10 @@ export function ScenarioBar({
           <fieldset className="md:col-start-2 md:row-start-1">
             <legend className="mb-2 text-lg font-medium text-ink-2">Hypothèses du modèle</legend>
             <div className="space-y-5">
-              {/* Horizon temporel : photographie actuelle vs projection avril 2027 */}
+              {/* Horizon temporel : aujourd'hui vs projection avril 2027 (s'applique à toute la simulation et à la trajectoire) */}
               <div className="rounded-lg border border-rule bg-paper/60 p-3.5">
                 <div className="flex flex-wrap items-center justify-between gap-2">
-                  <p className="text-[0.95rem] font-medium text-ink">Horizon temporel du 1er tour</p>
+                  <p className="text-[0.95rem] font-medium text-ink">Horizon temporel</p>
                   <Segmented<'now' | 'projected'>
                     label="Horizon temporel"
                     value={s.projection.enabled ? 'projected' : 'now'}

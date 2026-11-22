@@ -182,7 +182,7 @@ function ProjectionPanel({ result }: { result: SimulationResult }) {
     <div className="space-y-5">
       <div className="flex flex-wrap items-center justify-between gap-2 border-b border-rule pb-4">
         <div>
-          <p className="text-[0.95rem] font-medium text-ink">Horizon temporel du 1er tour</p>
+          <p className="text-[0.95rem] font-medium text-ink">Horizon temporel</p>
           <p className="mt-0.5 text-xs text-ink-3">
             {proj.enabled
               ? `Projection active jusqu’au 1er tour (J−${result.projection.daysRemaining}).`
