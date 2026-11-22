@@ -48,7 +48,7 @@ export function Simulator({
               </>
             )}
           </p>
-          <p>Ce simulateur reconstruit les seconds tours de 2027 selon une méthode sobre et testable :</p>
+          <p>Ce simulateur reconstruit le second tour de 2027 selon une méthode sobre et testable :</p>
           <ul className="list-disc space-y-1 pl-5">
             <li>
               <strong>1er tour pondéré</strong> : dernier sondage de chaque institut pondéré par sa fraîcheur
