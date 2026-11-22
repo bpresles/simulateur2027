@@ -3,18 +3,17 @@ import { createJSONStorage, persist } from 'zustand/middleware'
 import { defaultProjectionSettings } from '../domain/campaignProjection'
 import { defaultSettings } from '../domain/simulate'
 import {
-  DEFAULT_LFI_LEFT_TRANSFER,
   DEFAULT_LFI_LEFT_TRANSFER_RANGE,
   defaultRepublicanFront,
   REPUBLICAN_FRONT_PRESETS,
 } from '../domain/transfers'
-import { REPUBLICAN_FRONT_FAMILIES } from '../domain/types'
+import { REPUBLICAN_FRONT_BLOCS } from '../domain/types'
 import type {
   Bloc,
   BlocUsefulVote,
   CandidateId,
   ProfileId,
-  RepublicanFrontFamily,
+  RepublicanFrontBloc,
   RepublicanFrontPreset,
   Settings,
   TransferSource,
@@ -40,13 +39,12 @@ interface SettingsActions {
   resetProjection: () => void
   setTransferSource: (source: TransferSource) => void
   setDeclaredWeight: (weight: number) => void
-  setRepublicanFront: (family: RepublicanFrontFamily, value: number) => void
+  setRepublicanFront: (bloc: RepublicanFrontBloc, value: number) => void
   setRepublicanFrontGlobal: (value: number) => void
   applyRepublicanFrontPreset: (preset: RepublicanFrontPreset) => void
   resetRepublicanFront: () => void
-  setLfiLeftTransfer: (rate: number) => void
   setLfiLeftTransferRange: (range: [number, number]) => void
-  resetLfiLeftTransfer: () => void
+  resetLfiLeftTransferRange: () => void
   setTransferOverride: (profile: ProfileId, bloc: Bloc, values: TransferValues | undefined) => void
   /** `undefined` rétablit la répartition par défaut des électeurs de ce petit candidat. */
   setMinorTransfer: (id: CandidateId, transferId: string | undefined) => void
@@ -62,7 +60,7 @@ interface SettingsActions {
 export type SettingsStore = Settings & SettingsActions
 
 const STORAGE_KEY = 'simulateur2027:settings'
-const STORAGE_VERSION = 15
+const STORAGE_VERSION = 16
 
 export const useSettings = create<SettingsStore>()(
   persist(
@@ -100,39 +98,37 @@ export const useSettings = create<SettingsStore>()(
         })),
       setTransferSource: (transferSource) => set({ transferSource }),
       setDeclaredWeight: (declaredWeight) => set({ declaredWeight }),
-      setRepublicanFront: (family, value) =>
+      setRepublicanFront: (bloc, value) =>
         set((s) => ({
-          republicanFront: { ...s.republicanFront, [family]: roundPct(value) },
+          republicanFront: { ...s.republicanFront, [bloc]: roundPct(value) },
         })),
       setRepublicanFrontGlobal: (value) =>
         set((s) => {
           const target = clamp01(value)
-          if (target <= 0) return { republicanFront: { centerRight: 0, moderateLeft: 0, lfi: 0 } }
-          if (target >= 1) return { republicanFront: { centerRight: 1, moderateLeft: 1, lfi: 1 } }
+          if (target <= 0) return { republicanFront: { gauche: 0, centre: 0, droite: 0 } }
+          if (target >= 1) return { republicanFront: { gauche: 1, centre: 1, droite: 1 } }
           const avg =
-            REPUBLICAN_FRONT_FAMILIES.reduce((sum, k) => sum + s.republicanFront[k], 0) /
-            REPUBLICAN_FRONT_FAMILIES.length
+            REPUBLICAN_FRONT_BLOCS.reduce((sum, k) => sum + s.republicanFront[k], 0) /
+            REPUBLICAN_FRONT_BLOCS.length
           const delta = target - avg
           return {
             republicanFront: {
-              centerRight: roundPct(s.republicanFront.centerRight + delta),
-              moderateLeft: roundPct(s.republicanFront.moderateLeft + delta),
-              lfi: roundPct(s.republicanFront.lfi + delta),
+              gauche: roundPct(s.republicanFront.gauche + delta),
+              centre: roundPct(s.republicanFront.centre + delta),
+              droite: roundPct(s.republicanFront.droite + delta),
             },
           }
         }),
       applyRepublicanFrontPreset: (preset) =>
         set({ republicanFront: { ...REPUBLICAN_FRONT_PRESETS[preset] } }),
       resetRepublicanFront: () => set({ republicanFront: defaultRepublicanFront() }),
-      setLfiLeftTransfer: (rate) => set({ lfiLeftTransfer: Math.round(clamp(rate, 5, 95)) }),
       setLfiLeftTransferRange: (range) => {
         const lo = Math.round(clamp(Math.min(range[0], range[1]), 5, 95))
         const hi = Math.round(clamp(Math.max(range[0], range[1]), 5, 95))
         set({ lfiLeftTransferRange: [lo, hi] })
       },
-      resetLfiLeftTransfer: () =>
+      resetLfiLeftTransferRange: () =>
         set({
-          lfiLeftTransfer: DEFAULT_LFI_LEFT_TRANSFER,
           lfiLeftTransferRange: [...DEFAULT_LFI_LEFT_TRANSFER_RANGE],
         }),
       setTransferOverride: (profile, bloc, values) =>
@@ -161,7 +157,6 @@ export const useSettings = create<SettingsStore>()(
           transferSource: d.transferSource,
           declaredWeight: d.declaredWeight,
           republicanFront: d.republicanFront,
-          lfiLeftTransfer: d.lfiLeftTransfer,
           lfiLeftTransferRange: d.lfiLeftTransferRange,
           transferOverrides: d.transferOverrides,
           minorTransfers: d.minorTransfers,
@@ -186,7 +181,6 @@ export const useSettings = create<SettingsStore>()(
         transferSource: s.transferSource,
         declaredWeight: s.declaredWeight,
         republicanFront: s.republicanFront,
-        lfiLeftTransfer: s.lfiLeftTransfer,
         lfiLeftTransferRange: s.lfiLeftTransferRange,
         transferOverrides: s.transferOverrides,
         minorTransfers: s.minorTransfers,
@@ -197,22 +191,33 @@ export const useSettings = create<SettingsStore>()(
         selectedDuel: s.selectedDuel,
       }),
       migrate: (persisted, version) => {
-        if (version < 1 || version > 14 || !persisted || typeof persisted !== 'object') return defaultSettings()
+        if (version < 1 || version > 15 || !persisted || typeof persisted !== 'object') return defaultSettings()
         const old = persisted as Partial<Settings> & {
           hypothesisSetId?: string | null
           centerRnPresidentialWeight?: number
+          lfiLeftTransfer?: number
+        }
+        if (version === 15) {
+          const { lfiLeftTransfer: _legacyLfi, ...rest } = old
+          return {
+            ...defaultSettings(),
+            ...rest,
+            republicanFront: defaultRepublicanFront(),
+          }
         }
         if (version === 14) {
+          const { lfiLeftTransfer: _legacyLfi, ...rest } = old
           const defProj = defaultProjectionSettings()
           return {
             ...defaultSettings(),
-            ...old,
+            ...rest,
             projection: old.projection ? { ...defProj, ...old.projection, enabled: true } : defProj,
+            republicanFront: defaultRepublicanFront(),
             candidacyUncertaintyEnabled: true,
           }
         }
         if (version >= 11 && version <= 13) {
-          const { centerRnPresidentialWeight: _legacy, ...rest } = old
+          const { centerRnPresidentialWeight: _legacy, lfiLeftTransfer: _legacyLfi, ...rest } = old
           const defProj = defaultProjectionSettings()
           const keptProj =
             version >= 12 && old.projection
@@ -228,7 +233,6 @@ export const useSettings = create<SettingsStore>()(
             ...rest,
             projection: keptProj,
             republicanFront: defaultRepublicanFront(),
-            lfiLeftTransfer: DEFAULT_LFI_LEFT_TRANSFER,
             lfiLeftTransferRange: [...DEFAULT_LFI_LEFT_TRANSFER_RANGE],
             candidacyUncertaintyEnabled: true,
           }
@@ -260,7 +264,6 @@ export function selectSettings(s: SettingsStore): Settings {
     transferSource: s.transferSource,
     declaredWeight: s.declaredWeight,
     republicanFront: s.republicanFront,
-    lfiLeftTransfer: s.lfiLeftTransfer,
     lfiLeftTransferRange: s.lfiLeftTransferRange,
     transferOverrides: s.transferOverrides,
     minorTransfers: s.minorTransfers,

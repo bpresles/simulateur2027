@@ -477,19 +477,19 @@ export interface CampaignProjectionSettings {
 
 export type TransferSource = 'legislatives2024' | 'blend' | 'declared2027'
 
-export type RepublicanFrontFamily = 'centerRight' | 'moderateLeft' | 'lfi'
+export type RepublicanFrontBloc = 'gauche' | 'centre' | 'droite'
 
-export const REPUBLICAN_FRONT_FAMILIES: readonly RepublicanFrontFamily[] = ['centerRight', 'moderateLeft', 'lfi']
+export const REPUBLICAN_FRONT_BLOCS: readonly RepublicanFrontBloc[] = ['gauche', 'centre', 'droite']
 
 export type RepublicanFrontPreset = 'pres2022' | 'midpoint' | 'leg2024'
 
 export interface RepublicanFrontSettings {
-  /** Position entre Présidentielle 2022 (0) et Législatives 2024 (1) pour les duels Centre / Droite – RN. */
-  centerRight: number
-  /** Position entre Présidentielle 2022 (0) et Législatives 2024 (1) pour les duels Gauche modérée – RN. */
-  moderateLeft: number
-  /** Position entre Présidentielle 2022 (0) et Législatives 2024 (1) pour les duels LFI – RN. */
-  lfi: number
+  /** Position entre Présidentielle 2022 (0) et Législatives 2024 (1) pour les électeurs de gauche éliminés (y compris gauche hors LFI en duel LFI – RN). */
+  gauche: number
+  /** Position entre Présidentielle 2022 (0) et Législatives 2024 (1) pour les électeurs du centre éliminés. */
+  centre: number
+  /** Position entre Présidentielle 2022 (0) et Législatives 2024 (1) pour les électeurs de droite éliminés. */
+  droite: number
 }
 
 export interface Settings {
@@ -510,14 +510,9 @@ export interface Settings {
   transferSource: TransferSource
   /** Poids des déclarations 2027 dans le mode `blend` (0 à 1, défaut : 0,5). */
   declaredWeight: number
-  /** Position du front républicain entre Présidentielle 2022 (0) et Législatives 2024 (1) par famille de duel. */
+  /** Position du front républicain entre Présidentielle 2022 (0) et Législatives 2024 (1) par électorat qui se reporte. */
   republicanFront: RepublicanFrontSettings
-  /**
-   * Report central (%) des électeurs de gauche hors LFI vers Mélenchon en duel LFI – RN (35 à 75 %,
-   * défaut : 72 % = repère NFP 2024 ; 36 % = déclarations 2027 corrigées).
-   */
-  lfiLeftTransfer: number
-  /** Plage d'incertitude [min, max] (%) tirée uniformément dans Monte-Carlo pour le report gauche hors LFI → Mélenchon. */
+  /** Plage d'incertitude [min, max] (%) tirée dans Monte-Carlo autour du taux actif pour le report gauche hors LFI → Mélenchon. */
   lfiLeftTransferRange: [number, number]
   /** Intégrer l'incertitude des scénarios de candidatures testés (Attal, Lisnard, Retailleau, Philippe) dans Monte-Carlo. */
   candidacyUncertaintyEnabled: boolean

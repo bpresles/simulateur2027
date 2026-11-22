@@ -135,11 +135,13 @@ export function Segmented<T extends string>({
   onValueChange,
   options,
   label,
+  disabled,
 }: {
   value: T
   onValueChange: (v: T) => void
   options: { value: T; label: string; hint?: string }[]
   label: string
+  disabled?: boolean
 }) {
   return (
     <ToggleGroup.Root
@@ -147,14 +149,15 @@ export function Segmented<T extends string>({
       value={value}
       onValueChange={(v) => v && onValueChange(v as T)}
       aria-label={label}
-      className="inline-flex rounded-lg bg-sunken p-1"
+      disabled={disabled}
+      className="inline-flex rounded-lg bg-sunken p-1 data-[disabled]:opacity-50"
     >
       {options.map((o) => (
         <ToggleGroup.Item
           key={o.value}
           value={o.value}
           title={o.hint}
-          className="rounded-md px-3 py-1.5 text-sm font-medium text-ink-2 transition-colors hover:text-ink data-[state=on]:bg-surface data-[state=on]:text-ink data-[state=on]:shadow-sm"
+          className="rounded-md px-3 py-1.5 text-sm font-medium text-ink-2 transition-colors hover:text-ink disabled:cursor-not-allowed data-[state=on]:bg-surface data-[state=on]:text-ink data-[state=on]:shadow-sm"
         >
           {o.label}
         </ToggleGroup.Item>

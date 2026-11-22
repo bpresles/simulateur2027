@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-// Migration des réglages persistés (v1–v13 → v14) : conserve les choix compatibles et initialise les nouveaux défauts.
+// Migration des réglages persistés (v1–v15 → v16) : front républicain par électorat qui se reporte.
 import { defaultSettings } from '../domain/simulate'
 import { useSettings } from './settingsStore'
 
@@ -16,8 +16,8 @@ afterEach(() => {
   useSettings.setState(defaultSettings())
 })
 
-describe('migration des réglages (→ v15), front républicain et report gauche hors LFI', () => {
-  it('v10 → v15 : conserve les sondages exclus, alliances, surcharges de reports et fidélité, abandonne les anciens champs', async () => {
+describe('migration des réglages (→ v16), front républicain par électorat et report gauche hors LFI', () => {
+  it('v10 → v16 : conserve les sondages exclus, alliances, surcharges de reports et fidélité, abandonne les anciens champs', async () => {
     const s = await rehydrate(10, {
       excludedPolls: ['elabe-20261016'],
       alliances: { 'attal-philippe': true },
@@ -37,8 +37,7 @@ describe('migration des réglages (→ v15), front républicain et report gauche
       offerProjectionEnabled: true,
       candidacyUncertaintyEnabled: true,
       transferSource: 'legislatives2024',
-      republicanFront: { centerRight: 1, moderateLeft: 1, lfi: 1 },
-      lfiLeftTransfer: 72,
+      republicanFront: { gauche: 1, centre: 1, droite: 1 },
       lfiLeftTransferRange: [35, 75],
       firstRoundTurnout: 74,
     })
@@ -49,7 +48,7 @@ describe('migration des réglages (→ v15), front républicain et report gauche
     expect(s).not.toHaveProperty('centerRnPresidentialWeight')
   })
 
-  it('v1 → v15 : abandonne les surcharges de reports v1 (format incompatible) et l’ancienne alliance philippe-glucksmann', async () => {
+  it('v1 → v16 : abandonne les surcharges de reports v1 (format incompatible) et l’ancienne alliance philippe-glucksmann', async () => {
     const s = await rehydrate(1, {
       alliances: { 'philippe-glucksmann': true, 'attal-philippe': true },
       transferOverrides: { lfi_rn: { centre: { finalist: 50, rn: 20, abstention: 30 } } },
@@ -58,12 +57,12 @@ describe('migration des réglages (→ v15), front républicain et report gauche
     expect(s.transferOverrides).toEqual({})
   })
 
-  it('v4 → v15 : migre hypothesisSetId "philippe-seul" vers l’alliance attal-philippe', async () => {
+  it('v4 → v16 : migre hypothesisSetId "philippe-seul" vers l’alliance attal-philippe', async () => {
     const s = await rehydrate(4, { hypothesisSetId: 'philippe-seul', alliances: {} })
     expect(s.alliances).toEqual({ 'attal-philippe': true })
   })
 
-  it('v13 → v15 : active la projection et l’incertitude des candidatures, remet meanReversion/dampedTrend à 0 et migre vers 2022↔2024', async () => {
+  it('v13 → v16 : active la projection et l’incertitude des candidatures, remet meanReversion/dampedTrend à 0 et migre vers { gauche, centre, droite }', async () => {
     const s = await rehydrate(13, {
       excludedPolls: ['elabe-20261016'],
       transferSource: 'blend',
@@ -77,8 +76,7 @@ describe('migration des réglages (→ v15), front républicain et report gauche
       transferSource: 'blend',
       declaredWeight: 0.3,
       firstRoundTurnout: 76,
-      republicanFront: { centerRight: 1, moderateLeft: 1, lfi: 1 },
-      lfiLeftTransfer: 72,
+      republicanFront: { gauche: 1, centre: 1, droite: 1 },
       lfiLeftTransferRange: [35, 75],
       candidacyUncertaintyEnabled: true,
     })
@@ -87,8 +85,8 @@ describe('migration des réglages (→ v15), front républicain et report gauche
     expect(s.projection.dampedTrend).toBe(0)
   })
 
-  it('v14 → v15 : conserve les réglages v14 et active les nouveaux défauts projection + incertitude des candidatures', async () => {
-    const s = await rehydrate(14, {
+  it('v15 → v16 : conserve les réglages v15, retire l’ancien lfiLeftTransfer et migre republicanFront vers { gauche, centre, droite }', async () => {
+    const s = await rehydrate(15, {
       excludedPolls: ['elabe-20261016'],
       lfiLeftTransfer: 54,
       lfiLeftTransferRange: [40, 70],
@@ -98,40 +96,37 @@ describe('migration des réglages (→ v15), front républicain et report gauche
     })
     expect(s).toMatchObject({
       excludedPolls: ['elabe-20261016'],
-      lfiLeftTransfer: 54,
       lfiLeftTransferRange: [40, 70],
-      republicanFront: { centerRight: 0.5, moderateLeft: 0.5, lfi: 0.5 },
-      candidacyUncertaintyEnabled: true,
+      republicanFront: { gauche: 1, centre: 1, droite: 1 },
+      candidacyUncertaintyEnabled: false,
     })
-    expect(s.projection.enabled).toBe(true)
+    expect(s).not.toHaveProperty('lfiLeftTransfer')
+    expect(s.projection.enabled).toBe(false)
   })
 
-  it('actions du front républicain, du report gauche hors LFI et de l’incertitude des candidatures', () => {
+  it('actions du front républicain par électorat, de la plage MC gauche hors LFI et de l’incertitude des candidatures', () => {
     const st = useSettings.getState()
     st.applyRepublicanFrontPreset('pres2022')
-    expect(useSettings.getState().republicanFront).toEqual({ centerRight: 0, moderateLeft: 0, lfi: 0 })
+    expect(useSettings.getState().republicanFront).toEqual({ gauche: 0, centre: 0, droite: 0 })
     st.applyRepublicanFrontPreset('midpoint')
-    expect(useSettings.getState().republicanFront).toEqual({ centerRight: 0.5, moderateLeft: 0.5, lfi: 0.5 })
-    st.setRepublicanFront('lfi', 0.25)
-    expect(useSettings.getState().republicanFront).toEqual({ centerRight: 0.5, moderateLeft: 0.5, lfi: 0.25 })
+    expect(useSettings.getState().republicanFront).toEqual({ gauche: 0.5, centre: 0.5, droite: 0.5 })
+    st.setRepublicanFront('centre', 0.25)
+    expect(useSettings.getState().republicanFront).toEqual({ gauche: 0.5, centre: 0.25, droite: 0.5 })
     st.setRepublicanFrontGlobal(0)
-    expect(useSettings.getState().republicanFront).toEqual({ centerRight: 0, moderateLeft: 0, lfi: 0 })
+    expect(useSettings.getState().republicanFront).toEqual({ gauche: 0, centre: 0, droite: 0 })
     st.resetRepublicanFront()
-    expect(useSettings.getState().republicanFront).toEqual({ centerRight: 1, moderateLeft: 1, lfi: 1 })
+    expect(useSettings.getState().republicanFront).toEqual({ gauche: 1, centre: 1, droite: 1 })
 
-    st.setLfiLeftTransfer(50)
     st.setLfiLeftTransferRange([60, 40])
-    expect(useSettings.getState().lfiLeftTransfer).toBe(50)
     expect(useSettings.getState().lfiLeftTransferRange).toEqual([40, 60])
-    st.resetLfiLeftTransfer()
-    expect(useSettings.getState().lfiLeftTransfer).toBe(72)
+    st.resetLfiLeftTransferRange()
     expect(useSettings.getState().lfiLeftTransferRange).toEqual([35, 75])
 
     st.setCandidacyUncertaintyEnabled(false)
     expect(useSettings.getState().candidacyUncertaintyEnabled).toBe(false)
   })
 
-  it('version trop récente (> 15) : réglages par défaut', async () => {
+  it('version trop récente (> 16) : réglages par défaut', async () => {
     const s = await rehydrate(99, { firstRoundTurnout: 85 })
     expect(s.firstRoundTurnout).toBe(74)
   })

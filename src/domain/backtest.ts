@@ -3,7 +3,6 @@ import { runMonteCarlo } from './monteCarlo'
 import { addDays, averageHypothesisPolls, daysBetween, normalize, pollWeight, weightedMeanByKey } from './pollAverage'
 import { aggregatedProfileDropout, computeSecondRound, pollBiasGaps } from './secondRound'
 import {
-  DEFAULT_LFI_LEFT_TRANSFER,
   DEFAULT_LFI_LEFT_TRANSFER_RANGE,
   applyRepublicanFrontRow,
   defaultRepublicanFront,
@@ -282,7 +281,6 @@ function neutralBacktestSettings(): Settings {
     transferSource: 'legislatives2024',
     declaredWeight: 0.5,
     republicanFront: defaultRepublicanFront(),
-    lfiLeftTransfer: DEFAULT_LFI_LEFT_TRANSFER,
     lfiLeftTransferRange: [...DEFAULT_LFI_LEFT_TRANSFER_RANGE],
     candidacyUncertaintyEnabled: false,
     transferOverrides: {},

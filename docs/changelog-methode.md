@@ -1,5 +1,17 @@
 # Journal méthodologique — simulateur2027
 
+## 22 novembre 2026 (v2.1.2) — Pilotage du front républicain par électorat qui se reporte
+
+Refonte ergonomique et conceptuelle des 3 curseurs du front républicain, à taux par défaut inchangés (`100 %` = Législatives 2024 par paire exacte de finalistes : 48 duels LFI–RN, 104 PS/écolo/PCF–RN, 132 Ensemble–RN, 58 LR–RN) :
+
+1. **Axe de pilotage (`types.ts`, `transfers.ts`, `monteCarlo.ts`, `RepublicanFrontControls.tsx`)** :
+   - Les 3 curseurs ne représentent plus la famille du finaliste (`centerRight`, `moderateLeft`, `lfi`) mais **l’électorat éliminé du 1er tour qui se reporte** : **`gauche`**, **`centre`** et **`droite`**, tous sur la même échelle `0 %` (Présidentielle 2022) ↔ `100 %` (Législatives 2024 sur la paire exacte de finalistes).
+   - Dans un duel `Le Pen – Mélenchon`, les **3 curseurs** agissent directement sur le score affiché : **`Électeurs de gauche (hors LFI)`** (Glucksmann, Tondelier, Roussel : `72 %` à 100 %, `47 %` à 0 %), **`Électeurs du centre`** (`43 %` à 100 %, `24,5 %` à 0 %) et **`Électeurs de droite`** (`26 %` à 100 %, `13,1 %` à 0 %). De même, sur un duel `PS/écolo/PCF – RN`, le curseur gauche pilote les autres électeurs de gauche hors finaliste.
+   - Suppression du 4e curseur redondant (`lfiLeftTransfer`) ; l’incertitude supplémentaire non mesurée sur `gauche hors LFI → Mélenchon` reste conservée via l’encadré de sensibilité et un tirage triangulaire dans Monte-Carlo sur `[35 % ; 75 %]` centré sur la valeur active du curseur gauche (plage réglable dans les réglages avancés).
+2. **Persistance (`settingsStore.ts`)** : passage en version `16` pour migrer la structure `republicanFront` (`{ gauche, centre, droite }`) et retirer l’ancien champ `lfiLeftTransfer`.
+
+---
+
 ## 22 novembre 2026 (v2.1.1) — Activation par défaut de la projection avril 2027 et de l’incertitude des candidatures
 
 Changement de réglages par défaut décidé par l’utilisateur :

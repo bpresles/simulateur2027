@@ -1,11 +1,11 @@
 import { simulationData } from '../../data/schema'
 import { newestFirst } from '../../domain/pollAverage'
-import type { SimulationResult, TransferSource } from '../../domain/types'
+import type { SimulationResult } from '../../domain/types'
 import { useSettings } from '../../state/settingsStore'
 import { cand } from '../candidates'
 import { fieldwork, num, pct } from '../format'
 import { AllianceSwitches } from './AllianceSwitches'
-import { Checkbox, Segmented, Slider, Switch } from './controls'
+import { Checkbox, Segmented, Switch } from './controls'
 import { RepublicanFrontControls } from './RepublicanFrontControls'
 import type { SettingsTab } from './SettingsSheet'
 
@@ -110,59 +110,15 @@ export function ScenarioBar({
                 }
               />
 
-              {/* Front républicain (2022 ↔ 2024) et report gauche hors LFI → Mélenchon */}
-              <RepublicanFrontControls />
-
-              <div>
-                <p className="mb-1.5 text-[0.95rem] font-medium text-ink">Source des reports de voix (duels face au RN)</p>
-                <Segmented<TransferSource>
-                  label="Source des reports au second tour"
-                  value={s.transferSource}
-                  onValueChange={s.setTransferSource}
-                  options={[
-                    {
-                      value: 'legislatives2024',
-                      label: 'Base historique',
-                      hint: 'Défaut : interpolation logit entre présidentielle 2022 (0 %) et législatives 2024 (100 %)',
-                    },
-                    {
-                      value: 'blend',
-                      label: 'Mélange hist. / 2027',
-                      hint: 'Moyenne pondérée entre base historique et déclarations 2027 corrigées en logit',
-                    },
-                    {
-                      value: 'declared2027',
-                      label: 'Déclarations 2027',
-                      hint: 'Option : reports déclarés Harris/Odoxa 2026 corrigés en logit',
-                    },
-                  ]}
-                />
-                <p className="mt-1.5 text-sm text-ink-3">
-                  {s.transferSource === 'legislatives2024' &&
-                    'Interpolation directe en logit entre les législatives 2024 (Ipsos-Talan, 100 %) et la présidentielle 2022 (0 %), avec réglage dédié pour le report gauche hors LFI → Mélenchon.'}
-                  {s.transferSource === 'blend' &&
-                    'Combine la base historique 2022 ↔ 2024 (ci-dessus) avec les déclarations d’intention 2027 corrigées sur échelle logit.'}
-                  {s.transferSource === 'declared2027' &&
-                    'Reports déclarés dans les sondages de 2026 (Harris / Odoxa), corrigés sur échelle logit de l’écart moyen campagne → scrutin observé en 2017 et 2022.'}
-                </p>
-                {s.transferSource === 'blend' && (
-                  <div className="mt-3 flex items-center gap-3">
-                    <span className="text-sm text-ink-3">Poids des déclarations 2027</span>
-                    <Slider
-                      label="Poids des déclarations 2027"
-                      value={s.declaredWeight * 100}
-                      onValueChange={(v) => s.setDeclaredWeight(v / 100)}
-                      min={0}
-                      max={100}
-                      step={5}
-                    />
-                    <span className="num w-12 text-right text-sm font-medium">{num(s.declaredWeight * 100, 0)}&#8239;%</span>
-                  </div>
-                )}
-                <button type="button" className="link mt-2 block text-sm" onClick={() => onOpenSettings('reports')}>
-                  Ajuster les reports, les plages d’incertitude, la fidélité et la participation
-                </button>
-              </div>
+              {/* Source des reports (duels face au RN) et front républicain par électorat (2022 ↔ 2024) */}
+              <RepublicanFrontControls
+                result={result}
+                footer={
+                  <button type="button" className="link block text-xs" onClick={() => onOpenSettings('reports')}>
+                    Ajuster les reports, les plages d’incertitude, la fidélité et la participation
+                  </button>
+                }
+              />
             </div>
           </fieldset>
 

@@ -56,10 +56,15 @@ describe('ScenarioBar : projection d’offre, front républicain 2022↔2024 et 
     expect(sw.getAttribute('aria-checked')).toBe('false')
   })
 
-  it('propose les 3 sources de reports (Base historique par défaut) et affiche le curseur en mode mélange', () => {
+  it('propose les 3 sources de reports au-dessus du front républicain et désactive le front républicain en mode Déclarations 2027', () => {
     render(<Harness />)
     expect(useSettings.getState().transferSource).toBe('legislatives2024')
     expect(screen.queryByRole('slider', { name: 'Poids des déclarations 2027' })).toBeNull()
+
+    // La source des reports précède directement les préréglages du front républicain dans le DOM
+    const sourceRadio = screen.getByRole('radio', { name: /Base historique/ })
+    const presetBtn = screen.getByRole('button', { name: 'Présidentielle 2022' })
+    expect(sourceRadio.compareDocumentPosition(presetBtn) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
 
     act(() => fireEvent.click(screen.getByRole('radio', { name: /Mélange hist\. \/ 2027/ })))
     expect(useSettings.getState().transferSource).toBe('blend')
@@ -68,27 +73,48 @@ describe('ScenarioBar : projection d’offre, front républicain 2022↔2024 et 
     act(() => fireEvent.click(screen.getByRole('radio', { name: /Déclarations 2027/ })))
     expect(useSettings.getState().transferSource).toBe('declared2027')
     expect(screen.queryByRole('slider', { name: 'Poids des déclarations 2027' })).toBeNull()
+    expect((screen.getByRole('button', { name: 'Présidentielle 2022' }) as HTMLButtonElement).disabled).toBe(true)
+    expect((screen.getByRole('radio', { name: /Base historique/ }) as HTMLButtonElement).disabled).toBe(false)
   })
 
-  it('expose directement le Front républicain 2022↔2024 et le report gauche hors LFI → Mélenchon', () => {
+  it('expose directement le Front républicain par électorat (gauche hors LFI sur LFI–RN, centre, droite) sans 4e curseur redondant', () => {
     render(<Harness />)
     expect(screen.getByRole('slider', { name: 'Intensité globale du front républicain' })).toBeTruthy()
-    expect(screen.getByRole('slider', { name: 'Front républicain : Centre / Droite' })).toBeTruthy()
-    expect(screen.getByRole('slider', { name: 'Front républicain : Gauche modérée' })).toBeTruthy()
-    expect(screen.getByRole('slider', { name: 'Front républicain : LFI' })).toBeTruthy()
-    expect(screen.getByRole('slider', { name: 'Report gauche hors LFI vers Mélenchon' })).toBeTruthy()
+    expect(screen.getByRole('slider', { name: 'Front républicain : Électeurs de gauche (hors LFI)' })).toBeTruthy()
+    expect(screen.getByRole('slider', { name: 'Front républicain : Électeurs du centre' })).toBeTruthy()
+    expect(screen.getByRole('slider', { name: 'Front républicain : Électeurs de droite' })).toBeTruthy()
+    expect(screen.queryByRole('slider', { name: 'Report gauche hors LFI vers Mélenchon' })).toBeNull()
 
     act(() => fireEvent.click(screen.getByRole('button', { name: 'Présidentielle 2022' })))
-    expect(useSettings.getState().republicanFront).toEqual({ centerRight: 0, moderateLeft: 0, lfi: 0 })
+    expect(useSettings.getState().republicanFront).toEqual({ gauche: 0, centre: 0, droite: 0 })
 
     act(() => fireEvent.click(screen.getByRole('button', { name: 'Mi-chemin' })))
-    expect(useSettings.getState().republicanFront).toEqual({ centerRight: 0.5, moderateLeft: 0.5, lfi: 0.5 })
+    expect(useSettings.getState().republicanFront).toEqual({ gauche: 0.5, centre: 0.5, droite: 0.5 })
 
     act(() => fireEvent.click(screen.getByRole('button', { name: 'Législatives 2024' })))
-    expect(useSettings.getState().republicanFront).toEqual({ centerRight: 1, moderateLeft: 1, lfi: 1 })
+    expect(useSettings.getState().republicanFront).toEqual({ gauche: 1, centre: 1, droite: 1 })
 
-    act(() => fireEvent.click(screen.getByRole('button', { name: '36 % (décl. 2027)' })))
-    expect(useSettings.getState().lfiLeftTransfer).toBe(36)
+    // En passant à Le Pen – Philippe, le libellé redevient « Électeurs de gauche »
+    act(() => useSettings.getState().setSelectedDuel('lepen|philippe'))
+    expect(screen.getByRole('slider', { name: 'Front républicain : Électeurs de gauche' })).toBeTruthy()
+
+    // En sélectionnant un duel hors RN (ex. Mélenchon – Philippe), source des reports et front républicain sont désactivés
+    act(() => useSettings.getState().setSelectedDuel('melenchon|philippe'))
+    expect(screen.getByText(/Inactif sur ce duel hors RN \(Mélenchon – Philippe\)/)).toBeTruthy()
+    expect((screen.getByRole('radio', { name: /Déclarations 2027/ }) as HTMLButtonElement).disabled).toBe(true)
+    const presBtn = screen.getByRole('button', { name: 'Présidentielle 2022' }) as HTMLButtonElement
+    expect(presBtn.disabled).toBe(true)
+    act(() => fireEvent.click(presBtn))
+    expect(useSettings.getState().republicanFront).toEqual({ gauche: 1, centre: 1, droite: 1 })
+    for (const label of [
+      'Intensité globale du front républicain',
+      'Front républicain : Électeurs de gauche',
+      'Front républicain : Électeurs du centre',
+      'Front républicain : Électeurs de droite',
+    ]) {
+      const slider = screen.getByRole('slider', { name: label })
+      expect(slider.closest('[data-disabled]')).toBeTruthy()
+    }
   })
 
   it('ouvre la feuille des réglages sur le bon onglet au clic sur les liens dédiés', () => {
@@ -138,14 +164,14 @@ describe('ScenarioBar : projection d’offre, front républicain 2022↔2024 et 
     act(() => {
       useSettings.getState().setOfferProjectionEnabled(false)
       useSettings.getState().setTransferSource('declared2027')
-      useSettings.getState().setLfiLeftTransfer(40)
+      useSettings.getState().setRepublicanFront('gauche', 0)
     })
     render(<Harness />)
     act(() => fireEvent.click(screen.getByRole('button', { name: 'Réinitialiser tous les paramètres' })))
     expect(useSettings.getState()).toMatchObject({
       offerProjectionEnabled: true,
       transferSource: 'legislatives2024',
-      lfiLeftTransfer: 72,
+      republicanFront: { gauche: 1, centre: 1, droite: 1 },
     })
   })
 })

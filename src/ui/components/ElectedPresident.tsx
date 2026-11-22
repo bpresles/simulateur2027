@@ -25,7 +25,7 @@ export function ElectedPresident({ result }: { result: SimulationResult }) {
   const rf = settings.republicanFront
   const transferDesc =
     settings.transferSource === 'legislatives2024'
-      ? `base historique 2022 ↔ 2024 (${pct(rf.centerRight * 100, 0)} Centre/Droite, ${pct(rf.moderateLeft * 100, 0)} Gauche modérée, ${pct(rf.lfi * 100, 0)} LFI ; gauche hors LFI → Mélenchon : ${settings.lfiLeftTransfer} %, MC ${settings.lfiLeftTransferRange[0]}–${settings.lfiLeftTransferRange[1]} %)`
+      ? `base historique 2022 ↔ 2024 (front républicain par électorat : gauche ${pct(rf.gauche * 100, 0)}, centre ${pct(rf.centre * 100, 0)}, droite ${pct(rf.droite * 100, 0)} ; plage MC gauche hors LFI : ${settings.lfiLeftTransferRange[0]}–${settings.lfiLeftTransferRange[1]} %)`
       : settings.transferSource === 'blend'
         ? `mélange base historique / déclarations 2027 (${pct(settings.declaredWeight * 100, 0)})`
         : 'déclarations 2027 corrigées en logit'

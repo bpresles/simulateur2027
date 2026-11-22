@@ -234,7 +234,7 @@ function MethodLine({ result }: { result: SimulationResult }) {
               {num(Math.abs(lfiLeftSensitivity.rnAtLow - lfiLeftSensitivity.rnAtHigh), 1)} pts
             </span>
             , valeur centrale active : <span className="num">{lfiLeftSensitivity.currentRate}&#8239;%</span>).
-            Cette plage est tirée uniformément dans Monte-Carlo.
+            Cette plage est couverte dans Monte-Carlo autour du niveau actif du curseur gauche.
           </p>
         </div>
       )}

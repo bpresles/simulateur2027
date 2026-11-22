@@ -24,7 +24,7 @@ import {
   REPUBLICAN_FRONT_PRESETS,
   correctDeclaredRowLogit,
   effectiveProfiles,
-  frontStrengthForProfile,
+  frontStrengthForBloc,
 } from '../../domain/transfers'
 import type { PollOrigin, PollStatus, ProfileId, SimulationResult } from '../../domain/types'
 import { BLOCS } from '../../domain/types'
@@ -401,11 +401,12 @@ export function Methodology({ result }: { result: SimulationResult }) {
                 artificiellement le vote RN).
               </li>
               <li>
-                <strong>Réglage global et par famille de duel :</strong> 3 préréglages sourcés (Présidentielle
-                2022, Mi-chemin, Législatives 2024), un curseur global et 3 curseurs par famille. Réglage
-                actif : <strong>Centre / Droite {pct(settings.republicanFront.centerRight * 100, 0)}</strong>,{' '}
-                <strong>Gauche modérée {pct(settings.republicanFront.moderateLeft * 100, 0)}</strong>,{' '}
-                <strong>LFI {pct(settings.republicanFront.lfi * 100, 0)}</strong>.
+                <strong>Réglage global et par électorat qui se reporte :</strong> 3 préréglages sourcés
+                (Présidentielle 2022, Mi-chemin, Législatives 2024 par paire exacte de finalistes), un curseur
+                global et 3 curseurs par électorat éliminé du 1er tour. Réglage actif :{' '}
+                <strong>Électeurs de gauche {pct(settings.republicanFront.gauche * 100, 0)}</strong>,{' '}
+                <strong>Électeurs du centre {pct(settings.republicanFront.centre * 100, 0)}</strong>,{' '}
+                <strong>Électeurs de droite {pct(settings.republicanFront.droite * 100, 0)}</strong>.
               </li>
               <li>
                 <strong>
@@ -414,15 +415,16 @@ export function Methodology({ result }: { result: SimulationResult }) {
                 le report des électeurs de gauche modérée / écologiste / communiste (Glucksmann, Tondelier,
                 Roussel) vers Jean-Luc Mélenchon face au RN n’a jamais été mesuré à une présidentielle (le
                 taux de 72 % des législatives 2024 portait sur des candidatures uniques NFP, alors que les
-                déclarations 2027 corrigées en logit donnent 36 %). Ce paramètre dispose donc d’un{' '}
-                <strong>curseur dédié</strong> (actif :{' '}
-                <strong className="num">{settings.lfiLeftTransfer} %</strong>, défaut provisoire : 72 %),
-                d’une <strong>analyse de sensibilité affichée</strong> sur les duels LFI – RN, et d’un{' '}
-                <strong>tirage uniforme explicite dans Monte-Carlo</strong> sur la plage{' '}
+                déclarations 2027 corrigées en logit donnent 36 %). Ce report est piloté directement par le
+                curseur <strong>Électeurs de gauche (hors LFI)</strong> selon la même règle 2022 ↔ 2024
+                (100 % = 72 % repère NFP 2024, 0 % = 47 % niveau Prés. 2022 ; taux actif :{' '}
+                <strong className="num">{num(activeProfiles.lfi_rn.gauche.finalist, 0)} %</strong>), complété
+                par une <strong>analyse de sensibilité affichée</strong> sur les duels LFI – RN et un{' '}
+                <strong>tirage triangulaire dans Monte-Carlo</strong> couvrant la plage{' '}
                 <strong className="num">
                   [{settings.lfiLeftTransferRange[0]} % ; {settings.lfiLeftTransferRange[1]} %]
                 </strong>{' '}
-                (configurable dans les réglages).
+                autour du taux actif (plage configurable dans les réglages).
               </li>
             </ul>
             <p>
@@ -441,13 +443,13 @@ export function Methodology({ result }: { result: SimulationResult }) {
             </p>
           </div>
 
-          <Table caption="Préréglages du front républicain (interpolation directe 2022 ↔ 2024)">
+          <Table caption="Préréglages du front républicain par électorat qui se reporte (interpolation directe 2022 ↔ 2024)">
             <thead>
               <tr className="border-b border-rule">
                 <th className={th}>Préréglage</th>
-                <th className={`${th} text-right`}>Centre / Droite</th>
-                <th className={`${th} text-right`}>Gauche modérée</th>
-                <th className={`${th} text-right`}>LFI</th>
+                <th className={`${th} text-right`}>Élect. gauche</th>
+                <th className={`${th} text-right`}>Élect. centre</th>
+                <th className={`${th} text-right`}>Élect. droite</th>
                 <th className={th}>Interprétation</th>
               </tr>
             </thead>
@@ -457,9 +459,9 @@ export function Methodology({ result }: { result: SimulationResult }) {
                 return (
                   <tr key={row.id} className="border-b border-rule/60">
                     <td className={`${td} font-medium`}>{row.label}</td>
-                    <td className={`${td} num text-right`}>{pct(p.centerRight * 100, 0)}</td>
-                    <td className={`${td} num text-right`}>{pct(p.moderateLeft * 100, 0)}</td>
-                    <td className={`${td} num text-right`}>{pct(p.lfi * 100, 0)}</td>
+                    <td className={`${td} num text-right`}>{pct(p.gauche * 100, 0)}</td>
+                    <td className={`${td} num text-right`}>{pct(p.centre * 100, 0)}</td>
+                    <td className={`${td} num text-right`}>{pct(p.droite * 100, 0)}</td>
                     <td className={`${td} text-ink-2`}>{row.desc}</td>
                   </tr>
                 )
@@ -473,13 +475,13 @@ export function Methodology({ result }: { result: SimulationResult }) {
                 ? 'source : déclarations 2027 corrigées en logit'
                 : settings.transferSource === 'blend'
                   ? `mélange ${pct((1 - settings.declaredWeight) * 100, 0)} base historique / ${pct(settings.declaredWeight * 100, 0)} déclarations 2027`
-                  : 'base historique 2022 ↔ 2024'
+                  : 'base historique 2022 ↔ 2024 par paire exacte de finalistes'
             })`}
           >
             <thead>
               <tr className="border-b border-rule">
-                <th className={th}>Profil (position 2022 ↔ 2024)</th>
-                <th className={th}>Électorat</th>
+                <th className={th}>Paire de finalistes</th>
+                <th className={th}>Électorat (curseur 2022 ↔ 2024)</th>
                 <th className={`${th} text-right`}>Finaliste</th>
                 <th className={`${th} text-right`}>RN</th>
                 <th className={`${th} text-right`}>Abst./BN</th>
@@ -488,25 +490,24 @@ export function Methodology({ result }: { result: SimulationResult }) {
             <tbody>
               {PROFILE_IDS.flatMap((pid) => {
                 const meta = transfers.profiles.find((p) => p.id === pid)!
-                const strength = frontStrengthForProfile(pid, settings.republicanFront)
                 return (['gauche', 'centre', 'droite'] as const).map((b, idx) => {
                   const eff = activeProfiles[pid][b]
+                  const strength = frontStrengthForBloc(b, settings.republicanFront)
                   const overridden = Boolean(settings.transferOverrides[pid]?.[b])
                   return (
                     <tr key={`${pid}-${b}`} className="border-b border-rule/60">
-                      <td className={`${td} font-medium`}>
-                        {idx === 0
-                          ? `${meta.label}${settings.transferSource !== 'declared2027' ? ` (${pct(strength * 100, 0)})` : ''}`
-                          : ''}
-                      </td>
+                      <td className={`${td} font-medium`}>{idx === 0 ? meta.label : ''}</td>
                       <td className={td}>
-                        {BLOC_VOTERS[b]}
-                        {pid === 'lfi_rn' &&
-                          b === 'gauche' &&
-                          !overridden &&
-                          settings.transferSource !== 'declared2027' && (
-                            <span className="ml-1.5 text-xs text-ink-3">(curseur dédié)</span>
-                          )}
+                        {pid === 'lfi_rn' && b === 'gauche' ? 'Électeurs de gauche (hors LFI)' : BLOC_VOTERS[b]}
+                        {!overridden && settings.transferSource !== 'declared2027' && (
+                          <span className="ml-1.5 text-xs text-ink-3">
+                            ({pct(strength * 100, 0)}
+                            {pid === 'lfi_rn' && b === 'gauche'
+                              ? `, MC ${settings.lfiLeftTransferRange[0]}–${settings.lfiLeftTransferRange[1]} %`
+                              : ''}
+                            )
+                          </span>
+                        )}
                         {overridden && <span className="ml-1.5 text-xs text-ballpoint">(modifié)</span>}
                       </td>
                       <td className={`${td} num text-right font-medium`}>{num(eff.finalist, 1)} %</td>
