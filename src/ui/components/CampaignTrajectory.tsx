@@ -143,7 +143,7 @@ export function CampaignTrajectory({ result }: { result: SimulationResult }) {
       aria-labelledby="trajectory-title"
       className="rounded-xl bg-surface p-5 shadow-[var(--ballot-shadow)] sm:p-6"
     >
-      <div className="flex flex-wrap items-start justify-between gap-4">
+      <div className="flex flex-col items-start gap-3">
         <div>
           <h2 id="trajectory-title" className="text-xl font-bold tracking-tight sm:text-2xl">
             {hasFuture ? 'Évolution et trajectoire vers avril 2027' : 'Évolution des intentions de vote'}
