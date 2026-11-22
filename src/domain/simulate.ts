@@ -1,10 +1,13 @@
 import { acceptAlliances, defaultSet, scenarioFilter, scenarioSet } from './alliances'
 import { buildTrajectory, defaultProjectionSettings, projectCampaign } from './campaignProjection'
 import { runMonteCarlo } from './monteCarlo'
+import type { CandidacyScenario } from './monteCarlo'
 import { newVoterRates } from './newVoters'
 import { averagePolls } from './pollAverage'
 import { computeSecondRound, pollBiasGaps } from './secondRound'
 import {
+  DEFAULT_LFI_LEFT_TRANSFER,
+  DEFAULT_LFI_LEFT_TRANSFER_RANGE,
   defaultRepublicanFront,
   effectiveAbstainerAntiRnShare,
   effectiveProfiles,
@@ -32,6 +35,9 @@ export function defaultSettings(): Settings {
     transferSource: 'legislatives2024',
     declaredWeight: 0.5,
     republicanFront: defaultRepublicanFront(),
+    lfiLeftTransfer: DEFAULT_LFI_LEFT_TRANSFER,
+    lfiLeftTransferRange: [...DEFAULT_LFI_LEFT_TRANSFER_RANGE],
+    candidacyUncertaintyEnabled: true,
     transferOverrides: {},
     minorTransfers: {},
     fidelity: null,
@@ -41,6 +47,18 @@ export function defaultSettings(): Settings {
     selectedDuel: null,
   }
 }
+
+/**
+ * Pondérations explicites de scénarios de candidatures testés (inspirées du tableau 4 de `methode.pdf`),
+ * activées uniquement lorsque l'utilisateur coche l'option `candidacyUncertaintyEnabled` sans alliance forcée.
+ */
+const CANDIDACY_SCENARIO_WEIGHTS: { id: string; weight: number }[] = [
+  { id: 'philippe-lisnard', weight: 0.4 },
+  { id: 'philippe-seul', weight: 0.3 },
+  { id: 'philippe-attal', weight: 0.15 },
+  { id: 'attal-seul', weight: 0.1 },
+  { id: 'lagarde-seule', weight: 0.05 },
+]
 
 /** Pipeline complet : sondages pondérés + projection d'offre → projection temporelle (option) → 2nd tour en flux bruts → Monte-Carlo. */
 export function simulate(data: SimulationData, settings: Settings): SimulationResult {
@@ -100,12 +118,11 @@ export function simulate(data: SimulationData, settings: Settings): SimulationRe
   const evaluateDuel = (aId: CandidateId, bId: CandidateId): SecondRoundResult => {
     const duel = resolveDuel(aId, bId, candidatesById)
     const rfStrength = frontStrengthForDuel(duel, settings.republicanFront)
-    return computeSecondRound({
+    const baseInput = {
       electorate: activeScores,
       a: aId,
       b: bId,
       duel,
-      profiles,
       nonRnPresidential: transfers.nonRnPresidential,
       fidelityA: fidelityFor(aId, transfers, settings.fidelity),
       fidelityB: fidelityFor(bId, transfers, settings.fidelity),
@@ -117,7 +134,32 @@ export function simulate(data: SimulationData, settings: Settings): SimulationRe
       republicanFrontStrength: rfStrength,
       secondRoundPolls: polls.secondRoundPolls,
       minorTransfers,
-    })
+    }
+    const res = computeSecondRound({ ...baseInput, profiles })
+    const isLfiRn =
+      duel.kind === 'rn-sourced' &&
+      duel.profileWeights[0]?.profileId === 'lfi_rn' &&
+      settings.transferSource !== 'declared2027' &&
+      !settings.transferOverrides.lfi_rn?.gauche
+    if (isLfiRn) {
+      const lowRate = Math.min(settings.lfiLeftTransferRange[0], settings.lfiLeftTransferRange[1])
+      const highRate = Math.max(settings.lfiLeftTransferRange[0], settings.lfiLeftTransferRange[1])
+      const lowProf = effectiveProfiles(transfers, declaredTransfers, settings, { rnId, lfiLeftTransfer: lowRate })
+      const highProf = effectiveProfiles(transfers, declaredTransfers, settings, { rnId, lfiLeftTransfer: highRate })
+      const lowRes = computeSecondRound({ ...baseInput, profiles: lowProf })
+      const highRes = computeSecondRound({ ...baseInput, profiles: highProf })
+      const rnIsA = duel.rnId === aId
+      res.lfiLeftSensitivity = {
+        lowRate,
+        highRate,
+        rnAtLow: rnIsA ? lowRes.pct.a : lowRes.pct.b,
+        rnAtHigh: rnIsA ? highRes.pct.a : highRes.pct.b,
+        currentRate: settings.lfiLeftTransfer,
+      }
+    } else {
+      res.lfiLeftSensitivity = null
+    }
+    return res
   }
 
   const parseSelected = (): [CandidateId, CandidateId] | null => {
@@ -130,6 +172,32 @@ export function simulate(data: SimulationData, settings: Settings): SimulationRe
   }
   const displayedPair: [CandidateId, CandidateId] = parseSelected() ?? [first.id, second.id]
 
+  // Scénarios de candidatures pondérés optionnels (si activés et sans alliances manuelles forcées)
+  let candidacyScenarios: CandidacyScenario[] | undefined
+  if (settings.candidacyUncertaintyEnabled && tested.length === 0) {
+    const built: CandidacyScenario[] = []
+    for (const spec of CANDIDACY_SCENARIO_WEIGHTS) {
+      const set = polls.hypothesisSets.find((s) => s.id === spec.id)
+      if (!set) continue
+      const sel = averagePolls(polls, set, excluded, settings.minorTransfers, {
+        offerProjection: settings.offerProjectionEnabled,
+      })
+      if (sel.institutesUsed === 0) continue
+      const scScores = settings.projection.enabled
+        ? projectCampaign(
+            sel.average,
+            polls.candidates,
+            settings.projection,
+            pollHistory.polls,
+            polls.asOf,
+            polls.electionDate,
+          ).projectedScores
+        : sel.average
+      built.push({ id: spec.id, weight: spec.weight, scores: scScores })
+    }
+    if (built.length >= 2) candidacyScenarios = built
+  }
+
   const monteCarlo = runMonteCarlo({
     data,
     settings,
@@ -138,6 +206,7 @@ export function simulate(data: SimulationData, settings: Settings): SimulationRe
     minorTransfers,
     blankNullShare: bnShare,
     displayedDuel: displayedPair,
+    candidacyScenarios,
   })
 
   const trajectory = buildTrajectory(

@@ -130,7 +130,7 @@ function transferWeights(
   return sum > 0 ? Object.fromEntries(raw.map(([id, w]) => [id, w / sum])) : {}
 }
 
-/** Retire `x` d'une offre et redistribue ses voix selon `weights` (90 % redistribuées, 10 % absorbées par renormalisation). */
+/** Retire `x` d'une offre et redistribue 100 % de ses voix selon les poids mesurés `weights`. */
 function removeCandidate(
   scores: Scores,
   x: CandidateId,
@@ -143,10 +143,7 @@ function removeCandidate(
   if (share <= 0) return normalize(next)
   const present = Object.keys(next)
   const weights = transferWeights(x, present, next, model, candidatesById)
-  // Conservation de 90 % des voix sur les destinataires directs ; les 10 % résiduels représentent l'abstention
-  // différentielle / reports diffus et sont absorbés par la renormalisation finale à 100 %.
-  const direct = share * 0.9
-  for (const [id, w] of Object.entries(weights)) next[id] = (next[id] ?? 0) + direct * w
+  for (const [id, w] of Object.entries(weights)) next[id] = (next[id] ?? 0) + share * w
   return normalize(next)
 }
 

@@ -20,17 +20,18 @@ type Scores = Record<CandidateId, number>
 export const PROJECTION_HORIZON_DAYS = 150
 
 /**
- * Cibles de concentration intra-bloc calibrées sur les présidentielles 2017 et 2022 :
- * - gauche : 71 % en 2017, 69 % en 2022 → 70 % ;
- * - centre / droite séparés : 75 % ;
- * - centre + droite regroupés (scénario type 2022) : 65 % ;
- * - extrême droite : 79 % en 2017, 72 % en 2022 → 78 %.
+ * Cibles de concentration intra-bloc inspirées des présidentielles 2017 et 2022 :
+ * - gauche : 0,70 (moyenne observée : 70,8 % en 2017, 68,7 % en 2022) ;
+ * - droite : 0,77 (moyenne observée : 94,3 % en 2017, 60,4 % en 2022) ;
+ * - extrême droite : 0,75 (moyenne observée : 79,1 % en 2017, 71,7 % en 2022) ;
+ * - centre : 0,75 (hypothèse symétrique avec la droite ; en 2017 et 2022, le centre n'avait qu'un seul candidat principal).
+ * Dans le backtest croisé (`backtest.ts`), les cibles sont recalculées strictement sur l'autre élection.
  */
 export const TARGET_CONCENTRATION: Record<Bloc, number> = {
   gauche: 0.7,
   centre: 0.75,
-  droite: 0.75,
-  extreme_droite: 0.78,
+  droite: 0.77,
+  extreme_droite: 0.75,
 }
 export const MERGED_CENTER_RIGHT_TARGET = 0.65
 
@@ -70,7 +71,7 @@ const clamp = (v: number, min: number, max: number) => Math.max(min, Math.min(ma
 
 export function defaultProjectionSettings(): CampaignProjectionSettings {
   return {
-    enabled: false,
+    enabled: true,
     usefulVote: {
       gauche: { intensity: 1, beneficiary: 'auto' },
       centre: { intensity: 1, beneficiary: 'auto' },
@@ -78,8 +79,9 @@ export function defaultProjectionSettings(): CampaignProjectionSettings {
       extreme_droite: { intensity: 1, beneficiary: 'auto' },
     },
     mergeCenterRight: false,
-    meanReversion: 0.5,
-    dampedTrend: 0.5,
+    // Désactivés par défaut (v2.1) : moyennes structurelles non validées hors échantillon et tendance non testée.
+    meanReversion: 0,
+    dampedTrend: 0,
   }
 }
 
@@ -160,12 +162,15 @@ export function projectCampaign(
   electionDate: string,
   /** Fraction d'avancement entre aujourd'hui (0) et le 1er tour (1), utile pour tracer la trajectoire. */
   progress = 1,
+  /** Surcharge des cibles de concentration (utilisée par le backtest croisé strictement hors échantillon). */
+  targetOverrides?: Partial<Record<Bloc, number>>,
 ): CampaignProjectionResult {
   const daysRemaining = Math.max(0, daysBetween(asOf, electionDate))
   const horizonFactor = clamp(daysRemaining / PROJECTION_HORIZON_DAYS, 0, 1)
   const t = clamp(progress, 0, 1)
   const activeIds = Object.keys(baseScores)
   const byId = new Map(candidates.map((c) => [c.id, c]))
+  const targetFor = (b: Bloc) => targetOverrides?.[b] ?? TARGET_CONCENTRATION[b]
 
   // Courbe d'accélération du vote utile en fin de campagne (l'essentiel se joue dans les 2 derniers mois)
   const usefulVoteProgress = t ** 1.35
@@ -177,7 +182,7 @@ export function projectCampaign(
         {
           id: 'gauche',
           blocs: ['gauche'],
-          target: TARGET_CONCENTRATION.gauche,
+          target: targetFor('gauche'),
           intensity: clamp(settings.usefulVote.gauche.intensity, 0, 1),
           beneficiary: settings.usefulVote.gauche.beneficiary,
         },
@@ -198,7 +203,7 @@ export function projectCampaign(
         {
           id: 'extreme_droite',
           blocs: ['extreme_droite'],
-          target: TARGET_CONCENTRATION.extreme_droite,
+          target: targetFor('extreme_droite'),
           intensity: clamp(settings.usefulVote.extreme_droite.intensity, 0, 1),
           beneficiary: settings.usefulVote.extreme_droite.beneficiary,
         },
@@ -206,7 +211,7 @@ export function projectCampaign(
     : BLOCS.map((b) => ({
         id: b,
         blocs: [b],
-        target: TARGET_CONCENTRATION[b],
+        target: targetFor(b),
         intensity: clamp(settings.usefulVote[b].intensity, 0, 1),
         beneficiary: settings.usefulVote[b].beneficiary,
       }))

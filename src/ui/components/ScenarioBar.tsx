@@ -26,6 +26,11 @@ export function ScenarioBar({
     .filter((u) => u.beneficiary !== 'auto')
     .map((u) => cand(u.beneficiary).shortName)
 
+  const extraPillars = [
+    s.projection.meanReversion > 0 ? `amortissement ${num(s.projection.meanReversion * 100, 0)} %` : null,
+    s.projection.dampedTrend > 0 ? `tendance ${num(s.projection.dampedTrend * 100, 0)} %` : null,
+  ].filter(Boolean)
+
   return (
     <section aria-labelledby="scenario-title" className="rounded-xl bg-surface shadow-[var(--ballot-shadow)]">
       <details className="group">
@@ -69,8 +74,8 @@ export function ScenarioBar({
                 </div>
                 <p className="mt-1.5 text-xs text-ink-3">
                   {s.projection.enabled
-                    ? `Projette la dynamique structurelle d’ici au 1er tour (J−${result.projection.daysRemaining}) : vote utile par bloc (${s.projection.mergeCenterRight ? 'Centre + Droite regroupés' : '4 blocs séparés'}${customPivots.length > 0 ? `, pivot forcé : ${customPivots.join(', ')}` : ''}), amortissement des écarts précoces et tendance récente amortie.`
-                    : 'Photographie pondérée des sondages actuels (sans projection temporelle). Activez la projection pour simuler le vote utile et la dynamique jusqu’à avril 2027.'}
+                    ? `Projette le vote utile par bloc d’ici au 1er tour (J−${result.projection.daysRemaining}) : ${s.projection.mergeCenterRight ? 'Centre + Droite regroupés' : '4 blocs séparés'}${customPivots.length > 0 ? `, pivot forcé : ${customPivots.join(', ')}` : ''}${extraPillars.length > 0 ? ` + ${extraPillars.join(', ')}` : ''}.`
+                    : 'Photographie pondérée des sondages actuels (sans projection temporelle). Activez la projection pour simuler le vote utile jusqu’à avril 2027.'}
                 </p>
                 <button
                   type="button"
@@ -86,10 +91,23 @@ export function ScenarioBar({
                 checked={s.offerProjectionEnabled}
                 onCheckedChange={s.setOfferProjectionEnabled}
                 label="Projeter les sondages à offre proche (paires propres)"
-                description="Intègre les instituts qui ne testent pas un candidat (ex. Attal dans Odoxa ou Cluster17) en appliquant les transferts mesurés sur paires exactes intra-institut."
+                description="Intègre les instituts qui ne testent pas un candidat (ex. Attal dans Odoxa ou Cluster17) en appliquant 100 % des transferts mesurés sur paires exactes intra-institut."
               />
 
-              {/* Front républicain (vote de rejet du RN) directement accessible */}
+              <Switch
+                id="candidacy-uncertainty"
+                checked={s.candidacyUncertaintyEnabled}
+                onCheckedChange={s.setCandidacyUncertaintyEnabled}
+                disabled={result.allianceIds.length > 0}
+                label="Intégrer l’incertitude des candidatures (Monte-Carlo)"
+                description={
+                  result.allianceIds.length > 0
+                    ? 'Inactif lorsqu’une alliance est cochée : désactivez les alliances pour pondérer les 5 configurations de candidatures.'
+                    : 'Tire à chaque simulation parmi 5 offres testées au centre et à droite (Philippe + Lisnard 40 %, Philippe seul 30 %, Philippe + Attal 15 %, Attal seul 10 %, Lagarde seule 5 %).'
+                }
+              />
+
+              {/* Front républicain (2022 ↔ 2024) et report gauche hors LFI → Mélenchon */}
               <RepublicanFrontControls />
 
               <div>
@@ -102,7 +120,7 @@ export function ScenarioBar({
                     {
                       value: 'legislatives2024',
                       label: 'Base historique',
-                      hint: 'Défaut : législatives 2024 transposées en présidentielle via 2017–2022 et modulées par le front républicain',
+                      hint: 'Défaut : interpolation logit entre présidentielle 2022 (0 %) et législatives 2024 (100 %)',
                     },
                     {
                       value: 'blend',
@@ -118,9 +136,9 @@ export function ScenarioBar({
                 />
                 <p className="mt-1.5 text-sm text-ink-3">
                   {s.transferSource === 'legislatives2024' &&
-                    'Législatives 2024 (Ipsos-Talan) transposées en scrutin présidentiel d’après 2017–2022 et modulées de façon homogène sur les 4 profils par le front républicain ci-dessus.'}
+                    'Interpolation directe en logit entre les législatives 2024 (Ipsos-Talan, 100 %) et la présidentielle 2022 (0 %), avec réglage dédié pour le report gauche hors LFI → Mélenchon.'}
                   {s.transferSource === 'blend' &&
-                    'Combine la base historique présidentielle (ci-dessus) avec les déclarations d’intention 2027 corrigées sur échelle logit.'}
+                    'Combine la base historique 2022 ↔ 2024 (ci-dessus) avec les déclarations d’intention 2027 corrigées sur échelle logit.'}
                   {s.transferSource === 'declared2027' &&
                     'Reports déclarés dans les sondages de 2026 (Harris / Odoxa), corrigés sur échelle logit de l’écart moyen campagne → scrutin observé en 2017 et 2022.'}
                 </p>
@@ -139,7 +157,7 @@ export function ScenarioBar({
                   </div>
                 )}
                 <button type="button" className="link mt-2 block text-sm" onClick={() => onOpenSettings('reports')}>
-                  Ajuster les reports, la fidélité et la participation dans les réglages
+                  Ajuster les reports, les plages d’incertitude, la fidélité et la participation
                 </button>
               </div>
             </div>

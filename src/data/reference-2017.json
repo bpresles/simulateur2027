@@ -271,14 +271,23 @@
     }
   ],
   "campaignPolls": {
-    "description": "Sondages de 1er tour de la campagne 2017 (septembre 2016 à avril 2017), pour mesurer l'évolution des blocs à la même distance du scrutin que la base 2027 : dernier sondage de chaque institut dont le terrain s'achève dans la fenêtre. Les primaires LR (novembre 2016) et PS (janvier 2017) n'avaient pas encore désigné les candidats : toutes les hypothèses testant Emmanuel Macron sont retenues, quels que soient les candidats LR et PS testés, et chaque candidat compte dans son bloc (Hollande, Valls, Montebourg ou Peillon à gauche comme Benoît Hamon). Seuls les sondages ayant au moins une hypothèse conforme sont stockés.",
+    "description": "Sondages de 1er tour de la campagne 2017 (septembre 2016 à avril 2017) retenus sur l'offre stabilisée des finalistes et principaux candidats effectifs : exige Fillon, Macron, Mélenchon et Le Pen, et exclut les candidats battus aux primaires ou non candidats (Juppé, Sarkozy, Hollande, Valls, Montebourg, Bayrou, Peillon) afin d'éviter toute double comptabilisation de blocs.",
     "windowDays": 21,
     "require": [
       "melenchon",
       "macron",
-      "lepen"
+      "lepen",
+      "fillon"
     ],
-    "exclude": [],
+    "exclude": [
+      "juppe",
+      "sarkozy",
+      "hollande",
+      "valls",
+      "montebourg",
+      "bayrou",
+      "peillon"
+    ],
     "otherCandidates": [
       {
         "id": "bayrou",

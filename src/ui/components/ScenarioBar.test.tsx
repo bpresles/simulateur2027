@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-// Paramètres de la simulation : projection d'offre, source des reports 2024 / mélange / déclarations 2027 et réinitialisation.
+// Paramètres de la simulation : projection d'offre, front républicain 2022↔2024, report gauche hors LFI, candidatures et réinitialisation.
 import { cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { act } from 'react'
 import { simulationData } from '../../data/schema'
@@ -37,13 +37,22 @@ afterEach(() => {
   act(() => useSettings.getState().resetAll())
 })
 
-describe('ScenarioBar : projection d’offre et sources de reports', () => {
+describe('ScenarioBar : projection d’offre, front républicain 2022↔2024 et sources de reports', () => {
   it('active la projection d’offre par défaut et permet de la désactiver', () => {
     render(<Harness />)
     const sw = screen.getByRole('switch', { name: /Projeter les sondages à offre proche/ })
     expect(sw.getAttribute('aria-checked')).toBe('true')
     act(() => fireEvent.click(sw))
     expect(useSettings.getState().offerProjectionEnabled).toBe(false)
+    expect(sw.getAttribute('aria-checked')).toBe('false')
+  })
+
+  it('active l’incertitude des candidatures par défaut et permet de la désactiver', () => {
+    render(<Harness />)
+    const sw = screen.getByRole('switch', { name: /Intégrer l’incertitude des candidatures/ })
+    expect(sw.getAttribute('aria-checked')).toBe('true')
+    act(() => fireEvent.click(sw))
+    expect(useSettings.getState().candidacyUncertaintyEnabled).toBe(false)
     expect(sw.getAttribute('aria-checked')).toBe('false')
   })
 
@@ -61,21 +70,25 @@ describe('ScenarioBar : projection d’offre et sources de reports', () => {
     expect(screen.queryByRole('slider', { name: 'Poids des déclarations 2027' })).toBeNull()
   })
 
-  it('expose directement le réglage du Front républicain (préréglages, curseur global et par famille)', () => {
+  it('expose directement le Front républicain 2022↔2024 et le report gauche hors LFI → Mélenchon', () => {
     render(<Harness />)
     expect(screen.getByRole('slider', { name: 'Intensité globale du front républicain' })).toBeTruthy()
     expect(screen.getByRole('slider', { name: 'Front républicain : Centre / Droite' })).toBeTruthy()
     expect(screen.getByRole('slider', { name: 'Front républicain : Gauche modérée' })).toBeTruthy()
     expect(screen.getByRole('slider', { name: 'Front républicain : LFI' })).toBeTruthy()
+    expect(screen.getByRole('slider', { name: 'Report gauche hors LFI vers Mélenchon' })).toBeTruthy()
 
-    act(() => fireEvent.click(screen.getByRole('button', { name: 'Niveau 2017' })))
-    expect(useSettings.getState().republicanFront).toEqual({ centerRight: 1, moderateLeft: 1, lfi: 1 })
-
-    act(() => fireEvent.click(screen.getByRole('button', { name: 'Effacé' })))
+    act(() => fireEvent.click(screen.getByRole('button', { name: 'Présidentielle 2022' })))
     expect(useSettings.getState().republicanFront).toEqual({ centerRight: 0, moderateLeft: 0, lfi: 0 })
 
-    act(() => fireEvent.click(screen.getByRole('button', { name: 'Érodé 2027' })))
-    expect(useSettings.getState().republicanFront).toEqual({ centerRight: 0.55, moderateLeft: 0.5, lfi: 0.35 })
+    act(() => fireEvent.click(screen.getByRole('button', { name: 'Mi-chemin' })))
+    expect(useSettings.getState().republicanFront).toEqual({ centerRight: 0.5, moderateLeft: 0.5, lfi: 0.5 })
+
+    act(() => fireEvent.click(screen.getByRole('button', { name: 'Législatives 2024' })))
+    expect(useSettings.getState().republicanFront).toEqual({ centerRight: 1, moderateLeft: 1, lfi: 1 })
+
+    act(() => fireEvent.click(screen.getByRole('button', { name: '36 % (décl. 2027)' })))
+    expect(useSettings.getState().lfiLeftTransfer).toBe(36)
   })
 
   it('ouvre la feuille des réglages sur le bon onglet au clic sur les liens dédiés', () => {
@@ -96,8 +109,10 @@ describe('ScenarioBar : projection d’offre et sources de reports', () => {
     expect(details.open).toBe(true)
   })
 
-  it('bascule la projection dans ScenarioBar et déplace les réglages fins du vote utile par bloc dans les réglages avancés', () => {
+  it('active la projection avril 2027 par défaut dans ScenarioBar et déplace les réglages fins du vote utile par bloc dans les réglages avancés', () => {
     render(<Harness />)
+    expect(useSettings.getState().projection.enabled).toBe(true)
+    act(() => fireEvent.click(screen.getByRole('radio', { name: 'Aujourd’hui' })))
     expect(useSettings.getState().projection.enabled).toBe(false)
     act(() => fireEvent.click(screen.getByRole('radio', { name: 'Projection avril 2027' })))
     expect(useSettings.getState().projection.enabled).toBe(true)
@@ -123,12 +138,14 @@ describe('ScenarioBar : projection d’offre et sources de reports', () => {
     act(() => {
       useSettings.getState().setOfferProjectionEnabled(false)
       useSettings.getState().setTransferSource('declared2027')
+      useSettings.getState().setLfiLeftTransfer(40)
     })
     render(<Harness />)
     act(() => fireEvent.click(screen.getByRole('button', { name: 'Réinitialiser tous les paramètres' })))
     expect(useSettings.getState()).toMatchObject({
       offerProjectionEnabled: true,
       transferSource: 'legislatives2024',
+      lfiLeftTransfer: 72,
     })
   })
 })

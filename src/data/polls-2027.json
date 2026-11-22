@@ -363,72 +363,7 @@
       "bloc": "droite",
       "color": "#2a7bff",
       "colorDark": "#58a6ff",
-      "duelProfile": "lr_rn",
-      "minor": {
-        "transfers": [
-          {
-            "id": "cluster17-retailleau",
-            "label": "Report mesuré vers Retailleau (Cluster17)",
-            "parts": [
-              {
-                "id": "retailleau",
-                "weight": 50
-              },
-              {
-                "id": "lepen",
-                "weight": 40
-              },
-              {
-                "id": "glucksmann",
-                "weight": 10
-              }
-            ],
-            "note": "Report mesuré par Cluster17 : quand Retailleau est le seul candidat du bloc central et de LR, 42 % des électeurs de Lisnard votent pour lui, 36 % pour Le Pen, Zemmour ou Dupont-Aignan, 9 % à gauche et 13 % blanc, nul ou abstention. Poids rapportés aux votes exprimés et arrondis ; extrême droite comptée avec Le Pen, gauche avec Glucksmann.",
-            "sources": [
-              {
-                "label": "Cluster17 / Le Point, 14-15/10/2026 (focus droite et centre, p. 37)",
-                "url": "https://cluster17.com/wp-content/uploads/2026/10/P27-ITV-et-focus-droite-et-centre-C17-Le-Point-1.pdf"
-              }
-            ]
-          },
-          {
-            "id": "retailleau",
-            "label": "Comme les électeurs de Retailleau",
-            "parts": [
-              {
-                "id": "retailleau",
-                "weight": 100
-              }
-            ],
-            "note": "Hypothèse de départ du simulateur, sans source."
-          },
-          {
-            "id": "cluster17-philippe",
-            "label": "Report mesuré vers Philippe (Cluster17)",
-            "parts": [
-              {
-                "id": "lepen",
-                "weight": 65
-              },
-              {
-                "id": "philippe",
-                "weight": 30
-              },
-              {
-                "id": "glucksmann",
-                "weight": 5
-              }
-            ],
-            "note": "Report mesuré par Cluster17 quand Philippe est le seul candidat du bloc central et de LR : 26 % des électeurs de Lisnard votent pour lui, 53 % pour Le Pen, Zemmour ou Dupont-Aignan, 6 % à gauche, 15 % blanc, nul ou abstention.",
-            "sources": [
-              {
-                "label": "Cluster17 / Le Point, 14-15/10/2026 (focus droite et centre, p. 37)",
-                "url": "https://cluster17.com/wp-content/uploads/2026/10/P27-ITV-et-focus-droite-et-centre-C17-Le-Point-1.pdf"
-              }
-            ]
-          }
-        ]
-      }
+      "duelProfile": "lr_rn"
     },
     {
       "id": "bouamrane",

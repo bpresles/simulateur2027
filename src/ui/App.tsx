@@ -150,21 +150,22 @@ function SimulatorPage({
               par au moins un institut sont proposées.
             </li>
             <li>
-              <strong>2nd tour en flux bruts (% des inscrits)</strong> : base historique des législatives 2024
-              (Ipsos-Talan) transposée en scrutin présidentiel via 2017–2022 et modulée de façon homogène sur les 4
-              types de duels face au RN par la force du <em>front républicain</em> (réglable globalement et par famille
-              de duel), présidentielles 2007–2012 pour les duels hors RN, et option activable pour les déclarations 2027
-              corrigées en logit.
+              <strong>2nd tour en flux bruts (% des inscrits)</strong> : interpolation logit directe entre deux repères
+              mesurés — présidentielle 2022 (0 %) et législatives 2024 (100 %) — sur les 4 types de duels face au RN,
+              curseur dédié et analyse de sensibilité pour le report gauche hors LFI → Mélenchon (non mesuré en
+              présidentielle), présidentielles 2007–2012 pour les duels hors RN, et option activable pour les
+              déclarations 2027 corrigées en logit.
             </li>
             <li>
-              <strong>Projection temporelle (optionnelle)</strong> : bascule entre la photographie actuelle et une
-              projection vers avril 2027 combinant vote utile (réglable par bloc dans les réglages avancés), léger
-              amortissement des écarts précoces et tendance récente amortie sur l’historique des vagues.
+              <strong>Projection temporelle (activée par défaut)</strong> : projection vers avril 2027 centrée sur le
+              vote utile par bloc (réglable dans les réglages avancés ; amortissement et tendance récente désactivés par
+              défaut à 0 %), avec bascule en un clic vers la photographie actuelle (« Aujourd’hui »).
             </li>
             <li>
               <strong>Incertitude explicite</strong> : {integer(result.monteCarlo.iterations)} simulations Monte-Carlo
-              propageant la volatilité de campagne (calibrée sur 2017 et 2022) et l’incertitude des reports, pour
-              afficher des probabilités de victoire et des intervalles à 80 %.
+              propageant la volatilité historique des campagnes (1995–2022), l’incertitude des reports (dont la plage
+              gauche hors LFI → Mélenchon) et, par défaut (hors alliance forcée), l’incertitude sur les candidatures au
+              centre et à droite.
             </li>
           </ul>
           <p>

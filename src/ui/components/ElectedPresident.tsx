@@ -25,7 +25,7 @@ export function ElectedPresident({ result }: { result: SimulationResult }) {
   const rf = settings.republicanFront
   const transferDesc =
     settings.transferSource === 'legislatives2024'
-      ? `base historique (front républicain : ${pct(rf.centerRight * 100, 0)} Centre/Droite, ${pct(rf.moderateLeft * 100, 0)} Gauche modérée, ${pct(rf.lfi * 100, 0)} LFI)`
+      ? `base historique 2022 ↔ 2024 (${pct(rf.centerRight * 100, 0)} Centre/Droite, ${pct(rf.moderateLeft * 100, 0)} Gauche modérée, ${pct(rf.lfi * 100, 0)} LFI ; gauche hors LFI → Mélenchon : ${settings.lfiLeftTransfer} %, MC ${settings.lfiLeftTransferRange[0]}–${settings.lfiLeftTransferRange[1]} %)`
       : settings.transferSource === 'blend'
         ? `mélange base historique / déclarations 2027 (${pct(settings.declaredWeight * 100, 0)})`
         : 'déclarations 2027 corrigées en logit'
@@ -43,8 +43,8 @@ export function ElectedPresident({ result }: { result: SimulationResult }) {
 
       {leader && leaderCand && (
         <p className="mt-2 text-ink-2">
-          À cet horizon, aucune issue n’est acquise : compte tenu de la volatilité historique des campagnes (2017 et
-          2022) et de l’incertitude des reports, <strong>{leaderCand.shortName}</strong> l’emporte dans{' '}
+          À cet horizon, aucune issue n’est acquise : compte tenu de la volatilité historique des campagnes (1995–2022)
+          et de l’incertitude des reports, <strong>{leaderCand.shortName}</strong> l’emporte dans{' '}
           <strong className="num">{pct(leader.winProb, 0)}</strong> des simulations (qualification dans{' '}
           <span className="num">{pct(leader.qualifProb, 0)}</span> des cas). Dans le duel affiché ({cand(sr.a).shortName}{' '}
           – {cand(sr.b).shortName}), {cand(sr.a).shortName} gagne dans{' '}
@@ -98,8 +98,12 @@ export function ElectedPresident({ result }: { result: SimulationResult }) {
 
       <p className="mt-3 text-sm text-ink-3">
         Scénario : {result.projection.enabled ? 'projection avril 2027' : 'photographie actuelle'}, hypothèse «{' '}
-        {result.hypothesisSet.label} », {transferDesc},{' '}
-        {alliances.length > 0 ? alliances.join(', ') : 'sans alliance'}. Ce n’est ni un sondage ni une prévision.
+        {result.hypothesisSet.label} »
+        {settings.candidacyUncertaintyEnabled && result.allianceIds.length === 0
+          ? ' (+ incertitude des candidatures pondérée)'
+          : ''}
+        , {transferDesc}, {alliances.length > 0 ? alliances.join(', ') : 'sans alliance'}. Ce n’est ni un sondage ni une
+        prévision.
       </p>
     </section>
   )
