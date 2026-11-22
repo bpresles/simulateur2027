@@ -13,8 +13,7 @@ import { VoteFlow } from './VoteFlow'
 afterEach(cleanup)
 
 const result = simulate(simulationData, defaultSettings())
-/** Candidats seuls dans leur entrant : leur score du « Premier tour simulé » est affiché tel quel. */
-const solos = result.entrants.filter((e) => e.members.length === 1 && e.score > 0.5)
+const shownEntrants = result.entrants.filter((e) => e.score > 0.5)
 
 function renderFlow() {
   return render(
@@ -27,9 +26,8 @@ function renderFlow() {
 describe('score des candidats dans les reports', () => {
   it('le graphique affiche le score du premier tour simulé (en % des exprimés), pas des inscrits', () => {
     renderFlow()
-    expect(solos.length).toBeGreaterThan(5)
-    for (const e of solos) {
-      // Les étiquettes de gauche précèdent celles de droite : la première est celle de l'électorat.
+    expect(shownEntrants.length).toBeGreaterThan(5)
+    for (const e of shownEntrants) {
       const label = screen
         .getAllByRole('button')
         .find((b) => b.textContent?.startsWith(cand(e.id).shortName))!
@@ -41,7 +39,7 @@ describe('score des candidats dans les reports', () => {
     renderFlow()
     act(() => fireEvent.click(screen.getByRole('radio', { name: 'Tableau' })))
     const rows = within(screen.getByRole('table')).getAllByRole('row')
-    for (const e of solos) {
+    for (const e of shownEntrants) {
       const row = rows.find((r) => r.textContent?.startsWith(cand(e.id).shortName))!
       expect(within(row).getAllByRole('cell')[1]!.textContent).toBe(pct(shownScore(result, e)))
     }

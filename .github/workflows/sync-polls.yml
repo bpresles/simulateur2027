@@ -8,6 +8,7 @@ on:
 
 permissions:
   contents: write
+  issues: write
 
 concurrency:
   group: sync-polls
@@ -32,6 +33,8 @@ jobs:
 
       - name: Synchroniser les sondages
         id: sync
+        env:
+          SYNC_ALERTS_FILE: /tmp/sync-alerts.md
         run: bun run sync-polls
 
       - name: Vérifier les données (tests et build)
@@ -46,9 +49,25 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add src/data/polls-2027.json src/data/turnout-certainty.json
+          git add src/data/polls-2027.json src/data/polls-history-2027.json
           git commit -m "Données : synchronisation des sondages du $(date -u +%d/%m/%Y)"
           git push
+
+      - name: Ouvrir une alerte structurelle (non bloquant)
+        if: steps.sync.outputs.has_alerts == 'true'
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          TITLE="[sync-polls] Alerte structurelle sur l'offre de candidatures"
+          BODY="$(cat /tmp/sync-alerts.md)"
+          EXISTING="$(gh issue list --state open --search "\"$TITLE\" in:title" --json number,body --jq '.[0] // empty')"
+          if [ -z "$EXISTING" ]; then
+            gh issue create --title "$TITLE" --body "$BODY"
+          else
+            NUM="$(echo "$EXISTING" | jq -r '.number')"
+            gh issue comment "$NUM" --body "$BODY"
+          fi
 
       - name: Redéployer sur Vercel (Deploy Hook)
         if: steps.sync.outputs.changed == 'true' && env.VERCEL_DEPLOY_HOOK_URL != ''

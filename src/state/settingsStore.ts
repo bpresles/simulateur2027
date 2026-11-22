@@ -1,41 +1,60 @@
 import { create } from 'zustand'
 import { createJSONStorage, persist } from 'zustand/middleware'
+import { defaultProjectionSettings } from '../domain/campaignProjection'
 import { defaultSettings } from '../domain/simulate'
-import type { Bloc, CandidateId, ProfileId, Settings, TransferValues } from '../domain/types'
+import {
+  DEFAULT_LFI_LEFT_TRANSFER,
+  DEFAULT_LFI_LEFT_TRANSFER_RANGE,
+  defaultRepublicanFront,
+  REPUBLICAN_FRONT_PRESETS,
+} from '../domain/transfers'
+import { REPUBLICAN_FRONT_FAMILIES } from '../domain/types'
+import type {
+  Bloc,
+  BlocUsefulVote,
+  CandidateId,
+  ProfileId,
+  RepublicanFrontFamily,
+  RepublicanFrontPreset,
+  Settings,
+  TransferSource,
+  TransferValues,
+} from '../domain/types'
+
+const clamp = (v: number, min: number, max: number) => Math.max(min, Math.min(max, v))
+const clamp01 = (v: number) => clamp(v, 0, 1)
+const roundPct = (v: number) => Math.round(clamp01(v) * 100) / 100
 
 interface SettingsActions {
   setPollIncluded: (pollId: string, included: boolean) => void
   includeAllPolls: () => void
-  setProgressionEnabled: (enabled: boolean) => void
-  setProgressionIntensity: (intensity: number) => void
-  setCorrectionsEnabled: (enabled: boolean) => void
-  setCorrectionIntensity: (intensity: number) => void
-  /** `undefined` retire la surcharge et rétablit la correction calculée. */
-  setCorrectionOverride: (id: CandidateId, points: number | undefined) => void
-  /** `undefined` rétablit le dosage des données pour cette référence composite. */
-  setReferenceBlend: (id: CandidateId, weight: number | undefined) => void
-  setBlogBiasEnabled: (enabled: boolean) => void
-  setBlogBiasIntensity: (intensity: number) => void
-  setTransferCorrectionEnabled: (enabled: boolean) => void
-  setTransferCorrectionIntensity: (intensity: number) => void
-  setTurnoutEnabled: (enabled: boolean) => void
-  /** `null` rétablit la participation attendue par défaut (la hausse des certains reportée sur 2022). */
-  setTurnoutExpected: (expected: number | null) => void
-  /** Remplace les alliances actives (celles qu'aucun sondage ne permet plus sont retirées). */
+  /** Remplace les alliances actives (seules les combinaisons testées sont appliquées). */
   setAlliances: (alliances: Record<string, boolean>) => void
-  setUntestedAlliances: (enabled: boolean) => void
-  setGroupedAlliances: (enabled: boolean) => void
-  /** `undefined` rétablit le taux constaté en 2024 pour cette alliance estimée. */
-  setAllianceOverride: (allianceId: string, share: number | undefined) => void
+  setOfferProjectionEnabled: (enabled: boolean) => void
+  setCandidacyUncertaintyEnabled: (enabled: boolean) => void
+  setProjectionEnabled: (enabled: boolean) => void
+  setBlocUsefulVote: (bloc: Bloc, patch: Partial<BlocUsefulVote>) => void
+  setMergeCenterRight: (merged: boolean) => void
+  setMeanReversion: (reversion: number) => void
+  setDampedTrend: (trend: number) => void
+  resetProjection: () => void
+  setTransferSource: (source: TransferSource) => void
+  setDeclaredWeight: (weight: number) => void
+  setRepublicanFront: (family: RepublicanFrontFamily, value: number) => void
+  setRepublicanFrontGlobal: (value: number) => void
+  applyRepublicanFrontPreset: (preset: RepublicanFrontPreset) => void
+  resetRepublicanFront: () => void
+  setLfiLeftTransfer: (rate: number) => void
+  setLfiLeftTransferRange: (range: [number, number]) => void
+  resetLfiLeftTransfer: () => void
   setTransferOverride: (profile: ProfileId, bloc: Bloc, values: TransferValues | undefined) => void
   /** `undefined` rétablit la répartition par défaut des électeurs de ce petit candidat. */
   setMinorTransfer: (id: CandidateId, transferId: string | undefined) => void
   setFidelity: (fidelity: number | null) => void
-  setAbstentionCalibration: (enabled: boolean) => void
-  /** `null` rétablit le niveau réel du 2nd tour 2022. */
-  setAbstentionTarget: (target: number | null) => void
-  setQualificationPick: (pick: 'second' | 'third') => void
-  resetCorrections: () => void
+  setFirstRoundTurnout: (turnout: number) => void
+  setAbstainerMobilization: (mob: number) => void
+  setAbstainerAntiRnShare: (share: number) => void
+  setSelectedDuel: (duelId: string | null) => void
   resetTransfers: () => void
   resetAll: () => void
 }
@@ -43,7 +62,7 @@ interface SettingsActions {
 export type SettingsStore = Settings & SettingsActions
 
 const STORAGE_KEY = 'simulateur2027:settings'
-const STORAGE_VERSION = 10
+const STORAGE_VERSION = 15
 
 export const useSettings = create<SettingsStore>()(
   persist(
@@ -55,40 +74,76 @@ export const useSettings = create<SettingsStore>()(
           return { excludedPolls: included ? rest : [...rest, pollId] }
         }),
       includeAllPolls: () => set({ excludedPolls: [] }),
-      setProgressionEnabled: (progressionEnabled) => set({ progressionEnabled }),
-      setProgressionIntensity: (progressionIntensity) => set({ progressionIntensity }),
-      setCorrectionsEnabled: (correctionsEnabled) => set({ correctionsEnabled }),
-      setCorrectionIntensity: (correctionIntensity) => set({ correctionIntensity }),
-      setCorrectionOverride: (id, points) =>
-        set((s) => {
-          const { [id]: _, ...rest } = s.correctionOverrides
-          return { correctionOverrides: points === undefined ? rest : { ...rest, [id]: points } }
-        }),
-      setReferenceBlend: (id, weight) =>
-        set((s) => {
-          const { [id]: _, ...rest } = s.referenceBlend
-          return { referenceBlend: weight === undefined ? rest : { ...rest, [id]: weight } }
-        }),
-      setBlogBiasEnabled: (blogBiasEnabled) => set({ blogBiasEnabled }),
-      setBlogBiasIntensity: (blogBiasIntensity) => set({ blogBiasIntensity }),
-      setTransferCorrectionEnabled: (transferCorrectionEnabled) => set({ transferCorrectionEnabled }),
-      setTransferCorrectionIntensity: (transferCorrectionIntensity) => set({ transferCorrectionIntensity }),
-      setTurnoutEnabled: (turnoutEnabled) => set({ turnoutEnabled }),
-      setTurnoutExpected: (turnoutExpected) => set({ turnoutExpected }),
       setAlliances: (alliances) => set({ alliances }),
-      setUntestedAlliances: (untestedAlliances) => set({ untestedAlliances }),
-      setGroupedAlliances: (groupedAlliances) => set({ groupedAlliances }),
-      setAllianceOverride: (allianceId, share) =>
+      setOfferProjectionEnabled: (offerProjectionEnabled) => set({ offerProjectionEnabled }),
+      setCandidacyUncertaintyEnabled: (candidacyUncertaintyEnabled) => set({ candidacyUncertaintyEnabled }),
+      setProjectionEnabled: (enabled) => set((s) => ({ projection: { ...s.projection, enabled } })),
+      setBlocUsefulVote: (bloc, patch) =>
+        set((s) => ({
+          projection: {
+            ...s.projection,
+            usefulVote: {
+              ...s.projection.usefulVote,
+              [bloc]: { ...s.projection.usefulVote[bloc], ...patch },
+            },
+          },
+        })),
+      setMergeCenterRight: (mergeCenterRight) =>
+        set((s) => ({ projection: { ...s.projection, mergeCenterRight } })),
+      setMeanReversion: (meanReversion) =>
+        set((s) => ({ projection: { ...s.projection, meanReversion } })),
+      setDampedTrend: (dampedTrend) =>
+        set((s) => ({ projection: { ...s.projection, dampedTrend } })),
+      resetProjection: () =>
+        set((s) => ({
+          projection: { ...defaultProjectionSettings(), enabled: s.projection.enabled },
+        })),
+      setTransferSource: (transferSource) => set({ transferSource }),
+      setDeclaredWeight: (declaredWeight) => set({ declaredWeight }),
+      setRepublicanFront: (family, value) =>
+        set((s) => ({
+          republicanFront: { ...s.republicanFront, [family]: roundPct(value) },
+        })),
+      setRepublicanFrontGlobal: (value) =>
         set((s) => {
-          const { [allianceId]: _, ...rest } = s.allianceOverrides
-          return { allianceOverrides: share === undefined ? rest : { ...rest, [allianceId]: share } }
+          const target = clamp01(value)
+          if (target <= 0) return { republicanFront: { centerRight: 0, moderateLeft: 0, lfi: 0 } }
+          if (target >= 1) return { republicanFront: { centerRight: 1, moderateLeft: 1, lfi: 1 } }
+          const avg =
+            REPUBLICAN_FRONT_FAMILIES.reduce((sum, k) => sum + s.republicanFront[k], 0) /
+            REPUBLICAN_FRONT_FAMILIES.length
+          const delta = target - avg
+          return {
+            republicanFront: {
+              centerRight: roundPct(s.republicanFront.centerRight + delta),
+              moderateLeft: roundPct(s.republicanFront.moderateLeft + delta),
+              lfi: roundPct(s.republicanFront.lfi + delta),
+            },
+          }
+        }),
+      applyRepublicanFrontPreset: (preset) =>
+        set({ republicanFront: { ...REPUBLICAN_FRONT_PRESETS[preset] } }),
+      resetRepublicanFront: () => set({ republicanFront: defaultRepublicanFront() }),
+      setLfiLeftTransfer: (rate) => set({ lfiLeftTransfer: Math.round(clamp(rate, 5, 95)) }),
+      setLfiLeftTransferRange: (range) => {
+        const lo = Math.round(clamp(Math.min(range[0], range[1]), 5, 95))
+        const hi = Math.round(clamp(Math.max(range[0], range[1]), 5, 95))
+        set({ lfiLeftTransferRange: [lo, hi] })
+      },
+      resetLfiLeftTransfer: () =>
+        set({
+          lfiLeftTransfer: DEFAULT_LFI_LEFT_TRANSFER,
+          lfiLeftTransferRange: [...DEFAULT_LFI_LEFT_TRANSFER_RANGE],
         }),
       setTransferOverride: (profile, bloc, values) =>
         set((s) => {
           const { [bloc]: _, ...rows } = s.transferOverrides[profile] ?? {}
-          return {
-            transferOverrides: { ...s.transferOverrides, [profile]: values ? { ...rows, [bloc]: values } : rows },
+          const nextProfile = values ? { ...rows, [bloc]: values } : rows
+          if (Object.keys(nextProfile).length === 0) {
+            const { [profile]: _p, ...rest } = s.transferOverrides
+            return { transferOverrides: rest }
           }
+          return { transferOverrides: { ...s.transferOverrides, [profile]: nextProfile } }
         }),
       setMinorTransfer: (id, transferId) =>
         set((s) => {
@@ -96,21 +151,26 @@ export const useSettings = create<SettingsStore>()(
           return { minorTransfers: transferId === undefined ? rest : { ...rest, [id]: transferId } }
         }),
       setFidelity: (fidelity) => set({ fidelity }),
-      setAbstentionCalibration: (abstentionCalibration) => set({ abstentionCalibration }),
-      setAbstentionTarget: (abstentionTarget) => set({ abstentionTarget }),
-      setQualificationPick: (qualificationPick) => set({ qualificationPick }),
-      resetCorrections: () => {
-        const { correctionsEnabled, correctionIntensity, correctionOverrides, referenceBlend } = defaultSettings()
-        set({ correctionsEnabled, correctionIntensity, correctionOverrides, referenceBlend })
-      },
-      resetTransfers: () =>
+      setFirstRoundTurnout: (firstRoundTurnout) => set({ firstRoundTurnout }),
+      setAbstainerMobilization: (abstainerMobilization) => set({ abstainerMobilization }),
+      setAbstainerAntiRnShare: (abstainerAntiRnShare) => set({ abstainerAntiRnShare }),
+      setSelectedDuel: (selectedDuel) => set({ selectedDuel }),
+      resetTransfers: () => {
+        const d = defaultSettings()
         set({
-          transferOverrides: {},
-          minorTransfers: {},
-          fidelity: null,
-          abstentionCalibration: true,
-          abstentionTarget: null,
-        }),
+          transferSource: d.transferSource,
+          declaredWeight: d.declaredWeight,
+          republicanFront: d.republicanFront,
+          lfiLeftTransfer: d.lfiLeftTransfer,
+          lfiLeftTransferRange: d.lfiLeftTransferRange,
+          transferOverrides: d.transferOverrides,
+          minorTransfers: d.minorTransfers,
+          fidelity: d.fidelity,
+          firstRoundTurnout: d.firstRoundTurnout,
+          abstainerMobilization: d.abstainerMobilization,
+          abstainerAntiRnShare: d.abstainerAntiRnShare,
+        })
+      },
       resetAll: () => set(defaultSettings()),
     }),
     {
@@ -119,68 +179,71 @@ export const useSettings = create<SettingsStore>()(
       storage: createJSONStorage(() => localStorage),
       partialize: (s): Settings => ({
         excludedPolls: s.excludedPolls,
-        progressionEnabled: s.progressionEnabled,
-        progressionIntensity: s.progressionIntensity,
-        correctionsEnabled: s.correctionsEnabled,
-        correctionIntensity: s.correctionIntensity,
-        correctionOverrides: s.correctionOverrides,
-        referenceBlend: s.referenceBlend,
-        blogBiasEnabled: s.blogBiasEnabled,
-        blogBiasIntensity: s.blogBiasIntensity,
-        turnoutEnabled: s.turnoutEnabled,
-        turnoutExpected: s.turnoutExpected,
         alliances: s.alliances,
-        untestedAlliances: s.untestedAlliances,
-        groupedAlliances: s.groupedAlliances,
-        allianceOverrides: s.allianceOverrides,
-        transferCorrectionEnabled: s.transferCorrectionEnabled,
-        transferCorrectionIntensity: s.transferCorrectionIntensity,
+        offerProjectionEnabled: s.offerProjectionEnabled,
+        candidacyUncertaintyEnabled: s.candidacyUncertaintyEnabled,
+        projection: s.projection,
+        transferSource: s.transferSource,
+        declaredWeight: s.declaredWeight,
+        republicanFront: s.republicanFront,
+        lfiLeftTransfer: s.lfiLeftTransfer,
+        lfiLeftTransferRange: s.lfiLeftTransferRange,
         transferOverrides: s.transferOverrides,
         minorTransfers: s.minorTransfers,
         fidelity: s.fidelity,
-        abstentionCalibration: s.abstentionCalibration,
-        abstentionTarget: s.abstentionTarget,
-        qualificationPick: s.qualificationPick,
+        firstRoundTurnout: s.firstRoundTurnout,
+        abstainerMobilization: s.abstainerMobilization,
+        abstainerAntiRnShare: s.abstainerAntiRnShare,
+        selectedDuel: s.selectedDuel,
       }),
-      // v1 → v2 : les lignes de reports ont changé de sens, leurs surcharges sont abandonnées.
-      // ≤ v2 : l'alliance « philippe-glucksmann » avait un leader variable, son sens a changé.
-      // ≤ v3 : le report d'alliance unique est remplacé par des taux par alliance (2024 par défaut).
-      // ≤ v4 : le choix d'hypothèse « Philippe seul » devient l'alliance « Attal rejoint Philippe ».
-      // ≤ v5 : les intensités passent de 100 % à 70 % par défaut ; une intensité restée à 100 % suit.
-      // ≤ v6 : les alliances passent par les hypothèses des sondages ; leurs taux modifiés ne servent plus
-      // qu'aux alliances non testées (option désactivée par défaut).
-      // ≤ v7 : les intensités repassent à 100 % par défaut et seules les options du billet (biais et hausse de
-      // participation) sont activées ; une intensité restée à 70 % et « Corriger la moyenne » resté activé
-      // (anciens défauts) suivent.
-      // ≤ v8 : l'intensité de la hausse de participation (7 points du billet) est remplacée par une
-      // participation attendue (null = défaut) ; l'ancienne intensité est abandonnée.
-      // ≤ v9 : l'option de correction des reports d'après les votes réels de 2024 est ajoutée (activée par
-      // défaut, à 100 %) : les anciens réglages la reçoivent par défaut.
-      // Le reste du scénario est conservé ; les nouveaux réglages prennent leur valeur par défaut.
       migrate: (persisted, version) => {
-        if (version < 1 || version > 9) return defaultSettings()
-        const {
-          allianceEfficiency: _efficiency,
-          hypothesisSetId,
-          turnoutIntensity: _turnoutIntensity,
-          ...old
-        } = persisted as Partial<Settings> & {
-          allianceEfficiency?: unknown
+        if (version < 1 || version > 14 || !persisted || typeof persisted !== 'object') return defaultSettings()
+        const old = persisted as Partial<Settings> & {
           hypothesisSetId?: string | null
-          turnoutIntensity?: unknown
+          centerRnPresidentialWeight?: number
         }
-        const { 'philippe-glucksmann': _dynamic, ...kept } = old.alliances ?? {}
-        const alliances = version <= 2 ? kept : (old.alliances ?? {})
+        if (version === 14) {
+          const defProj = defaultProjectionSettings()
+          return {
+            ...defaultSettings(),
+            ...old,
+            projection: old.projection ? { ...defProj, ...old.projection, enabled: true } : defProj,
+            candidacyUncertaintyEnabled: true,
+          }
+        }
+        if (version >= 11 && version <= 13) {
+          const { centerRnPresidentialWeight: _legacy, ...rest } = old
+          const defProj = defaultProjectionSettings()
+          const keptProj =
+            version >= 12 && old.projection
+              ? {
+                  ...defProj,
+                  enabled: true,
+                  usefulVote: old.projection.usefulVote,
+                  mergeCenterRight: old.projection.mergeCenterRight,
+                }
+              : defProj
+          return {
+            ...defaultSettings(),
+            ...rest,
+            projection: keptProj,
+            republicanFront: defaultRepublicanFront(),
+            lfiLeftTransfer: DEFAULT_LFI_LEFT_TRANSFER,
+            lfiLeftTransferRange: [...DEFAULT_LFI_LEFT_TRANSFER_RANGE],
+            candidacyUncertaintyEnabled: true,
+          }
+        }
+        const { 'philippe-glucksmann': _dynamic, ...keptAlliances } = old.alliances ?? {}
+        const baseAlliances = version <= 2 ? keptAlliances : (old.alliances ?? {})
+        const alliances =
+          old.hypothesisSetId === 'philippe-seul' ? { ...baseAlliances, 'attal-philippe': true } : baseAlliances
         return {
           ...defaultSettings(),
-          ...old,
-          alliances: hypothesisSetId === 'philippe-seul' ? { ...alliances, 'attal-philippe': true } : alliances,
+          excludedPolls: Array.isArray(old.excludedPolls) ? old.excludedPolls : [],
+          alliances,
           transferOverrides: version === 1 ? {} : (old.transferOverrides ?? {}),
-          // Les anciens défauts (≤ v7) ne concernent pas les états de la v8, dont les valeurs sont délibérées.
-          ...(version <= 7 && old.progressionIntensity === 0.7 && { progressionIntensity: defaultSettings().progressionIntensity }),
-          ...(version <= 7 && old.correctionIntensity === 0.7 && { correctionIntensity: defaultSettings().correctionIntensity }),
-          ...(version <= 7 && old.blogBiasIntensity === 0.7 && { blogBiasIntensity: defaultSettings().blogBiasIntensity }),
-          ...(version <= 7 && old.correctionsEnabled === true && { correctionsEnabled: defaultSettings().correctionsEnabled }),
+          minorTransfers: old.minorTransfers ?? {},
+          fidelity: typeof old.fidelity === 'number' ? old.fidelity : null,
         }
       },
     },
@@ -190,27 +253,21 @@ export const useSettings = create<SettingsStore>()(
 export function selectSettings(s: SettingsStore): Settings {
   return {
     excludedPolls: s.excludedPolls,
-    progressionEnabled: s.progressionEnabled,
-    progressionIntensity: s.progressionIntensity,
-    correctionsEnabled: s.correctionsEnabled,
-    correctionIntensity: s.correctionIntensity,
-    correctionOverrides: s.correctionOverrides,
-    referenceBlend: s.referenceBlend,
-    blogBiasEnabled: s.blogBiasEnabled,
-    blogBiasIntensity: s.blogBiasIntensity,
-    turnoutEnabled: s.turnoutEnabled,
-    turnoutExpected: s.turnoutExpected,
     alliances: s.alliances,
-    untestedAlliances: s.untestedAlliances,
-    groupedAlliances: s.groupedAlliances,
-    allianceOverrides: s.allianceOverrides,
-    transferCorrectionEnabled: s.transferCorrectionEnabled,
-    transferCorrectionIntensity: s.transferCorrectionIntensity,
+    offerProjectionEnabled: s.offerProjectionEnabled,
+    candidacyUncertaintyEnabled: s.candidacyUncertaintyEnabled,
+    projection: s.projection,
+    transferSource: s.transferSource,
+    declaredWeight: s.declaredWeight,
+    republicanFront: s.republicanFront,
+    lfiLeftTransfer: s.lfiLeftTransfer,
+    lfiLeftTransferRange: s.lfiLeftTransferRange,
     transferOverrides: s.transferOverrides,
     minorTransfers: s.minorTransfers,
     fidelity: s.fidelity,
-    abstentionCalibration: s.abstentionCalibration,
-    abstentionTarget: s.abstentionTarget,
-    qualificationPick: s.qualificationPick,
+    firstRoundTurnout: s.firstRoundTurnout,
+    abstainerMobilization: s.abstainerMobilization,
+    abstainerAntiRnShare: s.abstainerAntiRnShare,
+    selectedDuel: s.selectedDuel,
   }
 }

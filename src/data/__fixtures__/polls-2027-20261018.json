@@ -28,8 +28,7 @@
       "bloc": "gauche",
       "color": "#8f1d3f",
       "colorDark": "#b0407a",
-      "duelProfile": null,
-      "ref2022": "arthaud"
+      "duelProfile": null
     },
     {
       "id": "melenchon",
@@ -39,8 +38,7 @@
       "bloc": "gauche",
       "color": "#c9254b",
       "colorDark": "#d8395f",
-      "duelProfile": "lfi_rn",
-      "ref2022": "melenchon"
+      "duelProfile": "lfi_rn"
     },
     {
       "id": "roussel",
@@ -50,8 +48,7 @@
       "bloc": "gauche",
       "color": "#e4572e",
       "colorDark": "#e0592f",
-      "duelProfile": "ecolo_ps_pcf_rn",
-      "ref2022": "roussel"
+      "duelProfile": "ecolo_ps_pcf_rn"
     },
     {
       "id": "tondelier",
@@ -61,9 +58,7 @@
       "bloc": "gauche",
       "color": "#1f9a72",
       "colorDark": "#21a37a",
-      "duelProfile": "ecolo_ps_pcf_rn",
-      "ref2022": "jadot",
-      "ref2022Note": "référence Yannick Jadot, candidat écologiste (EELV) en 2022."
+      "duelProfile": "ecolo_ps_pcf_rn"
     },
     {
       "id": "glucksmann",
@@ -73,18 +68,7 @@
       "bloc": "gauche",
       "color": "#e0569b",
       "colorDark": "#d9589a",
-      "duelProfile": "ecolo_ps_pcf_rn",
-      "ref2022": [
-        {
-          "id": "hidalgo",
-          "weight": 0.3
-        },
-        {
-          "id": "macron",
-          "weight": 0.7
-        }
-      ],
-      "ref2022Note": "référence pondérée entre Emmanuel Macron, 70 %, et Anne Hidalgo (PS), 30 % par défaut (réglable). Vainqueur de la primaire socialiste du 11/10/2026, il a un électorat plus centriste que celui d'Anne Hidalgo, plus proche de celui d'Emmanuel Macron."
+      "duelProfile": "ecolo_ps_pcf_rn"
     },
     {
       "id": "attal",
@@ -94,9 +78,7 @@
       "bloc": "centre",
       "color": "#d98f1f",
       "colorDark": "#c4862a",
-      "duelProfile": "ensemble_rn",
-      "ref2022": "macron",
-      "ref2022Note": "référence Emmanuel Macron (bloc central, ex-majorité présidentielle)."
+      "duelProfile": "ensemble_rn"
     },
     {
       "id": "philippe",
@@ -106,9 +88,7 @@
       "bloc": "centre",
       "color": "#2492c4",
       "colorDark": "#2197c9",
-      "duelProfile": "ensemble_rn",
-      "ref2022": "macron",
-      "ref2022Note": "référence Emmanuel Macron (bloc central, ex-majorité présidentielle)."
+      "duelProfile": "ensemble_rn"
     },
     {
       "id": "retailleau",
@@ -118,18 +98,7 @@
       "bloc": "droite",
       "color": "#2f5fb3",
       "colorDark": "#4a78d0",
-      "duelProfile": "lr_rn",
-      "ref2022": [
-        {
-          "id": "pecresse",
-          "weight": 0.6
-        },
-        {
-          "id": "lepen",
-          "weight": 0.4
-        }
-      ],
-      "ref2022Note": "référence pondérée entre Valérie Pécresse (LR), 60 %, et Marine Le Pen, 40 % par défaut (réglable). Il est idéologiquement plus proche de l'électorat de Marine Le Pen que la candidate LR de 2022 et peut lui prendre des voix."
+      "duelProfile": "lr_rn"
     },
     {
       "id": "dupont-aignan",
@@ -139,8 +108,7 @@
       "bloc": "extreme_droite",
       "color": "#8457b3",
       "colorDark": "#9068c2",
-      "duelProfile": null,
-      "ref2022": "dupont-aignan"
+      "duelProfile": null
     },
     {
       "id": "lepen",
@@ -151,7 +119,6 @@
       "color": "#3f4c99",
       "colorDark": "#6672c9",
       "duelProfile": null,
-      "ref2022": "lepen",
       "isRN": true
     },
     {
@@ -162,8 +129,7 @@
       "bloc": "extreme_droite",
       "color": "#a0582a",
       "colorDark": "#b0662f",
-      "duelProfile": null,
-      "ref2022": "zemmour"
+      "duelProfile": null
     }
   ],
   "otherCandidates": [
