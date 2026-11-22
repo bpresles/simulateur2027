@@ -9,10 +9,17 @@ import type {
 import { cand, colorVars } from '../candidates'
 import { pct, pts, shownScore } from '../format'
 import { InfoTip } from './InfoTip'
+import type { SettingsTab } from './SettingsSheet'
 
 const spring = { type: 'spring', stiffness: 170, damping: 26 } as const
 
-export function FirstRoundChart({ result }: { result: SimulationResult }) {
+export function FirstRoundChart({
+  result,
+  onOpenSettings,
+}: {
+  result: SimulationResult
+  onOpenSettings: (tab?: SettingsTab) => void
+}) {
   const mc = result.monteCarlo.candidates
   const projEnabled = result.projection.enabled
   const rowsById = new Map(result.firstRound.map((r) => [r.candidateId, r]))
@@ -23,7 +30,10 @@ export function FirstRoundChart({ result }: { result: SimulationResult }) {
   const baseLabel = single ? 'Sondage retenu' : 'Moyenne pondérée'
 
   return (
-    <section aria-labelledby="first-round-title">
+    <section
+      aria-labelledby="first-round-title"
+      className="rounded-xl bg-surface p-5 shadow-(--ballot-shadow) sm:p-6"
+    >
       <div className="mb-4 flex flex-wrap items-end justify-between gap-x-6 gap-y-2">
         <h2 id="first-round-title" className="text-2xl font-bold tracking-tight">
           {projEnabled ? 'Premier tour projeté (avril 2027)' : 'Premier tour simulé'}
@@ -91,6 +101,14 @@ export function FirstRoundChart({ result }: { result: SimulationResult }) {
           ))}
         </ol>
       </div>
+      <p className="mt-4 text-sm text-ink-3">
+        Survolez ou sélectionnez un candidat pour voir son intervalle à 80 % et ses probabilités de
+        qualification et de victoire. Les paramètres de reports se règlent dans les{' '}
+        <button type="button" className="link" onClick={() => onOpenSettings('reports')}>
+          réglages
+        </button>
+        .
+      </p>
     </section>
   )
 }
@@ -173,7 +191,9 @@ function CandidateRow({
         </div>
 
         <span className="num text-right font-semibold">{pct(shown)}</span>
-        <span className={`num hidden text-right text-sm sm:block ${qualifProb >= 5 ? 'text-ink-2' : 'text-ink-3'}`}>
+        <span
+          className={`num hidden text-right text-sm sm:block ${qualifProb >= 5 ? 'text-ink-2' : 'text-ink-3'}`}
+        >
           {qualifProb >= 0.5 ? pct(qualifProb, 0) : '< 1 %'}
         </span>
       </div>

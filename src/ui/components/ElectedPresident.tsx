@@ -31,7 +31,10 @@ export function ElectedPresident({ result }: { result: SimulationResult }) {
         : 'déclarations 2027 corrigées en logit'
 
   return (
-    <section aria-labelledby="elected-title" className="mt-10">
+    <section
+      aria-labelledby="elected-title"
+      className="rounded-xl bg-surface p-5 shadow-(--ballot-shadow) sm:p-6"
+    >
       <div className="flex flex-wrap items-baseline justify-between gap-2">
         <h2 id="elected-title" className="text-2xl font-bold tracking-tight">
           Issues simulées
@@ -56,7 +59,7 @@ export function ElectedPresident({ result }: { result: SimulationResult }) {
         </p>
       )}
 
-      <div aria-live="polite" className="mt-4 rounded-xl bg-surface p-5 shadow-(--ballot-shadow) sm:p-6">
+      <div aria-live="polite" className="mt-4 p-6">
         <div className="mb-3 grid grid-cols-[9rem_1fr_4.5rem_5rem] gap-x-3 text-xs font-medium uppercase tracking-wide text-ink-3">
           <span>Candidat</span>
           <span className="flex items-baseline justify-between">

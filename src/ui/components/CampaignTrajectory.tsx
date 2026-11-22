@@ -31,7 +31,7 @@ export function CampaignTrajectory({ result }: { result: SimulationResult }) {
 
   const points = trajectory.points
   const tracked = trajectory.trackedIds
-  const activeFocus = focusedId && tracked.includes(focusedId) ? focusedId : tracked[0] ?? null
+  const activeFocus = focusedId && tracked.includes(focusedId) ? focusedId : (tracked[0] ?? null)
 
   const { minTs, maxTs, maxY, xOf, yOf, ticksX, ticksY, nowX } = useMemo(() => {
     const ts = points.map((p) => Date.parse(`${p.date}T00:00:00Z`))
@@ -65,7 +65,16 @@ export function CampaignTrajectory({ result }: { result: SimulationResult }) {
     const ty: number[] = []
     for (let v = 0; v <= ceilY; v += stepY) ty.push(v)
 
-    return { minTs: minT, maxTs: maxT, maxY: ceilY, xOf: x, yOf: y, ticksX: tx, ticksY: ty, nowX: x(trajectory.asOf) }
+    return {
+      minTs: minT,
+      maxTs: maxT,
+      maxY: ceilY,
+      xOf: x,
+      yOf: y,
+      ticksX: tx,
+      ticksY: ty,
+      nowX: x(trajectory.asOf),
+    }
   }, [points, tracked, trajectory.asOf, trajectory.electionDate])
 
   if (points.length < 2 || tracked.length === 0) return null
@@ -106,7 +115,7 @@ export function CampaignTrajectory({ result }: { result: SimulationResult }) {
     if (cur.y - prev.y < 14) cur.y = prev.y + 14
   }
 
-  const hovered = hoverIndex !== null ? points[hoverIndex] ?? null : null
+  const hovered = hoverIndex !== null ? (points[hoverIndex] ?? null) : null
   const handlePointerMove = (e: React.PointerEvent<SVGSVGElement>) => {
     const rect = e.currentTarget.getBoundingClientRect()
     const svgX = ((e.clientX - rect.left) / rect.width) * W
@@ -129,7 +138,10 @@ export function CampaignTrajectory({ result }: { result: SimulationResult }) {
   }
 
   return (
-    <section aria-labelledby="trajectory-title" className="mt-10 rounded-xl bg-surface p-5 shadow-[var(--ballot-shadow)] sm:p-6">
+    <section
+      aria-labelledby="trajectory-title"
+      className="rounded-xl bg-surface p-5 shadow-[var(--ballot-shadow)] sm:p-6"
+    >
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
           <h2 id="trajectory-title" className="text-xl font-bold tracking-tight sm:text-2xl">
@@ -153,7 +165,11 @@ export function CampaignTrajectory({ result }: { result: SimulationResult }) {
       </div>
 
       {/* Sélecteur de candidat pour le cône d'incertitude 80 % */}
-      <div className="mt-4 flex flex-wrap items-center gap-1.5" role="group" aria-label="Candidat mis en avant pour le cône d’incertitude">
+      <div
+        className="mt-4 flex flex-wrap items-center gap-1.5"
+        role="group"
+        aria-label="Candidat mis en avant pour le cône d’incertitude"
+      >
         <span className="mr-1 text-xs text-ink-3">Cône 80 % :</span>
         {tracked.map((id) => {
           const c = cand(id)
@@ -350,16 +366,19 @@ export function CampaignTrajectory({ result }: { result: SimulationResult }) {
               return (
                 <span key={id} className="num">
                   <strong>{cand(id).shortName}</strong> {pct(v)}
-                  {activeFocus === id && lo !== undefined && hi !== undefined && ` [${pct(lo, 0)}–${pct(hi, 0)}]`}
+                  {activeFocus === id &&
+                    lo !== undefined &&
+                    hi !== undefined &&
+                    ` [${pct(lo, 0)}–${pct(hi, 0)}]`}
                 </span>
               )
             })}
           </div>
         ) : (
           <p className="text-ink-3">
-            Survolez la courbe pour lire les scores à chaque date. Trait plein : moyenne glissante des vagues publiées ;
-            pointillés : {projectionEnabled ? 'trajectoire projetée' : 'scores actuels constants'} jusqu’au{' '}
-            {date(trajectory.electionDate)} (J−{projection.daysRemaining}).
+            Survolez la courbe pour lire les scores à chaque date. Trait plein : moyenne glissante des vagues
+            publiées ; pointillés : {projectionEnabled ? 'trajectoire projetée' : 'scores actuels constants'}{' '}
+            jusqu’au {date(trajectory.electionDate)} (J−{projection.daysRemaining}).
             {maxY > 0 && ' Le cône ombré représente l’intervalle à 80 % (P10–P90) du candidat sélectionné.'}
           </p>
         )}

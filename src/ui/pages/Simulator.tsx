@@ -124,15 +124,7 @@ export function Simulator({
 
       <div className="mt-12 grid items-start gap-x-12 gap-y-12 lg:grid-cols-2">
         <div className="min-w-0">
-          <FirstRoundChart result={result} />
-          <p className="mt-4 text-sm text-ink-3">
-            Survolez ou sélectionnez un candidat pour voir son intervalle à 80 % et ses probabilités de
-            qualification et de victoire. Les paramètres de reports se règlent dans les{' '}
-            <button type="button" className="link" onClick={() => onOpenSettings('reports')}>
-              réglages
-            </button>
-            .
-          </p>
+          <FirstRoundChart result={result} onOpenSettings={onOpenSettings} />
         </div>
         <div className="min-w-0">
           <VoteFlow result={result} />
