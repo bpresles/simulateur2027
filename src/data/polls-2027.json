@@ -1,5 +1,5 @@
 {
-  "asOf": "2026-11-21",
+  "asOf": "2026-11-22",
   "electionDate": "2027-04-18",
   "windowDays": 21,
   "collection": {
@@ -680,6 +680,30 @@
     {
       "id": "maurel",
       "name": "Emmanuel Maurel"
+    },
+    {
+      "id": "publique",
+      "name": "Place publique"
+    },
+    {
+      "id": "pour-la-republique",
+      "name": "Ensemble pour la République"
+    },
+    {
+      "id": "republicains",
+      "name": "Les Républicains"
+    },
+    {
+      "id": "national",
+      "name": "Rassemblement national"
+    },
+    {
+      "id": "des-droites-pour-la-republique",
+      "name": "Union des droites pour la République"
+    },
+    {
+      "id": "generation-s",
+      "name": "Génération.s"
     }
   ],
   "hypothesisSets": [
@@ -2261,6 +2285,6 @@
   ],
   "period": {
     "label": "Octobre-décembre 2026",
-    "start": "2026-10-01"
+    "start": "2026-09-29"
   }
 }

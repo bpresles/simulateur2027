@@ -1,6 +1,6 @@
 // Synchronisation des sondages depuis la page Wikipedia de la liste des sondages : période la plus
 // récente du 1er tour, dernier sondage de chaque institut avec toutes ses hypothèses.
-import { MIN_MINOR_INSTITUTES, meanByKey, normalize, pick } from '../domain/pollAverage'
+import { MIN_MINOR_INSTITUTES, meanByKey, normalize, pick, windowDaysOf } from '../domain/pollAverage'
 import type { Candidate, CandidateId, HistoricalPoll, Poll, PollHistoryData, PollsData, SecondRoundPoll } from '../domain/types'
 import { CandidateResolver, FEEDS, canonicalInstitute } from './feeds'
 import { NO_LINKS, addLinks } from './links'
@@ -279,7 +279,8 @@ export function syncPolls(
 ): { data: PollsData; report: SyncReport } | undefined {
   const resolver = new CandidateResolver(current.candidates, current.otherCandidates)
   const simulated = new Set(current.candidates.map((c) => c.id))
-  const wiki = fromWikipedia(wikitext, resolver, simulated)
+  const bridgeDays = windowDaysOf(current)
+  const wiki = fromWikipedia(wikitext, resolver, simulated, bridgeDays)
   if (!wiki) return undefined
 
   const selected = selectPolls(current.polls, wiki.polls, wiki.period.start)
@@ -301,7 +302,7 @@ export function syncPolls(
   const { data: promotedData, promoted } = promoteTested(draft)
   // Les duels ne gardent que des candidats simulés : nouvelle lecture avec les candidats ajoutés.
   const duels = promoted.length
-    ? fromWikipedia(wikitext, resolver, new Set(promotedData.candidates.map((c) => c.id)))!.secondRound
+    ? fromWikipedia(wikitext, resolver, new Set(promotedData.candidates.map((c) => c.id)), bridgeDays)!.secondRound
     : wiki.secondRound
   const secondRoundPolls = keepNoIntention(current.secondRoundPolls, selectDuels(duels))
   const next: PollsData = { ...promotedData, secondRoundPolls }

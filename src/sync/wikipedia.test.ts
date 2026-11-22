@@ -98,7 +98,7 @@ describe('lecture de la liste des sondages (Wikipedia)', () => {
     ])
   })
 
-  it('une nouvelle période plus récente prend le relais, quel que soit son titre', () => {
+  it('une nouvelle période plus récente prend le relais et conserve par pont glissant les sondages ≤ 21 jours de la section précédente', () => {
     const newer = WIKITEXT.replace(
       '===== Octobre-décembre 2026 =====',
       [
@@ -111,8 +111,91 @@ describe('lecture de la liste des sondages (Wikipedia)', () => {
       ].join('\n'),
     )
     const next = fromWikipedia(newer, resolver(), simulated)!
-    expect(next.period).toEqual({ label: 'Novembre 2026', start: '2026-11-01' })
-    expect(next.polls.map((p) => p.id)).toEqual(['elabe-20261104'])
+    expect(next.period.label).toBe('Novembre 2026')
+    // 2026-11-04 − 21 j = 2026-10-14 : YouGov (15/10), OpinionWay (14/10) et Ifop (14/10) sont reliés, Odoxa (07/10) écarté.
+    expect(next.period.start).toBe('2026-10-14')
+    expect(next.polls.map((p) => p.id)).toEqual([
+      'elabe-20261104',
+      'yougov-20261015',
+      'opinionway-20261014',
+      'opinionway-20261014',
+      'ifop-fiducial-20261014',
+    ])
+    // Au-delà de 21 jours, la période précédente n'est plus reliée.
+    const muchLater = WIKITEXT.replace(
+      '===== Octobre-décembre 2026 =====',
+      [
+        '===== Novembre 2026 =====',
+        '{| class="wikitable"',
+        HEADER,
+        row('[https://example.org Elabe]', '15-16 novembre', '1 500', ['20', 'colspan=2 |15', '25', '40', '—']),
+        '|}',
+        '===== Octobre-décembre 2026 =====',
+      ].join('\n'),
+    )
+    const cleanNext = fromWikipedia(muchLater, resolver(), simulated)!
+    expect(cleanNext.period).toEqual({ label: 'Novembre 2026', start: '2026-11-01' })
+    expect(cleanNext.polls.map((p) => p.id)).toEqual(['elabe-20261116'])
+  })
+
+  it('traverse proprement le passage d’année (décembre 2026 → janvier 2027) sans tomber à un seul institut', () => {
+    const jan2027 = `
+== Sondages concernant le premier tour ==
+=== Année 2027 ===
+==== Janvier 2027 ====
+{| class="wikitable"
+${HEADER}
+${row('[https://example.org Elabe]', '2-3 janvier', '1 500', ['20', 'colspan=2 |15', '25', '40', '—'])}
+|}
+=== Année 2026 ===
+==== Octobre-décembre 2026 ====
+{| class="wikitable"
+${HEADER}
+${row('[https://example.org Ifop]', '20-22 décembre', '1 400', ['19', 'colspan=2 |16', '25', '40', '—'])}
+${row('[https://example.org Odoxa]', '1-2 décembre', '1 000', ['18', 'colspan=2 |17', '25', '40', '—'])}
+|}
+`
+    const parsed = fromWikipedia(jan2027, resolver(), simulated)!
+    expect(parsed.period).toEqual({ label: 'Janvier 2027', start: '2026-12-22' })
+    expect(parsed.polls.map((p) => p.id)).toEqual(['elabe-20270103', 'ifop-fiducial-20261222'])
+  })
+
+  it('reconnaît une section « Depuis la publication de la liste officielle » (mars 2027) et bascule dès ≥ 3 instituts', () => {
+    const preOfficial = `
+=== Année 2027 ===
+==== Mars 2027 ====
+{| class="wikitable"
+${HEADER}
+${row('[https://example.org Odoxa]', '10-12 mars', '1 000', ['18', 'colspan=2 |17', '25', '40', '—'])}
+|}
+`
+    const oneOfficial = `
+== Sondages concernant le premier tour ==
+=== Depuis la publication de la liste officielle ===
+{| class="wikitable"
+${HEADER}
+${row('[https://example.org Elabe]', '20-21 mars', '1 500', ['20', 'colspan=2 |15', '25', '40', '—'])}
+|}
+${preOfficial}
+`
+    const partial = fromWikipedia(oneOfficial, resolver(), simulated)!
+    expect(partial.period.label).toBe('Depuis la publication de la liste officielle')
+    expect(partial.polls.map((p) => p.id)).toEqual(['elabe-20270321', 'odoxa-20270312'])
+
+    const threeOfficial = `
+== Sondages concernant le premier tour ==
+=== Depuis la publication de la liste officielle ===
+{| class="wikitable"
+${HEADER}
+${row('[https://example.org Elabe]', '20-21 mars', '1 500', ['20', 'colspan=2 |15', '25', '40', '—'])}
+${row('[https://example.org Ifop]', '21-22 mars', '1 500', ['21', 'colspan=2 |14', '25', '40', '—'])}
+${row('[https://example.org OpinionWay]', '21-22 mars', '1 200', ['19', 'colspan=2 |16', '25', '40', '—'])}
+|}
+${preOfficial}
+`
+    const full = fromWikipedia(threeOfficial, resolver(), simulated)!
+    expect(full.polls.map((p) => p.id)).toEqual(['elabe-20270321', 'ifop-fiducial-20270322', 'opinionway-20270322'])
+    expect(full.history.length).toBeGreaterThanOrEqual(3)
   })
 
   it('page méconnaissable : aucun résultat', () => {
