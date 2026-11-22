@@ -28,7 +28,8 @@ bun run lint       # ESLint
 bun run test       # tests unitaires, domaine, backtest et UI
 bun run build      # vérification TypeScript + build de production dans dist/
 bun run preview    # sert dist/ en local
-bun run sync-polls # synchronise les sondages depuis Wikipedia et les flux RSS/notices
+bun run sync-polls    # synchronise les sondages depuis Wikipedia et les flux RSS/notices
+bun run check-notices # outil local : liste les notices de 2nd tour sans noIntention + fraîcheur reports 2027
 ```
 
 ## Architecture
@@ -61,7 +62,7 @@ docs/
 
 ## Synchronisation automatique
 
-`.github/workflows/sync-polls.yml` exécute `bun run sync-polls` chaque jour à 06:17 UTC : le script lit la période la plus récente de la page Wikipedia des sondages 2027, archive une hypothèse cohérente par vague dans l'historique, rattache les liens vers les synthèses et notices officielles, promeut automatiquement un nouveau candidat seulement s'il est testé par au moins **3 instituts distincts**, valide le schéma et lance tests + build avant de commiter.
+`.github/workflows/sync-polls.yml` exécute `bun run sync-polls` chaque jour à 06:17 UTC : le script lit la période la plus récente de la page Wikipedia des sondages 2027 (avec pont glissant de 21 jours entre sections consécutives et reconnaissance des sections « liste officielle »), archive une hypothèse cohérente par vague dans l'historique, rattache les liens vers les synthèses et notices officielles (1er et 2nd tours), promeut automatiquement un nouveau candidat seulement s'il est testé par au moins **3 instituts distincts**, ouvre une issue non bloquante en cas d'alerte structurelle (retrait/remplacement majeur, bascule vers la liste officielle), valide le schéma et lance tests + build avant de commiter. En cas de retrait majeur avant mise à jour manuelle, le simulateur bascule automatiquement sur l'offre majoritaire des sondages récents et désactive l'incertitude pré-campagne des candidatures une fois la liste officielle publiée.
 
 ## Précautions
 

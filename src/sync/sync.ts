@@ -3,7 +3,7 @@
 import { MIN_MINOR_INSTITUTES, meanByKey, normalize, pick, windowDaysOf } from '../domain/pollAverage'
 import type { Candidate, CandidateId, HistoricalPoll, Poll, PollHistoryData, PollsData, SecondRoundPoll } from '../domain/types'
 import { CandidateResolver, FEEDS, canonicalInstitute } from './feeds'
-import { NO_LINKS, addLinks } from './links'
+import { NO_LINKS, addLinks, addSecondRoundNotices } from './links'
 import type { LinkSources } from './links'
 import { NO_SPONSOR, fromWikipedia, surname } from './wikipedia'
 
@@ -230,22 +230,88 @@ export interface SyncReport {
   changed: boolean
   asOf: string
   period: string
+  officialList: boolean
   added: string[]
   replaced: string[]
   removed: string[]
   secondRound: number
   /** Duels sans part sans intention de vote, à saisir d'après la notice. */
   missingNoIntention: string[]
+  /** Duels sans `noIntention` enrichis du lien vers la notice officielle (ou la source disponible). */
+  missingNoIntentionNotices: { label: string; url: string }[]
   /** Synthèses et notices nouvellement associées, par sondage. */
   newLinks: string[]
   /** Candidats apparus dans les sondages, ajoutés aux candidats simulés avec des valeurs par défaut. */
   promoted: string[]
   /** Nouveaux candidats non simulés (testés seulement à la place d'un autre candidat). */
   newCandidates: string[]
+  /** Alertes structurelles appelant une revue humaine (liste officielle, retrait/remplacement majeur, auto-promotion). */
+  structuralAlerts: string[]
   /** Lignes de la période écartées. */
   skipped: string[]
   /** Historique complet des vagues de 1er tour extrait de la page Wikipedia (depuis 2025). */
   history: HistoricalPoll[]
+}
+
+/**
+ * Repère les changements structurels de l'offre de candidatures nécessitant une revue manuelle sans bloquer la
+ * synchronisation quotidienne : bascule vers la liste officielle, candidat principal absent de > 50 % des sondages
+ * récents, remplaçant fréquent (ex. Bardella à la place de Le Pen), ou promotion automatique d'un candidat.
+ */
+export function detectStructuralAlerts(
+  data: PollsData,
+  promoted: Candidate[],
+  officialList: boolean,
+  wasOfficialList: boolean,
+): string[] {
+  const alerts: string[] = []
+  if (officialList && !wasOfficialList) {
+    alerts.push(
+      'Bascule vers la section « liste officielle » détectée (≥ 3 instituts) : vérifier `candidates`, `hypothesisSets` et `alliances` dans `src/data/polls-2027.json`.',
+    )
+  }
+  if (promoted.length > 0) {
+    alerts.push(
+      `Nouveau(x) candidat(s) promu(s) automatiquement (bloc, couleurs et reports par défaut à compléter) : ${promoted.map((c) => c.name).join(', ')}.`,
+    )
+  }
+  const recent = data.polls
+  if (recent.length >= 3) {
+    const main = data.candidates.filter((c) => !c.minor)
+    const nameOf = new Map([
+      ...data.candidates.map((c) => [c.id, c.name] as const),
+      ...data.otherCandidates.map((c) => [c.id, c.name] as const),
+    ])
+    for (const c of main) {
+      const presentCount = recent.filter((p) => p.hypotheses.some((h) => c.id in h.scores)).length
+      if (presentCount < recent.length / 2) {
+        alerts.push(
+          `Candidat principal absent de plus de la moitié des sondages récents : ${c.name} (${presentCount}/${recent.length} instituts) — retrait ou remplacement ?`,
+        )
+      }
+    }
+    const replacementCounts = new Map<string, Set<string>>()
+    for (const p of recent) {
+      for (const h of p.hypotheses) {
+        for (const [sub, target] of Object.entries(h.replacing ?? {})) {
+          if (data.candidates.some((c) => c.id === sub)) continue
+          const k = `${sub}→${target}`
+          const set = replacementCounts.get(k) ?? new Set<string>()
+          set.add(canonicalInstitute(p.institute))
+          replacementCounts.set(k, set)
+        }
+      }
+    }
+    for (const [pair, insts] of replacementCounts.entries()) {
+      if (insts.size >= Math.ceil(recent.length / 2)) {
+        const [sub, target] = pair.split('→') as [string, string]
+        alerts.push(
+          `Remplaçant fréquent détecté : ${nameOf.get(sub) ?? sub} remplace ${nameOf.get(target) ?? target} dans ${insts.size}/${recent.length} instituts.`,
+        )
+      }
+    }
+  }
+  return alerts
 }
 
 /** Fusionne l'historique existant avec les vagues extraites de Wikipedia (dédupliqué par institut et date). */
@@ -279,16 +345,19 @@ export function syncPolls(
 ): { data: PollsData; report: SyncReport } | undefined {
   const resolver = new CandidateResolver(current.candidates, current.otherCandidates)
   const simulated = new Set(current.candidates.map((c) => c.id))
+  const rnIds = new Set(current.candidates.filter((c) => c.isRN).map((c) => c.id))
   const bridgeDays = windowDaysOf(current)
-  const wiki = fromWikipedia(wikitext, resolver, simulated, bridgeDays)
+  const wiki = fromWikipedia(wikitext, resolver, simulated, bridgeDays, rnIds)
   if (!wiki) return undefined
 
   const selected = selectPolls(current.polls, wiki.polls, wiki.period.start)
   const polls = addLinks(selected, current.polls, links)
+  const { officialList: _prevOfficial, ...currentWithoutOfficial } = current
   const draft: PollsData = {
-    ...current,
+    ...currentWithoutOfficial,
     asOf: today,
     period: wiki.period,
+    ...(wiki.officialList ? { officialList: true } : {}),
     collection: {
       ...current.collection,
       sources: [
@@ -302,32 +371,53 @@ export function syncPolls(
   const { data: promotedData, promoted } = promoteTested(draft)
   // Les duels ne gardent que des candidats simulés : nouvelle lecture avec les candidats ajoutés.
   const duels = promoted.length
-    ? fromWikipedia(wikitext, resolver, new Set(promotedData.candidates.map((c) => c.id)), bridgeDays)!.secondRound
+    ? fromWikipedia(wikitext, resolver, new Set(promotedData.candidates.map((c) => c.id)), bridgeDays, rnIds)!
+        .secondRound
     : wiki.secondRound
-  const secondRoundPolls = keepNoIntention(current.secondRoundPolls, selectDuels(duels))
+  const secondRoundPolls = addSecondRoundNotices(
+    keepNoIntention(current.secondRoundPolls, selectDuels(duels)),
+    polls,
+    links.notices,
+  )
   const next: PollsData = { ...promotedData, secondRoundPolls }
 
   const content = (d: PollsData) =>
-    stableStringify([d.period, d.candidates, d.polls, d.secondRoundPolls, d.otherCandidates, d.collection])
+    stableStringify([
+      d.period,
+      Boolean(d.officialList),
+      d.candidates,
+      d.polls,
+      d.secondRoundPolls,
+      d.otherCandidates,
+      d.collection,
+    ])
   const changed = content(next) !== content(current)
   const before = new Map(current.polls.map((p) => [p.id, stableStringify(p)]))
   const urlsBefore = new Map(current.polls.map((p) => [p.id, p.sources.map((s) => s.url)]))
   const after = new Set(polls.map((p) => p.id))
+  const missingNoIntentionNotices = secondRoundPolls
+    .filter((d) => !d.noIntention)
+    .map((d) => ({
+      label: `${d.institute} ${d.fieldwork.end} (${Object.keys(d.scores).join('-')})`,
+      url: d.url,
+    }))
+  const structuralAlerts = detectStructuralAlerts(next, promoted, wiki.officialList, Boolean(current.officialList))
+
   return {
     data: changed ? next : current,
     report: {
       changed,
       asOf: changed ? today : current.asOf,
       period: wiki.period.label,
+      officialList: wiki.officialList,
       added: polls.filter((p) => !before.has(p.id)).map((p) => p.id),
       replaced: polls
         .filter((p) => before.has(p.id) && before.get(p.id) !== stableStringify(p))
         .map((p) => p.id),
       removed: current.polls.filter((p) => !after.has(p.id)).map((p) => p.id),
       secondRound: secondRoundPolls.length,
-      missingNoIntention: secondRoundPolls
-        .filter((d) => !d.noIntention)
-        .map((d) => `${d.institute} ${d.fieldwork.end} (${Object.keys(d.scores).join('-')})`),
+      missingNoIntention: missingNoIntentionNotices.map((m) => m.label),
+      missingNoIntentionNotices,
       // Liens ajoutés par cette synchronisation : ni sur la page, ni dans les données précédentes.
       newLinks: polls.flatMap((p, i) => {
         const known = new Set([...selected[i]!.sources.map((s) => s.url), ...(urlsBefore.get(p.id) ?? [])])
@@ -338,6 +428,7 @@ export function syncPolls(
       newCandidates: next.otherCandidates
         .filter((c) => !current.otherCandidates.some((o) => o.id === c.id))
         .map((c) => c.name),
+      structuralAlerts,
       skipped: wiki.skipped,
       history: wiki.history,
     },

@@ -1,4 +1,4 @@
-import { acceptAlliances, defaultSet, scenarioFilter, scenarioSet } from './alliances'
+import { acceptAlliances, defaultSet, majorityOfferSet, scenarioFilter, scenarioSet } from './alliances'
 import { buildTrajectory, defaultProjectionSettings, projectCampaign } from './campaignProjection'
 import { runMonteCarlo } from './monteCarlo'
 import type { CandidacyScenario } from './monteCarlo'
@@ -79,7 +79,24 @@ export function simulate(data: SimulationData, settings: Settings): SimulationRe
       offerProjection: settings.offerProjectionEnabled,
     })
     hypothesisSet = defaultSet(polls)
-    warnings.push('Aucun sondage ne teste tous les candidats simulés : hypothèses des seuls candidats principaux.')
+    if (selection.institutesUsed > 0) {
+      warnings.push('Aucun sondage ne teste tous les candidats simulés : hypothèses des seuls candidats principaux.')
+    }
+  }
+  if (selection.institutesUsed < 2 && tested.length === 0) {
+    const fallbackSet = majorityOfferSet(polls, excluded)
+    if (fallbackSet) {
+      const fallbackSel = averagePolls(polls, fallbackSet, excluded, settings.minorTransfers, {
+        offerProjection: settings.offerProjectionEnabled,
+      })
+      if (fallbackSel.institutesUsed > selection.institutesUsed) {
+        selection = fallbackSel
+        hypothesisSet = fallbackSet
+        warnings.push(
+          'L’offre par défaut n’est plus assez testée par les sondages récents : repli automatique sur les candidats principaux présents dans au moins la moitié des instituts.',
+        )
+      }
+    }
   }
 
   const { usage, average: currentAverage, institutesUsed, projectedInstitutes, eligibleMinors, excludedMinors } = selection
@@ -172,9 +189,9 @@ export function simulate(data: SimulationData, settings: Settings): SimulationRe
   }
   const displayedPair: [CandidateId, CandidateId] = parseSelected() ?? [first.id, second.id]
 
-  // Scénarios de candidatures pondérés optionnels (si activés et sans alliances manuelles forcées)
+  // Scénarios de candidatures pondérés optionnels (désactivés automatiquement dès que la liste officielle est arrêtée)
   let candidacyScenarios: CandidacyScenario[] | undefined
-  if (settings.candidacyUncertaintyEnabled && tested.length === 0) {
+  if (settings.candidacyUncertaintyEnabled && !polls.officialList && tested.length === 0) {
     const built: CandidacyScenario[] = []
     for (const spec of CANDIDACY_SCENARIO_WEIGHTS) {
       const set = polls.hypothesisSets.find((s) => s.id === spec.id)

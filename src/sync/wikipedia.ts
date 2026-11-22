@@ -10,6 +10,8 @@ export const ROLLING_BRIDGE_DAYS = 21
 export interface WikipediaPolls {
   /** Période la plus récente du 1er tour : titre de sa section et premier jour. */
   period: { label: string; start: string }
+  /** Vrai dès que ≥ 3 instituts publient dans la section « liste officielle » des candidats. */
+  officialList: boolean
   /** Sondages de cette période, dans l'ordre de la page (une entrée par bloc institut / dates / échantillon). */
   polls: Poll[]
   /** Historique agrégé des vagues de 1er tour (depuis 2025) pour la trajectoire temporelle. */
@@ -396,6 +398,7 @@ export function fromWikipedia(
   resolver: CandidateResolver,
   simulated: ReadonlySet<string>,
   rollingWindowDays = ROLLING_BRIDGE_DAYS,
+  rnIds: ReadonlySet<string> = new Set(['lepen']),
 ): WikipediaPolls | undefined {
   const tables = readTables(text)
   const idOf = (p: Person) => resolver.resolve(p.keys, p.name, surname(p.name))
@@ -440,7 +443,8 @@ export function fromWikipedia(
   // publient sur la liste officielle des candidats.
   const maxEnd = latestEnd(current)
   const officialInstitutes = new Set(current.rows.map((r) => r.institute)).size
-  const bridgePrevious = rollingWindowDays > 0 && !(current.isOfficialList && officialInstitutes >= 3)
+  const officialList = current.isOfficialList && officialInstitutes >= 3
+  const bridgePrevious = rollingWindowDays > 0 && !officialList
   const bridgeCutoff = addDays(maxEnd, -rollingWindowDays)
   const activeRows: { periodLabel: string; row: PollRow }[] = current.rows.map((row) => ({
     periodLabel: current.label,
@@ -518,9 +522,10 @@ export function fromWikipedia(
   const polls = [...byHead.values()].map((p) => ({ ...p, hypotheses: labelHypotheses(p.hypotheses, names) }))
 
   // Historique des vagues de 1er tour (à partir de 2025) : UNE SEULE hypothèse par vague (institut + date de fin),
-  // celle qui est la plus proche de l'offre simulée (exige Le Pen et Mélenchon, exclut les remplacements majeurs
-  // tels que Bardella sans Le Pen, et rejette les lignes où moins de 75 % des voix appartiennent à l'offre simulée).
-  const coreHistoryIds = ['lepen', 'melenchon', 'philippe', 'glucksmann', 'retailleau']
+  // celle qui est la plus proche de l'offre simulée (exige le candidat RN actif `rnIds` et Mélenchon, exclut les
+  // remplacements majeurs non actifs et rejette les lignes où moins de 75 % des voix appartiennent à l'offre simulée).
+  const activeRnIds = rnIds.size > 0 ? [...rnIds] : ['lepen']
+  const coreHistoryIds = [...new Set([...activeRnIds, 'melenchon', 'philippe', 'glucksmann', 'retailleau'])]
   const historyBest = new Map<
     string,
     { institute: string; fieldwork: Fieldwork; sampleSize: number; scores: Record<string, number>; quality: number }
@@ -543,8 +548,8 @@ export function fromWikipedia(
         }
       }
       if (duplicate) continue
-      // Exiger la présence des deux principaux pôles simulés (évite les vagues Bardella-sans-Le-Pen)
-      if (!('lepen' in scores) || !('melenchon' in scores)) continue
+      // Exiger la présence du candidat RN actif et du principal pôle de gauche (évite les vagues hors offre)
+      if (!activeRnIds.some((id) => id in scores) || !('melenchon' in scores)) continue
       const total = Object.values(scores).reduce((s, v) => s + v, 0)
       if (total < 75) continue
       const corePresent = coreHistoryIds.filter((id) => id in scores).length
@@ -600,7 +605,7 @@ export function fromWikipedia(
       })
     }
   }
-  return { period: { label: current.label, start }, polls, history, secondRound, skipped }
+  return { period: { label: current.label, start }, officialList, polls, history, secondRound, skipped }
 }
 
 /** Candidats propres à chaque hypothèse (ceux qui ne sont pas testés partout), comme libellé. */

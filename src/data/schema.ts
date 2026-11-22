@@ -48,6 +48,7 @@ const pollsSchema: z.ZodType<PollsData> = z.object({
   electionDate: isoDate,
   windowDays: z.number().int().positive(),
   period: z.object({ label: z.string(), start: isoDate }).optional(),
+  officialList: z.boolean().optional(),
   collection: z.object({ description: z.string(), sources: z.array(sourceLink) }),
   candidates: z.array(
     z.object({
@@ -244,6 +245,7 @@ const transfersSchema: z.ZodType<TransfersData> = z.object({
 
 const declaredTransfersSchema: z.ZodType<DeclaredTransfersData> = z.object({
   description: z.string(),
+  updatedAt: isoDate.optional(),
   sources: z.array(sourceLink).min(1),
   logitCorrection: z.object({
     description: z.string(),

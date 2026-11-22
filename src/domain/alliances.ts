@@ -22,6 +22,44 @@ export const defaultSet = (data: Pick<PollsData, 'hypothesisSets'>): HypothesisS
   data.hypothesisSets.find((s) => s.default) ?? data.hypothesisSets[0]!
 
 /**
+ * Offre de repli déduite dynamiquement des sondages récents : candidats simulés présents dans au moins
+ * la moitié des instituts retenus (utile si un retrait majeur ou la liste officielle rend le jeu par
+ * défaut caduc avant mise à jour manuelle).
+ */
+export function majorityOfferSet(
+  data: PollsData,
+  excludedPolls: ReadonlySet<string> = new Set(),
+): HypothesisSet | null {
+  const { latest } = latestPerInstitute(data.polls, data.asOf, windowDaysOf(data))
+  const pool = latest.filter((p) => !excludedPolls.has(p.id))
+  const active = pool.length > 0 ? pool : latest
+  if (active.length === 0) return null
+
+  const baseExclude = defaultSet(data).exclude
+  const threshold = Math.ceil(active.length / 2)
+  const counts = new Map<CandidateId, number>()
+  for (const poll of active) {
+    const seenInPoll = new Set<CandidateId>()
+    for (const h of poll.hypotheses) {
+      for (const id of Object.keys(h.scores)) seenInPoll.add(id)
+    }
+    for (const id of seenInPoll) counts.set(id, (counts.get(id) ?? 0) + 1)
+  }
+  const require = data.candidates
+    .filter((c) => !c.minor && !baseExclude.includes(c.id) && (counts.get(c.id) ?? 0) >= threshold)
+    .map((c) => c.id)
+  if (require.length < 2) return null
+  return {
+    id: 'offre-majoritaire',
+    label: 'Offre majoritaire des sondages',
+    description:
+      'Offre de repli automatique regroupant les candidats principaux testés par au moins la moitié des instituts récents.',
+    require,
+    exclude: baseExclude,
+  }
+}
+
+/**
  * Critères d'une hypothèse du scénario : tous les candidats principaux sauf les ralliés (et les exclus de la
  * base). Les petits candidats ne sont requis que s'ils mènent une alliance.
  */

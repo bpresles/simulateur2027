@@ -1,6 +1,6 @@
 // Liens de chaque sondage au-delà de la page Wikipedia : synthèse publiée par l'institut (repérée dans le flux
 // de ses publications) et notice déposée à la Commission des sondages (repérée dans la liste des notices).
-import type { Poll, PollSource } from '../domain/types'
+import type { Poll, PollSource, SecondRoundPoll } from '../domain/types'
 import { FEEDS, SYNTHESES, canonicalInstitute, isoDate, knownInstitute } from './feeds'
 import { month } from './wikipedia'
 
@@ -54,7 +54,7 @@ const addDays = (iso: string, days: number) =>
   new Date(Date.parse(iso) + days * 86_400_000).toISOString().slice(0, 10)
 
 /** Publié après la fin du terrain, dans le délai habituel. */
-const publishedAfter = (date: string, poll: Poll) =>
+const publishedAfter = (date: string, poll: Pick<Poll, 'fieldwork'>) =>
   date >= poll.fieldwork.end && date <= addDays(poll.fieldwork.end, PUBLICATION_DAYS)
 
 const earliest = <T extends { date: string }>(items: T[]) =>
@@ -98,7 +98,7 @@ export function isVotingIntentionNotice(title: string): boolean {
 }
 
 /** Notice d'intentions de vote de l'institut publiée le plus tôt après la fin du terrain. */
-export function findNotice(poll: Poll, notices: NoticeEntry[]): NoticeEntry | undefined {
+export function findNotice(poll: Pick<Poll, 'institute' | 'fieldwork'>, notices: NoticeEntry[]): NoticeEntry | undefined {
   const institute = canonicalInstitute(poll.institute)
   return earliest(
     notices.filter(
@@ -108,6 +108,31 @@ export function findNotice(poll: Poll, notices: NoticeEntry[]): NoticeEntry | un
         publishedAfter(n.date, poll),
     ),
   )
+}
+
+/**
+ * Rattache une notice officielle de la Commission des sondages aux duels de 2nd tour qui pointent encore vers
+ * Wikipedia ou un article de presse : vérifie d'abord la notice du sondage de 1er tour correspondant (même
+ * institut et même date de fin de terrain), puis la liste officielle des notices.
+ */
+export function addSecondRoundNotices(
+  duels: SecondRoundPoll[],
+  firstRoundPolls: Poll[],
+  notices: NoticeEntry[],
+): SecondRoundPoll[] {
+  const noticeByWave = new Map<string, string>()
+  for (const p of firstRoundPolls) {
+    const notice = p.sources.find((s) => s.kind === 'notice' || /commission-des-sondages\.fr/.test(s.url))
+    if (notice) noticeByWave.set(`${canonicalInstitute(p.institute)}|${p.fieldwork.end}`, notice.url)
+  }
+  return duels.map((d) => {
+    if (/commission-des-sondages\.fr/.test(d.url)) return d
+    const key = `${canonicalInstitute(d.institute)}|${d.fieldwork.end}`
+    const waveNotice = noticeByWave.get(key)
+    if (waveNotice) return { ...d, url: waveNotice }
+    const direct = findNotice(d, notices)
+    return direct ? { ...d, url: direct.url } : d
+  })
 }
 
 // ——— Synthèses des instituts ———
