@@ -6,7 +6,6 @@ import { newVoterRates } from './newVoters'
 import { averagePolls } from './pollAverage'
 import { computeSecondRound, pollBiasGaps } from './secondRound'
 import {
-  DEFAULT_LFI_LEFT_TRANSFER,
   DEFAULT_LFI_LEFT_TRANSFER_RANGE,
   defaultRepublicanFront,
   effectiveAbstainerAntiRnShare,
@@ -35,7 +34,6 @@ export function defaultSettings(): Settings {
     transferSource: 'legislatives2024',
     declaredWeight: 0.5,
     republicanFront: defaultRepublicanFront(),
-    lfiLeftTransfer: DEFAULT_LFI_LEFT_TRANSFER,
     lfiLeftTransferRange: [...DEFAULT_LFI_LEFT_TRANSFER_RANGE],
     candidacyUncertaintyEnabled: true,
     transferOverrides: {},
@@ -171,7 +169,7 @@ export function simulate(data: SimulationData, settings: Settings): SimulationRe
         highRate,
         rnAtLow: rnIsA ? lowRes.pct.a : lowRes.pct.b,
         rnAtHigh: rnIsA ? highRes.pct.a : highRes.pct.b,
-        currentRate: settings.lfiLeftTransfer,
+        currentRate: Math.round(profiles.lfi_rn.gauche.finalist),
       }
     } else {
       res.lfiLeftSensitivity = null

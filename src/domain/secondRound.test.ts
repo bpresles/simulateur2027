@@ -115,6 +115,29 @@ describe('effectiveProfiles, interpolation 2022↔2024, report gauche hors LFI &
     expect(prof2022.ensemble_rn.droite.finalist).toBeGreaterThan(prof2022.ecolo_ps_pcf_rn.droite.finalist)
     expect(prof2022.ecolo_ps_pcf_rn.droite.finalist).toBeGreaterThan(prof2022.lfi_rn.droite.finalist)
 
+    // Pilotage par électorat qui se reporte : abaisser uniquement le centre impacte lfi_rn.centre et lr_rn.centre, pas ensemble_rn.gauche
+    const lowCentre = effectiveProfiles(transfers, declaredTransfers, {
+      ...defaultSettings(),
+      republicanFront: { gauche: 1, centre: 0, droite: 1 },
+    })
+    expect(lowCentre.lfi_rn.centre.finalist).toBeLessThan(prof2024.lfi_rn.centre.finalist)
+    expect(lowCentre.lr_rn.centre.finalist).toBeLessThan(prof2024.lr_rn.centre.finalist)
+    expect(lowCentre.lfi_rn.droite.finalist).toBeCloseTo(prof2024.lfi_rn.droite.finalist, 8)
+    expect(lowCentre.lfi_rn.gauche.finalist).toBeCloseTo(prof2024.lfi_rn.gauche.finalist, 8)
+    expect(lowCentre.ensemble_rn.gauche.finalist).toBeCloseTo(prof2024.ensemble_rn.gauche.finalist, 8)
+
+    // Abaisser uniquement la gauche impacte gauche hors LFI sur lfi_rn (72 % → 47 %) et ecolo_ps_pcf_rn, sans toucher centre ni droite
+    const lowGauche = effectiveProfiles(transfers, declaredTransfers, {
+      ...defaultSettings(),
+      republicanFront: { gauche: 0, centre: 1, droite: 1 },
+    })
+    expect(prof2024.lfi_rn.gauche.finalist).toBeCloseTo(72, 6)
+    expect(lowGauche.lfi_rn.gauche.finalist).toBeCloseTo(47, 4)
+    expect(lowGauche.lfi_rn.gauche.rn).toBeCloseTo(15, 4)
+    expect(lowGauche.ecolo_ps_pcf_rn.gauche.finalist).toBeCloseTo(47, 4)
+    expect(lowGauche.lfi_rn.centre.finalist).toBeCloseTo(prof2024.lfi_rn.centre.finalist, 8)
+    expect(lowGauche.lfi_rn.droite.finalist).toBeCloseTo(prof2024.lfi_rn.droite.finalist, 8)
+
     // Nouveaux votants : 50 % hors RN, baseShare conservé face au RN (sans règle inventée)
     expect(effectiveAbstainerAntiRnShare(0.55, null)).toBe(0.5)
     expect(effectiveAbstainerAntiRnShare(0.55, 0)).toBeCloseTo(0.55, 8)

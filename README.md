@@ -14,7 +14,7 @@ Ce simulateur reconstruit les scénarios de 1er et 2nd tour de l'élection prés
 
 - **Vite, React 19, TypeScript** (strict) et **Tailwind CSS v4** : SPA statique.
 - **Radix UI** (composants accessibles) et **Motion** (animations).
-- **Zustand** (`persist`) pour les réglages locaux (`localStorage`, version 15).
+- **Zustand** (`persist`) pour les réglages locaux (`localStorage`, version 16).
 - **Zod** pour la validation des données JSON au chargement.
 - **Vitest** pour les tests et **bun** comme gestionnaire de paquets.
 
@@ -40,7 +40,7 @@ src/
             campaignProjection, transfers, newVoters, secondRound, backtest, monteCarlo, simulate.
   data/     Fichiers JSON sourcés + validation Zod et contrôles croisés (schema.ts).
   sync/     Synchronisation Wikipedia, flux RSS d'instituts et notices (scripts/sync-polls.ts).
-  state/    Réglages utilisateur persistés (settingsStore.ts, v15).
+  state/    Réglages utilisateur persistés (settingsStore.ts, v16).
   hooks/    useSimulation(), backtestReport, newVoterReferenceRates.
   ui/       Composants React, graphiques (Sankey, trajectoire, barres 0–100 % + IC 80 %), page /methodologie.
 docs/

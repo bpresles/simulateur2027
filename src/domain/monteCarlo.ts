@@ -4,7 +4,7 @@ import {
   effectiveAbstainerAntiRnShare,
   effectiveProfiles,
   fidelityFor,
-  frontStrengthForProfile,
+  frontStrengthForBloc,
   lfiLeftTransferRow,
   nonRnSplit,
   resolveDuel,
@@ -132,6 +132,14 @@ function sampleDirichlet3(
   return [g1 / total, g2 / total]
 }
 
+function sampleTriangular(min: number, max: number, mode: number, u: number): number {
+  if (max <= min) return min
+  const m = clamp(mode, min, max)
+  const fc = (m - min) / (max - min)
+  if (u < fc) return min + Math.sqrt(u * (max - min) * (m - min))
+  return max - Math.sqrt((1 - u) * (max - min) * (max - m))
+}
+
 function quantile(sorted: readonly number[], q: number): number {
   if (sorted.length === 0) return 0
   const pos = clamp(q, 0, 1) * (sorted.length - 1)
@@ -177,9 +185,10 @@ export interface MonteCarloInput {
  *   nulle en log-ratio (σ_ref = 0,595 à J−156), décomposés en choc de bloc (50 %), vote utile intra-bloc à somme
  *   nulle (30 %) et choc idiosyncrasique (20 %), dont la variance décroît linéairement jusqu'au scrutin ;
  * - au 2nd tour : incertitude Dirichlet(κ = 40) sur les matrices de reports, incertitude sur la position
- *   2022 ↔ 2024 du front républicain, tirage uniforme explicite du report gauche hors LFI → Mélenchon sur sa
- *   plage dédiée (35–75 % par défaut), participation P, mobilisation a et orientation q des abstentionnistes,
- *   fidélité des finalistes (±2,5 pts) et choc commun national η (σ = 3,0 pts face au RN, 2,0 pts hors RN).
+ *   2022 ↔ 2024 du front républicain par électorat, tirage triangulaire du report gauche hors LFI → Mélenchon
+ *   sur sa plage dédiée (35–75 % par défaut) centré sur la position du curseur gauche, participation P,
+ *   mobilisation a et orientation q des abstentionnistes, fidélité des finalistes (±2,5 pts) et choc commun
+ *   national η (σ = 3,0 pts face au RN, 2,0 pts hors RN).
  */
 export function runMonteCarlo(input: MonteCarloInput): MonteCarloSummary {
   const {
@@ -327,14 +336,14 @@ export function runMonteCarlo(input: MonteCarloInput): MonteCarloSummary {
   let nrSampledAt = -1
   const bnClamped = clamp(blankNullShare, 0, 0.5)
 
-  const ensureProfile = (p: number, iter: number, rfShock: number, wDecl: number, lfiLeftRate: number) => {
+  const ensureProfile = (p: number, iter: number, rfShock: number, wDecl: number, lfiLeftU: number) => {
     if (profSampledAt[p] === iter) return
     profSampledAt[p] = iter
     const pid = PROFILE_IDS[p]!
-    const strength = clamp(frontStrengthForProfile(pid, settings.republicanFront) + rfShock, 0, 1)
     const rawProfile = rawProfilesById[pid]
     for (let b = 0; b < 4; b++) {
       const bloc = BLOCS[b]!
+      const strength = clamp(frontStrengthForBloc(bloc, settings.republicanFront) + rfShock, 0, 1)
       const override = settings.transferOverrides[pid]?.[bloc]
       const rawRow = rawProfile.rows[bloc]
       let row: TransferValues
@@ -345,10 +354,13 @@ export function runMonteCarlo(input: MonteCarloInput): MonteCarloSummary {
       } else if (settings.transferSource === 'declared2027') {
         row = baseDeclProfiles[pid][bloc]
       } else {
-        row =
-          pid === 'lfi_rn' && bloc === 'gauche'
-            ? lfiLeftTransferRow(lfiLeftRate, data.transfers, data.declaredTransfers)
-            : applyRepublicanFrontRow(pid, bloc, rawRow, data.transfers, strength)
+        const shifted = applyRepublicanFrontRow(pid, bloc, rawRow, data.transfers, strength)
+        if (pid === 'lfi_rn' && bloc === 'gauche') {
+          const rate = sampleTriangular(lfiLeftMin, lfiLeftMax, shifted.finalist, lfiLeftU)
+          row = lfiLeftTransferRow(rate, data.transfers, data.declaredTransfers)
+        } else {
+          row = shifted
+        }
         if (settings.transferSource === 'blend') {
           const decl = baseDeclProfiles[pid][bloc]
           row = {
@@ -381,7 +393,7 @@ export function runMonteCarlo(input: MonteCarloInput): MonteCarloSummary {
     iter: number,
     rfShock: number,
     wDecl: number,
-    lfiLeftRate: number,
+    lfiLeftU: number,
     scale: number,
     abstention1: number,
     mob: number,
@@ -392,7 +404,7 @@ export function runMonteCarlo(input: MonteCarloInput): MonteCarloSummary {
     commonShockNonRn: number,
   ): number => {
     const d = resolveFast(ai, bi)
-    if (d.kind === 0) ensureProfile(d.prof, iter, rfShock, wDecl, lfiLeftRate)
+    if (d.kind === 0) ensureProfile(d.prof, iter, rfShock, wDecl, lfiLeftU)
     else if (d.kind === 1) ensureNonRn(iter)
 
     const fidA0 = baseFid[ai]!
@@ -473,13 +485,7 @@ export function runMonteCarlo(input: MonteCarloInput): MonteCarloSummary {
     }
 
     const newVoters = abstention1 * mob
-    const antiRnQ =
-      d.kind === 0
-        ? effectiveAbstainerAntiRnShare(
-            antiRnQBase,
-            clamp(frontStrengthForProfile(PROFILE_IDS[d.prof]!, settings.republicanFront) + rfShock, 0, 1),
-          )
-        : 0.5
+    const antiRnQ = d.kind === 0 ? effectiveAbstainerAntiRnShare(antiRnQBase, 1) : 0.5
     const qA = d.kind === 0 ? (d.challengerIsA ? antiRnQ : 1 - antiRnQ) : 0.5
     totA += newVoters * qA
     totB += newVoters * (1 - qA)
@@ -572,7 +578,7 @@ export function runMonteCarlo(input: MonteCarloInput): MonteCarloSummary {
 
     const rfShock = clamp(nextNormal() * 0.25, -0.5, 0.5)
     const wDecl = clamp(settings.declaredWeight + (rng() - 0.5), 0, 1)
-    const lfiLeftRate = lfiLeftMin + rng() * (lfiLeftMax - lfiLeftMin)
+    const lfiLeftU = rng()
     const turnout = clamp(settings.firstRoundTurnout + (rng() * 10 - 5), 55, 88)
     const abstention1 = 100 - turnout
     const expressed1 = turnout * (1 - bnClamped)
@@ -592,7 +598,7 @@ export function runMonteCarlo(input: MonteCarloInput): MonteCarloSummary {
       iter,
       rfShock,
       wDecl,
-      lfiLeftRate,
+      lfiLeftU,
       scale,
       abstention1,
       mob,
@@ -624,7 +630,7 @@ export function runMonteCarlo(input: MonteCarloInput): MonteCarloSummary {
               iter,
               rfShock,
               wDecl,
-              lfiLeftRate,
+              lfiLeftU,
               scale,
               abstention1,
               mob,

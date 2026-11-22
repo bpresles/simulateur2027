@@ -2,9 +2,9 @@ import { useState } from 'react'
 import * as Dialog from '@radix-ui/react-dialog'
 import * as Tabs from '@radix-ui/react-tabs'
 import { simulationData } from '../../data/schema'
-import { effectiveProfiles, frontStrengthForProfile, minorTransfer } from '../../domain/transfers'
+import { effectiveProfiles, frontStrengthForBloc, minorTransfer } from '../../domain/transfers'
 import { BLOCS } from '../../domain/types'
-import type { Bloc, CandidateId, ProfileId, SimulationResult, TransferSource, TransferValues } from '../../domain/types'
+import type { Bloc, CandidateId, ProfileId, SimulationResult, TransferValues } from '../../domain/types'
 import { useSettings } from '../../state/settingsStore'
 import { BLOC_LABELS, BLOC_VOTERS, MINOR_CANDIDATES, cand, colorVars, transferLabel } from '../candidates'
 import { num, pct } from '../format'
@@ -332,30 +332,23 @@ function ProjectionPanel({ result }: { result: SimulationResult }) {
   )
 }
 
-function SecondRoundParamsPanel() {
+function SecondRoundParamsPanel({ result }: { result: SimulationResult }) {
   const s = useSettings()
   return (
     <div className="space-y-5 border-b border-rule pb-6">
-      <div>
-        <p className="mb-1.5 text-[0.95rem] font-medium">Source des reports (duels face au RN)</p>
-        <Segmented<TransferSource>
-          label="Source des reports au second tour"
-          value={s.transferSource}
-          onValueChange={s.setTransferSource}
-          options={[
-            { value: 'legislatives2024', label: 'Base historique' },
-            { value: 'blend', label: 'Mélange' },
-            { value: 'declared2027', label: 'Déclarations 2027' },
-          ]}
-        />
-      </div>
-
-      <RepublicanFrontControls compact />
+      <RepublicanFrontControls compact result={result} />
 
       <div className="rounded-md border border-rule bg-surface px-3 py-2.5 text-xs">
-        <p className="font-medium text-ink">Plage Monte-Carlo : gauche hors LFI → Mélenchon (%)</p>
+        <div className="flex items-center justify-between gap-2">
+          <p className="font-medium text-ink">Plage Monte-Carlo : gauche hors LFI → Mélenchon (%)</p>
+          {(s.lfiLeftTransferRange[0] !== 35 || s.lfiLeftTransferRange[1] !== 75) && (
+            <button type="button" className="link text-xs" onClick={s.resetLfiLeftTransferRange}>
+              Rétablir
+            </button>
+          )}
+        </div>
         <p className="mt-0.5 text-ink-3">
-          Tirage uniforme dans chaque simulation (défaut provisoire : 35 % à 75 %).
+          Plage d’incertitude tirée dans Monte-Carlo autour du taux actif du curseur gauche (défaut : 35 % à 75 %).
         </p>
         <div className="mt-2 flex flex-wrap items-center gap-3">
           <label className="flex items-center gap-1.5 text-ink-2">
@@ -382,23 +375,6 @@ function SecondRoundParamsPanel() {
           </label>
         </div>
       </div>
-
-      {s.transferSource === 'blend' && (
-        <div>
-          <p className="text-sm font-medium">
-            Poids des déclarations 2027 corrigées en logit :{' '}
-            <span className="num">{pct(s.declaredWeight * 100, 0)}</span>
-          </p>
-          <Slider
-            label="Poids des déclarations 2027 dans le mélange"
-            value={s.declaredWeight * 100}
-            onValueChange={(v) => s.setDeclaredWeight(v / 100)}
-            min={0}
-            max={100}
-            step={5}
-          />
-        </div>
-      )}
 
       <div>
         <p className="text-sm font-medium">
@@ -559,7 +535,7 @@ function TransfersEditor({ result }: { result: SimulationResult }) {
 
   return (
     <div className="space-y-5">
-      <SecondRoundParamsPanel />
+      <SecondRoundParamsPanel result={result} />
       <MinorTransfersPanel eligibleMinors={result.eligibleMinors} />
       <p className="text-sm text-ink-2">
         Taux de report effectifs selon le type de duel face au RN. Toute valeur saisie ici surcharge la source
@@ -612,9 +588,9 @@ function TransfersEditor({ result }: { result: SimulationResult }) {
                       ))}
                       {!row.camp && s.transferSource !== 'declared2027' && (
                         <span>
-                          {isLfiLeft
-                            ? ` · curseur dédié (${s.lfiLeftTransfer} %, MC ${s.lfiLeftTransferRange[0]}–${s.lfiLeftTransferRange[1]} %)`
-                            : ` · 2022 ↔ 2024 (${pct(frontStrengthForProfile(profileId, s.republicanFront) * 100, 0)})`}
+                          {` · 2022 ↔ 2024 (${pct(frontStrengthForBloc(bloc, s.republicanFront) * 100, 0)}${
+                            isLfiLeft ? `, MC ${s.lfiLeftTransferRange[0]}–${s.lfiLeftTransferRange[1]} %` : ''
+                          })`}
                         </span>
                       )}
                     </span>
