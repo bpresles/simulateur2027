@@ -1,8 +1,7 @@
 import { useState } from 'react'
-import { simulationData } from '../../data/schema'
-import { firstRoundParticipation, grossFlows, newVoterRates } from '../../domain/newVoters'
-import type { GrossFlows, NewVoterRates } from '../../domain/newVoters'
 import type { SimulationResult, VoteFlow as Flow } from '../../domain/types'
+import { newVoterReferenceRates } from '../../hooks/useSimulation'
+import { useSettings } from '../../state/settingsStore'
 import { cand, colorVars, transferLabel } from '../candidates'
 import { num, pct, shownScore } from '../format'
 import { abstentionNote, unmeasuredNote } from '../newVotersText'
@@ -14,26 +13,23 @@ type View = 'table' | 'chart'
 
 /**
  * Composition des voix de chaque finaliste et taux de report de chaque électorat, en tableau ou en
- * diagramme de Sankey, en flux bruts : % des inscrits, avec les nouveaux votants venus de l'abstention du 1er
- * tour. Le résultat les comptait déjà (abandon net) : seul l'affichage change. Le choix d'affichage reste
- * local : ce n'est pas un réglage de la simulation.
+ * diagramme de Sankey, directement issus du moteur unifié en flux bruts (% des inscrits).
  */
 export function VoteFlow({ result }: { result: SimulationResult }) {
   const [view, setView] = useState<View>('chart')
   const sr = result.secondRound
-  const rates = newVoterRates(simulationData)
-  const gross = grossFlows(sr, firstRoundParticipation(result.turnoutBalance, rates), rates)
-  const flows = [...gross.flows].sort((x, y) => y.share - x.share)
+  const settings = useSettings()
+  const rates = newVoterReferenceRates
+  const flows = [...sr.flows].sort((x, y) => y.share - x.share)
   const transfers = flows.filter((f) => !f.isFinalistVoter)
   const allies = flows.filter((f) => f.isFinalistVoter)
   const a = cand(sr.a)
   const b = cand(sr.b)
-  // Score d'un candidat en % des exprimés : celui de « Premier tour simulé » (arrondi comme lui) quand il y
-  // est seul ; avant alliances, c'est la part de son électorat dans les exprimés du 1er tour.
+
   const scores = new Map(
     flows.map((f) => {
-      const solo = result.entrants.find((e) => e.id === f.candidateId && e.members.length === 1)
-      return [f.candidateId, solo ? shownScore(result, solo) : f.share / gross.scale] as const
+      const entrant = result.entrants.find((e) => e.id === f.candidateId)
+      return [f.candidateId, entrant ? shownScore(result, entrant) : f.firstRoundPct] as const
     }),
   )
 
@@ -54,19 +50,25 @@ export function VoteFlow({ result }: { result: SimulationResult }) {
         />
       </div>
       <p className="mt-1 text-ink-2">
-        D’où viennent les voix de {a.shortName} et de {b.shortName} au 2nd tour, y compris celles des
-        abstentionnistes du 1er tour.
+        D’où viennent les voix de {a.shortName} et de {b.shortName} au 2nd tour, en flux bruts (% des inscrits), y
+        compris les abstentionnistes du 1er tour qui votent au 2nd.
       </p>
 
       {view === 'chart' ? (
         <figure className="mt-4">
           <figcaption className="mb-2 text-sm text-ink-3">
-            Scores en % des exprimés, blancs et nuls en % des votants, abstention en % des inscrits ;
-            l’épaisseur des rubans suit le nombre d’électeurs. À gauche, les électorats du 1er tour (avant
-            alliances) ; à droite, les finalistes, ceux qui ne s’expriment pas et le vote non mesuré des blancs
-            et nuls. Une alliance entre candidats éliminés ne change pas ces reports.
+            Scores en % des exprimés, blancs et nuls en % des votants, abstention en % des inscrits ; l’épaisseur des
+            rubans suit le nombre d’électeurs. À gauche, les électorats du 1er tour ; à droite, les finalistes, ceux qui
+            ne s’expriment pas et le vote non mesuré des blancs et nuls.
           </figcaption>
-          <VoteFlowSankey sr={sr} gross={gross} flows={[...allies, ...transfers]} rates={rates} scores={scores} />
+          <VoteFlowSankey
+            sr={sr}
+            flows={[...allies, ...transfers]}
+            rates={rates}
+            scores={scores}
+            mobilization={settings.abstainerMobilization}
+            antiRnShare={sr.duel.kind === 'rn-sourced' ? sr.effectiveAbstainerAntiRnShare : undefined}
+          />
         </figure>
       ) : (
         <>
@@ -75,32 +77,39 @@ export function VoteFlow({ result }: { result: SimulationResult }) {
               label={a.shortName}
               flows={flows}
               pick={(f) => f.toA}
-              fromAbstention={gross.abstainers.toA}
-              total={gross.totals.a}
+              fromAbstention={sr.abstainers.toA}
+              total={sr.totals.a}
               score={sr.pct.a}
             />
             <Composition
               label={b.shortName}
               flows={flows}
               pick={(f) => f.toB}
-              fromAbstention={gross.abstainers.toB}
-              total={gross.totals.b}
+              fromAbstention={sr.abstainers.toB}
+              total={sr.totals.b}
               score={sr.pct.b}
             />
           </div>
           <TransferTable
+            sr={sr}
             flows={[...allies, ...transfers]}
-            gross={gross}
             scores={scores}
             a={a.shortName}
             b={b.shortName}
-            rates={rates}
+            mobilization={settings.abstainerMobilization}
+            antiRnShare={sr.duel.kind === 'rn-sourced' ? sr.effectiveAbstainerAntiRnShare : undefined}
           />
         </>
       )}
       <p className="mt-2 text-sm text-ink-3">
-        Une partie des électeurs du 1er tour ne vote pas au 2nd, et des abstentionnistes du 1er tour prennent
-        leur place : les taux de report affichés en tiennent compte.
+        Les taux affichés sont directement ceux du calcul (aucun recalibrage post-hoc par camp).
+        {sr.republicanFrontStrength !== null && settings.transferSource !== 'declared2027' && (
+          <>
+            {' '}
+            Front républicain appliqué à ce duel :{' '}
+            <strong className="num font-medium text-ink-2">{pct(sr.republicanFrontStrength * 100, 0)}</strong>.
+          </>
+        )}
         {flows.some((f) => f.like) &&
           ' Les électeurs d’un petit candidat se reportent comme les électorats indiqués (réglages).'}
       </p>
@@ -109,28 +118,31 @@ export function VoteFlow({ result }: { result: SimulationResult }) {
 }
 
 function TransferTable({
+  sr,
   flows,
-  gross,
   scores,
   a,
   b,
-  rates,
+  mobilization,
+  antiRnShare,
 }: {
+  sr: SimulationResult['secondRound']
   flows: Flow[]
-  gross: GrossFlows
   scores: Map<string, number>
   a: string
   b: string
-  rates: Parameters<typeof abstentionNote>[0] & Pick<NewVoterRates, 'bnShare'>
+  mobilization: number
+  antiRnShare: number | undefined
 }) {
-  const { abstainers, blankNull } = gross
+  const { abstainers, blankNull } = sr
+  const rates = newVoterReferenceRates
   const share = (v: number) => (abstainers.volume > 0 ? (v * 100) / abstainers.volume : 0)
   return (
     <div className="mt-5 overflow-x-auto">
       <table className="w-full min-w-[22rem] text-sm">
         <caption className="mb-2 text-left text-ink-3">
-          Électorats du 1er tour (avant alliances, en % des exprimés) et leurs reports au 2nd tour. Blancs et
-          nuls : % des votants ; abstention : % des inscrits.
+          Électorats du 1er tour (% des exprimés) et leurs reports directs au 2nd tour. Blancs et nuls : % des votants ;
+          abstention : % des inscrits.
         </caption>
         <thead>
           <tr className="border-b border-rule text-left text-ink-3">
@@ -147,12 +159,14 @@ function TransferTable({
           ))}
           <tr className="border-b border-rule/70">
             <td className="py-1.5 pr-2">
-              <InfoTip content={abstentionNote(rates)}>
+              <InfoTip content={abstentionNote(rates, mobilization, antiRnShare)}>
                 <span className="cursor-help underline decoration-dotted underline-offset-2">
                   Abstention au 1er tour
                 </span>
               </InfoTip>
-              <span className="block text-xs text-ink-3">nouveaux votants, répartis comme l’ensemble des votants</span>
+              <span className="block text-xs text-ink-3">
+                {pct(mobilization * 100, 0)} votent au 2nd tour
+              </span>
             </td>
             <td className="num py-1.5 pr-2 text-right text-ink-2">{pct(abstainers.volume)} des inscrits</td>
             <td className="num py-1.5 pr-2 text-right">{num(share(abstainers.toA), 1)}&#8239;%</td>
@@ -200,11 +214,6 @@ function FlowRow({ flow, score }: { flow: Flow; score: number }) {
   )
 }
 
-/**
- * Composition des voix d'un finaliste. `total` : ses voix en % des inscrits (base des parts), dont
- * `fromAbstention` venues des abstentionnistes du 1er tour ; `score` : son résultat en % des exprimés, le
- * seul affiché, comme dans le graphique et le duel.
- */
 function Composition({
   label,
   flows,

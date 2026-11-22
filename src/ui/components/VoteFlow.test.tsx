@@ -34,14 +34,14 @@ describe('reports vers le second tour', () => {
     act(() => fireEvent.click(screen.getByRole('radio', { name: 'Tableau' })))
     expect(screen.getByRole('table')).toBeTruthy()
     expect(screen.queryByRole('img')).toBeNull()
-    // Les finalistes ont le même résultat qu'au graphique : en % des exprimés, pas en points des électeurs.
+    // Les finalistes affichent leur score en % des exprimés (pas leur total en % des inscrits).
     const sr = result.secondRound
-    for (const [score, votes] of [
-      [sr.pct.a, sr.votes.a],
-      [sr.pct.b, sr.votes.b],
+    for (const [score, inscrits] of [
+      [sr.pct.a, sr.totals.a],
+      [sr.pct.b, sr.totals.b],
     ] as const) {
       expect(document.body.textContent).toContain(pct(score))
-      expect(document.body.textContent).not.toContain(pct(votes))
+      expect(document.body.textContent).not.toContain(pct(inscrits))
     }
 
     act(() => fireEvent.click(screen.getByRole('radio', { name: 'Graphique' })))
@@ -58,7 +58,6 @@ describe('reports vers le second tour', () => {
     const blankNull = rows.find((r) => r.textContent?.startsWith('Blancs et nuls au 1er tour'))!
     expect(abstention).toBeTruthy()
     expect(blankNull.textContent).toContain('non mesuré')
-    // Les parts vers A, vers B et vers « Ne s'expriment pas » totalisent 100 % de l'abstention.
     const shares = within(abstention)
       .getAllByRole('cell')
       .slice(2)
@@ -66,7 +65,6 @@ describe('reports vers le second tour', () => {
     expect(shares).toHaveLength(3)
     expect(shares.reduce((t, v) => t + v, 0)).toBeCloseTo(100, 0)
     expect(within(table).getByRole('columnheader', { name: 'Ne s’expriment pas' })).toBeTruthy()
-    // La composition des voix de chaque finaliste compte un segment « Abstentionnistes du 1er tour ».
     expect(document.querySelectorAll('div.bg-ink-3\\/60, span.bg-ink-3\\/60').length).toBeGreaterThanOrEqual(2)
   })
 
@@ -92,7 +90,6 @@ describe('reports vers le second tour', () => {
     for (const name of [cand(sr.a).shortName, cand(sr.b).shortName, 'Ne s’expriment pas']) {
       expect(screen.getAllByRole('button', { name: new RegExp(name) }).length).toBeGreaterThan(0)
     }
-    // Chaque électorat a son étiquette, même minuscule : le graphique s'allonge au lieu d'en masquer.
     for (const f of sr.flows.filter((f) => f.share > 0)) {
       expect(
         screen.getAllByRole('button', { name: new RegExp(`^${cand(f.candidateId).shortName}`) }).length,
@@ -102,10 +99,7 @@ describe('reports vers le second tour', () => {
     const label = screen.getByRole('button', { name: new RegExp(`^${cand(biggest.candidateId).shortName}`) })
     act(() => fireEvent.click(label))
     expect(label.getAttribute('aria-pressed')).toBe('true')
-    expect(
-      screen.getByText(new RegExp(`^Électeurs de ${cand(biggest.candidateId).shortName} :`)),
-    ).toBeTruthy()
-    // Aucun nombre absolu de voix : seulement des points et des pourcentages.
+    expect(screen.getByText(new RegExp(`^Électeurs de ${cand(biggest.candidateId).shortName} :`))).toBeTruthy()
     expect(document.body.textContent).not.toMatch(/\d\s?(millions?|voix)\b/)
   })
 })

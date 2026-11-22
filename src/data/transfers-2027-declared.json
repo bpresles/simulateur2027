@@ -1,0 +1,128 @@
+{
+  "description": "Option activable (désactivée par défaut) : reports de voix au 2nd tour déclarés dans les sondages de l'automne 2026 (Toluna Harris Interactive notices nos 10263, 10277, 10305, 10332 et 10362 ; Odoxa-Backbone, sept.–oct. 2026), corrigés sur échelle logit de l'écart moyen mesuré en 2017 et 2022 entre déclarations de campagne et enquêtes « jour du vote ».",
+  "sources": [
+    {
+      "label": "Toluna Harris Interactive (M6 / RTL), notices nos 10263–10362 (sept.–nov. 2026)",
+      "url": "https://www.commission-des-sondages.fr/notices/files/notices/2026/novembre/10362-pres-iv-toluna-harris-interactive-9-novembre.pdf"
+    },
+    {
+      "label": "Odoxa-Backbone (Presse régionale / Public Sénat / Le Nouvel Obs), 24/09–07/10/2026",
+      "url": "https://www.odoxa.fr/wp-content/uploads/2026/10/Odoxa-Backbone-pour-la-Presse-Regionale-Public-Senat-et-le-Nouvel-Obs-IV-a-lelection-presidentielle-de-2027.pdf"
+    }
+  ],
+  "logitCorrection": {
+    "description": "Écart moyen (en log-odds par rapport à l'abstention/blanc) observé entre les déclarations de campagne (J−46 à J−2) et les reports mesurés le jour du vote en 2017 et 2022 face au RN : les déclarations sous-estimaient le barrage de +5 à +9 pts et surestimaient le report RN de 2 à 4 pts. L'application en logit multinomial (au lieu d'une addition brute en points) respecte les bornes [0 ; 100] et évite de doubler artificiellement les très faibles taux de départ.",
+    "deltaFinalist": 0.35,
+    "deltaRn": -0.2
+  },
+  "profiles": {
+    "lfi_rn": {
+      "gauche": {
+        "finalist": 28,
+        "rn": 15,
+        "abstention": 57,
+        "note": "Électeurs de Raphaël Glucksmann dans les tableaux Harris Interactive / Odoxa (environ 28 % pour Mélenchon avant correction logit)."
+      },
+      "centre": {
+        "finalist": 11,
+        "rn": 30,
+        "abstention": 59,
+        "note": "Moyenne des électeurs d'Édouard Philippe (9 / 31 / 60 sur 6 tableaux Harris/Odoxa) et de Gabriel Attal (14 / 28 / 58 sur 5 tableaux Harris)."
+      },
+      "droite": {
+        "finalist": 6,
+        "rn": 61,
+        "abstention": 33,
+        "note": "Électeurs de droite (Retailleau / Lisnard) dans les tableaux Harris Interactive / Odoxa."
+      },
+      "extreme_droite": {
+        "finalist": 0,
+        "rn": 100,
+        "abstention": 0,
+        "camp": "rn",
+        "note": "Électorat Reconquête / DLF rattaché au camp RN."
+      }
+    },
+    "ecolo_ps_pcf_rn": {
+      "gauche": {
+        "finalist": 52,
+        "rn": 8,
+        "abstention": 40,
+        "note": "Électeurs de gauche (Mélenchon, écologistes, PCF) face à un duel Glucksmann – Le Pen (Harris Interactive / Odoxa)."
+      },
+      "centre": {
+        "finalist": 38,
+        "rn": 20,
+        "abstention": 42,
+        "note": "Électeurs du centre (Philippe / Attal) dans un duel Glucksmann – Le Pen."
+      },
+      "droite": {
+        "finalist": 14,
+        "rn": 52,
+        "abstention": 34,
+        "note": "Électeurs de droite (LR) dans un duel Glucksmann – Le Pen."
+      },
+      "extreme_droite": {
+        "finalist": 0,
+        "rn": 100,
+        "abstention": 0,
+        "camp": "rn",
+        "note": "Électorat Reconquête / DLF rattaché au camp RN."
+      }
+    },
+    "ensemble_rn": {
+      "gauche": {
+        "finalist": 40,
+        "rn": 10,
+        "abstention": 50,
+        "note": "Électeurs de gauche (Mélenchon + Glucksmann) dans un duel Philippe/Attal – Le Pen (Harris Interactive / Odoxa)."
+      },
+      "centre": {
+        "finalist": 72,
+        "rn": 10,
+        "abstention": 18,
+        "note": "Électeurs d'un second candidat du centre non qualifié."
+      },
+      "droite": {
+        "finalist": 38,
+        "rn": 32,
+        "abstention": 30,
+        "note": "Électeurs de droite (LR) dans un duel Philippe/Attal – Le Pen."
+      },
+      "extreme_droite": {
+        "finalist": 0,
+        "rn": 100,
+        "abstention": 0,
+        "camp": "rn",
+        "note": "Électorat Reconquête / DLF rattaché au camp RN."
+      }
+    },
+    "lr_rn": {
+      "gauche": {
+        "finalist": 35,
+        "rn": 8,
+        "abstention": 57,
+        "note": "Électeurs de gauche face à un duel LR – Le Pen (ordre de grandeur, peu testé directement)."
+      },
+      "centre": {
+        "finalist": 64,
+        "rn": 14,
+        "abstention": 22,
+        "note": "Électeurs du centre face à un duel LR – Le Pen."
+      },
+      "droite": {
+        "finalist": 50,
+        "rn": 26,
+        "abstention": 24,
+        "note": "Électeurs d'un second candidat de droite non qualifié."
+      },
+      "extreme_droite": {
+        "finalist": 0,
+        "rn": 100,
+        "abstention": 0,
+        "camp": "rn",
+        "note": "Électorat Reconquête / DLF rattaché au camp RN."
+      }
+    }
+  }
+}

@@ -24,8 +24,7 @@
       "bloc": "gauche",
       "color": "#8f1d3f",
       "colorDark": "#b0407a",
-      "duelProfile": null,
-      "ref2022": "arthaud"
+      "duelProfile": null
     },
     {
       "id": "melenchon",
@@ -35,8 +34,7 @@
       "bloc": "gauche",
       "color": "#c9254b",
       "colorDark": "#d8395f",
-      "duelProfile": "lfi_rn",
-      "ref2022": "melenchon"
+      "duelProfile": "lfi_rn"
     },
     {
       "id": "roussel",
@@ -46,8 +44,7 @@
       "bloc": "gauche",
       "color": "#b5160c",
       "colorDark": "#d42a20",
-      "duelProfile": "ecolo_ps_pcf_rn",
-      "ref2022": "roussel"
+      "duelProfile": "ecolo_ps_pcf_rn"
     },
     {
       "id": "tondelier",
@@ -57,9 +54,7 @@
       "bloc": "gauche",
       "color": "#1f9a72",
       "colorDark": "#21a37a",
-      "duelProfile": "ecolo_ps_pcf_rn",
-      "ref2022": "jadot",
-      "ref2022Note": "référence Yannick Jadot, candidat écologiste (EELV) en 2022."
+      "duelProfile": "ecolo_ps_pcf_rn"
     },
     {
       "id": "glucksmann",
@@ -69,18 +64,7 @@
       "bloc": "gauche",
       "color": "#e0569b",
       "colorDark": "#d9589a",
-      "duelProfile": "ecolo_ps_pcf_rn",
-      "ref2022": [
-        {
-          "id": "hidalgo",
-          "weight": 0.3
-        },
-        {
-          "id": "macron",
-          "weight": 0.7
-        }
-      ],
-      "ref2022Note": "référence pondérée entre Emmanuel Macron, 70 %, et Anne Hidalgo (PS), 30 % par défaut (réglable). Vainqueur de la primaire socialiste du 11/10/2026, il a un électorat plus centriste que celui d'Anne Hidalgo, plus proche de celui d'Emmanuel Macron."
+      "duelProfile": "ecolo_ps_pcf_rn"
     },
     {
       "id": "attal",
@@ -90,9 +74,7 @@
       "bloc": "centre",
       "color": "#d98f1f",
       "colorDark": "#c4862a",
-      "duelProfile": "ensemble_rn",
-      "ref2022": "macron",
-      "ref2022Note": "référence Emmanuel Macron (bloc central, ex-majorité présidentielle)."
+      "duelProfile": "ensemble_rn"
     },
     {
       "id": "philippe",
@@ -102,9 +84,7 @@
       "bloc": "centre",
       "color": "#2492c4",
       "colorDark": "#2197c9",
-      "duelProfile": "ensemble_rn",
-      "ref2022": "macron",
-      "ref2022Note": "référence Emmanuel Macron (bloc central, ex-majorité présidentielle)."
+      "duelProfile": "ensemble_rn"
     },
     {
       "id": "retailleau",
@@ -114,18 +94,7 @@
       "bloc": "droite",
       "color": "#2f5fb3",
       "colorDark": "#4a78d0",
-      "duelProfile": "lr_rn",
-      "ref2022": [
-        {
-          "id": "pecresse",
-          "weight": 0.6
-        },
-        {
-          "id": "lepen",
-          "weight": 0.4
-        }
-      ],
-      "ref2022Note": "référence pondérée entre Valérie Pécresse (LR), 60 %, et Marine Le Pen, 40 % par défaut (réglable). Il est idéologiquement plus proche de l'électorat de Marine Le Pen que la candidate LR de 2022 et peut lui prendre des voix."
+      "duelProfile": "lr_rn"
     },
     {
       "id": "dupont-aignan",
@@ -135,8 +104,7 @@
       "bloc": "extreme_droite",
       "color": "#8457b3",
       "colorDark": "#9068c2",
-      "duelProfile": null,
-      "ref2022": "dupont-aignan"
+      "duelProfile": null
     },
     {
       "id": "lepen",
@@ -147,7 +115,6 @@
       "color": "#22397f",
       "colorDark": "#4a5bc0",
       "duelProfile": null,
-      "ref2022": "lepen",
       "isRN": true
     },
     {
@@ -158,8 +125,7 @@
       "bloc": "extreme_droite",
       "color": "#101a3a",
       "colorDark": "#323d85",
-      "duelProfile": null,
-      "ref2022": "zemmour"
+      "duelProfile": null
     },
     {
       "id": "ruffin",
@@ -170,8 +136,6 @@
       "color": "#d9416a",
       "colorDark": "#dc4b78",
       "duelProfile": null,
-      "ref2022": null,
-      "ref2022Note": "aucune référence 2022 : pas de correction ni de progression.",
       "minor": {
         "transfers": [
           {
@@ -226,8 +190,6 @@
       "color": "#25c2c0",
       "colorDark": "#33cccc",
       "duelProfile": null,
-      "ref2022": null,
-      "ref2022Note": "aucune référence 2022 : pas de correction ni de progression.",
       "minor": {
         "transfers": [
           {
@@ -313,8 +275,6 @@
       "color": "#e4572e",
       "colorDark": "#e0592f",
       "duelProfile": null,
-      "ref2022": null,
-      "ref2022Note": "aucune référence 2022 : pas de correction ni de progression.",
       "minor": {
         "transfers": [
           {
@@ -404,8 +364,6 @@
       "color": "#2a7bff",
       "colorDark": "#58a6ff",
       "duelProfile": "lr_rn",
-      "ref2022": null,
-      "ref2022Note": "aucune référence 2022 : pas de correction ni de progression.",
       "minor": {
         "transfers": [
           {
@@ -481,8 +439,6 @@
       "color": "#f7a368",
       "colorDark": "#f2a36c",
       "duelProfile": null,
-      "ref2022": null,
-      "ref2022Note": "aucune référence 2022 : pas de correction ni de progression.",
       "minor": {
         "transfers": [
           {
@@ -508,8 +464,6 @@
       "color": "#6a85c5",
       "colorDark": "#7a92cf",
       "duelProfile": null,
-      "ref2022": null,
-      "ref2022Note": "aucune référence 2022 : pas de correction ni de progression.",
       "minor": {
         "transfers": [
           {
@@ -591,8 +545,6 @@
       "color": "#8a8170",
       "colorDark": "#b3aa98",
       "duelProfile": null,
-      "ref2022": null,
-      "ref2022Note": "aucune référence 2022 : pas de correction ni de progression.",
       "minor": {
         "transfers": [
           {
@@ -657,8 +609,6 @@
       "color": "#f77602",
       "colorDark": "#fd7c0e",
       "duelProfile": null,
-      "ref2022": null,
-      "ref2022Note": "aucune référence 2022 : pas de correction ni de progression.",
       "minor": {
         "transfers": [
           {
@@ -1015,16 +965,6 @@
       "leader": "glucksmann"
     },
     {
-      "id": "retailleau-lepen",
-      "label": "Retailleau rejoint Le Pen",
-      "members": [
-        "lepen",
-        "retailleau"
-      ],
-      "leader": "lepen",
-      "estimatedOnly": true
-    },
-    {
       "id": "zemmour-lepen",
       "label": "Zemmour rejoint Le Pen",
       "members": [
@@ -1203,87 +1143,6 @@
         "riner"
       ],
       "leader": "philippe"
-    },
-    {
-      "id": "groupe-droite-centre",
-      "label": "Alliance de la droite et du centre large",
-      "description": "Glucksmann, Attal, Philippe, Retailleau, Lisnard, Lagarde, Riner",
-      "members": [
-        "glucksmann",
-        "attal",
-        "philippe",
-        "retailleau",
-        "lisnard",
-        "lagarde",
-        "riner"
-      ],
-      "grouped": true,
-      "estimatedOnly": true
-    },
-    {
-      "id": "groupe-centre",
-      "label": "Alliance du centre",
-      "description": "Glucksmann, Attal, Philippe, Riner",
-      "members": [
-        "glucksmann",
-        "attal",
-        "philippe",
-        "riner"
-      ],
-      "grouped": true,
-      "estimatedOnly": true
-    },
-    {
-      "id": "groupe-primaire-droite-centre",
-      "label": "Primaire de la droite et du centre",
-      "description": "Attal, Retailleau, Lisnard",
-      "members": [
-        "attal",
-        "retailleau",
-        "lisnard"
-      ],
-      "grouped": true,
-      "estimatedOnly": true
-    },
-    {
-      "id": "groupe-droites",
-      "label": "Alliance de la droite et de l’extrême droite",
-      "description": "Retailleau, Lisnard, Le Pen, Zemmour",
-      "members": [
-        "retailleau",
-        "lisnard",
-        "lepen",
-        "zemmour"
-      ],
-      "grouped": true,
-      "estimatedOnly": true
-    },
-    {
-      "id": "groupe-gauche-sans-ps",
-      "label": "Alliance de la gauche sans PS/Place Publique",
-      "description": "Mélenchon, Tondelier, Roussel, Ruffin, Arthaud",
-      "members": [
-        "melenchon",
-        "tondelier",
-        "roussel",
-        "ruffin",
-        "arthaud"
-      ],
-      "grouped": true,
-      "estimatedOnly": true
-    },
-    {
-      "id": "groupe-gauche-sans-lfi",
-      "label": "Alliance de la gauche sans LFI",
-      "description": "Tondelier, Roussel, Ruffin, Glucksmann",
-      "members": [
-        "tondelier",
-        "roussel",
-        "ruffin",
-        "glucksmann"
-      ],
-      "grouped": true,
-      "estimatedOnly": true
     }
   ],
   "polls": [

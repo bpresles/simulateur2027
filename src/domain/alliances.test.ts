@@ -3,29 +3,18 @@ import {
   acceptAlliances,
   allianceCombos,
   alliancesConflict,
-  applyAlliances,
   availableAlliances,
   campRivals,
   comboWith,
-  defaultSet,
-  groupedLeader,
-  groupedLeaderChoice,
-  headToHeads,
-  MIN_PAIR_INSTITUTES,
-  insertMinor,
   isOptionChecked,
   ralliedOf,
-  resolveGroupedLeaders,
   scenarioFilter,
   scenarioSet,
   testedOptions,
-  testedShare,
 } from './alliances'
-import { averagePolls, latestPerInstitute, windowDaysOf } from './pollAverage'
 import { defaultSettings, simulate } from './simulate'
-import type { Alliance, Hypothesis, Poll, PollsData } from './types'
+import type { Hypothesis, Poll, PollsData } from './types'
 
-// Catalogue d'alliances et candidats des données, avec des sondages construits pour les tests.
 const FULL = {
   arthaud: 1,
   melenchon: 17,
@@ -39,7 +28,6 @@ const FULL = {
   lepen: 33,
   zemmour: 3,
 }
-/** Hypothèse sans certains candidats, leurs points donnés à `to`. */
 const without = (id: string, ids: (keyof typeof FULL)[], to: keyof typeof FULL, extra: Hypothesis['scores'] = {}) => {
   const scores: Record<string, number> = { ...FULL, ...extra }
   for (const x of ids) {
@@ -57,7 +45,7 @@ const poll = (id: string, institute: string, hypotheses: Hypothesis[]): Poll => 
   sources: [{ label: 'x', url: 'https://example.org' }],
   hypotheses,
 })
-// Candidats principaux et leurs alliances : les petits candidats sont testés à part.
+
 const main = liveData.polls.candidates.filter((c) => !c.minor)
 const polls: PollsData = {
   ...liveData.polls,
@@ -69,7 +57,6 @@ const polls: PollsData = {
     poll('a', 'Elabe', [
       { id: 'H1', scores: FULL },
       without('H2', ['attal'], 'philippe'),
-      // Hollande à la place de Glucksmann : ce n'est pas un ralliement de Glucksmann.
       { ...without('H3', ['attal', 'glucksmann'], 'philippe', { hollande: 0 }), replacing: { hollande: 'glucksmann' } },
     ]),
     poll('b', 'Cluster17', [
@@ -96,6 +83,10 @@ describe('incompatibilités entre alliances', () => {
     expect(campRivals(polls, [byId('retailleau-philippe')])).toEqual(['attal'])
     expect(campRivals(polls, [byId('attal-philippe'), byId('retailleau-philippe')])).toEqual([])
     expect(campRivals(polls, [byId('philippe-glucksmann')])).toEqual(['melenchon', 'attal'])
+  })
+
+  it('ralliedOf retourne les membres autres que le leader', () => {
+    expect(ralliedOf(byId('attal-philippe'))).toEqual(['attal'])
   })
 })
 
@@ -124,26 +115,6 @@ describe('alliances testées par les sondages', () => {
     expect(comboWith(polls, [byId('attal-philippe')], byId('philippe-retailleau'))).toBeUndefined()
   })
 
-  it('à taille égale, la combinaison ajoutée rallie le même leader', () => {
-    // Lagarde testée sans Attal ni Philippe : « Attal rejoint Retailleau » décrit aussi l'absence d'Attal.
-    const withLagarde = [...main, liveData.polls.candidates.find((c) => c.id === 'lagarde')!]
-    const lagarde: PollsData = {
-      ...polls,
-      candidates: withLagarde,
-      alliances: liveData.polls.alliances.filter((a) =>
-        a.members.every((id) => withLagarde.some((c) => c.id === id)),
-      ),
-      polls: [poll('c', 'Cluster17', [without('H1', ['attal', 'philippe'], 'retailleau', { lagarde: 0 })])],
-    }
-    const find = (id: string) => lagarde.alliances.find((a) => a.id === id)!
-    expect(allianceCombos(lagarde).map(ids)).toContainEqual(['attal-retailleau', 'philippe-lagarde'])
-    expect(ids(comboWith(lagarde, [], find('philippe-lagarde'))!)).toEqual([
-      'philippe-lagarde',
-      'attal-lagarde',
-    ])
-    expect(ids(comboWith(lagarde, [], find('attal-lagarde'))!)).toEqual(['philippe-lagarde', 'attal-lagarde'])
-  })
-
   it('nomme le scénario d’après un jeu des données, sinon par les ralliés absents', () => {
     const name = (id: string) => polls.candidates.find((c) => c.id === id)!.name
     expect(scenarioSet(polls, [byId('attal-philippe')], name).label).toBe('Philippe seul')
@@ -152,9 +123,10 @@ describe('alliances testées par les sondages', () => {
     )
   })
 
-  it('simulation : seuls les sondages qui testent la combinaison sont retenus, sans taux de report', () => {
+  it('simulation : sans projection, seuls les sondages qui testent la combinaison sont retenus', () => {
     const res = simulate(data, {
       ...defaultSettings(),
+      offerProjectionEnabled: false,
       alliances: { 'attal-philippe': true, 'retailleau-philippe': true },
     })
     expect(res.allianceIds).toEqual(['attal-philippe', 'retailleau-philippe'])
@@ -163,532 +135,34 @@ describe('alliances testées par les sondages', () => {
       ['b', 'used', ['H1']],
     ])
     expect(res.entrants.map((e) => e.id)).not.toContain('retailleau')
-    expect(res.entrants.find((e) => e.id === 'philippe')!.members).toHaveLength(1)
     expect(res.warnings).toContain(
       'Seulement 1 institut (Cluster17) pour l’hypothèse « Sans Gabriel Attal, Bruno Retailleau » : moyenne fragile.',
     )
   })
 
   it('simulation : une alliance non testée est ignorée', () => {
-    const res = simulate(data, { ...defaultSettings(), alliances: { 'tondelier-melenchon': true } })
+    const res = simulate(data, {
+      ...defaultSettings(),
+      offerProjectionEnabled: false,
+      alliances: { 'tondelier-melenchon': true },
+    })
     expect(res.allianceIds).toEqual([])
     expect(res.pollUsage.find((u) => u.poll.id === 'a')!.matchedHypotheses).toEqual(['H1'])
   })
-})
 
-describe('alliances estimées (option) : reports de 2024', () => {
-  const alliance: Alliance = { id: 'al', label: 'T rejoint M', members: ['m', 't'], leader: 'm' }
-  const follow = (leader: number, rn = 0) => () => ({ leader, rn })
-
-  it('sans alliance, chaque candidat reste seul', () => {
-    const { entrants } = applyAlliances({ m: 20, t: 3, x: 77 }, [], follow(1), null)
-    expect(entrants.map((e) => [e.id, e.members.length])).toEqual([
-      ['x', 1],
-      ['m', 1],
-      ['t', 1],
-    ])
+  it('options testées : choisit la combinaison canonique et vérifie isOptionChecked', () => {
+    const options = testedOptions(polls)
+    expect(options.length).toBeGreaterThanOrEqual(2)
+    const seul = options.find((o) => o.id === 'teste-attal-philippe')!
+    expect(isOptionChecked(seul, [byId('attal-philippe')])).toBe(true)
+    expect(isOptionChecked(seul, [])).toBe(false)
   })
-
-  it('fusionne les scores et calcule les poids (20 + 3 → 0,87 / 0,13)', () => {
-    const m = applyAlliances({ m: 20, t: 3, x: 77 }, [alliance], follow(1), null).entrants.find((e) => e.id === 'm')!
-    expect(m.score).toBeCloseTo(23, 8)
-    expect(m.allianceIds).toEqual(['al'])
-    expect(m.members[1]!.weight).toBeCloseTo(3 / 23, 8)
-  })
-
-  it('la part qui vote RN rejoint le candidat RN, celle qui ne suit pas s’abstient', () => {
-    const { entrants, leaks } = applyAlliances({ m: 20, t: 10, rn: 30, x: 40 }, [alliance], follow(0.7, 0.2), 'rn')
-    // m : 20 + 7, rn : 30 + 2, 1 point s'abstient → total 99
-    expect(entrants.find((e) => e.id === 'rn')!.score).toBeCloseTo((32 * 100) / 99, 8)
-    expect(entrants.find((e) => e.id === 'm')!.score).toBeCloseTo((27 * 100) / 99, 8)
-    expect(leaks).toEqual([{ from: 't', to: 'rn', points: expect.closeTo((2 * 100) / 99, 8) }])
-  })
-
-  it('simulation : option désactivée par défaut, une alliance non testée est ignorée', () => {
-    expect(defaultSettings().untestedAlliances).toBe(false)
-    const res = simulate(data, { ...defaultSettings(), alliances: { 'tondelier-melenchon': true } })
-    expect(res).toMatchObject({ allianceIds: [], estimatedAllianceIds: [], allianceRates: [] })
-  })
-
-  it('simulation avec l’option : alliance non testée estimée (72 % suivent, 3 % RN), testées en priorité', () => {
-    const settings = { ...defaultSettings(), untestedAlliances: true }
-    const res = simulate(data, { ...settings, alliances: { 'tondelier-melenchon': true } })
-    expect(res).toMatchObject({ allianceIds: [], estimatedAllianceIds: ['tondelier-melenchon'] })
-    const melenchon = res.entrants.find((e) => e.id === 'melenchon')!
-    expect(melenchon.members.map((m) => [m.candidateId, m.rate])).toEqual([
-      ['melenchon', 1],
-      ['tondelier', 0.72],
-    ])
-    expect(res.allianceLeaks).toEqual([{ from: 'tondelier', to: 'lepen', points: expect.any(Number) }])
-
-    // Retailleau rejoint Philippe : estimée seule (Attal en lice).
-    const alone = simulate(data, { ...settings, alliances: { 'retailleau-philippe': true } })
-    expect(alone).toMatchObject({ allianceIds: [], estimatedAllianceIds: ['retailleau-philippe'] })
-
-    // Retailleau rejoint Le Pen n'est jamais lue : Cluster17 teste une hypothèse sans Attal ni Retailleau, mais
-    // les électeurs de Retailleau n'y vont pas tous vers Le Pen. Elle est estimée.
-    const lepen = simulate(data, { ...settings, alliances: { 'attal-philippe': true, 'retailleau-lepen': true } })
-    expect(lepen).toMatchObject({ allianceIds: ['attal-philippe'], estimatedAllianceIds: ['retailleau-lepen'] })
-    expect(simulate(data, { ...defaultSettings(), alliances: { 'retailleau-lepen': true } }).allianceIds).toEqual([])
-
-    // Une alliance estimée incompatible avec une alliance testée est ignorée.
-    const conflict = simulate(data, { ...settings, alliances: { 'attal-philippe': true, 'philippe-glucksmann': true } })
-    expect(conflict).toMatchObject({ allianceIds: ['attal-philippe'], estimatedAllianceIds: [] })
-  })
-
-  it('simulation avec l’option : une alliance testée garde les mêmes sondages et le même résultat', () => {
-    const alliances = { 'attal-philippe': true }
-    const without = simulate(data, { ...defaultSettings(), alliances })
-    const withOption = simulate(data, { ...defaultSettings(), untestedAlliances: true, alliances })
-    expect(withOption.pollUsage).toEqual(without.pollUsage)
-    expect(withOption.hypothesisSet).toEqual(without.hypothesisSet)
-    expect(withOption.entrants).toEqual(without.entrants)
-    expect(withOption.secondRound.pct).toEqual(without.secondRound.pct)
-    expect(withOption.estimatedAllianceIds).toEqual([])
-  })
-
-  it('simulation avec l’option : les sondages de la combinaison testée, les autres alliances y sont estimées', () => {
-    const settings = { ...defaultSettings(), untestedAlliances: true }
-    const alliances = { 'attal-philippe': true, 'retailleau-philippe': true, 'tondelier-melenchon': true }
-    const res = simulate(data, { ...settings, alliances })
-    // Cluster17 teste les deux ralliements, Elabe seulement Attal rejoint Philippe : seul Cluster17 est retenu,
-    // comme sans l'option, et Tondelier rejoint Mélenchon, testée nulle part, y est estimée.
-    expect(res.hypothesisSet).toMatchObject({ label: 'Sans Gabriel Attal, Bruno Retailleau' })
-    expect(res.pollUsage.filter((u) => u.status === 'used').map((u) => u.poll.id)).toEqual(['b'])
-    expect(res).toMatchObject({
-      institutesUsed: 1,
-      allianceIds: ['attal-philippe', 'retailleau-philippe'],
-      estimatedAllianceIds: ['tondelier-melenchon'],
-    })
-    const philippe = res.entrants.find((e) => e.id === 'philippe')!
-    expect(philippe.members.map((m) => m.candidateId)).toEqual(['philippe'])
-    expect(res.entrants.reduce((sum, e) => sum + e.score, 0)).toBeCloseTo(100, 8)
-    expect(res.warnings).toContain(
-      'Alliance estimée par les reports des législatives 2024, faute d’hypothèse de sondage : Tondelier rejoint Mélenchon.',
-    )
-  })
-
-  it('simulation avec l’option : une part modifiée remplace le taux 2024', () => {
-    const res = simulate(data, {
-      ...defaultSettings(),
-      untestedAlliances: true,
-      alliances: { 'tondelier-melenchon': true },
-      allianceOverrides: { 'tondelier-melenchon': 0.9 },
-    })
-    const rate = res.allianceRates.find((r) => r.allianceId === 'tondelier-melenchon')!.joining[0]!
-    expect(rate).toMatchObject({ leader: 0.9, isOverride: true, default2024: { leader: 0.72, rn: 0.03 } })
-  })
-})
-
-describe('petits candidats : alliances lues dans les hypothèses', () => {
-  // Lisnard testé (H1), absent (H2), puis seul candidat de la droite à la place de Retailleau (H3).
-  const { retailleau, ...noRetailleau } = FULL
-  const withMinors: PollsData = {
-    ...liveData.polls,
-    asOf: '2026-10-20',
-    period: { label: 'Octobre-décembre 2026', start: '2026-10-01' },
-    polls: [
-      poll('a', 'Elabe', [
-        { id: 'H1', scores: { ...FULL, melenchon: 15, retailleau: 3, lisnard: 4, ruffin: 2 } },
-        { id: 'H2', scores: FULL },
-        { id: 'H3', scores: { ...noRetailleau, lisnard: retailleau + 1 } },
-      ]),
-    ],
-  }
-  const minorData = { ...liveData, polls: withMinors }
-  const byIdLive = (id: string) => withMinors.alliances.find((a) => a.id === id)!
 
   it('un petit candidat n’est requis que s’il mène une alliance', () => {
-    expect(scenarioFilter(withMinors, []).require).not.toContain('lisnard')
-    const filter = scenarioFilter(withMinors, [byIdLive('retailleau-lisnard')])
+    const live = liveData.polls
+    expect(scenarioFilter(live, []).require).not.toContain('lisnard')
+    const filter = scenarioFilter(live, [live.alliances.find((a) => a.id === 'retailleau-lisnard')!])
     expect(filter.require).toContain('lisnard')
     expect(filter.exclude).toContain('retailleau')
-  })
-
-  it('ralliement lu par l’absence du petit candidat, si son leader reste seul dans le camp', () => {
-    const combos = allianceCombos(withMinors).map(ids)
-    expect(combos).toContainEqual(['lisnard-retailleau'])
-    expect(combos).toContainEqual(['retailleau-lisnard'])
-    // Glucksmann reste en lice à gauche : l'absence de Ruffin ne dit pas qu'il rallie Mélenchon.
-    expect(combos.flat()).not.toContain('ruffin-melenchon')
-  })
-
-  it('simulation : imputé dans les hypothèses sans lui, retiré quand il rallie son leader', () => {
-    const base = simulate(minorData, defaultSettings())
-    expect(base.pollUsage[0]!.matchedHypotheses).toEqual(['H1', 'H2'])
-    const lisnard = base.firstRound.find((r) => r.candidateId === 'lisnard')!
-    // 4 % dans H1 ; imputé à 4 % dans H2, sans lui, pris à ses donneurs : total de 100, sans double compte.
-    expect(lisnard.base).toBeCloseTo(4, 8)
-    expect(base.firstRound.reduce((s, r) => s + r.base, 0)).toBeCloseTo(100, 8)
-    expect(base.firstRound.map((r) => r.candidateId)).not.toContain('villepin')
-
-    const rallied = simulate(minorData, { ...defaultSettings(), alliances: { 'lisnard-retailleau': true } })
-    expect(rallied.allianceIds).toEqual(['lisnard-retailleau'])
-    expect(rallied.pollUsage[0]!.matchedHypotheses).toEqual(['H2'])
-    expect(rallied.firstRound.map((r) => r.candidateId)).not.toContain('lisnard')
-
-    const leader = simulate(minorData, { ...defaultSettings(), alliances: { 'retailleau-lisnard': true } })
-    expect(leader.pollUsage[0]!.matchedHypotheses).toEqual(['H3'])
-    expect(leader.entrants.map((e) => e.id)).toContain('lisnard')
-    expect(leader.entrants.map((e) => e.id)).not.toContain('retailleau')
-  })
-})
-
-describe('petit candidat testé seulement avec un rallié', () => {
-  // Ruffin n'est testé qu'avec Attal (H1) ; H2 mesure « Attal rejoint Philippe », sans Ruffin.
-  const withRuffin: PollsData = {
-    ...liveData.polls,
-    asOf: '2026-10-20',
-    period: { label: 'Octobre-décembre 2026', start: '2026-10-01' },
-    polls: [poll('a', 'Elabe', [{ id: 'H1', scores: { ...FULL, melenchon: 15, ruffin: 2 } }, without('H2', ['attal'], 'philippe')])],
-  }
-  const ruffinData = { ...liveData, polls: withRuffin }
-
-  it('sa part : moyenne des hypothèses qui le testent (0 si aucune)', () => {
-    expect(testedShare(withRuffin, 'ruffin')).toBeCloseTo(2, 8)
-    expect(testedShare(withRuffin, 'bouamrane')).toBe(0)
-    // Aucun sondage coché ne le teste : tous les sondages disponibles sont retenus, comme pour la base.
-    expect(testedShare(withRuffin, 'ruffin', new Set(['a']))).toBeCloseTo(2, 8)
-  })
-
-  it('sa part est prise aux candidats vers lesquels vont ses électeurs, au prorata de ceux en lice', () => {
-    const donors = [
-      { id: 'a', weight: 0.6 },
-      { id: 'b', weight: 0.2 },
-      { id: 'absent', weight: 0.2 },
-    ]
-    expect(insertMinor({ a: 30, b: 20, c: 50 }, 'm', 4, donors)).toEqual({ a: 27, b: 19, c: 50, m: 4 })
-    // Aucun donneur en lice : prélèvement sur tous, au prorata de leur score.
-    expect(insertMinor({ a: 50, c: 50 }, 'm', 4, [{ id: 'x', weight: 1 }])).toEqual({ a: 48, c: 48, m: 4 })
-  })
-
-  it('simulation : son ralliement est estimé (reports 2024) même quand Attal rejoint Philippe', () => {
-    const settings = { ...defaultSettings(), untestedAlliances: true }
-    const alone = simulate(ruffinData, { ...settings, alliances: { 'attal-philippe': true } })
-    expect(alone.firstRound.map((r) => r.candidateId)).not.toContain('ruffin')
-
-    const res = simulate(ruffinData, { ...settings, alliances: { 'attal-philippe': true, 'ruffin-melenchon': true } })
-    expect(res.allianceIds).toEqual(['attal-philippe'])
-    expect(res.estimatedAllianceIds).toEqual(['ruffin-melenchon'])
-    // 2 % de H1, prélevés sur Mélenchon (ses électeurs votent comme les siens en son absence).
-    expect(res.firstRound.find((r) => r.candidateId === 'ruffin')!.base).toBeCloseTo(2, 8)
-    const melenchon = res.entrants.find((e) => e.id === 'melenchon')!
-    const ruffin = melenchon.members.find((m) => m.candidateId === 'ruffin')!
-    expect(ruffin.rate).toBeGreaterThan(0)
-    expect(res.warnings.some((w) => w.startsWith('Aucune hypothèse retenue ne teste François Ruffin'))).toBe(true)
-  })
-
-  it('sa part est prélevée après les corrections : ses donneurs gardent leur correction 2022', () => {
-    const settings = { ...defaultSettings(), untestedAlliances: true, progressionEnabled: true }
-    const alone = simulate(ruffinData, { ...settings, alliances: { 'attal-philippe': true } })
-    const res = simulate(ruffinData, { ...settings, alliances: { 'attal-philippe': true, 'ruffin-melenchon': true } })
-    const rows = new Map(res.firstRound.map((r) => [r.candidateId, r]))
-    for (const r of alone.firstRound) {
-      expect(rows.get(r.candidateId)!.corrected + rows.get(r.candidateId)!.ceded).toBeCloseTo(r.corrected, 8)
-      expect(rows.get(r.candidateId)!.base).toBeCloseTo(r.base, 8)
-    }
-    const ruffin = rows.get('ruffin')!
-    expect(ruffin.corrected).toBeCloseTo(2, 8)
-    expect(res.firstRound.reduce((s, r) => s + r.ceded, 0)).toBeCloseTo(ruffin.corrected, 8)
-  })
-})
-
-describe('alliances groupées', () => {
-  const { polls: live } = liveData
-  const grouped = live.alliances.filter((a) => a.grouped)
-
-  // Données synthétiques : Lagarde, testée par un seul sondage, est imputée dans l'autre hypothèse.
-  const minorCatalog = (...ids: string[]): PollsData => {
-    const candidates = [...main, ...live.candidates.filter((c) => ids.includes(c.id))]
-    return {
-      ...live,
-      candidates,
-      alliances: live.alliances.filter((a) => !a.grouped && a.members.every((id) => candidates.some((c) => c.id === id))),
-      asOf: '2026-10-20',
-      period: { label: 'Octobre-décembre 2026', start: '2026-10-01' },
-      polls: [
-        poll('x', 'Cluster17', [
-          { id: 'H1', scores: FULL },
-          { id: 'H2', scores: { ...FULL, lagarde: 16, lisnard: 9 } },
-        ]),
-      ],
-    }
-  }
-
-  it('leader : un petit candidat, même en tête de la moyenne (score imputé), ne mène pas l’alliance', () => {
-    const d = minorCatalog('lagarde', 'lisnard')
-    const { average } = averagePolls(d, defaultSet(d))
-    expect(average['lagarde']!).toBeGreaterThan(average['philippe']!)
-    expect(groupedLeader(d, ['philippe', 'attal', 'lagarde'])).toBe('philippe')
-    expect(groupedLeader(d, ['lagarde', 'philippe'])).toBe('philippe')
-  })
-
-  it('leader : seulement des petits candidats, repli sur celui qui a le plus d’intentions de vote', () => {
-    const d = minorCatalog('lagarde', 'lisnard')
-    expect(testedShare(d, 'lagarde')).toBeGreaterThan(testedShare(d, 'lisnard'))
-    expect(groupedLeader(d, ['lisnard', 'lagarde'])).toBe('lagarde')
-    expect(groupedLeader(d, ['lagarde', 'lisnard'])).toBe('lagarde')
-  })
-
-  it('leader (données vivantes) : un membre du groupe, avec sa base ; face-à-face seulement si une paire est testée par 2 instituts', () => {
-    expect(grouped.length).toBeGreaterThan(0)
-    for (const a of grouped) {
-      expect(a.estimatedOnly).toBe(true)
-      expect(a.members, a.id).toContain(a.leader)
-      expect(groupedLeaderChoice(live, a.members)).toEqual({ id: a.leader, basis: a.leaderBasis })
-      const { pairs } = headToHeads(live, a.members)
-      expect(a.leaderBasis, a.id).toBe(pairs > 0 ? 'face-a-face' : 'moyenne')
-    }
-  })
-
-  it('leader (données vivantes) : le leader désigné par face-à-face a au moins une paire testée par 2 instituts', () => {
-    const { latest } = latestPerInstitute(live.polls, live.asOf, windowDaysOf(live))
-    for (const a of grouped.filter((x) => x.leaderBasis === 'face-a-face')) {
-      const institutes = (other: string) =>
-        new Set(
-          latest
-            .filter((p) => p.hypotheses.some((h) => a.leader in h.scores && other in h.scores))
-            .map((p) => p.institute),
-        ).size
-      const best = Math.max(...a.members.filter((m) => m !== a.leader).map(institutes))
-      expect(best, a.id).toBeGreaterThanOrEqual(MIN_PAIR_INSTITUTES)
-    }
-  })
-
-  it('l’alliance de la primaire réunit Attal, Retailleau et Lisnard (Philippe n’en fait pas partie)', () => {
-    const a = grouped.find((x) => x.id === 'groupe-primaire-droite-centre')!
-    expect([...a.members].sort()).toEqual(['attal', 'lisnard', 'retailleau'])
-    expect(a.estimatedOnly).toBe(true)
-  })
-
-  it('estimées seulement avec leur option, appliquées avec tous leurs ralliés', () => {
-    const a = grouped.find((x) => x.id === 'groupe-droites')!
-    const active = { [a.id]: true }
-    const off = simulate(liveData, { ...defaultSettings(), alliances: active })
-    expect(off.estimatedAllianceIds).toEqual([])
-    const on = simulate(liveData, { ...defaultSettings(), groupedAlliances: true, alliances: active })
-    expect(on.estimatedAllianceIds).toEqual([a.id])
-    expect(on.entrants.find((e) => e.id === a.leader)!.members.map((m) => m.candidateId).sort()).toEqual(
-      [...a.members].sort(),
-    )
-    expect(on.entrants.reduce((s, e) => s + e.score, 0)).toBeCloseTo(100)
-  })
-
-  it('« Attal rejoint Glucksmann » : alliance simple de leader Glucksmann', () => {
-    const a = live.alliances.find((x) => x.id === 'attal-glucksmann')!
-    expect(a.leader).toBe('glucksmann')
-    expect(ralliedOf(a)).toEqual(['attal'])
-    expect(alliancesConflict(a, live.alliances.find((x) => x.id === 'attal-philippe')!)).toBe(true)
-  })
-})
-
-describe('options groupées tirées des hypothèses testées', () => {
-  const minorIds = ['lagarde', 'lisnard']
-  const candidates = [...main, ...liveData.polls.candidates.filter((c) => minorIds.includes(c.id))]
-  const withMinors = (pollList: Poll[]): PollsData => ({
-    ...polls,
-    candidates,
-    alliances: liveData.polls.alliances.filter((a) => a.members.every((id) => candidates.some((c) => c.id === id))),
-    polls: pollList,
-  })
-  const labelled = (label: string, h: Hypothesis): Hypothesis => ({ ...h, label })
-
-  it('hypothèse « Lagarde » : une option Philippe et Attal derrière Lagarde, nommée par le jeu « Lagarde seule »', () => {
-    const d = withMinors([
-      poll('c', 'Cluster17', [
-        labelled('Lagarde', without('H1', ['attal', 'philippe'], 'retailleau', { lagarde: 4, lisnard: 3 })),
-      ]),
-    ])
-    // Plusieurs combinaisons de taille 2 décrivent l'hypothèse.
-    expect(allianceCombos(d).map(ids)).toContainEqual(['attal-retailleau', 'philippe-lagarde'])
-    const options = testedOptions(d)
-    expect(options.map((o) => ids(o.alliances))).toEqual([['philippe-lagarde', 'attal-lagarde']])
-    expect(options[0]).toMatchObject({ id: 'teste-attal-lagarde-philippe-lagarde', label: 'Lagarde seule' })
-    expect(options[0]!.description).toBe(
-      'Candidats : Arthaud, Mélenchon, Roussel, Tondelier, Glucksmann, Retailleau, Dupont-Aignan, Le Pen, Zemmour, Lagarde ; selon les sondages, aussi : Lisnard. Testée par : Cluster17 (hypothèse « Lagarde »)',
-    )
-  })
-
-  it('hypothèse « Philippe, Lisnard » : une seule option aux deux leaders, au libellé du jeu d’hypothèses', () => {
-    const d = withMinors([
-      poll('i', 'Ifop-Fiducial', [
-        labelled('Philippe, Lisnard', without('H1', ['attal', 'retailleau'], 'philippe', { lisnard: 7 })),
-      ]),
-    ])
-    const options = testedOptions(d)
-    expect(options.map((o) => ids(o.alliances))).toEqual([['attal-philippe', 'retailleau-lisnard']])
-    expect(options[0]!.label).toBe('Philippe au centre, Lisnard seul à droite')
-    expect(options[0]!.description).toContain('Testée par : Ifop-Fiducial (hypothèse « Philippe, Lisnard »)')
-    // Le jeu d'hypothèses nomme la combinaison ; sans lui, libellé neutre.
-    const unnamed = { ...d, hypothesisSets: d.hypothesisSets.filter((x) => x.id !== 'philippe-lisnard') }
-    expect(testedOptions(unnamed)[0]!.label).toBe('Derrière Philippe : Attal ; derrière Lisnard : Retailleau')
-    const alliances = ['attal-philippe', 'retailleau-lisnard'].map((id) => d.alliances.find((a) => a.id === id)!)
-    expect(scenarioSet(d, alliances, (id) => id).label).toBe('Philippe au centre, Lisnard seul à droite')
-  })
-
-  it('deux instituts qui testent la même combinaison : une seule option, qui les cite', () => {
-    const d = withMinors([
-      poll('a', 'Elabe', [labelled('Philippe', without('H1', ['attal'], 'philippe'))]),
-      poll('b', 'Odoxa', [labelled('Philippe seul', without('H1', ['attal'], 'philippe'))]),
-    ])
-    const options = testedOptions(d)
-    expect(options).toHaveLength(1)
-    expect(options[0]).toMatchObject({ id: 'teste-attal-philippe', label: 'Philippe seul' })
-    expect(options[0]!.testedBy.map((t) => t.institute)).toEqual(['Elabe', 'Odoxa'])
-    expect(options[0]!.description).toMatch(
-      /Testée par : Elabe \(hypothèse « Philippe »\), Odoxa \(hypothèse « Philippe seul »\)$/,
-    )
-  })
-
-  it('une hypothèse sans alliance (jeu par défaut) ne donne aucune option', () => {
-    expect(testedOptions({ ...polls, polls: [poll('a', 'Elabe', [{ id: 'H1', scores: FULL }])] })).toEqual([])
-  })
-
-  it('une hypothèse avec Philippe et Attal mais sans Lisnard ni Lagarde ne donne aucune option', () => {
-    const d = withMinors([poll('a', 'Elabe', [labelled('Sans petits candidats', { id: 'H1', scores: FULL })])])
-    expect(testedOptions(d)).toEqual([])
-  })
-
-  it('option cochée seulement si les alliances testées retenues sont exactement sa combinaison', () => {
-    const d = withMinors([
-      poll('a', 'Elabe', [without('H1', ['attal'], 'philippe'), without('H2', ['attal', 'retailleau'], 'philippe')]),
-    ])
-    const [seul, deux] = testedOptions(d)
-    expect(ids(deux!.alliances)).toEqual(['attal-philippe', 'retailleau-philippe'])
-    expect(isOptionChecked(seul!, [byId('attal-philippe')])).toBe(true)
-    expect(isOptionChecked(seul!, deux!.alliances)).toBe(false)
-    expect(isOptionChecked(deux!, [byId('attal-philippe')])).toBe(false)
-  })
-})
-
-describe('leader d’une alliance groupée : face-à-face', () => {
-  const minors = liveData.polls.candidates.filter((c) => c.id === 'lisnard' || c.id === 'lagarde')
-  const candidates = [...main, ...minors]
-  const build = (pollList: Poll[]): PollsData => ({
-    ...polls,
-    candidates,
-    alliances: liveData.polls.alliances.filter((a) => a.members.every((id) => candidates.some((c) => c.id === id))),
-    polls: pollList,
-  })
-  const hyp = (id: string, extra: Hypothesis['scores']): Hypothesis => ({ id, scores: { ...FULL, ...extra } })
-  const members = ['attal', 'retailleau', 'lisnard']
-
-  it('un petit candidat testé par plusieurs instituts gagne ses face-à-face et mène le groupe', () => {
-    const d = build([
-      poll('a', 'Elabe', [hyp('H1', { lisnard: 8 })]),
-      poll('b', 'Cluster17', [hyp('H1', { lisnard: 9 })]),
-    ])
-    expect(groupedLeaderChoice(d, members)).toEqual({ id: 'lisnard', basis: 'face-a-face' })
-    expect(groupedLeaderChoice(d, ['lisnard', 'attal'])).toEqual({ id: 'lisnard', basis: 'face-a-face' })
-  })
-
-  it('une paire testée par un seul institut est ignorée : repli sur le candidat principal en tête de la moyenne', () => {
-    const d = build([poll('a', 'Elabe', [hyp('H1', { lisnard: 20 })]), poll('b', 'Cluster17', [hyp('H1', {})])])
-    expect(headToHeads(d, ['attal', 'lisnard']).pairs).toBe(0)
-    expect(groupedLeaderChoice(d, ['lisnard', 'attal'])).toEqual({ id: 'attal', basis: 'moyenne' })
-  })
-
-  it('les scores sont ceux mesurés : un score imputé n’entre pas dans le face-à-face', () => {
-    // Lagarde n'est mesurée que par Cluster17 ; l'autre institut ne la teste pas.
-    const d = build([poll('a', 'Elabe', [hyp('H1', {})]), poll('b', 'Cluster17', [hyp('H1', { lagarde: 30 })])])
-    expect(headToHeads(d, ['philippe', 'lagarde']).pairs).toBe(0)
-    expect(groupedLeaderChoice(d, ['lagarde', 'philippe']).id).toBe('philippe')
-  })
-
-  it('égalité de face-à-face gagnés : la plus grande marge cumulée, avant le premier membre', () => {
-    // Chaque institut : H1 teste Attal et Retailleau, H2 (sans Attal) teste Retailleau et Lisnard.
-    const hypotheses = () => [hyp('H1', {}), without('H2', ['attal'], 'philippe', { lisnard: 9 })]
-    const d = build([poll('a', 'Elabe', hypotheses()), poll('b', 'Cluster17', hypotheses())])
-    const { record, pairs } = headToHeads(d, ['retailleau', 'lisnard', 'attal'])
-    expect(pairs).toBe(2)
-    expect(record.get('retailleau')).toEqual({ wins: 1, margin: -1 })
-    expect(record.get('lisnard')).toEqual({ wins: 1, margin: 2 })
-    expect(groupedLeaderChoice(d, ['retailleau', 'lisnard', 'attal']).id).toBe('lisnard')
-  })
-
-  it('à égalité parfaite, le premier membre', () => {
-    const d = build([
-      poll('a', 'Elabe', [hyp('H1', { lisnard: 7 })]),
-      poll('b', 'Cluster17', [hyp('H1', { lisnard: 7 })]),
-    ])
-    expect(groupedLeaderChoice(d, ['lisnard', 'retailleau']).id).toBe('lisnard')
-    expect(groupedLeaderChoice(d, ['retailleau', 'lisnard']).id).toBe('retailleau')
-  })
-
-  it('le groupe de la primaire est mené par le membre qui gagne ses face-à-face', () => {
-    const d = resolveGroupedLeaders(
-      build([
-        poll('a', 'Elabe', [hyp('H1', { lisnard: 8 })]),
-        poll('b', 'Cluster17', [hyp('H1', { lisnard: 9 })]),
-      ]),
-    )
-    const a = d.alliances.find((x) => x.id === 'groupe-primaire-droite-centre')!
-    expect(a).toMatchObject({ leader: 'lisnard', leaderBasis: 'face-a-face' })
-    // Philippe, hors de la primaire, n'entre dans aucun de ses face-à-face.
-    expect(a.members).not.toContain('philippe')
-  })
-
-  describe('estimation de la primaire avec Lisnard pour leader (profil « LR face au RN »)', () => {
-    const d = resolveGroupedLeaders(
-      build([
-        poll('a', 'Elabe', [hyp('H1', { lisnard: 8 })]),
-        poll('b', 'Cluster17', [hyp('H1', { lisnard: 9 })]),
-      ]),
-    )
-    const sim = { ...liveData, polls: d }
-    const settings = defaultSettings()
-    const score = (r: ReturnType<typeof simulate>, id: string) => r.entrants.find((e) => e.id === id)?.score
-    const finite = (v: unknown): boolean =>
-      typeof v === 'number' ? Number.isFinite(v) : v && typeof v === 'object' ? Object.values(v).every(finite) : true
-
-    const check = (res: ReturnType<typeof simulate>, base: ReturnType<typeof simulate>) => {
-      expect(score(res, 'lisnard')!).toBeGreaterThan(score(base, 'lisnard')!)
-      expect(res.entrants.reduce((t, e) => t + e.score, 0)).toBeCloseTo(100)
-      expect(res.entrants.every((e) => e.score >= 0 && e.members.every((m) => m.contribution >= 0))).toBe(true)
-      expect(finite(res)).toBe(true)
-      const rates = res.allianceRates.filter((r) => r.leaderId === 'lisnard')
-      expect(rates.length).toBeGreaterThan(0)
-      for (const r of rates) {
-        for (const j of r.joining) {
-          // Lisnard suit le profil « LR face au RN » : une partie seulement des électeurs le suit.
-          expect(j.source?.profileId).toBe('lr_rn')
-          expect(j.leader).toBeGreaterThan(0)
-          expect(j.leader).toBeLessThan(1)
-          expect(j.rn).toBeGreaterThanOrEqual(0)
-          expect(j.leader + j.rn).toBeLessThanOrEqual(1 + 1e-9)
-        }
-      }
-    }
-
-    it('alliance groupée : le score de Lisnard augmente d’une partie des voix d’Attal et de Retailleau', () => {
-      const base = simulate(sim, settings)
-      const res = simulate(sim, { ...settings, groupedAlliances: true, alliances: { 'groupe-primaire-droite-centre': true } })
-      expect(res.estimatedAllianceIds).toEqual(['groupe-primaire-droite-centre'])
-      check(res, base)
-      const lisnard = res.entrants.find((e) => e.id === 'lisnard')!
-      expect(lisnard.members.map((m) => m.candidateId).sort()).toEqual(['attal', 'lisnard', 'retailleau'])
-      // Plus de la moitié des voix reste à Lisnard et à ses ralliés, mais pas toutes : une part va au RN.
-      expect(score(res, 'lepen')!).toBeGreaterThan(score(base, 'lepen')!)
-    })
-
-    it('sans alliance, le score de Lisnard ne dépend pas de son profil de reports', () => {
-      const withoutProfile = {
-        ...sim,
-        polls: { ...d, candidates: d.candidates.map((c) => (c.id === 'lisnard' ? { ...c, duelProfile: null } : c)) },
-      }
-      expect(score(simulate(sim, settings), 'lisnard')).toBeCloseTo(score(simulate(withoutProfile, settings), 'lisnard')!, 10)
-    })
-
-    it('combinaison d’alliances simples : estimée, avec l’option des alliances non évaluées seulement', () => {
-      const active = { 'attal-lisnard': true, 'retailleau-lisnard': true }
-      const base = simulate(sim, settings)
-      // Sans l'option, aucune hypothèse ne teste la combinaison (Philippe reste au centre) : rien n'est appliqué.
-      expect(simulate(sim, { ...settings, alliances: active }).estimatedAllianceIds).toEqual([])
-      const res = simulate(sim, { ...settings, untestedAlliances: true, alliances: active })
-      expect([...res.estimatedAllianceIds].sort()).toEqual(['attal-lisnard', 'retailleau-lisnard'])
-      check(res, base)
-      const grouped = simulate(sim, { ...settings, groupedAlliances: true, alliances: { 'groupe-primaire-droite-centre': true } })
-      expect(score(res, 'lisnard')!).toBeCloseTo(score(grouped, 'lisnard')!, 8)
-    })
   })
 })

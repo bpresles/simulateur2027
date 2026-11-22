@@ -1,203 +1,168 @@
-import { BLOG_BIAS_URL, totalBias } from '../../domain/blogBias'
 import { newestFirst } from '../../domain/pollAverage'
-import { correctionUncertainty } from '../../domain/transferCorrection'
-import type { SimulationResult, TurnoutBalance } from '../../domain/types'
-import { calibration, progression2022Stats } from '../../hooks/useSimulation'
+import type { SimulationResult, TransferSource } from '../../domain/types'
 import { useSettings } from '../../state/settingsStore'
-import { date, distance, fieldwork, month, num, ofMonth, pct, pts, ratio } from '../format'
-import { simulationData } from '../../data/schema'
-import { AllianceSwitches, GroupedAlliancesSwitch, UntestedAlliancesSwitch } from './AllianceSwitches'
-import { Checkbox, Slider, Switch } from './controls'
+import { cand } from '../candidates'
+import { fieldwork, num, pct } from '../format'
+import { AllianceSwitches } from './AllianceSwitches'
+import { Checkbox, Segmented, Slider, Switch } from './controls'
+import { RepublicanFrontControls } from './RepublicanFrontControls'
+import type { SettingsTab } from './SettingsSheet'
 
-const allianceLabel = new Map(simulationData.polls.alliances.map((a) => [a.id, a.label]))
-/** Incertitude des reports tirés des votes réels de 2024 (erreurs types des lignes corrigées). */
-const TRANSFER_UNCERTAINTY = correctionUncertainty(simulationData.transfers, simulationData.secondRoundDropout)
-/** Période de la progression 2022 : même distance du scrutin que la base 2027, jusqu'au vote. */
-const PROGRESSION_PERIOD = `${ofMonth(progression2022Stats.asOf)} à ${month(simulationData.reference2022.electionDate)}`
-const { extreme_droite: farRightBias, gauche: leftBias } = calibration.blogBias
-/** Biais du billet estimés sur 2017 et 2022 à la même distance du scrutin, par bloc. */
-const BLOG_BIAS_DESCRIPTION = [
-  `En 2017 et 2022, des sondages à ${distance(progression2022Stats.daysBefore)} du scrutin au résultat`,
-  [
-    farRightBias && `extrême droite ${ratio(totalBias(farRightBias))}`,
-    leftBias && `gauche ${ratio(totalBias(leftBias))}`,
-  ]
-    .filter(Boolean)
-    .join(', '),
-].join(' : ')
-
-/** Biais du billet déjà corrigés par les options activées : corrigés une seule fois. */
-function blogOverlapNote(progression: boolean, correction: boolean): string | null {
-  const once = 'à la plus forte des deux intensités'
-  if (progression && correction)
-    return `Progression et correction ci-dessus couvrent déjà ces biais : chacun n’est corrigé qu’une fois, ${once}.`
-  if (correction)
-    return `« Corriger la moyenne » couvre déjà l’écart entre derniers sondages et résultat : il n’est corrigé qu’une fois, ${once}.`
-  if (progression)
-    return `« Progression comme en 2022 » couvre déjà l’évolution des sondages : elle n’est corrigée qu’une fois, ${once}.`
-  return null
-}
-
-/** Candidats testés : hypothèse retenue (les alliances testées y retirent leurs ralliés), puis alliances estimées. */
-function firstRoundSummary(result: SimulationResult): string {
-  const estimated = result.estimatedAllianceIds.map((id) => `${allianceLabel.get(id) ?? id} (estimée)`)
-  return [result.hypothesisSet.description.replace(/\.$/, ''), ...estimated].join(', ') + '.'
-}
-
-export function ScenarioBar({ result, onOpenSettings }: { result: SimulationResult; onOpenSettings: () => void }) {
+export function ScenarioBar({
+  result,
+  onOpenSettings,
+}: {
+  result: SimulationResult
+  onOpenSettings: (tab?: SettingsTab) => void
+}) {
   const s = useSettings()
-  const resetAll = useSettings((s) => s.resetAll)
+  const resetAll = useSettings((st) => st.resetAll)
   const singlePoll = result.institutesUsed === 1 ? result.pollUsage.find((u) => u.status === 'used')?.poll : undefined
   const basis = singlePoll
     ? ` (sondage ${singlePoll.institute} seul, ${fieldwork(singlePoll.fieldwork)})`
-    : ` (moyenne de ${result.institutesUsed} instituts)`
+    : ` (moyenne pondérée de ${result.institutesUsed} instituts${result.projectedInstitutes > 0 ? `, dont ${result.projectedInstitutes} projeté${result.projectedInstitutes > 1 ? 's' : ''}` : ''})`
+
+  const customPivots = Object.values(s.projection.usefulVote)
+    .filter((u) => u.beneficiary !== 'auto')
+    .map((u) => cand(u.beneficiary).shortName)
 
   return (
     <section aria-labelledby="scenario-title" className="rounded-xl bg-surface shadow-[var(--ballot-shadow)]">
-      {/* Replié par défaut : les résultats restent en vue, les réglages s'ouvrent à la demande. */}
       <details className="group">
         <summary className="flex cursor-pointer list-none items-center justify-between gap-4 rounded-xl px-5 py-4 hover:bg-sunken/50 [&::-webkit-details-marker]:hidden">
           <h2 id="scenario-title" className="text-lg font-semibold tracking-tight">
             Paramètres de la simulation
+            {s.projection.enabled && (
+              <span className="ml-2 rounded-full bg-ballpoint-soft px-2.5 py-0.5 text-xs font-medium text-ballpoint">
+                Projection avril 2027
+              </span>
+            )}
           </h2>
           <ChevronIcon />
         </summary>
         <div className="grid gap-6 px-5 pb-5 pt-1 md:grid-cols-[auto_1fr] md:gap-x-10">
           <div>
-            <p className="mb-2 text-lg font-medium text-ink-2">Candidats testés au 1er tour</p>
+            <p className="mb-2 text-lg font-medium text-ink-2">Sondages de 1er tour</p>
             <p className="max-w-[26rem] text-sm text-ink-3">
-              {firstRoundSummary(result)}
+              {result.hypothesisSet.description}
               {basis}
             </p>
             <PollPicker result={result} />
           </div>
 
-          <fieldset className="md:col-span-2">
-            <legend className="mb-2 text-lg font-medium text-ink-2">Alliances</legend>
-            <AllianceSwitches idPrefix="alliance" result={result} columns />
-          </fieldset>
-
-          {s.groupedAlliances && (
-            <fieldset className="md:col-span-2">
-              <legend className="mb-2 text-lg font-medium text-ink-2">Alliances groupées</legend>
-              <AllianceSwitches idPrefix="grouped" result={result} columns grouped />
-            </fieldset>
-          )}
-
-          {/* À droite des sondages sur grand écran ; sous les alliances sur mobile. */}
           <fieldset className="md:col-start-2 md:row-start-1">
-            <legend className="mb-2 text-lg font-medium text-ink-2">Ajustements de la simulation</legend>
-            <div className="mb-4">
-              <UntestedAlliancesSwitch id="untested-alliances" />
-            </div>
-            <div className="mb-4">
-              <GroupedAlliancesSwitch id="grouped-alliances" />
-            </div>
-            <div className="mb-4">
-              <Switch
-                id="progression"
-                checked={s.progressionEnabled}
-                onCheckedChange={s.setProgressionEnabled}
-                label="Progression comme en 2022"
-                description={`Estime les derniers sondages avant le vote selon l’évolution ${PROGRESSION_PERIOD}`}
-              />
-              <Intensity
-                label="Intensité de la progression"
-                hint="la progression de 2022"
-                value={s.progressionIntensity}
-                onValueChange={s.setProgressionIntensity}
-                disabled={!s.progressionEnabled}
-              />
-            </div>
-            <Switch
-              id="corrections"
-              checked={s.correctionsEnabled}
-              onCheckedChange={s.setCorrectionsEnabled}
-              label="Corriger la moyenne"
-              description={
-                Object.keys(s.correctionOverrides).length > 0
-                  ? 'Selon les écarts saisis dans les réglages'
-                  : 'Selon une estimation basée sur les écarts réels entre les derniers sondages et résultats de 2017 et 2022'
-              }
-            />
-            {/* Hors du <label> du switch : un clic ne doit pas le basculer. Aligné sur sa description. */}
-            <button type="button" className="link ml-12 mt-1 block text-sm" onClick={onOpenSettings}>
-              Modifier les écarts
-            </button>
-            <Intensity
-              label="Intensité de la correction"
-              hint="l’écart estimé sur 2017 et 2022"
-              value={s.correctionIntensity}
-              onValueChange={s.setCorrectionIntensity}
-              disabled={!s.correctionsEnabled}
-            />
-            <div className="mt-4">
-              <Switch
-                id="blog-bias"
-                checked={s.blogBiasEnabled}
-                onCheckedChange={s.setBlogBiasEnabled}
-                label="Corriger les biais révélés dans le billet de blog d’Eliot Thibault"
-                aside={
-                  <a
-                    href={BLOG_BIAS_URL}
-                    target="_blank"
-                    rel="noreferrer"
-                    title="Lire le billet de blog d’Eliot Thibault (Club de Mediapart)"
-                    aria-label="Lire le billet de blog d’Eliot Thibault (Club de Mediapart, nouvel onglet)"
-                    className="rounded text-ink-3 transition-colors hover:text-ballpoint"
-                  >
-                    <ExternalLinkIcon />
-                  </a>
-                }
-                description={BLOG_BIAS_DESCRIPTION}
-              />
-              {s.blogBiasEnabled && blogOverlapNote(s.progressionEnabled, s.correctionsEnabled) && (
-                <p className="ml-12 mt-1 text-sm text-ink-3">
-                  {blogOverlapNote(s.progressionEnabled, s.correctionsEnabled)}
+            <legend className="mb-2 text-lg font-medium text-ink-2">Hypothèses du modèle</legend>
+            <div className="space-y-5">
+              {/* Horizon temporel : photographie actuelle vs projection avril 2027 */}
+              <div className="rounded-lg border border-rule bg-paper/60 p-3.5">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <p className="text-[0.95rem] font-medium text-ink">Horizon temporel du 1er tour</p>
+                  <Segmented<'now' | 'projected'>
+                    label="Horizon temporel"
+                    value={s.projection.enabled ? 'projected' : 'now'}
+                    onValueChange={(v) => s.setProjectionEnabled(v === 'projected')}
+                    options={[
+                      { value: 'now', label: 'Aujourd’hui' },
+                      { value: 'projected', label: 'Projection avril 2027' },
+                    ]}
+                  />
+                </div>
+                <p className="mt-1.5 text-xs text-ink-3">
+                  {s.projection.enabled
+                    ? `Projette la dynamique structurelle d’ici au 1er tour (J−${result.projection.daysRemaining}) : vote utile par bloc (${s.projection.mergeCenterRight ? 'Centre + Droite regroupés' : '4 blocs séparés'}${customPivots.length > 0 ? `, pivot forcé : ${customPivots.join(', ')}` : ''}), amortissement des écarts précoces et tendance récente amortie.`
+                    : 'Photographie pondérée des sondages actuels (sans projection temporelle). Activez la projection pour simuler le vote utile et la dynamique jusqu’à avril 2027.'}
                 </p>
-              )}
-              <Intensity
-                label="Intensité de la correction des biais du billet"
-                hint="les écarts par bloc estimés"
-                value={s.blogBiasIntensity}
-                onValueChange={s.setBlogBiasIntensity}
-                disabled={!s.blogBiasEnabled}
-              />
-            </div>
-            <div className="mt-4">
+                <button
+                  type="button"
+                  className="link mt-2 block text-xs"
+                  onClick={() => onOpenSettings('projection')}
+                >
+                  Régler finement le vote utile par bloc et la projection (réglages avancés)
+                </button>
+              </div>
+
               <Switch
-                id="transfer-correction"
-                checked={s.transferCorrectionEnabled}
-                onCheckedChange={s.setTransferCorrectionEnabled}
-                label="Reports de voix tirés des votes réels de 2024, et non d’un sondage"
-                description={`Sans cette option, les reports de voix au 2nd tour reprennent l’enquête Ipsos-Talan du 07/07/2024, un sondage où les électeurs déclaraient leur vote. Avec elle, les reports des électeurs dont le camp était absent du duel (par exemple le centre et la droite dans un duel RN – LFI) sont estimés à partir des résultats officiels des législatives 2024, en comparant les ${TRANSFER_UNCERTAINTY.constituencies} circonscriptions de ces duels.`}
+                id="offer-projection"
+                checked={s.offerProjectionEnabled}
+                onCheckedChange={s.setOfferProjectionEnabled}
+                label="Projeter les sondages à offre proche (paires propres)"
+                description="Intègre les instituts qui ne testent pas un candidat (ex. Attal dans Odoxa ou Cluster17) en appliquant les transferts mesurés sur paires exactes intra-institut."
               />
-              <p className="ml-12 mt-1 text-sm text-ink-3">
-                Marge d’erreur : le vote étant secret, ces reports sont déduits des écarts entre circonscriptions, pas
-                observés. Erreur type de {num(TRANSFER_UNCERTAINTY.minSe, 1)} à {num(TRANSFER_UNCERTAINTY.maxSe, 1)}{' '}
-                points selon l’électorat, soit environ ±&#8239;{num(1.96 * TRANSFER_UNCERTAINTY.minSe, 0)} à{' '}
-                {num(1.96 * TRANSFER_UNCERTAINTY.maxSe, 0)} points à 95&#8239;%. Les électeurs du camp d’un finaliste
-                gardent les valeurs de l’enquête.
-              </p>
-              <Intensity
-                label="Intensité de la correction des reports"
-                hint="les reports estimés sur les votes réels ; 0 % garde l’enquête"
-                value={s.transferCorrectionIntensity}
-                onValueChange={s.setTransferCorrectionIntensity}
-                disabled={!s.transferCorrectionEnabled}
-              />
-            </div>
-            <div className="mt-4">
-              <Switch
-                id="turnout"
-                checked={s.turnoutEnabled}
-                onCheckedChange={s.setTurnoutEnabled}
-                label="Participation attendue au 1er tour"
-                description="Ajuste les scores à la participation attendue, l’écart étant réparti comme le vote 2022 des abstentionnistes de 2017 venus voter"
-              />
-              <TurnoutControls balance={result.turnoutBalance} />
+
+              {/* Front républicain (vote de rejet du RN) directement accessible */}
+              <RepublicanFrontControls />
+
+              <div>
+                <p className="mb-1.5 text-[0.95rem] font-medium text-ink">Source des reports de voix (duels face au RN)</p>
+                <Segmented<TransferSource>
+                  label="Source des reports au second tour"
+                  value={s.transferSource}
+                  onValueChange={s.setTransferSource}
+                  options={[
+                    {
+                      value: 'legislatives2024',
+                      label: 'Base historique',
+                      hint: 'Défaut : législatives 2024 transposées en présidentielle via 2017–2022 et modulées par le front républicain',
+                    },
+                    {
+                      value: 'blend',
+                      label: 'Mélange hist. / 2027',
+                      hint: 'Moyenne pondérée entre base historique et déclarations 2027 corrigées en logit',
+                    },
+                    {
+                      value: 'declared2027',
+                      label: 'Déclarations 2027',
+                      hint: 'Option : reports déclarés Harris/Odoxa 2026 corrigés en logit',
+                    },
+                  ]}
+                />
+                <p className="mt-1.5 text-sm text-ink-3">
+                  {s.transferSource === 'legislatives2024' &&
+                    'Législatives 2024 (Ipsos-Talan) transposées en scrutin présidentiel d’après 2017–2022 et modulées de façon homogène sur les 4 profils par le front républicain ci-dessus.'}
+                  {s.transferSource === 'blend' &&
+                    'Combine la base historique présidentielle (ci-dessus) avec les déclarations d’intention 2027 corrigées sur échelle logit.'}
+                  {s.transferSource === 'declared2027' &&
+                    'Reports déclarés dans les sondages de 2026 (Harris / Odoxa), corrigés sur échelle logit de l’écart moyen campagne → scrutin observé en 2017 et 2022.'}
+                </p>
+                {s.transferSource === 'blend' && (
+                  <div className="mt-3 flex items-center gap-3">
+                    <span className="text-sm text-ink-3">Poids des déclarations 2027</span>
+                    <Slider
+                      label="Poids des déclarations 2027"
+                      value={s.declaredWeight * 100}
+                      onValueChange={(v) => s.setDeclaredWeight(v / 100)}
+                      min={0}
+                      max={100}
+                      step={5}
+                    />
+                    <span className="num w-12 text-right text-sm font-medium">{num(s.declaredWeight * 100, 0)}&#8239;%</span>
+                  </div>
+                )}
+                <button type="button" className="link mt-2 block text-sm" onClick={() => onOpenSettings('reports')}>
+                  Ajuster les reports, la fidélité et la participation dans les réglages
+                </button>
+              </div>
             </div>
           </fieldset>
+
+          <details className="group/alliances rounded-lg border border-rule md:col-span-2">
+            <summary className="flex cursor-pointer list-none items-center justify-between gap-4 rounded-lg px-4 py-3 hover:bg-sunken/50 [&::-webkit-details-marker]:hidden">
+              <span className="text-lg font-medium text-ink-2">
+                Alliances testées par les sondeurs
+                {result.allianceIds.length > 0 && (
+                  <span className="ml-2 text-sm font-normal text-ballpoint">
+                    ({result.allianceIds.length} active{result.allianceIds.length > 1 ? 's' : ''})
+                  </span>
+                )}
+              </span>
+              <ChevronIcon className="group-open/alliances:rotate-180" />
+            </summary>
+            <fieldset className="px-4 pb-4 pt-2">
+              <legend className="sr-only">Alliances testées par les sondeurs</legend>
+              <AllianceSwitches idPrefix="alliance" result={result} columns />
+            </fieldset>
+          </details>
+
           <div>
             <button type="button" className="link text-sm" onClick={resetAll}>
               Réinitialiser tous les paramètres
@@ -209,13 +174,12 @@ export function ScenarioBar({ result, onOpenSettings }: { result: SimulationResu
   )
 }
 
-/** Chevron du bloc repliable, tourné vers le haut quand il est ouvert. */
-function ChevronIcon() {
+function ChevronIcon({ className = 'group-open:rotate-180' }: { className?: string }) {
   return (
     <svg
       viewBox="0 0 16 16"
       aria-hidden="true"
-      className="h-4 w-4 shrink-0 text-ink-3 transition-transform group-open:rotate-180"
+      className={`h-4 w-4 shrink-0 text-ink-3 transition-transform ${className}`}
       fill="none"
       stroke="currentColor"
       strokeWidth="1.75"
@@ -227,34 +191,36 @@ function ChevronIcon() {
   )
 }
 
-/**
- * Sondages proposés pour la base du 1er tour (dernier sondage de chaque institut testant l'hypothèse),
- * du plus récent au plus ancien. Le dernier sondage coché ne peut pas être décoché.
- */
 function PollPicker({ result }: { result: SimulationResult }) {
   const excludedPolls = useSettings((s) => s.excludedPolls)
   const setPollIncluded = useSettings((s) => s.setPollIncluded)
   const includeAllPolls = useSettings((s) => s.includeAllPolls)
   const excluded = new Set(excludedPolls)
-  const polls = result.pollUsage
+  const items = result.pollUsage
     .filter((u) => u.status === 'used' || u.status === 'excluded')
-    .map((u) => u.poll)
-    .sort(newestFirst)
-  const checkedCount = polls.filter((p) => !excluded.has(p.id)).length
+    .sort((a, b) => newestFirst(a.poll, b.poll))
+  const checkedCount = items.filter((u) => !excluded.has(u.poll.id)).length
 
   return (
     <fieldset className="mt-4">
       <legend className="text-[0.95rem] font-medium text-ink">Sondages retenus</legend>
-      <p className="mt-0.5 text-sm text-ink-3">Un seul coché : sondage seul ; deux ou plus : moyenne</p>
+      <p className="mt-0.5 text-sm text-ink-3">Un seul coché : sondage seul ; deux ou plus : moyenne pondérée</p>
       <div className="mt-2 space-y-1.5">
-        {polls.map((p) => {
+        {items.map((u) => {
+          const p = u.poll
           const checked = !excluded.has(p.id)
           const last = checked && checkedCount === 1
-          // Synthèse de l'institut, à défaut la publication reprise par Wikipedia ; notice à part.
           const synthesis =
             p.sources.find((s) => s.kind === 'synthese') ??
             p.sources.find((s) => !s.kind && !/wikipedia|commission-des-sondages/.test(s.url))
           const notice = p.sources.find((s) => s.kind === 'notice' || /commission-des-sondages/.test(s.url))
+          const desc = [
+            fieldwork(p.fieldwork),
+            u.status === 'used' && checkedCount > 1 ? `poids ${pct(u.weightShare, 0)}` : null,
+            u.projected ? `projeté ${u.projectionSteps.join(', ')}` : null,
+          ]
+            .filter(Boolean)
+            .join(' · ')
           return (
             <div key={p.id} className="flex items-start gap-2">
               <Checkbox
@@ -264,7 +230,7 @@ function PollPicker({ result }: { result: SimulationResult }) {
                 disabled={last}
                 title={last ? 'Au moins un sondage doit rester coché' : undefined}
                 label={p.institute}
-                description={fieldwork(p.fieldwork)}
+                description={desc}
               />
               <span className="mt-0.5 flex shrink-0 items-center gap-2">
                 {synthesis && (
@@ -296,7 +262,7 @@ function PollPicker({ result }: { result: SimulationResult }) {
           )
         })}
       </div>
-      {checkedCount < polls.length && (
+      {checkedCount < items.length && (
         <button type="button" className="link mt-2 text-sm" onClick={includeAllPolls}>
           Tout cocher
         </button>
@@ -305,7 +271,6 @@ function PollPicker({ result }: { result: SimulationResult }) {
   )
 }
 
-/** Icône de lien externe (flèche sortant d'un cadre). */
 function ExternalLinkIcon() {
   return (
     <svg
@@ -320,90 +285,5 @@ function ExternalLinkIcon() {
     >
       <path d="M9.5 2.5h4v4M13.5 2.5 7 9M11.5 9.5v3a1 1 0 0 1-1 1h-7a1 1 0 0 1-1-1v-7a1 1 0 0 1 1-1h3" />
     </svg>
-  )
-}
-
-/** Curseur d'intensité d'un ajustement (1 = 100 %, reproduit exactement l'écart estimé). */
-function Intensity({
-  label,
-  hint,
-  value,
-  onValueChange,
-  disabled,
-}: {
-  label: string
-  hint: string
-  value: number
-  onValueChange: (v: number) => void
-  disabled: boolean
-}) {
-  return (
-    <div className="mt-3 flex items-center gap-3">
-      <span className="text-sm text-ink-3" title={`100 % reproduit exactement ${hint}`}>
-        Intensité <br />
-        (100&#8239;% reproduit exactement {hint})
-      </span>
-      <Slider
-        label={label}
-        value={value * 100}
-        onValueChange={(v) => onValueChange(v / 100)}
-        min={0}
-        max={150}
-        step={5}
-        disabled={disabled}
-      />
-      <span className="num w-12 text-right text-sm font-medium">{num(value * 100, 0)}&#8239;%</span>
-    </div>
-  )
-}
-
-/**
- * Participation attendue au 1er tour et bilan : ce que les sondages contiennent déjà, ce que les options
- * reproduisent de la mobilisation de 2022, et le supplément (ou retrait) appliqué.
- */
-function TurnoutControls({ balance }: { balance: TurnoutBalance | null }) {
-  const enabled = useSettings((s) => s.turnoutEnabled)
-  const expected = useSettings((s) => s.turnoutExpected)
-  const setExpected = useSettings((s) => s.setTurnoutExpected)
-  if (!balance) return null
-  return (
-    <div className="ml-12 mt-2">
-      <div className="flex items-center gap-3">
-        <span className="text-sm text-ink-3">Participation attendue</span>
-        <Slider
-          label="Participation attendue"
-          value={balance.expected}
-          onValueChange={setExpected}
-          min={70}
-          max={90}
-          step={0.5}
-          disabled={!enabled}
-        />
-        <span className="num w-14 text-right text-sm font-medium">{pct(balance.expected, 1)}</span>
-      </div>
-      {expected !== null && (
-        <button
-          type="button"
-          className="link mt-1 text-sm"
-          disabled={!enabled}
-          onClick={() => setExpected(null)}
-        >
-          Revenir au défaut ({pct(balance.defaultExpected, 1)}, hypothèse du billet : la hausse des certains reportée
-          sur 2022)
-        </button>
-      )}
-      {enabled && (
-        <ul className="mt-2 space-y-0.5 text-sm text-ink-3">
-          <li>
-            Certains d’aller voter aujourd’hui (Ifop, {date(balance.certainNow.measure.fieldwork.end)}) :{' '}
-            {pct(balance.certainNow.share, 1)} des inscrits, déjà dans les sondages
-          </li>
-          <li>
-            Mobilisation de 2022 déjà corrigée : {pts(balance.covered, 1)}, selon les options activées
-          </li>
-          <li>Supplément appliqué : {pts(balance.delta, 1)}</li>
-        </ul>
-      )}
-    </div>
   )
 }

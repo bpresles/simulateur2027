@@ -1,0 +1,1508 @@
+{
+  "description": "Historique agrégé des vagues de sondages de 1er tour 2025–2027 (extrait de la page Wikipedia « Liste de sondages sur l’élection présidentielle française de 2027 »). Utilisé pour tracer l’évolution temporelle et estimer la tendance récente amortie.",
+  "polls": [
+    {
+      "id": "yougov-20261117",
+      "institute": "YouGov",
+      "fieldwork": {
+        "start": "2026-11-12",
+        "end": "2026-11-17"
+      },
+      "sampleSize": 952,
+      "scores": {
+        "arthaud": 0.9,
+        "melenchon": 17,
+        "roussel": 2.1,
+        "tondelier": 4.2,
+        "glucksmann": 8.8,
+        "attal": 4.7,
+        "philippe": 8.9,
+        "retailleau": 6,
+        "lisnard": 8.4,
+        "dupont-aignan": 1.6,
+        "lepen": 30.3,
+        "zemmour": 2.8,
+        "riner": 2.6,
+        "villepin": 1.7
+      }
+    },
+    {
+      "id": "ifop-fiducial-20261116",
+      "institute": "Ifop-Fiducial",
+      "fieldwork": {
+        "start": "2026-11-13",
+        "end": "2026-11-16"
+      },
+      "sampleSize": 1690,
+      "scores": {
+        "arthaud": 0.3,
+        "melenchon": 16.4,
+        "roussel": 1.7,
+        "tondelier": 2.2,
+        "glucksmann": 8.9,
+        "attal": 5.1,
+        "philippe": 10.8,
+        "retailleau": 4.2,
+        "lisnard": 8.7,
+        "dupont-aignan": 1.6,
+        "lepen": 29.9,
+        "zemmour": 2.7,
+        "polony": 0.9,
+        "riner": 3.5,
+        "ruffin": 1.7,
+        "villepin": 1.3
+      }
+    },
+    {
+      "id": "elabe-20261113",
+      "institute": "Elabe",
+      "fieldwork": {
+        "start": "2026-11-12",
+        "end": "2026-11-13"
+      },
+      "sampleSize": 1500,
+      "scores": {
+        "arthaud": 0.5,
+        "melenchon": 14.4,
+        "roussel": 1.6,
+        "tondelier": 2.6,
+        "glucksmann": 10.8,
+        "philippe": 10.2,
+        "retailleau": 4.8,
+        "dupont-aignan": 2.2,
+        "lepen": 26.7,
+        "zemmour": 3.2,
+        "villepin": 2.3,
+        "attal": 5.8,
+        "lisnard": 7.5,
+        "ruffin": 2.5,
+        "polony": 1.2,
+        "riner": 3.7
+      }
+    },
+    {
+      "id": "opinionway-20261112",
+      "institute": "OpinionWay",
+      "fieldwork": {
+        "start": "2026-11-10",
+        "end": "2026-11-12"
+      },
+      "sampleSize": 964,
+      "scores": {
+        "arthaud": 1,
+        "melenchon": 15.6,
+        "roussel": 1.5,
+        "tondelier": 2.9,
+        "glucksmann": 10.3,
+        "attal": 3.4,
+        "philippe": 11.7,
+        "retailleau": 4.4,
+        "lisnard": 9.3,
+        "dupont-aignan": 2,
+        "lepen": 30.8,
+        "zemmour": 2.4,
+        "bouamrane": 0.7,
+        "riner": 3.9
+      }
+    },
+    {
+      "id": "cluster17-20261110",
+      "institute": "Cluster17",
+      "fieldwork": {
+        "start": "2026-11-09",
+        "end": "2026-11-10"
+      },
+      "sampleSize": 1164,
+      "scores": {
+        "arthaud": 0.4,
+        "melenchon": 16.6,
+        "roussel": 1.7,
+        "tondelier": 1.1,
+        "glucksmann": 8.4,
+        "philippe": 8.9,
+        "retailleau": 4.5,
+        "lisnard": 7.9,
+        "dupont-aignan": 2.1,
+        "lepen": 24.8,
+        "zemmour": 2.3,
+        "attal": 5.4,
+        "lagarde": 9.2,
+        "asselineau": 0.8,
+        "polony": 2.1,
+        "riner": 1.7,
+        "ruffin": 1.2,
+        "villepin": 0.8
+      }
+    },
+    {
+      "id": "opinionway-20261110",
+      "institute": "OpinionWay",
+      "fieldwork": {
+        "start": "2026-11-09",
+        "end": "2026-11-10"
+      },
+      "sampleSize": 982,
+      "scores": {
+        "arthaud": 0.9,
+        "melenchon": 15.4,
+        "roussel": 1.3,
+        "tondelier": 2.8,
+        "glucksmann": 11.3,
+        "attal": 6.6,
+        "philippe": 10.8,
+        "retailleau": 4.4,
+        "lisnard": 10.4,
+        "dupont-aignan": 1.3,
+        "lepen": 32,
+        "zemmour": 2.8
+      }
+    },
+    {
+      "id": "harris-interactive-toluna-20261105",
+      "institute": "Harris Interactive (Toluna)",
+      "fieldwork": {
+        "start": "2026-11-03",
+        "end": "2026-11-05"
+      },
+      "sampleSize": 2101,
+      "scores": {
+        "arthaud": 0.9,
+        "melenchon": 16.4,
+        "roussel": 1.4,
+        "tondelier": 1.9,
+        "glucksmann": 10.3,
+        "philippe": 10.7,
+        "retailleau": 6.3,
+        "lisnard": 7.8,
+        "dupont-aignan": 1.4,
+        "lepen": 30.8,
+        "zemmour": 3.1,
+        "villepin": 1.7,
+        "attal": 7.3
+      }
+    },
+    {
+      "id": "ifop-fiducial-20261104",
+      "institute": "Ifop-Fiducial",
+      "fieldwork": {
+        "start": "2026-11-02",
+        "end": "2026-11-04"
+      },
+      "sampleSize": 1834,
+      "scores": {
+        "arthaud": 0.5,
+        "melenchon": 12.2,
+        "roussel": 2.2,
+        "tondelier": 2.2,
+        "glucksmann": 11,
+        "philippe": 13.1,
+        "dupont-aignan": 1.5,
+        "lepen": 25.9,
+        "zemmour": 3.1,
+        "retailleau": 9.7,
+        "lisnard": 9.7,
+        "attal": 9
+      }
+    },
+    {
+      "id": "ifop-fiducial-20261029",
+      "institute": "Ifop-Fiducial",
+      "fieldwork": {
+        "start": "2026-10-27",
+        "end": "2026-10-29"
+      },
+      "sampleSize": 1501,
+      "scores": {
+        "arthaud": 0.6,
+        "melenchon": 16,
+        "roussel": 1.7,
+        "tondelier": 2.8,
+        "glucksmann": 10.3,
+        "attal": 6.4,
+        "philippe": 12,
+        "retailleau": 4.8,
+        "lisnard": 7.1,
+        "dupont-aignan": 1.7,
+        "lepen": 32.7,
+        "zemmour": 3.9
+      }
+    },
+    {
+      "id": "cluster17-20261022",
+      "institute": "Cluster17",
+      "fieldwork": {
+        "start": "2026-10-19",
+        "end": "2026-10-22"
+      },
+      "sampleSize": 2817,
+      "scores": {
+        "arthaud": 0.4,
+        "melenchon": 15.8,
+        "roussel": 1.7,
+        "tondelier": 1.8,
+        "glucksmann": 10.9,
+        "philippe": 13.8,
+        "retailleau": 6.9,
+        "dupont-aignan": 2.6,
+        "lepen": 26.4,
+        "zemmour": 3.2,
+        "attal": 9.7,
+        "lisnard": 6.9
+      }
+    },
+    {
+      "id": "ipsos-bva-20261022",
+      "institute": "Ipsos BVA",
+      "fieldwork": {
+        "start": "2026-10-21",
+        "end": "2026-10-22"
+      },
+      "sampleSize": 1500,
+      "scores": {
+        "arthaud": 0.4,
+        "melenchon": 15.2,
+        "roussel": 2,
+        "tondelier": 3.1,
+        "glucksmann": 12.4,
+        "attal": 6,
+        "philippe": 12.5,
+        "retailleau": 7.3,
+        "dupont-aignan": 1.6,
+        "lepen": 29.6,
+        "zemmour": 3.9,
+        "lisnard": 5.8
+      }
+    },
+    {
+      "id": "opinionway-20261022",
+      "institute": "OpinionWay",
+      "fieldwork": {
+        "start": "2026-10-21",
+        "end": "2026-10-22"
+      },
+      "sampleSize": 973,
+      "scores": {
+        "arthaud": 0.5,
+        "melenchon": 15.8,
+        "roussel": 1,
+        "tondelier": 1,
+        "glucksmann": 12.9,
+        "attal": 4,
+        "philippe": 11.9,
+        "retailleau": 5.9,
+        "lisnard": 5.9,
+        "dupont-aignan": 1,
+        "lepen": 35.6,
+        "zemmour": 4,
+        "bouamrane": 0.5
+      }
+    },
+    {
+      "id": "harris-interactive-toluna-20261021",
+      "institute": "Harris Interactive (Toluna)",
+      "fieldwork": {
+        "start": "2026-10-19",
+        "end": "2026-10-21"
+      },
+      "sampleSize": 2094,
+      "scores": {
+        "arthaud": 0.9,
+        "melenchon": 15.2,
+        "roussel": 1.6,
+        "tondelier": 1.7,
+        "glucksmann": 11.2,
+        "philippe": 12.8,
+        "retailleau": 5.4,
+        "lisnard": 6.5,
+        "dupont-aignan": 1.4,
+        "lepen": 29.8,
+        "zemmour": 4.7,
+        "villepin": 1.3,
+        "attal": 7.6
+      }
+    },
+    {
+      "id": "ifop-fiducial-20261019",
+      "institute": "Ifop-Fiducial",
+      "fieldwork": {
+        "start": "2026-10-17",
+        "end": "2026-10-19"
+      },
+      "sampleSize": 1928,
+      "scores": {
+        "arthaud": 0.4,
+        "melenchon": 14.6,
+        "roussel": 2,
+        "tondelier": 2.5,
+        "glucksmann": 11.9,
+        "attal": 5.8,
+        "philippe": 11.8,
+        "retailleau": 5.5,
+        "dupont-aignan": 1.6,
+        "lepen": 31.9,
+        "zemmour": 2.9,
+        "lisnard": 5.4,
+        "ruffin": 1.5,
+        "villepin": 1.3,
+        "polony": 0.9
+      }
+    },
+    {
+      "id": "elabe-20261016",
+      "institute": "Elabe",
+      "fieldwork": {
+        "start": "2026-10-14",
+        "end": "2026-10-16"
+      },
+      "sampleSize": 1701,
+      "scores": {
+        "arthaud": 0.6,
+        "melenchon": 13,
+        "roussel": 1.3,
+        "tondelier": 2.2,
+        "glucksmann": 13.3,
+        "philippe": 13,
+        "retailleau": 6.6,
+        "dupont-aignan": 2.2,
+        "lepen": 27.2,
+        "zemmour": 2.8,
+        "villepin": 2.1,
+        "attal": 6.9,
+        "lisnard": 5.1,
+        "ruffin": 2.5,
+        "polony": 1.3
+      }
+    },
+    {
+      "id": "cluster17-20261015",
+      "institute": "Cluster17",
+      "fieldwork": {
+        "start": "2026-10-14",
+        "end": "2026-10-15"
+      },
+      "sampleSize": 1263,
+      "scores": {
+        "arthaud": 0.6,
+        "melenchon": 14.1,
+        "roussel": 1.4,
+        "tondelier": 1.4,
+        "glucksmann": 9.8,
+        "philippe": 13.3,
+        "retailleau": 8.8,
+        "lisnard": 8.6,
+        "dupont-aignan": 1.9,
+        "lepen": 24.7,
+        "zemmour": 3.1,
+        "attal": 12.2
+      }
+    },
+    {
+      "id": "yougov-20261015",
+      "institute": "YouGov",
+      "fieldwork": {
+        "start": "2026-10-12",
+        "end": "2026-10-15"
+      },
+      "sampleSize": 1094,
+      "scores": {
+        "arthaud": 0.2,
+        "melenchon": 13.3,
+        "roussel": 2.5,
+        "tondelier": 5.2,
+        "glucksmann": 11.3,
+        "attal": 6.4,
+        "philippe": 10.5,
+        "retailleau": 6.1,
+        "dupont-aignan": 2.5,
+        "lepen": 32.5,
+        "zemmour": 3.2,
+        "lisnard": 3.6,
+        "ruffin": 1.8,
+        "villepin": 0.9
+      }
+    },
+    {
+      "id": "ifop-fiducial-20261014",
+      "institute": "Ifop-Fiducial",
+      "fieldwork": {
+        "start": "2026-10-12",
+        "end": "2026-10-14"
+      },
+      "sampleSize": 1390,
+      "scores": {
+        "arthaud": 0.2,
+        "melenchon": 14.4,
+        "roussel": 2.2,
+        "tondelier": 1.9,
+        "glucksmann": 12.2,
+        "attal": 7.1,
+        "philippe": 13.3,
+        "retailleau": 5.8,
+        "lisnard": 5.3,
+        "dupont-aignan": 1.6,
+        "lepen": 30.3,
+        "zemmour": 2.7,
+        "ruffin": 1.8,
+        "villepin": 1.3
+      }
+    },
+    {
+      "id": "opinionway-20261014",
+      "institute": "OpinionWay",
+      "fieldwork": {
+        "start": "2026-10-13",
+        "end": "2026-10-14"
+      },
+      "sampleSize": 1043,
+      "scores": {
+        "arthaud": 0.8,
+        "melenchon": 13.6,
+        "roussel": 1.8,
+        "tondelier": 2.5,
+        "glucksmann": 13.1,
+        "attal": 7,
+        "philippe": 11.9,
+        "retailleau": 6.9,
+        "lisnard": 3.7,
+        "dupont-aignan": 1.6,
+        "lepen": 32.6,
+        "zemmour": 3.9,
+        "bouamrane": 0.5
+      }
+    },
+    {
+      "id": "harris-interactive-toluna-20261008",
+      "institute": "Harris Interactive (Toluna)",
+      "fieldwork": {
+        "start": "2026-10-05",
+        "end": "2026-10-08"
+      },
+      "sampleSize": 2004,
+      "scores": {
+        "arthaud": 0.9,
+        "melenchon": 16.4,
+        "roussel": 2,
+        "tondelier": 3.1,
+        "attal": 8.7,
+        "retailleau": 7.6,
+        "dupont-aignan": 1.8,
+        "lepen": 32.4,
+        "zemmour": 4.1,
+        "philippe": 14,
+        "glucksmann": 9
+      }
+    },
+    {
+      "id": "odoxa-20261007",
+      "institute": "Odoxa",
+      "fieldwork": {
+        "start": "2026-09-24",
+        "end": "2026-10-07"
+      },
+      "sampleSize": 12005,
+      "scores": {
+        "arthaud": 0.7,
+        "melenchon": 16,
+        "roussel": 1.8,
+        "tondelier": 2.9,
+        "glucksmann": 8.8,
+        "philippe": 14.9,
+        "retailleau": 6.8,
+        "dupont-aignan": 1.8,
+        "lepen": 32.9,
+        "zemmour": 3.9,
+        "attal": 9.6
+      }
+    },
+    {
+      "id": "ifop-fiducial-20260929",
+      "institute": "Ifop-Fiducial",
+      "fieldwork": {
+        "start": "2026-09-25",
+        "end": "2026-09-29"
+      },
+      "sampleSize": 1527,
+      "scores": {
+        "arthaud": 0.6,
+        "melenchon": 12.9,
+        "roussel": 2.3,
+        "tondelier": 3.8,
+        "glucksmann": 8.8,
+        "attal": 9.5,
+        "philippe": 17,
+        "retailleau": 6.6,
+        "dupont-aignan": 1.1,
+        "lepen": 27.7,
+        "zemmour": 3.1,
+        "lisnard": 2.8,
+        "ruffin": 2.4,
+        "villepin": 1.6
+      }
+    },
+    {
+      "id": "harris-interactive-toluna-20260924",
+      "institute": "Harris Interactive (Toluna)",
+      "fieldwork": {
+        "start": "2026-09-22",
+        "end": "2026-09-24"
+      },
+      "sampleSize": 1974,
+      "scores": {
+        "arthaud": 0.9,
+        "melenchon": 15.7,
+        "roussel": 2.2,
+        "tondelier": 3.3,
+        "attal": 9.1,
+        "retailleau": 8,
+        "dupont-aignan": 1.8,
+        "lepen": 31.9,
+        "zemmour": 4.7,
+        "philippe": 13.5,
+        "glucksmann": 9
+      }
+    },
+    {
+      "id": "yougov-20260921",
+      "institute": "YouGov",
+      "fieldwork": {
+        "start": "2026-09-17",
+        "end": "2026-09-21"
+      },
+      "sampleSize": 1103,
+      "scores": {
+        "arthaud": 0.9,
+        "melenchon": 15.1,
+        "roussel": 2,
+        "tondelier": 3.3,
+        "glucksmann": 7,
+        "attal": 9,
+        "philippe": 11.6,
+        "retailleau": 7.4,
+        "dupont-aignan": 1.8,
+        "lepen": 31.5,
+        "zemmour": 5,
+        "lisnard": 1.9,
+        "ruffin": 1.9,
+        "villepin": 1.9
+      }
+    },
+    {
+      "id": "cluster17-20260916",
+      "institute": "Cluster17",
+      "fieldwork": {
+        "start": "2026-09-15",
+        "end": "2026-09-16"
+      },
+      "sampleSize": 1943,
+      "scores": {
+        "arthaud": 0.6,
+        "melenchon": 16,
+        "roussel": 2.1,
+        "tondelier": 2.2,
+        "glucksmann": 10.4,
+        "philippe": 16.1,
+        "retailleau": 6.7,
+        "dupont-aignan": 2.8,
+        "lepen": 25.2,
+        "zemmour": 2.8,
+        "attal": 10.8,
+        "lisnard": 4.3
+      }
+    },
+    {
+      "id": "ifop-fiducial-20260911",
+      "institute": "Ifop-Fiducial",
+      "fieldwork": {
+        "start": "2026-09-09",
+        "end": "2026-09-11"
+      },
+      "sampleSize": 1548,
+      "scores": {
+        "arthaud": 0.5,
+        "melenchon": 17,
+        "roussel": 2,
+        "tondelier": 3,
+        "glucksmann": 9,
+        "attal": 7,
+        "philippe": 14,
+        "retailleau": 6.5,
+        "dupont-aignan": 2,
+        "lepen": 35,
+        "zemmour": 4
+      }
+    },
+    {
+      "id": "harris-interactive-toluna-20260910",
+      "institute": "Harris Interactive (Toluna)",
+      "fieldwork": {
+        "start": "2026-09-08",
+        "end": "2026-09-10"
+      },
+      "sampleSize": 2052,
+      "scores": {
+        "arthaud": 0.9,
+        "melenchon": 14.9,
+        "roussel": 2.3,
+        "tondelier": 3,
+        "attal": 10.9,
+        "retailleau": 7.5,
+        "dupont-aignan": 1.9,
+        "lepen": 30.4,
+        "zemmour": 4.4,
+        "philippe": 14.8,
+        "glucksmann": 8.9
+      }
+    },
+    {
+      "id": "opinionway-20260910",
+      "institute": "OpinionWay",
+      "fieldwork": {
+        "start": "2026-09-09",
+        "end": "2026-09-10"
+      },
+      "sampleSize": 1001,
+      "scores": {
+        "arthaud": 0.8,
+        "melenchon": 16.2,
+        "roussel": 2.9,
+        "tondelier": 2.9,
+        "attal": 7.5,
+        "philippe": 15.3,
+        "retailleau": 6.8,
+        "dupont-aignan": 2.3,
+        "lepen": 32.1,
+        "zemmour": 1.9,
+        "bouamrane": 0.8,
+        "lisnard": 1.9,
+        "glucksmann": 8.4
+      }
+    },
+    {
+      "id": "ipsos-bva-20260909",
+      "institute": "Ipsos BVA",
+      "fieldwork": {
+        "start": "2026-09-03",
+        "end": "2026-09-09"
+      },
+      "sampleSize": 13060,
+      "scores": {
+        "arthaud": 0.4,
+        "melenchon": 14.3,
+        "roussel": 2.6,
+        "tondelier": 4.2,
+        "glucksmann": 10.8,
+        "attal": 9.3,
+        "philippe": 15.2,
+        "retailleau": 7.4,
+        "dupont-aignan": 1.9,
+        "lepen": 30.2,
+        "zemmour": 3.7
+      }
+    },
+    {
+      "id": "opinionway-20260909",
+      "institute": "OpinionWay",
+      "fieldwork": {
+        "start": "2026-09-08",
+        "end": "2026-09-09"
+      },
+      "sampleSize": 1001,
+      "scores": {
+        "arthaud": 0.8,
+        "melenchon": 13.7,
+        "roussel": 1.5,
+        "tondelier": 3,
+        "glucksmann": 9.4,
+        "attal": 10,
+        "philippe": 15.5,
+        "retailleau": 9.1,
+        "dupont-aignan": 2.1,
+        "lepen": 31.1,
+        "zemmour": 3.7
+      }
+    },
+    {
+      "id": "opinionway-20260904",
+      "institute": "OpinionWay",
+      "fieldwork": {
+        "start": "2026-09-02",
+        "end": "2026-09-04"
+      },
+      "sampleSize": 1034,
+      "scores": {
+        "arthaud": 1,
+        "melenchon": 16,
+        "roussel": 2,
+        "tondelier": 3,
+        "glucksmann": 12,
+        "attal": 7,
+        "philippe": 15,
+        "retailleau": 7,
+        "lepen": 34,
+        "zemmour": 3
+      }
+    },
+    {
+      "id": "opinionway-20260903",
+      "institute": "OpinionWay",
+      "fieldwork": {
+        "start": "2026-09-02",
+        "end": "2026-09-03"
+      },
+      "sampleSize": 1003,
+      "scores": {
+        "arthaud": 0.9,
+        "melenchon": 15.3,
+        "roussel": 2.4,
+        "tondelier": 3.4,
+        "glucksmann": 11,
+        "attal": 9.2,
+        "retailleau": 7.9,
+        "lepen": 31.1,
+        "zemmour": 2.7,
+        "philippe": 16
+      }
+    },
+    {
+      "id": "ipsos-bva-20260902",
+      "institute": "Ipsos BVA",
+      "fieldwork": {
+        "start": "2026-08-31",
+        "end": "2026-09-02"
+      },
+      "sampleSize": 1500,
+      "scores": {
+        "arthaud": 0.7,
+        "melenchon": 13.9,
+        "roussel": 2.6,
+        "tondelier": 4,
+        "glucksmann": 10.7,
+        "attal": 10.1,
+        "philippe": 16,
+        "retailleau": 6.8,
+        "dupont-aignan": 1.9,
+        "lepen": 30.6,
+        "zemmour": 2.7
+      }
+    },
+    {
+      "id": "elabe-20260828",
+      "institute": "Elabe",
+      "fieldwork": {
+        "start": "2026-08-26",
+        "end": "2026-08-28"
+      },
+      "sampleSize": 1501,
+      "scores": {
+        "arthaud": 1.3,
+        "melenchon": 11.4,
+        "roussel": 2.8,
+        "tondelier": 2.9,
+        "glucksmann": 9.9,
+        "philippe": 14.4,
+        "retailleau": 6.1,
+        "dupont-aignan": 2,
+        "lepen": 27.8,
+        "zemmour": 3.3,
+        "villepin": 1.8,
+        "attal": 8.4,
+        "lisnard": 2.8,
+        "ruffin": 5.1
+      }
+    },
+    {
+      "id": "ifop-fiducial-20260825",
+      "institute": "Ifop-Fiducial",
+      "fieldwork": {
+        "start": "2026-08-24",
+        "end": "2026-08-25"
+      },
+      "sampleSize": 1598,
+      "scores": {
+        "arthaud": 0.9,
+        "melenchon": 15,
+        "roussel": 2.5,
+        "tondelier": 2.5,
+        "glucksmann": 12.4,
+        "attal": 10.3,
+        "philippe": 15.7,
+        "retailleau": 7.4,
+        "dupont-aignan": 1.6,
+        "lepen": 28.9,
+        "zemmour": 2.7
+      }
+    },
+    {
+      "id": "harris-interactive-toluna-20260819",
+      "institute": "Harris Interactive (Toluna)",
+      "fieldwork": {
+        "start": "2026-08-18",
+        "end": "2026-08-19"
+      },
+      "sampleSize": 1764,
+      "scores": {
+        "arthaud": 0.9,
+        "melenchon": 15,
+        "roussel": 2.3,
+        "tondelier": 3,
+        "attal": 11,
+        "retailleau": 6.8,
+        "dupont-aignan": 2,
+        "lepen": 32.1,
+        "zemmour": 3.2,
+        "philippe": 14.8,
+        "glucksmann": 8.9
+      }
+    },
+    {
+      "id": "cluster17-20260724",
+      "institute": "Cluster17",
+      "fieldwork": {
+        "start": "2026-07-22",
+        "end": "2026-07-24"
+      },
+      "sampleSize": 1506,
+      "scores": {
+        "arthaud": 0.9,
+        "melenchon": 15.5,
+        "roussel": 1.7,
+        "tondelier": 2.6,
+        "glucksmann": 8.6,
+        "philippe": 15.5,
+        "retailleau": 7.8,
+        "dupont-aignan": 3,
+        "lepen": 25.9,
+        "zemmour": 3.4,
+        "villepin": 3,
+        "attal": 12.1
+      }
+    },
+    {
+      "id": "elabe-20260710",
+      "institute": "Elabe",
+      "fieldwork": {
+        "start": "2026-07-09",
+        "end": "2026-07-10"
+      },
+      "sampleSize": 1503,
+      "scores": {
+        "arthaud": 1.2,
+        "melenchon": 12.5,
+        "roussel": 2.1,
+        "tondelier": 3.1,
+        "glucksmann": 8,
+        "philippe": 14.3,
+        "retailleau": 7.8,
+        "dupont-aignan": 1.3,
+        "lepen": 29.3,
+        "zemmour": 2.6,
+        "villepin": 2.5,
+        "attal": 10.1,
+        "ruffin": 5.3
+      }
+    },
+    {
+      "id": "verian-20260710",
+      "institute": "Verian",
+      "fieldwork": {
+        "start": "2026-07-08",
+        "end": "2026-07-10"
+      },
+      "sampleSize": 1047,
+      "scores": {
+        "melenchon": 15,
+        "roussel": 2,
+        "glucksmann": 11,
+        "attal": 8,
+        "philippe": 17,
+        "retailleau": 7,
+        "lepen": 37,
+        "zemmour": 3
+      }
+    },
+    {
+      "id": "opinionway-20260709",
+      "institute": "OpinionWay",
+      "fieldwork": {
+        "start": "2026-07-08",
+        "end": "2026-07-09"
+      },
+      "sampleSize": 963,
+      "scores": {
+        "arthaud": 0.8,
+        "melenchon": 13,
+        "roussel": 1.8,
+        "tondelier": 4.2,
+        "glucksmann": 8.4,
+        "attal": 10.4,
+        "philippe": 18.1,
+        "retailleau": 8.7,
+        "lepen": 31.6,
+        "zemmour": 3
+      }
+    },
+    {
+      "id": "harris-interactive-toluna-20260708",
+      "institute": "Harris Interactive (Toluna)",
+      "fieldwork": {
+        "start": "2026-07-07",
+        "end": "2026-07-08"
+      },
+      "sampleSize": 1592,
+      "scores": {
+        "arthaud": 0.9,
+        "melenchon": 14.1,
+        "roussel": 2.3,
+        "tondelier": 3,
+        "attal": 11.8,
+        "retailleau": 7.1,
+        "dupont-aignan": 1.1,
+        "lepen": 31.1,
+        "zemmour": 3.7,
+        "philippe": 15.9,
+        "glucksmann": 9.1
+      }
+    },
+    {
+      "id": "ifop-fiducial-20260708",
+      "institute": "Ifop-Fiducial",
+      "fieldwork": {
+        "start": "2026-07-07",
+        "end": "2026-07-08"
+      },
+      "sampleSize": 984,
+      "scores": {
+        "arthaud": 0.4,
+        "melenchon": 12.8,
+        "roussel": 2.1,
+        "tondelier": 3.2,
+        "glucksmann": 9,
+        "attal": 12.8,
+        "retailleau": 7.7,
+        "dupont-aignan": 1.7,
+        "lepen": 30.8,
+        "zemmour": 3.2,
+        "philippe": 16.2
+      }
+    },
+    {
+      "id": "ifop-fiducial-20260624",
+      "institute": "Ifop-Fiducial",
+      "fieldwork": {
+        "start": "2026-06-22",
+        "end": "2026-06-24"
+      },
+      "sampleSize": 1415,
+      "scores": {
+        "arthaud": 0.9,
+        "melenchon": 13.1,
+        "roussel": 2.6,
+        "tondelier": 3.1,
+        "glucksmann": 9.3,
+        "attal": 11.5,
+        "philippe": 19.2,
+        "retailleau": 10,
+        "dupont-aignan": 2.3,
+        "zemmour": 4.2,
+        "lepen": 21.6,
+        "lisnard": 2.1
+      }
+    },
+    {
+      "id": "opinionway-20260611",
+      "institute": "OpinionWay",
+      "fieldwork": {
+        "start": "2026-06-10",
+        "end": "2026-06-11"
+      },
+      "sampleSize": 1001,
+      "scores": {
+        "arthaud": 1.2,
+        "melenchon": 16.6,
+        "glucksmann": 17,
+        "philippe": 22.3,
+        "retailleau": 10.3,
+        "dupont-aignan": 2.4,
+        "zemmour": 4,
+        "roussel": 4.2,
+        "tondelier": 5.3,
+        "attal": 16.8
+      }
+    },
+    {
+      "id": "ifop-fiducial-20260528",
+      "institute": "Ifop-Fiducial",
+      "fieldwork": {
+        "start": "2026-05-26",
+        "end": "2026-05-28"
+      },
+      "sampleSize": 1501,
+      "scores": {
+        "arthaud": 0.7,
+        "melenchon": 12.6,
+        "roussel": 3.2,
+        "tondelier": 3.8,
+        "glucksmann": 8.8,
+        "attal": 13.3,
+        "philippe": 18.5,
+        "retailleau": 8.8,
+        "dupont-aignan": 2,
+        "zemmour": 3.4,
+        "villepin": 2.1,
+        "lepen": 20.1,
+        "ruffin": 2.8
+      }
+    },
+    {
+      "id": "ipsos-bva-20260528",
+      "institute": "Ipsos BVA",
+      "fieldwork": {
+        "start": "2026-05-27",
+        "end": "2026-05-28"
+      },
+      "sampleSize": 1500,
+      "scores": {
+        "arthaud": 1,
+        "melenchon": 13.8,
+        "roussel": 3.6,
+        "tondelier": 4.5,
+        "glucksmann": 12,
+        "attal": 11.8,
+        "philippe": 15.4,
+        "retailleau": 9.2,
+        "dupont-aignan": 1.6,
+        "zemmour": 4.2,
+        "lepen": 22.9
+      }
+    },
+    {
+      "id": "harris-interactive-toluna-20260527",
+      "institute": "Harris Interactive (Toluna)",
+      "fieldwork": {
+        "start": "2026-05-25",
+        "end": "2026-05-27"
+      },
+      "sampleSize": 1744,
+      "scores": {
+        "arthaud": 1,
+        "melenchon": 14.2,
+        "roussel": 3.3,
+        "tondelier": 2.9,
+        "glucksmann": 10.2,
+        "philippe": 15.9,
+        "retailleau": 9.2,
+        "dupont-aignan": 1.9,
+        "zemmour": 5.6,
+        "attal": 12.3,
+        "lepen": 23.5
+      }
+    },
+    {
+      "id": "odoxa-20260521",
+      "institute": "Odoxa",
+      "fieldwork": {
+        "start": "2026-05-20",
+        "end": "2026-05-21"
+      },
+      "sampleSize": 1005,
+      "scores": {
+        "arthaud": 0.7,
+        "melenchon": 23.5,
+        "roussel": 3.7,
+        "tondelier": 5.9,
+        "glucksmann": 16.2,
+        "philippe": 25,
+        "retailleau": 13.2,
+        "dupont-aignan": 2.9,
+        "zemmour": 8.8
+      }
+    },
+    {
+      "id": "harris-interactive-toluna-20260430",
+      "institute": "Harris Interactive (Toluna)",
+      "fieldwork": {
+        "start": "2026-04-28",
+        "end": "2026-04-30"
+      },
+      "sampleSize": 1725,
+      "scores": {
+        "arthaud": 0.9,
+        "melenchon": 11.3,
+        "roussel": 3.4,
+        "tondelier": 3.7,
+        "glucksmann": 10.6,
+        "philippe": 17.4,
+        "retailleau": 10,
+        "dupont-aignan": 1.1,
+        "zemmour": 4.8,
+        "attal": 13,
+        "lepen": 23.7
+      }
+    },
+    {
+      "id": "elabe-20260327",
+      "institute": "Elabe",
+      "fieldwork": {
+        "start": "2026-03-25",
+        "end": "2026-03-27"
+      },
+      "sampleSize": 1504,
+      "scores": {
+        "arthaud": 0.7,
+        "melenchon": 10.7,
+        "roussel": 2.9,
+        "tondelier": 4.1,
+        "glucksmann": 9.9,
+        "philippe": 20.1,
+        "villepin": 3.8,
+        "retailleau": 7.5,
+        "dupont-aignan": 2.3,
+        "zemmour": 2.8,
+        "lepen": 19.7,
+        "attal": 7.1,
+        "ruffin": 8.4
+      }
+    },
+    {
+      "id": "odoxa-20260326",
+      "institute": "Odoxa",
+      "fieldwork": {
+        "start": "2026-03-25",
+        "end": "2026-03-26"
+      },
+      "sampleSize": 1299,
+      "scores": {
+        "arthaud": 1.6,
+        "melenchon": 19.9,
+        "roussel": 3.2,
+        "tondelier": 7.1,
+        "glucksmann": 15.9,
+        "philippe": 36.7,
+        "retailleau": 12.3,
+        "dupont-aignan": 3.2
+      }
+    },
+    {
+      "id": "harris-interactive-toluna-20260322",
+      "institute": "Harris Interactive (Toluna)",
+      "fieldwork": {
+        "start": "2026-03-22",
+        "end": "2026-03-22"
+      },
+      "sampleSize": 1062,
+      "scores": {
+        "arthaud": 1.3,
+        "melenchon": 13.8,
+        "roussel": 3.8,
+        "tondelier": 5.6,
+        "glucksmann": 17.5,
+        "philippe": 22.3,
+        "retailleau": 10.6,
+        "dupont-aignan": 2.5,
+        "zemmour": 6.3,
+        "attal": 16.4
+      }
+    },
+    {
+      "id": "ifop-fiducial-20260227",
+      "institute": "Ifop-Fiducial",
+      "fieldwork": {
+        "start": "2026-02-26",
+        "end": "2026-02-27"
+      },
+      "sampleSize": 1393,
+      "scores": {
+        "arthaud": 1.7,
+        "melenchon": 10.3,
+        "roussel": 2.6,
+        "tondelier": 4.3,
+        "glucksmann": 11.4,
+        "philippe": 17.6,
+        "villepin": 4.1,
+        "retailleau": 11.7,
+        "dupont-aignan": 2.5,
+        "zemmour": 3.8,
+        "lepen": 21.5,
+        "attal": 8.5
+      }
+    },
+    {
+      "id": "odoxa-20251120",
+      "institute": "Odoxa",
+      "fieldwork": {
+        "start": "2025-11-19",
+        "end": "2025-11-20"
+      },
+      "sampleSize": 1300,
+      "scores": {
+        "arthaud": 1.3,
+        "melenchon": 14.7,
+        "roussel": 3.8,
+        "tondelier": 8,
+        "glucksmann": 17.8,
+        "attal": 14.1,
+        "retailleau": 11.5,
+        "dupont-aignan": 3.2,
+        "zemmour": 4.1,
+        "philippe": 21.5
+      }
+    },
+    {
+      "id": "verian-20251120",
+      "institute": "Verian",
+      "fieldwork": {
+        "start": "2025-11-18",
+        "end": "2025-11-20"
+      },
+      "sampleSize": 938,
+      "scores": {
+        "melenchon": 18.9,
+        "roussel": 4.7,
+        "tondelier": 7.9,
+        "glucksmann": 20.5,
+        "philippe": 26.8,
+        "retailleau": 11.8,
+        "dupont-aignan": 3.1,
+        "zemmour": 6.3
+      }
+    },
+    {
+      "id": "elabe-20251031",
+      "institute": "Elabe",
+      "fieldwork": {
+        "start": "2025-10-30",
+        "end": "2025-10-31"
+      },
+      "sampleSize": 1396,
+      "scores": {
+        "arthaud": 1.2,
+        "melenchon": 12.1,
+        "roussel": 2.9,
+        "tondelier": 4.9,
+        "philippe": 18.1,
+        "villepin": 4,
+        "dupont-aignan": 2.2,
+        "zemmour": 5.5,
+        "glucksmann": 11.2,
+        "retailleau": 7.6,
+        "attal": 8.1,
+        "lepen": 22.1
+      }
+    },
+    {
+      "id": "harris-interactive-toluna-20251007",
+      "institute": "Harris Interactive (Toluna)",
+      "fieldwork": {
+        "start": "2025-10-07",
+        "end": "2025-10-07"
+      },
+      "sampleSize": 1289,
+      "scores": {
+        "arthaud": 0.9,
+        "melenchon": 13.2,
+        "roussel": 2.8,
+        "tondelier": 2.8,
+        "glucksmann": 12.3,
+        "philippe": 14.5,
+        "retailleau": 9.9,
+        "dupont-aignan": 1.1,
+        "zemmour": 5.7,
+        "attal": 11.3,
+        "lepen": 25.3
+      }
+    },
+    {
+      "id": "ifop-fiducial-20250925",
+      "institute": "Ifop-Fiducial",
+      "fieldwork": {
+        "start": "2025-09-24",
+        "end": "2025-09-25"
+      },
+      "sampleSize": 1127,
+      "scores": {
+        "arthaud": 1.2,
+        "melenchon": 12.3,
+        "roussel": 3.9,
+        "glucksmann": 14.4,
+        "villepin": 4.6,
+        "retailleau": 10.8,
+        "dupont-aignan": 2.2,
+        "zemmour": 4.4,
+        "attal": 9.7,
+        "philippe": 15.4,
+        "lepen": 21.2
+      }
+    },
+    {
+      "id": "ifop-fiducial-20250520",
+      "institute": "Ifop-Fiducial",
+      "fieldwork": {
+        "start": "2025-05-19",
+        "end": "2025-05-20"
+      },
+      "sampleSize": 1114,
+      "scores": {
+        "arthaud": 1.1,
+        "melenchon": 14.8,
+        "roussel": 3.7,
+        "tondelier": 5.3,
+        "philippe": 23.5,
+        "retailleau": 17.9,
+        "dupont-aignan": 2.2,
+        "zemmour": 3.7,
+        "lepen": 27.9
+      }
+    },
+    {
+      "id": "harris-interactive-toluna-20250519",
+      "institute": "Harris Interactive (Toluna)",
+      "fieldwork": {
+        "start": "2025-05-19",
+        "end": "2025-05-19"
+      },
+      "sampleSize": 1217,
+      "scores": {
+        "arthaud": 0.9,
+        "melenchon": 12.6,
+        "roussel": 2.7,
+        "tondelier": 2.7,
+        "glucksmann": 9.3,
+        "attal": 13.4,
+        "retailleau": 13,
+        "lepen": 22.6,
+        "zemmour": 4.4,
+        "philippe": 18.6
+      }
+    },
+    {
+      "id": "ifop-fiducial-20250430",
+      "institute": "Ifop-Fiducial",
+      "fieldwork": {
+        "start": "2025-04-29",
+        "end": "2025-04-30"
+      },
+      "sampleSize": 1838,
+      "scores": {
+        "arthaud": 0.7,
+        "melenchon": 9.8,
+        "roussel": 2,
+        "tondelier": 3.9,
+        "glucksmann": 9.8,
+        "philippe": 21.5,
+        "retailleau": 8.6,
+        "dupont-aignan": 2,
+        "lepen": 32.3,
+        "zemmour": 4.4,
+        "ruffin": 5.1
+      }
+    },
+    {
+      "id": "odoxa-20250424",
+      "institute": "Odoxa",
+      "fieldwork": {
+        "start": "2025-04-23",
+        "end": "2025-04-24"
+      },
+      "sampleSize": 1005,
+      "scores": {
+        "arthaud": 1.1,
+        "melenchon": 13,
+        "roussel": 3.3,
+        "tondelier": 3.9,
+        "glucksmann": 12.8,
+        "philippe": 21.9,
+        "retailleau": 10.5,
+        "dupont-aignan": 2.2,
+        "zemmour": 3.3,
+        "lepen": 28.1
+      }
+    },
+    {
+      "id": "ifop-fiducial-20250418",
+      "institute": "Ifop-Fiducial",
+      "fieldwork": {
+        "start": "2025-04-11",
+        "end": "2025-04-18"
+      },
+      "sampleSize": 9128,
+      "scores": {
+        "arthaud": 1.5,
+        "melenchon": 12.7,
+        "roussel": 3,
+        "tondelier": 3.1,
+        "glucksmann": 13.1,
+        "attal": 12.7,
+        "philippe": 25.8,
+        "villepin": 2.3,
+        "retailleau": 11.3,
+        "dupont-aignan": 2.8,
+        "zemmour": 4.7,
+        "ruffin": 7
+      }
+    },
+    {
+      "id": "elabe-20250404",
+      "institute": "Elabe",
+      "fieldwork": {
+        "start": "2025-04-02",
+        "end": "2025-04-04"
+      },
+      "sampleSize": 1413,
+      "scores": {
+        "arthaud": 0.9,
+        "melenchon": 8.5,
+        "roussel": 4.5,
+        "tondelier": 4.1,
+        "attal": 16.1,
+        "villepin": 4,
+        "dupont-aignan": 2.6,
+        "zemmour": 3.4,
+        "glucksmann": 8.2,
+        "philippe": 18.3,
+        "retailleau": 7.2,
+        "lepen": 22.3
+      }
+    },
+    {
+      "id": "harris-interactive-toluna-20250331",
+      "institute": "Harris Interactive (Toluna)",
+      "fieldwork": {
+        "start": "2025-03-31",
+        "end": "2025-03-31"
+      },
+      "sampleSize": 1162,
+      "scores": {
+        "arthaud": 1.7,
+        "melenchon": 21.8,
+        "roussel": 6.7,
+        "tondelier": 6.7,
+        "philippe": 40.3,
+        "dupont-aignan": 3.3,
+        "zemmour": 8.4,
+        "retailleau": 11.2
+      }
+    },
+    {
+      "id": "ifop-fiducial-20250326",
+      "institute": "Ifop-Fiducial",
+      "fieldwork": {
+        "start": "2025-03-21",
+        "end": "2025-03-26"
+      },
+      "sampleSize": 1119,
+      "scores": {
+        "arthaud": 0.8,
+        "melenchon": 10,
+        "roussel": 2.6,
+        "tondelier": 2.3,
+        "philippe": 16.9,
+        "retailleau": 8.3,
+        "dupont-aignan": 2.5,
+        "lepen": 27.7,
+        "zemmour": 4.1,
+        "glucksmann": 8.3,
+        "attal": 16.5
+      }
+    }
+  ]
+}

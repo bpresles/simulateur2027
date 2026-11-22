@@ -18,19 +18,10 @@ export interface Candidate {
   colorDark: string
   /** Profil de reports à utiliser quand ce candidat affronte le RN au 2nd tour. */
   duelProfile: ProfileId | null
-  /**
-   * Référence 2022 pour la correction et la progression : un candidat de reference-2022.json, ou un
-   * mélange pondéré de plusieurs (ratio = moyenne des ratios pondérée par les poids).
-   */
-  ref2022: string | ReferencePart[] | null
-  /** Justification de la correspondance 2027 ↔ 2022, affichée dans la méthodologie. */
-  ref2022Note?: string
   isRN?: boolean
   /**
-   * Petit candidat : testé dans une partie des hypothèses seulement, jamais requis. Dans une hypothèse
-   * retenue qui ne le teste pas, il est imputé : son score dans les hypothèses qui le testent, pris aux
-   * candidats vers lesquels vont ses électeurs. Au 2nd tour, ses électeurs se reportent comme ceux de
-   * candidats principaux : première répartition par défaut, les autres au choix dans les réglages.
+   * Petit candidat : testé dans une partie des hypothèses seulement, jamais requis par défaut.
+   * Il n'entre dans l'offre de base que s'il est testé par au moins `MIN_MINOR_INSTITUTES` instituts distincts.
    */
   minor?: { transfers: MinorTransfer[] }
   /**
@@ -72,10 +63,6 @@ export interface SourceLink {
   url: string
 }
 
-/**
- * Lien d'un sondage : synthèse publiée par l'institut, notice déposée à la Commission des sondages, ou autre
- * lien sans type (publication reprise par Wikipedia, page Wikipedia).
- */
 export interface PollSource extends SourceLink {
   kind?: 'synthese' | 'notice'
 }
@@ -91,10 +78,6 @@ export interface Hypothesis {
   replacing?: Record<CandidateId, CandidateId>
 }
 
-/**
- * Provenance d'un sondage : saisie manuelle ou flux synchronisé automatiquement. « wikipedia » est
- * provisoire : la reprise est remplacée dès qu'une compilation des notices officielles publie le sondage.
- */
 export type PollOrigin = 'manuel' | 'mieuxvoter' | '2027etmoi' | 'wikipedia'
 
 export interface Poll {
@@ -119,9 +102,6 @@ export interface HypothesisSet {
   exclude: CandidateId[]
 }
 
-/** Base d'un leader d'alliance groupée : face-à-face dans les sondages, ou repli sur la moyenne du jeu par défaut. */
-export type LeaderBasis = 'face-a-face' | 'moyenne'
-
 export interface Alliance {
   id: string
   label: string
@@ -129,43 +109,17 @@ export interface Alliance {
   members: CandidateId[]
   /** Candidat que rejoignent les autres membres : il doit être testé dans les hypothèses retenues. */
   leader: CandidateId
-  /**
-   * Alliance groupée (option) : le leader n'est pas fixé dans les données mais déduit au chargement : le
-   * membre qui gagne le plus de face-à-face dans les sondages qui les testent ensemble, à défaut le candidat
-   * principal en tête de la moyenne des sondages au 1er tour (voir `groupedLeaderChoice`). Toujours estimée
-   * (`estimatedOnly`).
-   */
-  grouped?: boolean
-  /** Base de la désignation du leader d'une alliance groupée, renseignée au chargement. */
-  leaderBasis?: LeaderBasis
-  /**
-   * Jamais lue dans les hypothèses des sondages, dont la lecture serait ambiguë (sans Retailleau, ses
-   * électeurs ne vont pas tous vers Le Pen) : toujours estimée, avec l'option des alliances non évaluées.
-   */
-  estimatedOnly?: boolean
 }
 
-/**
- * Personnes interrogées qui n'expriment d'intention de vote pour aucun des deux candidats d'un duel
- * (indécis, vote blanc ou nul, abstention), écartées des pourcentages publiés.
- */
 export interface NoIntention {
-  /** En % de la base. */
   share: number
-  /** Ensemble des inscrits interrogés, ou seulement ceux qui comptent voter (les autres ne sont pas interrogés). */
   base: 'inscrits' | 'votants'
-  /** Dont indécis (« ne sait pas »), quand l'institut les distingue du vote blanc ou nul. */
   undecided?: number
-  /**
-   * Part non publiée telle quelle, calculée d'après la notice (effectifs, ou vote blanc ou nul et abstention
-   * publiés séparément) : détail du calcul.
-   */
   calculation?: string
   source: SourceLink
 }
 
 export interface SecondRoundPoll {
-  /** « wikipedia » pour une reprise provisoire ; absent : Mieux Voter ou saisie manuelle. */
   origin?: PollOrigin
   institute: string
   sponsor: string
@@ -173,22 +127,13 @@ export interface SecondRoundPoll {
   sampleSize: number
   url: string
   scores: Record<CandidateId, number>
-  /**
-   * Saisie à la main d'après la notice ou le rapport de l'institut (la page Wikipedia ne la donne pas) ;
-   * la synchronisation la garde tant que le duel reste sur la page.
-   */
   noIntention?: NoIntention
 }
 
 export interface PollsData {
   asOf: string
-  /** Date prévue du 1er tour, pour situer la base dans le temps (distance au scrutin). */
   electionDate: string
   windowDays: number
-  /**
-   * Période de la page Wikipedia d'où viennent les sondages : quand elle est indiquée, elle remplace la
-   * fenêtre glissante (dernier sondage de chaque institut terminé depuis son premier jour).
-   */
   period?: { label: string; start: string }
   collection: { description: string; sources: SourceLink[] }
   candidates: Candidate[]
@@ -199,13 +144,30 @@ export interface PollsData {
   secondRoundPolls: SecondRoundPoll[]
 }
 
-export interface Reference2022Candidate {
+/** Vague de sondage historique agrégée (pour la courbe d'évolution 2025–2027 et la tendance amortie). */
+export interface HistoricalPoll {
+  id: string
+  institute: string
+  fieldwork: Fieldwork
+  sampleSize: number
+  /** Scores moyens normalisés sur les candidats simulés testés dans ce sondage. */
+  scores: Record<CandidateId, number>
+}
+
+export interface PollHistoryData {
+  description: string
+  polls: HistoricalPoll[]
+}
+
+// ——— Données des scrutins passés (backtest & calibrage de la variance) ———
+
+export interface ReferenceCandidate {
   id: string
   name: string
   votes: number
 }
 
-export interface Reference2022Poll {
+export interface ReferencePoll {
   institute: string
   sponsor?: string
   fieldwork: Fieldwork
@@ -214,7 +176,6 @@ export interface Reference2022Poll {
   scores: Record<string, number>
 }
 
-/** Sondage de campagne d'un scrutin passé, avec toutes ses hypothèses (plusieurs candidats LR testés). */
 export interface CampaignPoll {
   institute: string
   fieldwork: Fieldwork
@@ -223,22 +184,17 @@ export interface CampaignPoll {
   hypotheses: Hypothesis[]
 }
 
-/** Scrutin passé servant d'étalon : derniers sondages, résultat officiel et sondages de campagne. */
 export interface PastElectionReference {
   electionDate: string
   windowDays: number
   description: string
   resultsSource: SourceLink
   pollsSource: SourceLink
-  /** Suffrages exprimés au 1er tour (base des pourcentages). */
   expressed: number
-  /** Inscrits au 1er tour. */
   registered: number
-  /** Votants au 1er tour (participation = votants ÷ inscrits). */
   voters: number
-  candidates: Reference2022Candidate[]
-  polls: Reference2022Poll[]
-  /** Sondages réalisés à la même distance du scrutin que la base 2027, pour mesurer la progression. */
+  candidates: ReferenceCandidate[]
+  polls: ReferencePoll[]
   campaignPolls: {
     description: string
     windowDays: number
@@ -250,7 +206,6 @@ export interface PastElectionReference {
   }
 }
 
-/** Chiffres officiels du 2nd tour, base du calage de l'abstention. */
 export interface SecondRoundOfficial {
   registered: number
   voters: number
@@ -260,23 +215,32 @@ export interface SecondRoundOfficial {
   source: SourceLink
 }
 
-/** Voix officielles d'un finaliste au 2nd tour. */
 export interface SecondRoundCandidateVotes {
   id: CandidateId
   votes: number
 }
 
 export interface Reference2022 extends PastElectionReference {
-  /** Chiffres officiels du 2nd tour, avec les voix de chaque finaliste. */
   secondRound: SecondRoundOfficial & { candidates: SecondRoundCandidateVotes[] }
 }
 
-/** Présidentielle 2017 : second étalon des écarts entre sondages et résultat, et de l'abandon au 2nd tour. */
 export interface Reference2017 extends PastElectionReference {
   secondRound: SecondRoundOfficial
 }
 
-export type ProvenanceId = 'franceinfo' | 'publicsenat' | 'lcp' | 'derive' | 'transpose' | 'camp' | 'hypothese' | 'reels2024'
+// ——— Reports de voix du 2nd tour ———
+
+export type ProvenanceId =
+  | 'franceinfo'
+  | 'publicsenat'
+  | 'lcp'
+  | 'presidentielles2017_2022'
+  | 'presidentielles2007_2012'
+  | 'declare2027'
+  | 'derive'
+  | 'transpose'
+  | 'camp'
+  | 'hypothese'
 
 export interface TransferValues {
   finalist: number
@@ -285,7 +249,6 @@ export interface TransferValues {
 }
 
 export interface TransferRow extends TransferValues {
-  /** Électorat rattaché au camp d'un finaliste : il suit le taux de fidélité au lieu des valeurs. */
   camp?: 'finalist' | 'rn'
   provenance: Record<keyof TransferValues, ProvenanceId>
   note?: string
@@ -304,102 +267,64 @@ export interface ProvenanceSource {
   url?: string
 }
 
+/** Fidélité d'un électorat de finaliste au 2nd tour (total 100 %). */
+export interface FidelitySplit {
+  loyal: number
+  cross: number
+  abstention: number
+}
+
+export interface FidelityConfig {
+  default: FidelitySplit
+  byCandidate: Record<CandidateId, FidelitySplit>
+  note: string
+}
+
+export interface NonRnLeftRightRow {
+  left: number
+  right: number
+  abstention: number
+}
+
 export interface TransfersData {
   sources: Record<ProvenanceId, ProvenanceSource>
   completionRule: string
-  defaultFidelity: number
+  fidelity: FidelityConfig
+  presidentialCenterRn: {
+    description: string
+    defaultWeight: number
+    elections: Record<'2017' | '2022', Record<Bloc, TransferValues>>
+    rows: Record<Bloc, TransferRow>
+  }
   profiles: TransferProfile[]
-  fallback: {
+  nonRnPresidential: {
     description: string
-    affinity: Record<Bloc, Record<Bloc, number>>
-    abstention: Record<Bloc, number>
+    leftVsCenterRight: Record<Bloc, NonRnLeftRightRow>
+    sameSide: {
+      abstention: Record<Bloc, number>
+      affinity: Record<Bloc, Record<Bloc, number>>
+    }
   }
 }
 
-/**
- * Mesure datée de la part des inscrits certains d’aller voter (Ifop-Fiducial). Soit `envisage` et `certain`
- * (la part des inscrits s'en déduit), soit `registeredShare` quand la source ne publie que cet indice.
- */
-export interface TurnoutMeasure {
-  id: string
-  /** Scrutin visé : 2022 (référence) ou 2027. */
-  cycle: 2022 | 2027
-  /** Dernière vague avant le vote (référence 2022 seulement). */
-  final?: boolean
-  fieldwork: { start: string; end: string }
-  /** Part des inscrits qui envisagent d'aller voter (%). */
-  envisage?: number
-  /** Part de « tout à fait certains » parmi ceux qui envisagent d'aller voter (%). */
-  certain?: number
-  /** Part des inscrits certains d'aller voter (%), quand elle est publiée directement. */
-  registeredShare?: number
-  source: { label: string; url: string }
+export interface DeclaredTransferRow extends TransferValues {
+  camp?: 'finalist' | 'rn'
+  note?: string
 }
 
-/** Mesure de contrôle Ipsos bva-CEVIPOF (note 10/10, base : tous les inscrits). */
-export interface TurnoutControlMeasure {
-  fieldwork: { start: string; end: string }
-  share: number
-  /** Scrutin dont la participation réelle sert de comparaison (null : pas encore voté). */
-  election: 2017 | 2022 | null
-}
-
-export interface TurnoutCertaintyData {
+export interface DeclaredTransfersData {
   description: string
-  measures: TurnoutMeasure[]
-  control: {
+  sources: SourceLink[]
+  logitCorrection: {
     description: string
-    source: { label: string; url: string }
-    measures: TurnoutControlMeasure[]
+    deltaFinalist: number
+    deltaRn: number
   }
+  profiles: Record<ProfileId, Record<Bloc, DeclaredTransferRow>>
 }
 
-/** Une part d'inscrits certains d'aller voter (%) et les mesures dont elle est tirée (une, ou la moyenne de la fenêtre de la référence). */
-export interface CertainShare {
-  share: number
-  /** Mesure principale : l'unique mesure, ou la plus proche en distance parmi celles de la moyenne. */
-  measure: TurnoutMeasure
-  /** Mesures retenues (leur nombre : `measures.length`). */
-  measures: TurnoutMeasure[]
-  /** Première et dernière fins de terrain des mesures retenues. */
-  first: string
-  last: string
-}
+// ——— Abandon historique, nouveaux votants & agrégats 2024 ———
 
-/**
- * Bilan de participation du 1er tour, en % des inscrits. V₀ = certainNow + couverture de la mobilisation de
- * 2022 par les options ; delta = expected − v0, ajouté (ou retranché) aux votants.
- */
-export interface TurnoutBalance {
-  /** E2027 : part des certains d'aller voter aujourd'hui, déjà dans les sondages. */
-  certainNow: CertainShare
-  /** E2022 : moyenne des mesures de campagne 2022 à ±15 jours de la distance de E2027 (à défaut, la plus proche). */
-  certainRef: CertainShare
-  /** F2022 : part des certains dans la dernière vague avant le vote 2022. */
-  finalRef: CertainShare
-  /** P2022 : participation réelle au 1er tour 2022. */
-  turnoutRef: number
-  /** Mobilisation de campagne de 2022 : F2022 − E2022. */
-  campaign: number
-  /** Mobilisation de fin de campagne de 2022 : P2022 − F2022. */
-  late: number
-  /** Part de la mobilisation de 2022 déjà reproduite par les options (progression, correction, billet). */
-  covered: number
-  /** Couverture appliquée à la mobilisation de campagne et à celle de fin de campagne (0 à 1). */
-  coverage: { campaign: number; late: number }
-  /** V₀ : électorat que représentent les sondages corrigés. */
-  v0: number
-  /** P2027 : participation attendue (réglage ou défaut). */
-  expected: number
-  /** Participation attendue par défaut : P2022 + (E2027 − E2022). */
-  defaultExpected: number
-  /** ΔV = P2027 − V₀ : supplément appliqué (négatif si les sondages corrigés dépassent la participation attendue). */
-  delta: number
-  /** Distance au scrutin (jours) de E2027, de E2022 (moyenne des mesures retenues) et de la date des sondages. */
-  distances: { now: number; ref: number; asOf: number }
-}
-
-/** Chiffres d'un tour d'une présidentielle (Conseil constitutionnel). */
 export interface PresidentialRound {
   registered: number
   voters: number
@@ -407,83 +332,54 @@ export interface PresidentialRound {
   source: SourceLink
 }
 
-/** Second tour présidentiel d'une année passée, avec son 1er tour (abandon net entre les deux). */
 export interface PresidentialDuel {
   year: number
   duel: string
-  /** Le 2nd tour opposait un candidat FN ou RN à un autre. */
   rn: boolean
   firstRound: PresidentialRound
   secondRound: PresidentialRound
 }
 
-/** Abandon net (%) des électeurs des camps des finalistes et des autres électorats. */
-export interface CampRates {
-  camp: number
-  others: number
-}
-
-/** Une circonscription d'un duel RN – autre camp de 2024 : exprimés des deux tours et vote du 1er tour par bloc. */
-export interface DropoutConstituency {
-  /** Code de la circonscription (ministère de l'Intérieur). */
-  code: string
+/** Totaux agrégés d'un type de duel des législatives 2024 (contrôle de cohérence). */
+export interface Aggregated2024Profile {
+  label: string
+  finalistBlocs: Bloc[]
+  constituenciesCount: number
   firstRoundExpressed: number
   secondRoundExpressed: number
-  /** Voix du 2nd tour du finaliste opposé au RN et du candidat RN. */
   secondRoundVotes: { finalist: number; rn: number }
-  /** Voix du 1er tour par bloc, d'après la nuance des candidats (`nuanceBlocs`). */
   firstRoundVotesByBloc: Record<Bloc, number>
 }
 
-/** Duels RN – autre camp des législatives 2024 qui relèvent d'un même profil de reports. */
-export interface DropoutProfile {
-  label: string
-  /** Blocs des deux finalistes : celui du RN et celui de son adversaire. */
-  finalistBlocs: Bloc[]
-  constituencies: DropoutConstituency[]
-  /** Parti du candidat de gauche par circonscription (profils de gauche seulement). */
-  leftParty?: Record<string, string>
-}
-
-/** Part (%) attachée à un finaliste de 2022. */
 export interface FinalistShare {
   id: CandidateId
   share: number
 }
 
-/** Participation constatée sur les listes d'émargement : part des inscrits selon les deux tours (%). */
 export interface InseeTurnoutPattern {
   year: number
   bothRounds: number
   firstOnly: number
   secondOnly: number
   neither: number
-  /** Champ de l'Insee (inscrits résidant en France, France métropolitaine…). */
   scope: string
   source: SourceLink
 }
 
-/** Nouveaux votants du 2nd tour : sources et chiffres bruts, les taux étant calculés (`newVoters.ts`). */
 export interface NewVotersData {
   description: string
   ifop2022: {
     description: string
     source: SourceLink & { pages: string }
-    /** Part des électeurs de chaque finaliste qui s'étaient abstenus au 1er tour (%). */
     abstainedFirstRound: FinalistShare[]
-    /** Vote au 2nd tour des abstentionnistes du 1er tour (%). */
     abstainersVote: FinalistShare[]
-    /** Vote au 2nd tour de l'ensemble des votants (%). */
     allVotersVote: FinalistShare[]
-    /** Part des abstentionnistes du 1er tour qui déclarent avoir voté au 2nd (%). */
     abstainersWhoVotedShare: number
-    /** Demi-marge d'arrondi des parts de l'institut (points). */
     roundingMargin: number
   }
   insee: InseeTurnoutPattern[]
   legislatives2024: {
     constituencies: number
-    /** Votants et exprimés des circonscriptions qui ont eu un 2nd tour, à chaque tour. */
     votersFirstRound: number
     votersSecondRound: number
     expressedFirstRound: number
@@ -491,7 +387,6 @@ export interface NewVotersData {
     note: string
     sources: SourceLink[]
   }
-  /** Comportement des votants blancs ou nuls du 1er tour au 2nd tour : non mesuré. */
   blankNullNote: string
 }
 
@@ -502,19 +397,14 @@ export interface SecondRoundDropoutData {
   legislatives2024: {
     description: string
     method: string
-    /** Nuances du ministère classées par bloc. */
     nuanceBlocs: Record<Bloc, string[]>
     sources: SourceLink[]
-    profiles: Record<ProfileId, DropoutProfile>
-    /** Duels RN – gauche dont le profil n'a pas pu être établi, exclus. */
-    unclassified: { code: string; dep: string; nuance: string; name: string }[]
+    profiles: Record<ProfileId, Aggregated2024Profile>
   }
 }
 
-/** Sondage de 2nd tour Macron – Le Pen publié avant le 1er tour, en % pour le candidat opposé au RN. */
 export interface PollBiasPoll {
   institute: string
-  /** Fin de terrain (ISO). */
   end: string
   antiRn: number
   rn: number
@@ -536,108 +426,108 @@ export interface SecondRoundPollBiasData {
   elections: PollBiasElection[]
 }
 
-/** Écart historique d'une année entre le résultat du 2nd tour et les sondages à la même distance du 1er tour. */
 export interface PollBiasGap {
   year: number
   duel: string
-  /** Sondages de la fenêtre (0 si aucun : repli sur le plus proche). */
   pollCount: number
-  /** Moyenne des sondages de la fenêtre, ou score du sondage le plus proche (en % du candidat opposé au RN). */
   estimate: number
-  /** Sondage le plus proche, seulement quand la fenêtre est vide. */
   nearest: { institute: string; end: string; distance: number } | null
   result: number
-  /** Résultat − estimation, en points. */
   gap: number
 }
 
 export interface SimulationData {
   polls: PollsData
+  pollHistory: PollHistoryData
   reference2022: Reference2022
   reference2017: Reference2017
   transfers: TransfersData
-  turnoutCertainty: TurnoutCertaintyData
+  declaredTransfers: DeclaredTransfersData
   secondRoundDropout: SecondRoundDropoutData
   secondRoundPollBias: SecondRoundPollBiasData
 }
 
-/** Réglages de l'utilisateur. Seules les surcharges sont stockées, les défauts restent calculés. */
+// ——— Projection temporelle vers avril/mai 2027 ———
+
+export interface BlocUsefulVote {
+  /** Intensité du vote utile dans ce bloc (0 = aucun, 1 = concentration historique 2017–2022). */
+  intensity: number
+  /** Candidat pivot qui capte le vote utile du bloc, ou `'auto'` (candidat en tête du bloc). */
+  beneficiary: CandidateId | 'auto'
+}
+
+export interface CampaignProjectionSettings {
+  /** Active la projection vers le 1er tour d'avril 2027 (false = photographie actuelle). */
+  enabled: boolean
+  /** Réglage séparé du vote utile par bloc politique. */
+  usefulVote: Record<Bloc, BlocUsefulVote>
+  /** Regrouper centre et droite dans un pôle commun de vote utile (scénario type 2022). */
+  mergeCenterRight: boolean
+  /** Amortissement léger des écarts de blocs précoces vers les fondamentaux (0 à 1, défaut : 0,5). */
+  meanReversion: number
+  /** Poids de la tendance récente amortie sur 21 jours (0 à 1, défaut : 0,5, plafonnée à ±2,5 pts). */
+  dampedTrend: number
+}
+
+// ——— Réglages de l'utilisateur ———
+
+export type TransferSource = 'legislatives2024' | 'blend' | 'declared2027'
+
+export type RepublicanFrontFamily = 'centerRight' | 'moderateLeft' | 'lfi'
+
+export const REPUBLICAN_FRONT_FAMILIES: readonly RepublicanFrontFamily[] = ['centerRight', 'moderateLeft', 'lfi']
+
+export type RepublicanFrontPreset = 'none' | 'eroded2027' | 'level2022' | 'level2017'
+
+export interface RepublicanFrontSettings {
+  /** Force du front républicain (0 = effacé, 0,75 = niveau 2022, 1 = niveau 2017) pour les duels Centre / Droite – RN. */
+  centerRight: number
+  /** Force du front républicain pour les duels Gauche modérée (PS, écologistes, PCF) – RN. */
+  moderateLeft: number
+  /** Force du front républicain pour les duels LFI – RN. */
+  lfi: number
+}
+
 export interface Settings {
-  /**
-   * Sondages décochés pour la base du 1er tour (identifiants). Tous les autres sont retenus, y compris
-   * ceux publiés plus tard : un seul coché sert tel quel, deux ou plus sont moyennés.
-   */
+  /** Sondages décochés pour la base du 1er tour (identifiants). */
   excludedPolls: string[]
-  /** Projette les derniers sondages avant le vote selon la progression observée en 2022. */
-  progressionEnabled: boolean
-  /** 1 = 100 % de la progression 2022 (reproduite à l'identique). */
-  progressionIntensity: number
-  correctionsEnabled: boolean
-  /** 1 = 100 % de la correction 2022. */
-  correctionIntensity: number
-  /** Corrections manuelles en points, qui remplacent la correction calculée. */
-  correctionOverrides: Record<CandidateId, number>
-  /** Référence composite à deux candidats : poids du second (0 à 1), qui remplace celui des données. */
-  referenceBlend: Record<CandidateId, number>
-  /**
-   * Corrige les biais par bloc relevés par le billet (extrême droite surestimée, gauche sous-estimée loin
-   * du scrutin), sans répéter ce que la progression et la correction activées corrigent déjà.
-   */
-  blogBiasEnabled: boolean
-  /**
-   * 1 = 100 % des biais du billet. Un biais que corrige aussi la progression ou la correction activée n'est
-   * corrigé qu'une fois, à la plus forte des deux intensités.
-   */
-  blogBiasIntensity: number
-  /**
-   * Ajuste le 1er tour à la participation attendue : l'écart entre elle et l'électorat que représentent les
-   * sondages corrigés est réparti selon le vote 2022 des abstentionnistes de 2017 venus voter.
-   */
-  turnoutEnabled: boolean
-  /** Participation attendue au 1er tour (% des inscrits). null = la hausse des certains reportée sur 2022. */
-  turnoutExpected: number | null
+  /** Alliances testées par les sondeurs actives. */
   alliances: Record<string, boolean>
-  /** Option : permettre des alliances qu'aucun sondage ne teste, estimées par les reports de 2024. */
-  untestedAlliances: boolean
-  /** Option : proposer les alliances groupées (plusieurs candidats derrière le mieux placé), estimées. */
-  groupedAlliances: boolean
+  /** Projeter les sondages ne testant pas exactement l'offre via paires propres intra-institut (défaut : true). */
+  offerProjectionEnabled: boolean
+  /** Projection temporelle vers le 1er tour d'avril 2027 (vote utile par bloc, amortissement, tendance). */
+  projection: CampaignProjectionSettings
   /**
-   * Alliance estimée : part des électeurs du candidat rallié qui suit le leader (0 à 1).
-   * Absente = taux constaté aux législatives 2024.
+   * Source des reports au 2nd tour pour les duels face au RN :
+   * - `legislatives2024` (défaut) : base historique (législatives 2024 transposées en présidentielle via 2017–2022 et modulées par le front républicain) ;
+   * - `blend` : mélange pondéré entre base historique et déclarations 2027 corrigées en logit ;
+   * - `declared2027` : déclarations 2027 corrigées en logit seules.
    */
-  allianceOverrides: Record<string, number>
-  /**
-   * Corrige les reports de l'enquête Ipsos-Talan d'après les votes réels de 2024 (régression écologique), pour
-   * les électorats des blocs absents du duel. Les surcharges de `transferOverrides` restent prioritaires.
-   */
-  transferCorrectionEnabled: boolean
-  /** 1 = 100 % de l'écart entre les reports de l'enquête et les votes réels. */
-  transferCorrectionIntensity: number
+  transferSource: TransferSource
+  /** Poids des déclarations 2027 dans le mode `blend` (0 à 1, défaut : 0,5). */
+  declaredWeight: number
+  /** Force du front républicain (vote de rejet du RN) par famille de duel (0 = effacé, 0,75 = 2022, 1 = 2017). */
+  republicanFront: RepublicanFrontSettings
+  /** Surcharges manuelles des lignes de reports. */
   transferOverrides: Partial<Record<ProfileId, Partial<Record<Bloc, TransferValues>>>>
-  /** Répartition choisie pour les électeurs de chaque petit candidat (identifiant), absente = la première. */
+  /** Répartition choisie pour les électeurs de chaque petit candidat. */
   minorTransfers: Record<CandidateId, string>
-  /** Part des électeurs d'un finaliste qui revotent pour lui (0 à 1), null = valeur par défaut. */
+  /** Fidélité uniforme manuelle (0 à 1), null = fidélité différenciée par finaliste des données. */
   fidelity: number | null
-  /** Cale le total des blancs, nuls et abstentions du 2nd tour sur une cible. */
-  abstentionCalibration: boolean
-  /** Cible en % des exprimés du 1er tour ; null = niveau réel du 2nd tour 2022. */
-  abstentionTarget: number | null
-  /** Qualification serrée : second tour affiché, avec le 2e (défaut) ou avec le 3e du 1er tour. */
-  qualificationPick: 'second' | 'third'
+  /** Participation au 1er tour (% des inscrits, défaut : 74). */
+  firstRoundTurnout: number
+  /** Part des abstentionnistes du 1er tour qui votent valablement au 2nd (0 à 1, défaut : 0,20). */
+  abstainerMobilization: number
+  /** Part de référence des nouveaux votants allant à l'adversaire du RN au niveau 2022 (0 à 1, défaut : 0,55 ; modulée par le front républicain, 0,50 hors RN). */
+  abstainerAntiRnShare: number
+  /** Duel affiché parmi les duels plausibles (identifiant `idA|idB`), null = duel du top 2 déterministe. */
+  selectedDuel: string | null
 }
 
 // ——— Résultats ———
 
-/**
- * Candidats auxquels un petit candidat prend ses points, au 1er tour, dans les hypothèses qui ne le testent
- * pas (poids de total 1).
- */
 export interface ImputationDonors {
   parts: ReferencePart[]
-  /**
-   * Paires d'hypothèses d'un même sondage, sans puis avec lui, où ces parts sont observées ; vide : faute de
-   * paire, répartition de ses électeurs choisie dans les réglages.
-   */
   pairs: { institute: string; without: string; with: string }[]
 }
 
@@ -647,89 +537,75 @@ export interface PollUsage<P = Poll> {
   poll: P
   status: PollStatus
   matchedHypotheses: string[]
-  /** Moyenne des hypothèses retenues, renormalisée sur les candidats simulés. */
+  /** Poids relatif de ce sondage dans la moyenne pondérée (0 si non utilisé). */
+  weight: number
+  /** Part en % du poids total (0 à 100). */
+  weightShare: number
+  /** Vrai si l'hypothèse a été projetée vers l'offre cible via paires propres intra-institut. */
+  projected: boolean
+  /** Description courte des opérations de projection appliquées (ex. « +Attal, +Lisnard »). */
+  projectionSteps: string[]
+  /** Moyenne des hypothèses retenues (ou projetées), renormalisée à 100. */
   average: Record<CandidateId, number> | null
 }
 
 export interface FirstRoundRow {
   candidateId: CandidateId
-  /** Moyenne brute des sondages (normalisée à 100). */
-  base: number
-  /** Progression de la référence 2022 entre la même distance du scrutin et les derniers sondages. */
-  progressionRatio: number | null
-  /** Facteur appliqué : 1 + (progression − 1) × intensité (null si la progression est désactivée). */
-  progressionFactor: number | null
-  /** Derniers sondages projetés (= base si la progression est désactivée), normalisés à 100. */
-  projected: number
-  /**
-   * Écart estimé entre derniers sondages et résultat (résultat ÷ sondages) : 2022 combiné à 2017 quand la
-   * référence a un équivalent en 2017, 2022 seul sinon.
-   */
-  correctionRatio: number | null
-  /** Références 2022 effectivement utilisées, avec leur poids (une seule le plus souvent). */
-  references: ReferencePart[]
-  defaultCorrection: number
-  /** Intensité de correction retenue : celle du réglage, ou celle du billet si elle est plus forte. */
-  correctionIntensity: number
-  appliedCorrection: number
-  isOverride: boolean
-  /**
-   * Facteur des biais du billet pour le bloc du candidat, limité aux composantes que ni la progression ni la
-   * correction ne corrigent déjà (1 si elles couvrent tout) ; null si l'option est désactivée ou si le
-   * billet ne chiffre pas le biais de ce bloc.
-   */
-  blogBiasFactor: number | null
-  /** Facteur de l'ajustement à la participation attendue (null si l'option est désactivée). */
-  turnoutFactor: number | null
-  /** Points de la moyenne brute prélevés pour les petits candidats ajoutés (0 sinon). */
-  cededBase: number
-  /** Points cédés après correction aux petits candidats ajoutés, déjà déduits de `corrected`. */
-  ceded: number
-  /** Score après corrections, normalisé à 100. */
-  corrected: number
+  /** Score actif du 1er tour (photographie actuelle ou projection avril 2027), normalisé à 100. */
+  score: number
+  /** Moyenne pondérée actuelle des sondages (avant éventuelle projection temporelle). */
+  currentScore: number
 }
 
-export interface EntrantMember {
+export interface PoleConcentration {
+  pole: 'gauche' | 'centre' | 'droite' | 'centre_droite' | 'extreme_droite'
+  beneficiary: CandidateId | null
+  totalBefore: number
+  totalAfter: number
+  shareBefore: number
+  shareAfter: number
+  targetShare: number
+  saturated: boolean
+}
+
+export interface CandidateProjectionDelta {
   candidateId: CandidateId
-  /** Contribution de ce membre au score de l'entrant (en points). */
-  contribution: number
-  weight: number
-  /** Part des électeurs de ce membre qui suivent le leader (1 pour le leader lui-même). */
-  rate: number
-  /** Part des électeurs de ce membre qui votent pour le candidat RN (0 pour le leader). */
-  rnRate: number
+  current: number
+  usefulVoteDelta: number
+  reversionDelta: number
+  trendDelta: number
+  projected: number
 }
 
-/** Taux d'une alliance estimée, pour chaque candidat rallié. */
-export interface AllianceRate {
-  allianceId: string
-  leaderId: CandidateId
-  joining: {
-    candidateId: CandidateId
-    /** Parts (0 à 1) qui suivent le leader et qui votent RN ; le reste s'abstient. */
-    leader: number
-    rn: number
-    /** Taux constaté en 2024, avant une éventuelle modification dans les réglages. */
-    default2024: { leader: number; rn: number }
-    /** Ligne de la grille 2024 utilisée, null si le leader n'a pas de profil de reports. */
-    source: { profileId: ProfileId; bloc: Bloc } | null
-    isOverride: boolean
-  }[]
+export interface CampaignProjectionResult {
+  enabled: boolean
+  daysRemaining: number
+  horizonFactor: number
+  byCandidate: Record<CandidateId, CandidateProjectionDelta>
+  poles: PoleConcentration[]
+  projectedScores: Record<CandidateId, number>
 }
 
-/** Électeurs d'un candidat rallié qui votent pour le candidat RN au lieu de suivre le leader. */
-export interface AllianceLeak {
-  from: CandidateId
-  to: CandidateId
-  points: number
+export interface TrajectoryPoint {
+  date: string
+  kind: 'history' | 'now' | 'projection'
+  scores: Record<CandidateId, number>
+  /** Bornes à 80 % (P10 et P90) pour les points présents et futurs. */
+  p10?: Record<CandidateId, number>
+  p90?: Record<CandidateId, number>
 }
 
-/** Candidat présent au 1er tour après application des alliances. */
+export interface CampaignTrajectoryData {
+  asOf: string
+  electionDate: string
+  /** Candidats suivis sur le graphique (classés par score décroissant). */
+  trackedIds: CandidateId[]
+  historyPollCount: number
+  points: TrajectoryPoint[]
+}
+
 export interface Entrant {
   id: CandidateId
-  /** Alliances appliquées à cet entrant (plusieurs si elles partagent le même leader). */
-  allianceIds: string[]
-  members: EntrantMember[]
   score: number
 }
 
@@ -739,115 +615,127 @@ export interface ProfileWeight {
 }
 
 export interface ResolvedDuel {
-  kind: 'sourced' | 'fallback'
-  /** Finaliste non RN dont le profil est utilisé (cas « sourced »). */
+  kind: 'rn-sourced' | 'non-rn-presidential' | 'non-rn-same-side'
   challengerId: CandidateId | null
   rnId: CandidateId | null
   profileWeights: ProfileWeight[]
 }
 
+/** Flux d'un électorat du 1er tour au 2nd tour, en % des inscrits. */
 export interface VoteFlow {
   candidateId: CandidateId
-  /** Électorat de ce candidat au 1er tour simulé, avant alliances (points). */
+  /** Électorat au 1er tour en % des inscrits (= score T1 × E1 / 100). */
   share: number
+  /** Score au 1er tour en % des exprimés. */
+  firstRoundPct: number
   toA: number
   toB: number
   abstention: number
   bloc: Bloc | null
   isFinalistVoter: boolean
-  /** Petit candidat éliminé : électorats principaux dont ses électeurs suivent les reports. */
   like?: ReferencePart[]
+}
+
+/** Flux d'un groupe du 1er tour qui n'est pas un électorat de candidat, en % des inscrits. */
+export interface GroupFlow {
+  volume: number
+  toA: number
+  toB: number
+  nonExpressed: number
 }
 
 export interface SecondRoundResult {
   a: CandidateId
   b: CandidateId
   duel: ResolvedDuel
-  votes: { a: number; b: number; abstention: number }
+  /** Scores en % des suffrages exprimés du 2nd tour (total 100). */
   pct: { a: number; b: number }
+  /** Flux bruts unifiés en % des inscrits (A + B + nonExpressed + blankNull1 = 100). */
+  participation: number
+  abstention1: number
+  blankNull1: number
+  expressed1: number
+  expressed2: number
+  scale: number
+  newVoters: number
   flows: VoteFlow[]
-  fidelity: number
-  abstention: {
-    /** Total avant calage, en points des électeurs du 1er tour (taux de report bruts). */
-    uncalibrated: number
-    /** Total imposé (réglage, variante de sensibilité ou repli sans RN) ; null si rien n'est imposé. */
-    target: number | null
-    /**
-     * Coefficient appliqué : aux taux de 2024 des électorats non finalistes (mode « camps », 1 sans total
-     * imposé) ou au taux brut de chaque électorat (mode « uniform »).
-     */
-    factor: number
-    /**
-     * camps : abandon réparti comme en 2024 entre blocs des finalistes et autres blocs ;
-     * uniform : même coefficient pour tous les électorats ; none : taux bruts, sans calage.
-     */
-    mode: 'camps' | 'uniform' | 'none'
-    /** Total de blancs, nuls et abstentions (points des électeurs du 1er tour) : un résultat en mode « camps ». */
-    total: number
-    /** Mode « camps » : candidats non finalistes pris au taux du camp (hors petits candidats), et taux (%) après bornage. */
-    camps: { members: CandidateId[]; rates: CampRates } | null
-  }
+  abstainers: GroupFlow
+  blankNull: { volume: number }
+  totals: { a: number; b: number; nonExpressed: number }
+  /** Fidélité effectivement appliquée à chaque finaliste. */
+  fidelity: { a: FidelitySplit; b: FidelitySplit }
+  /** Part effective des nouveaux votants attribuée à l'adversaire du RN (modulée par le front républicain, 0,50 hors RN). */
+  effectiveAbstainerAntiRnShare: number
+  /** Force du front républicain appliquée à ce duel (0 à 1), ou null pour un duel sans RN. */
+  republicanFrontStrength: number | null
+  /** Abandon net équivalent (1 − E2 / E1, en %) à titre de comparaison historique. */
+  netDropout: number
   directPolls: SecondRoundPoll[]
+}
+
+// ——— Monte-Carlo & incertitude ———
+
+export interface CandidateUncertainty {
+  candidateId: CandidateId
+  median: number
+  p10: number
+  p90: number
+  qualifProb: number
+  winProb: number
+}
+
+export interface DuelUncertainty {
+  id: string
+  a: CandidateId
+  b: CandidateId
+  /** Part des simulations où ce duel survient (0 à 100). */
+  frequency: number
+  /** Part de ces duels gagnés par A (0 à 100). */
+  aWinProb: number
+  aScoreMedian: number
+  aScoreP10: number
+  aScoreP90: number
+}
+
+export interface MonteCarloSummary {
+  iterations: number
+  seed: number
+  daysToElection: number
+  /** Écart-type logit total au 1er tour à cet horizon. */
+  sigmaLogit: number
+  candidates: Record<CandidateId, CandidateUncertainty>
+  /** Duels triés par fréquence décroissante (au moins 2 % des simulations). */
+  topDuels: DuelUncertainty[]
+  /** Distribution conditionnelle du duel actuellement affiché (calculée sur toutes les itérations). */
+  displayedDuel: {
+    a: CandidateId
+    b: CandidateId
+    aWinProb: number
+    aScoreMedian: number
+    aScoreP10: number
+    aScoreP90: number
+  }
 }
 
 export interface SimulationResult {
   hypothesisSet: HypothesisSet
-  /** Alliances lues dans les hypothèses des sondages retenus. */
   allianceIds: string[]
-  /** Alliances estimées par les reports des législatives 2024 sur les sondages retenus (option). */
-  estimatedAllianceIds: string[]
-  /** Taux des alliances estimables (option activée), retenues ou non. */
-  allianceRates: AllianceRate[]
-  allianceLeaks: AllianceLeak[]
   pollUsage: PollUsage[]
-  /** Donneurs de chaque petit candidat imputé dans les hypothèses retenues qui ne le testent pas. */
   minorDonors: Record<CandidateId, ImputationDonors>
-  /** Sondages retenus, un par institut au plus (1 = sondage seul, sans moyenne). */
+  /** Petits candidats inclus dans l'offre de base (≥ MIN_MINOR_INSTITUTES). */
+  eligibleMinors: CandidateId[]
+  /** Petits candidats écartés de la base faute d'être testés par assez d'instituts. */
+  excludedMinors: CandidateId[]
   institutesUsed: number
+  projectedInstitutes: number
   firstRound: FirstRoundRow[]
   entrants: Entrant[]
-  qualification: {
-    /** Écart entre le 2e et le 3e du 1er tour, en points (null s'il n'y a pas de 3e). */
-    gap: number | null
-    /** Écart inférieur au seuil : les deux seconds tours possibles sont simulés. */
-    tight: boolean
-    /** Second tour affiché quand la qualification est serrée. */
-    picked: 'second' | 'third'
-    /** 1er contre 2e. */
-    withSecond: SecondRoundResult
-    /** 1er contre 3e, calculé seulement si la qualification est serrée. */
-    withThird: SecondRoundResult | null
-  }
-  /** Second tour affiché : 1er contre 2e, ou 1er contre 3e si la qualification est serrée et ce choix fait. */
+  projection: CampaignProjectionResult
+  trajectory: CampaignTrajectoryData
   secondRound: SecondRoundResult
-  /**
-   * Sensibilité du duel affiché à l'abandon (blancs, nuls, abstention) retenu : le même duel calé sur
-   * l'abandon des seconds tours de 2017 puis de 2022 (présidentielles récentes, à risque RN plus faible).
-   * Null si le calage est désactivé.
-   */
-  /** Écart historique des sondages de 2nd tour (2022, 2017) à la même distance du scrutin : affiché, jamais appliqué. */
+  /** Duels alternatifs sélectionnables (≥ 5 % des simulations ou top 2/3). */
+  selectableDuels: { id: string; a: CandidateId; b: CandidateId; frequency: number; result: SecondRoundResult }[]
   secondRoundPollBias: PollBiasGap[]
-  secondRoundSensitivity: {
-    /** Duel affiché : cible retenue (estimation du duel ou valeur saisie). */
-    shown: { total: number; pct: { a: number; b: number } }
-    variants: Record<
-      2017 | 2022,
-      { target: number; pct: { a: number; b: number }; winnerChanges: boolean }
-    >
-    /**
-     * Variante structurelle (mode « camps » seulement) : le taux du camp ne vaut que pour la famille d'un
-     * finaliste, les autres candidats du même bloc prennent le taux des autres blocs.
-     */
-    structural: { total: number; pct: { a: number; b: number }; winnerChanges: boolean } | null
-    /**
-     * Variante sans la correction des reports (option activée à intensité non nulle) : vainqueur et score
-     * du 2nd tour avec les reports bruts de l'enquête.
-     */
-    uncorrected: { total: number; winner: CandidateId; score: number; winnerChanges: boolean } | null
-    /** L'une des variantes change le vainqueur. */
-    winnerChanges: boolean
-  } | null
-  /** Bilan de participation du 1er tour (null si les mesures manquent). Calculé même option désactivée. */
-  turnoutBalance: TurnoutBalance | null
+  monteCarlo: MonteCarloSummary
   warnings: string[]
 }

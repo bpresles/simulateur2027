@@ -46,7 +46,7 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add src/data/polls-2027.json src/data/turnout-certainty.json
+          git add src/data/polls-2027.json src/data/polls-history-2027.json
           git commit -m "Données : synchronisation des sondages du $(date -u +%d/%m/%Y)"
           git push
 

@@ -1,148 +1,55 @@
 import type { ReactNode } from 'react'
 import { simulationData } from '../../data/schema'
+import { availableAlliances, testedOptions } from '../../domain/alliances'
+import {
+  CANDIDATE_FLOOR,
+  CROSS_BLOC_LEAK,
+  MAX_PRIOR_WEIGHT,
+  MAX_TREND_PTS,
+  MERGED_CENTER_RIGHT_TARGET,
+  PRIOR_BLOC_SHARES,
+  PROJECTION_HORIZON_DAYS,
+  TARGET_CONCENTRATION,
+  TREND_DAMPING_DAYS,
+} from '../../domain/campaignProjection'
+import { MIN_MINOR_INSTITUTES, POLL_HALF_LIFE_DAYS, SAMPLE_SIZE_CAP, windowDaysOf } from '../../domain/pollAverage'
+import { noIntentionRange, presidentialDropout, secondRoundDropout } from '../../domain/secondRound'
+import {
+  REPUBLICAN_FRONT_PRESETS,
+  correctDeclaredRowLogit,
+  effectiveProfiles,
+  frontStrengthForProfile,
+} from '../../domain/transfers'
 import { BLOCS } from '../../domain/types'
-import type { NoIntention, PastElectionReference, PollOrigin, PollStatus, SimulationResult } from '../../domain/types'
-import {
-  allianceCombos,
-  alliancesConflict,
-  availableAlliances,
-  comboWith,
-  defaultSet,
-  testedOptions,
-} from '../../domain/alliances'
-import { BLOG_BIAS_BLOCS, BLOG_BIAS_URL, totalBias } from '../../domain/blogBias'
-import type { YearBlocBias } from '../../domain/blogBias'
-import { ELECTION_WEIGHTS, EQUIVALENTS_2017, PAST_YEARS } from '../../domain/pastElections'
-import type { PastYear } from '../../domain/pastElections'
-import { windowDaysOf } from '../../domain/pollAverage'
-import { referenceParts } from '../../domain/references'
-import { minorTransfer } from '../../domain/transfers'
-import { firstRoundParticipation, grossFlows, newVoterRates } from '../../domain/newVoters'
-import { TIGHT_QUALIFICATION_GAP } from '../../domain/simulate'
-import {
-  blocShares,
-  certainShare,
-  TURNOUT_BLOCS_2022,
-  TURNOUT_PROFILE_2022,
-  TURNOUT_PROFILE_SOURCE,
-  TURNOUT_REFERENCE_WINDOW_DAYS,
-} from '../../domain/turnout'
-import {
-  campDropout,
-  noIntentionRange,
-  noRnDropout,
-  presidentialDropout,
-  profileDropout,
-  profileTotals,
-  secondRoundDropout,
-} from '../../domain/secondRound'
-import {
-  calibration,
-  progression2017Stats,
-  progression2022Stats,
-  reference2017Stats,
-  reference2022Stats,
-} from '../../hooks/useSimulation'
+import type { PollOrigin, PollStatus, ProfileId, SimulationResult } from '../../domain/types'
+import { backtestReport, newVoterReferenceRates } from '../../hooks/useSimulation'
 import { useSettings } from '../../state/settingsStore'
-import { anyName, BLOC_LABELS, BLOC_VOTERS, cand, entrantLabel, profileLabel, transferLabel } from '../candidates'
-import { date, distance, fieldwork, integer, noIntentionLabel, num, pct, pts, range, ratio, shownScore } from '../format'
-import { finalist2022Name } from '../newVotersText'
-import { correctedTransfer, actualRow, actualTransfers } from '../../domain/transferCorrection'
-import { DUEL_KIND, dropoutBasis } from '../dropout'
+import { BLOC_LABELS, BLOC_VOTERS, cand } from '../candidates'
+import { date, distance, fieldwork, integer, noIntentionLabel, num, pct, pts, range } from '../format'
 import { Link } from '../Link'
-import type { CertainShare } from '../../domain/types'
-import { AllianceRates } from './AllianceRates'
 import { ProvenanceLegend, ProvenanceValue } from './Provenance'
 
-/** « moyenne de N mesures Ifop, terrains achevés du JJ/MM/AAAA au JJ/MM/AAAA », ou la mesure seule. */
-const referenceLabel = ({ measures, first, last }: CertainShare) =>
-  measures.length === 1
-    ? `mesure Ifop, terrain achevé le ${date(first)}`
-    : `moyenne de ${measures.length} mesures Ifop, terrains achevés du ${date(first)} au ${date(last)}`
-
-const { polls, reference2022, reference2017, transfers, turnoutCertainty } = simulationData
-const REFERENCES = { 2022: reference2022, 2017: reference2017 }
-const PROGRESSIONS = { 2022: progression2022Stats, 2017: progression2017Stats }
-
-/** Nom d'un candidat d'un scrutin passé, y compris ceux testés avant les primaires. */
-const pastName = (year: PastYear, id: string) => {
-  const ref = REFERENCES[year]
-  return [...ref.candidates, ...ref.campaignPolls.otherCandidates].find((c) => c.id === id)?.name ?? id
-}
-/** Participation au 1er tour (% des inscrits). */
-const dropoutData = simulationData.secondRoundDropout
-const newVoters = dropoutData.newVoters
-const NEW_VOTER_RATES = newVoterRates(simulationData)
-/** 37,00 M : nombre de votants en millions, à deux décimales. */
-const millions = (v: number) => `${num(v / 1e6, 2)} M`
-const NO_RN_YEARS = dropoutData.presidential.elections.filter((e) => !e.rn).map((e) => e.year)
-/** Seconds tours présidentiels de 2002 à 2022 : ceux des données, plus 2017 et 2022 tirés des références. */
-const PRESIDENTIAL_ROWS = [
-  ...dropoutData.presidential.elections.map((e) => ({
-    year: e.year,
-    duel: e.duel,
-    turnout: (100 * e.firstRound.voters) / e.firstRound.registered,
-    first: e.firstRound.expressed,
-    second: e.secondRound.expressed,
-    dropout: presidentialDropout(e),
-    sources: [e.firstRound.source, e.secondRound.source],
-  })),
-  ...([reference2017, reference2022] as const).map((ref, i) => ({
-    year: i === 0 ? 2017 : 2022,
-    duel: 'Macron – Le Pen',
-    turnout: (100 * ref.voters) / ref.registered,
-    first: ref.expressed,
-    second: ref.secondRound.expressed,
-    dropout: secondRoundDropout(ref),
-    sources: [ref.resultsSource, ref.secondRound.source],
-  })),
-].sort((a, b) => a.year - b.year)
-const turnoutOf = (ref: Pick<PastElectionReference, 'registered' | 'voters'>) => (ref.voters * 100) / ref.registered
-/** Parts des blocs (sans Lassalle) chez l'ensemble des votants et chez ceux qui reviennent voter. */
-const TURNOUT_SHARES = {
-  all: blocShares(TURNOUT_PROFILE_2022.all),
-  returning: blocShares(TURNOUT_PROFILE_2022.abstainers2017),
-}
-
-/** Part sans intention de vote des duels de 2nd tour publiés : fourchette et détail. */
+const {
+  polls,
+  pollHistory,
+  transfers,
+  declaredTransfers,
+  secondRoundDropout: dropoutData,
+  reference2017,
+  reference2022,
+} = simulationData
 const NO_INTENTION = noIntentionRange(polls.secondRoundPolls)
-const listFr = (items: string[]) => new Intl.ListFormat('fr', { type: 'conjunction' }).format(items)
-const institutesWith = (keep: (n: NoIntention) => boolean) => [
-  ...new Set((NO_INTENTION?.polls ?? []).filter((p) => keep(p.noIntention!)).map((p) => p.institute)),
-]
-/** Instituts dont la part porte sur cette base : « OpinionWay, Ifop-Fiducial et YouGov ». */
-const institutesOf = (base: NoIntention['base']) => listFr(institutesWith((n) => n.base === base)) || 'aucun'
-const COMPUTED = institutesWith((n) => n.calculation !== undefined)
-const UNDECIDED = institutesWith((n) => n.undecided !== undefined)
+const PROPOSED_ALLIANCES = availableAlliances(polls)
+const TESTED_COMBOS = testedOptions(polls)
 
 const STEPS: [string, string][] = [
-  ['sondages', 'Moyenne des sondages'],
-  ['progression', 'Progression comme en 2022'],
-  ['corrections', 'Corrections 2017 et 2022'],
-  ['alliances', 'Alliances'],
-  ['qualification', 'Qualification'],
-  ['reports', 'Reports de voix'],
-  ['abstention', 'Abstention du 2nd tour'],
+  ['sondages', 'Moyenne pondérée et projection d’offre'],
+  ['alliances', 'Alliances testées'],
+  ['projection', 'Projection temporelle (avril 2027)'],
+  ['reports', 'Reports et front républicain (rejet du RN)'],
+  ['flux', 'Second tour en flux bruts'],
+  ['validation', 'Incertitude Monte-Carlo et validation historique'],
 ]
-
-const DEFAULT_SET = defaultSet(polls)
-/** Alliances proposées : celles que les hypothèses des sondages retenus permettent, seules ou combinées. */
-const PROPOSED = availableAlliances(polls)
-/** Plus petite combinaison des alliances qui ne sont testées qu'avec d'autres. */
-const COMBOS = [
-  ...new Map(
-    PROPOSED.filter((a) => !allianceCombos(polls).some((c) => c.length === 1 && c[0] === a))
-      .map((a) => comboWith(polls, [], a)!)
-      .map((c) => [c.map((al) => al.id).sort().join('|'), c] as const),
-  ).values(),
-]
-const MINORS = polls.candidates.filter((c) => c.minor)
-const AUTO = polls.candidates.filter((c) => c.auto)
-const names = (cs: { shortName: string }[]) => listFr(cs.map((c) => c.shortName))
-
-const INCOMPATIBLE = PROPOSED.flatMap((x, i) =>
-  PROPOSED.slice(i + 1).flatMap((y) => (alliancesConflict(x, y) ? [[x, y] as const] : [])),
-)
 
 const ORIGIN: Record<PollOrigin, string> = {
   '2027etmoi': 'Notice officielle (2027etmoi)',
@@ -153,11 +60,57 @@ const ORIGIN: Record<PollOrigin, string> = {
 
 const STATUS: Record<PollStatus, string> = {
   used: 'Retenu',
-  superseded: 'Remplacé par un sondage plus récent du même institut',
+  superseded: 'Remplacé par un sondage plus récent',
   excluded: 'Décoché dans le scénario',
   'out-of-window': 'Hors de la fenêtre',
-  'no-matching-hypothesis': 'Aucune hypothèse conforme',
+  'no-matching-hypothesis': 'Aucune hypothèse à portée',
 }
+
+const RF_PRESET_ROWS = [
+  {
+    id: 'none' as const,
+    label: 'Effacé (0 %)',
+    desc: 'Érosion maximale du barrage anti-RN : les électorats éloignés basculent massivement vers l’abstention/blanc.',
+  },
+  {
+    id: 'eroded2027' as const,
+    label: 'Érodé 2027 (défaut)',
+    desc: 'Prolonge modérément l’érosion 2017 → 2022 tout en différenciant le double rejet face à LFI.',
+  },
+  {
+    id: 'level2022' as const,
+    label: 'Niveau 2022 (75 %)',
+    desc: 'Repère présidentiel 2022 (Macron – Le Pen : 58,55 % réel, reproduit à +0,4 pt par le modèle).',
+  },
+  {
+    id: 'level2017' as const,
+    label: 'Niveau 2017 (100 %)',
+    desc: 'Barrage fort de type présidentielle 2017 / législatives 2024 (taux Ipsos-Talan sans double décote sur LFI).',
+  },
+]
+
+const PROFILE_IDS: readonly ProfileId[] = ['lfi_rn', 'ecolo_ps_pcf_rn', 'ensemble_rn', 'lr_rn']
+
+const PRESIDENTIAL_ROWS = [
+  ...dropoutData.presidential.elections.map((e) => ({
+    year: e.year,
+    duel: e.duel,
+    turnout: (100 * e.firstRound.voters) / e.firstRound.registered,
+    dropout: presidentialDropout(e),
+  })),
+  ...([
+    [2017, reference2017],
+    [2022, reference2022],
+  ] as const).map(([year, ref]) => ({
+    year,
+    duel: 'Macron – Le Pen',
+    turnout: (100 * ref.voters) / ref.registered,
+    dropout: secondRoundDropout(ref),
+  })),
+].sort((a, b) => a.year - b.year)
+
+const th = 'px-3 py-2 text-left font-medium text-ink-3'
+const td = 'px-3 py-1.5 align-top'
 
 function Step({ id, n, title, children }: { id: string; n: number; title: string; children: ReactNode }) {
   return (
@@ -182,32 +135,16 @@ function Table({ children, caption }: { children: ReactNode; caption?: string })
   )
 }
 
-/** « Droite (LR) » → « droite (LR) ». */
-const lowerFirst = (s: string) => s.charAt(0).toLowerCase() + s.slice(1)
-
-const th = 'px-3 py-2 text-left font-medium text-ink-3'
-const td = 'px-3 py-1.5 align-top'
-
 export function Methodology({ result }: { result: SimulationResult }) {
-  const cutoff = new Date(`${polls.asOf}T00:00:00Z`)
-  cutoff.setUTCDate(cutoff.getUTCDate() - windowDaysOf(polls))
-  const cutoffIso = cutoff.toISOString().slice(0, 10)
-  const sr = result.secondRound
-  const [a, b] = [result.entrants[0]!, result.entrants[1]!]
-  const gross = grossFlows(sr, firstRoundParticipation(result.turnoutBalance, NEW_VOTER_RATES), NEW_VOTER_RATES)
   const settings = useSettings()
-  const bal = result.turnoutBalance
+  const sr = result.secondRound
+  const bt = backtestReport
+  const rates = newVoterReferenceRates
   const inWindow = result.pollUsage.filter((u) => u.status !== 'out-of-window')
-  const older = result.pollUsage.filter((u) => u.status === 'out-of-window')
-  const singlePoll = result.institutesUsed === 1 ? result.pollUsage.find((u) => u.status === 'used')?.poll : undefined
-  const unchecked = result.pollUsage.filter((u) => u.status === 'excluded').length
-  /** Candidats de 2027 qui utilisent une référence de 2022, avec leur poids s'il s'agit d'un mélange. */
-  const usersOf = (refId: string) =>
-    polls.candidates.flatMap((x) => {
-      const part = referenceParts(x, settings.referenceBlend[x.id]).find((p) => p.id === refId)
-      if (!part) return []
-      return [part.weight < 1 ? `${x.shortName} (${pct(part.weight * 100, 0)})` : x.shortName]
-    })
+  const rnId = polls.candidates.find((c) => c.isRN)?.id ?? 'lepen'
+  const activeProfiles = effectiveProfiles(transfers, declaredTransfers, settings, { rnId })
+  const historyStart = pollHistory.polls.at(-1)?.fieldwork.end
+  const historyEnd = pollHistory.polls[0]?.fieldwork.end
 
   return (
     <article aria-labelledby="methodo-title">
@@ -215,18 +152,19 @@ export function Methodology({ result }: { result: SimulationResult }) {
         id="methodo-title"
         className="wide text-[2rem] font-extrabold leading-[1.05] tracking-tight sm:text-[2.75rem]"
       >
-        Méthodologie
+        Méthodologie et validation
       </h1>
       <div className="prose-method mt-4">
         <p>
-          Le simulateur enchaîne sept étapes. Chaque chiffre de cette page est celui du scénario en cours sur
-          le <Link to="simulateur">simulateur</Link> : il change avec vos réglages. Les données d’origine sont
-          publiques et listées avec leur lien. Les alliances ne s’appliquent pas par des taux de report : elles
-          choisissent, parmi les hypothèses testées par les sondeurs, celles où les candidats ralliés sont
-          absents (étapes 1 et 4). En option, désactivée par défaut, une alliance qu’aucun sondeur ne teste peut
-          être estimée par les reports de voix des législatives 2024.
+          Le simulateur enchaîne six étapes publiques et auditées. Chaque chiffre reflète le scénario actif sur le{' '}
+          <Link to="simulateur">simulateur</Link>. Les stratégies déterministes non validées hors échantillon (biais de
+          campagne fixe, corrections par candidat 2017–2022, inférence écologique de Goodman non contrainte, redressement
+          spéculatif de participation au 1er tour et alliances non testées) ont été retirées au profit d’un modèle sobre,
+          explicite et accompagné d’intervalles d’incertitude probabilistes. Aucun paramètre par défaut n’est recalibré
+          sur les sondages directs de second tour 2027.
         </p>
       </div>
+
       <nav aria-label="Étapes du calcul" className="mt-6">
         <ol className="flex flex-wrap gap-2">
           {STEPS.map(([id, title], i) => (
@@ -247,1452 +185,441 @@ export function Methodology({ result }: { result: SimulationResult }) {
               hash="limites"
               className="inline-flex rounded-lg px-3 py-2 text-sm font-medium text-ink-2 hover:text-ballpoint"
             >
-              Limites et précautions
+              Limites et sources
             </Link>
           </li>
         </ol>
       </nav>
 
-      <div className="mt-8 space-y-12">
-        <Step id="sondages" n={1} title="Moyenne des sondages de 1er tour">
+      <div className="mt-10 space-y-12">
+        {/* ÉTAPE 1 */}
+        <Step id="sondages" n={1} title="Moyenne pondérée et projection d’offre">
           <div className="prose-method">
-            {polls.period ? (
-              <p>
-                Base au <strong>{date(polls.asOf)}</strong> : pour chaque institut, on retient son{' '}
-                <strong>dernier sondage</strong> de la période la plus récente de la{' '}
-                <a
-                  href={polls.collection.sources.find((x) => /wikipedia/.test(x.url))?.url}
-                  className="link"
-                  target="_blank"
-                  rel="noreferrer"
-                >
-                  liste des sondages de Wikipedia
-                </a>{' '}
-                (« {polls.period.label} », depuis le {date(polls.period.start)}), avec toutes ses hypothèses.
-              </p>
-            ) : (
-              <p>
-                Base au <strong>{date(polls.asOf)}</strong> : pour chaque institut, on retient son{' '}
-                <strong>dernier sondage</strong> dont le terrain s’achève dans les {polls.windowDays} jours
-                précédents (depuis le {date(cutoffIso)}).
-              </p>
-            )}
             <p>
-              Un sondage teste plusieurs listes de candidats (hypothèses). Pour l’hypothèse «{' '}
-              {result.hypothesisSet.label} », on garde celles qui testent tous ces candidats :{' '}
-              {result.hypothesisSet.require.map(anyName).join(', ')}, et aucun de ceux-ci :{' '}
-              {result.hypothesisSet.exclude.map(anyName).join(', ')}. Une hypothèse où un candidat exclu est
-              remplacé par un autre (Hollande à la place de Glucksmann) n’est pas retenue non plus. Les candidats
-              non simulés sont retirés et l’hypothèse est ramenée à 100 %.
+              Dans la fenêtre retenue ({windowDaysOf(polls)} jours jusqu’au {date(polls.asOf)}), on conserve le dernier
+              sondage de chaque institut. Plutôt qu’une moyenne arithmétique simple (qui donne le même poids à un
+              sondage vieux de 7 semaines et à un sondage de la veille), chaque institut <em>i</em> reçoit un poids
+              combiné fraîcheur × échantillon :
             </p>
-            {MINORS.length > 0 && (
-              <>
-                <p>
-                  Les <strong>petits candidats</strong> ({MINORS.map((c) => c.name).join(', ')}) ne sont testés
-                  que dans une partie des hypothèses : ils ne sont jamais requis. Dans une hypothèse retenue qui
-                  ne le teste pas, un petit candidat est <strong>imputé</strong> : il y reçoit son score dans les
-                  autres hypothèses retenues du même sondage, à défaut son score moyen dans les sondages qui le
-                  testent. Ces points sont pris aux candidats principaux selon ce que mesurent les sondages : quand
-                  un sondage retenu teste deux hypothèses dont l’une, avec lui, contient tous les candidats de
-                  l’autre, les points que chacun perd de l’une à l’autre indiquent à qui il les prend (moyenne
-                  des paires ; des candidats ajoutés ensemble reçoivent les mêmes parts). Faute de telle paire,
-                  on suit la répartition de ses électeurs choisie dans les réglages (étape 6). Les points sont
-                  pris au prorata de ces parts, parmi les candidats en lice ; aucun ne cède plus que son score,
-                  l’excédent étant pris aux autres au prorata. Chaque hypothèse
-                  garde ainsi un total de 100 %, sans double compte, et le score d’un petit candidat est celui de
-                  l’unique sondage qui le teste, ou la moyenne des sondages qui le testent. Un petit candidat
-                  qu’aucune hypothèse retenue ne teste n’apparaît pas ; un petit candidat rallié (étape 4) n’est
-                  pas imputé.
-                </p>
-                {AUTO.length > 0 && (
-                  <p>
-                    {names(AUTO)} {AUTO.length > 1 ? 'ont été ajoutés' : 'a été ajouté'} automatiquement par la
-                    synchronisation des sondages : {AUTO.length > 1 ? 'leur' : 'son'} bloc n’est pas classé, et{' '}
-                    {AUTO.length > 1 ? 'leurs' : 'ses'} électeurs se reportent par défaut au 2nd tour (et, au 1er
-                    tour, cèdent leurs points faute de paire d’hypothèses observée) comme l’ensemble des électeurs des candidats principaux dans les
-                    hypothèses qui {AUTO.length > 1 ? 'les' : 'le'} testent (étape 6), en attendant une saisie
-                    manuelle : cette répartition n’a pas de source.
-                  </p>
-                )}
-              </>
-            )}
-            <p>
-              {result.allianceIds.length > 0
-                ? `Cette hypothèse vient des alliances activées (étape 4), qui retirent leurs ralliés ; sans alliance, la base est l’hypothèse « ${DEFAULT_SET.label} ».`
-                : `C’est la base sans alliance ; chaque alliance activée (étape 4) retire son rallié des hypothèses retenues.`}{' '}
-              Seuls les sondages qui ont une hypothèse conforme sont retenus : les autres ne sont ni comptés ni
-              proposés.
+            <p className="font-mono text-sm">
+              w_i = 2<sup>−âge / {POLL_HALF_LIFE_DAYS}</sup> × √(min(n_i, {integer(SAMPLE_SIZE_CAP)}) / 1 000)
             </p>
             <p>
-              Les sondages ainsi retenus sont proposés, du plus récent au plus ancien, sous forme de cases à
-              cocher sur le <Link to="simulateur">simulateur</Link> : tous sont cochés par défaut
-              {unchecked > 0 && ` (${unchecked} décoché${unchecked > 1 ? 's' : ''} dans le scénario en cours)`}.
+              La demi-vie de {POLL_HALF_LIFE_DAYS} jours divise par deux le poids d’un sondage toutes les deux semaines,
+              tout en plafonnant l’effet de taille à {integer(SAMPLE_SIZE_CAP)} répondants afin qu’une très grande
+              enquête ancienne n’écrase pas les mesures récentes.
             </p>
-            {singlePoll ? (
-              <p>
-                Un seul sondage est coché ({singlePoll.institute}, terrain du {fieldwork(singlePoll.fieldwork)}) :
-                il sert de base sans moyenne entre instituts. On fait la moyenne de ses hypothèses retenues, puis
-                on ramène le total à 100 %. Les références de 2022 (corrections, progression) restent calculées
-                sur des moyennes d’instituts.
-              </p>
-            ) : (
-              <p>
-                On fait la moyenne des hypothèses retenues dans chaque sondage, puis la moyenne simple entre
-                instituts ({result.institutesUsed} ici), enfin on ramène le total à 100 %.
-              </p>
-            )}
+            <p>
+              <strong>Petits candidats et paires propres :</strong> un petit candidat n’entre dans l’offre de base que
+              s’il est testé par au moins {MIN_MINOR_INSTITUTES} instituts distincts ({result.eligibleMinors.length}{' '}
+              retenus : {result.eligibleMinors.map((id) => cand(id).shortName).join(', ') || 'aucun'} ;{' '}
+              {result.excludedMinors.length} écartés faute de recul suffisant :{' '}
+              {result.excludedMinors.map((id) => cand(id).shortName).join(', ') || 'aucun'}). L’identification de ses
+              donneurs exige des paires strictement <em>ceteris paribus</em> (un seul candidat d’écart entre deux
+              hypothèses d’un même institut), afin qu’aucune variation liée à un autre candidat ne lui soit imputée.
+            </p>
+            <p>
+              <strong>Projection d’offre intra-institut :</strong> lorsqu’un institut récent ne teste pas exactement
+              l’offre cible (par exemple Odoxa ou Cluster17 sans Gabriel Attal sur leur hypothèse principale), le
+              simulateur mesure les transferts sur paires propres mono-candidat des autres instituts et projette
+              l’hypothèse la plus propre à distance ≤ 2 candidats, au lieu d’écarter l’institut ou de retenir une
+              hypothèse encombrée de candidats marginaux.
+            </p>
           </div>
-          <Table caption={polls.collection.description}>
+
+          <Table caption={`Sondages dans la fenêtre (${inWindow.length} sondages, ${result.institutesUsed} instituts retenus)`}>
             <thead>
               <tr className="border-b border-rule">
                 <th className={th}>Institut</th>
-                <th className={th}>Commanditaire</th>
                 <th className={th}>Terrain</th>
                 <th className={`${th} text-right`}>Échantillon</th>
-                <th className={th}>Provenance</th>
-                <th className={th}>Statut</th>
-                <th className={th}>Hypothèses retenues</th>
+                <th className={th}>Statut / Projection</th>
+                <th className={`${th} text-right`}>Poids</th>
+                <th className={th}>Origine</th>
               </tr>
             </thead>
             <tbody>
               {inWindow.map((u) => (
-                <tr
-                  key={u.poll.id}
-                  className={`border-b border-rule/60 ${u.status === 'used' ? '' : 'text-ink-3'}`}
-                >
-                  <td className={td}>
-                    <span className="font-medium text-ink">{u.poll.institute}</span>
-                    <span className="mt-0.5 block space-x-2">
-                      {u.poll.sources.map((s) => (
-                        <a key={s.url} href={s.url} className="link text-xs" target="_blank" rel="noreferrer">
-                          {s.label}
-                        </a>
-                      ))}
-                    </span>
-                    {[u.poll.verified, u.poll.note].filter(Boolean).map((t) => (
-                      <span key={t} className="mt-0.5 block text-xs text-ink-3">
-                        {t}
-                      </span>
-                    ))}
-                  </td>
-                  <td className={td}>{u.poll.sponsor}</td>
-                  <td className={`${td} num whitespace-nowrap`}>{fieldwork(u.poll.fieldwork)}</td>
+                <tr key={u.poll.id} className="border-b border-rule/60">
+                  <td className={`${td} font-medium`}>{u.poll.institute}</td>
+                  <td className={`${td} num`}>{fieldwork(u.poll.fieldwork)}</td>
                   <td className={`${td} num text-right`}>{integer(u.poll.sampleSize)}</td>
-                  <td className={td}>{ORIGIN[u.poll.origin ?? 'manuel']}</td>
-                  <td className={td}>{STATUS[u.status]}</td>
                   <td className={td}>
-                    {u.matchedHypotheses.length > 0
-                      ? `${u.matchedHypotheses.join(', ')} sur ${u.poll.hypotheses.length}`
-                      : '—'}
+                    {STATUS[u.status]}
+                    {u.projected && (
+                      <span className="ml-1.5 rounded bg-sunken px-1.5 py-0.5 text-xs text-ink-2">
+                        projeté ({u.projectionSteps.join(', ')})
+                      </span>
+                    )}
+                    {!u.projected && u.matchedHypotheses.length > 0 && (
+                      <span className="ml-1.5 text-xs text-ink-3">({u.matchedHypotheses.join(', ')})</span>
+                    )}
                   </td>
+                  <td className={`${td} num text-right font-medium`}>
+                    {u.weightShare > 0 ? pct(u.weightShare, 1) : '—'}
+                  </td>
+                  <td className={`${td} text-ink-3`}>{u.poll.origin ? ORIGIN[u.poll.origin] : '—'}</td>
                 </tr>
               ))}
             </tbody>
           </Table>
-          {older.length > 0 && (
-            <details className="text-sm">
-              <summary className="cursor-pointer font-medium text-ballpoint">
-                {older.length} sondages plus anciens, hors de la fenêtre
-              </summary>
-              <ul className="mt-2 space-y-1 text-ink-2">
-                {older.map((u) => (
-                  <li key={u.poll.id}>
-                    <a href={u.poll.sources[0]?.url} className="link" target="_blank" rel="noreferrer">
-                      {u.poll.institute}
-                    </a>{' '}
-                    ({fieldwork(u.poll.fieldwork)}, {ORIGIN[u.poll.origin ?? 'manuel'].toLowerCase()})
-                  </li>
-                ))}
-              </ul>
-            </details>
-          )}
-          <p className="text-sm text-ink-3">
-            Sources de collecte :{' '}
-            {polls.collection.sources.map((s, i) => (
-              <span key={s.url}>
-                {i > 0 && ', '}
-                <a href={s.url} className="link" target="_blank" rel="noreferrer">
-                  {s.label}
-                </a>
-              </span>
-            ))}
-            .
-          </p>
         </Step>
 
-        <Step id="progression" n={2} title="Progression des sondages comme en 2022 (optionnelle)">
+        {/* ÉTAPE 2 */}
+        <Step id="alliances" n={2} title="Alliances testées par les sondeurs">
           <div className="prose-method">
             <p>
-              Les sondages évoluent beaucoup dans les derniers mois de campagne. Cette hypothèse estime les
-              derniers sondages avant le vote de 2027 en reproduisant l’évolution observée en 2022, entre la
-              même distance au scrutin et les derniers sondages, pour le candidat de 2022 du même camp (même
-              correspondance qu’à l’étape 3). Elle est{' '}
-              <strong>
-                {settings.progressionEnabled
-                  ? `activée, à ${pct(settings.progressionIntensity * 100, 0)} d’intensité`
-                  : 'désactivée'}
-              </strong>{' '}
-              dans le scénario en cours et se cumule avec la correction de l’étape 3.
-            </p>
-            <p>
-              La base 2027 date du {date(polls.asOf)}, {progression2022Stats.daysBefore} jours avant le 1er
-              tour prévu le {date(polls.electionDate)}. La même distance avant le scrutin du{' '}
-              {date(reference2022.electionDate)} donne le {date(progression2022Stats.asOf)}, avec la même
-              fenêtre de {reference2022.campaignPolls.windowDays} jours ({progression2022Stats.institutesUsed}{' '}
-              instituts retenus). {reference2022.campaignPolls.description}
-            </p>
-            <code className="formula">
-              progression = derniers sondages 2022 ÷ sondages 2022 à la même distance du scrutin
-            </code>
-            <code className="formula">
-              sondages projetés = moyenne 2027 × (1 + (progression − 1) × intensité), ramenés à 100 %
-            </code>
-            <p>
-              L’intensité de la progression se règle indépendamment de celle de la correction (étape 3). À
-              100 %, chaque candidat de 2027 reproduit à l’identique l’évolution relative de sa référence de
-              2022 ; à 50 %, la moitié de cette évolution ; à 0 %, aucune (comme si la progression était
-              désactivée). Au-delà de 100 %, l’évolution de 2022 est amplifiée. Exemple : une référence passée
-              de 10 % à 15 % dans les sondages de 2022 (progression ×1,5) multiplie le score de son candidat
-              de 2027 par 1,5 à 100 % d’intensité et par 1,25 à 50 %, avant que les scores ne soient ramenés à
-              100 %.
+              Les alliances ne sont plus estimées par transposition des reports de second tour des législatives 2024 :
+              seules les configurations effectivement testées par au moins un institut de la période sont proposées (
+              {PROPOSED_ALLIANCES.length} alliances simples et {TESTED_COMBOS.length} combinaisons, accessibles dans la
+              section repliable des paramètres). Activer une alliance sélectionne les hypothèses où le candidat rallié
+              est absent et où le leader reste seul candidat principal de son camp : ce sont donc les sondés eux-mêmes
+              qui répartissent ses voix.
             </p>
           </div>
-          <Table caption={`Sondages de 2021-2022 autour du ${date(progression2022Stats.asOf)}`}>
-            <thead>
-              <tr className="border-b border-rule">
-                <th className={th}>Institut</th>
-                <th className={th}>Terrain</th>
-                <th className={`${th} text-right`}>Échantillon</th>
-                <th className={th}>Statut</th>
-                <th className={th}>Hypothèses retenues</th>
-              </tr>
-            </thead>
-            <tbody>
-              {progression2022Stats.usage
-                .filter((u) => u.status !== 'out-of-window')
-                .map((u) => (
-                  <tr
-                    key={`${u.poll.institute}-${u.poll.fieldwork.end}`}
-                    className={`border-b border-rule/60 ${u.status === 'used' ? '' : 'text-ink-3'}`}
-                  >
-                    <td className={td}>
-                      <a href={u.poll.url} className="link" target="_blank" rel="noreferrer">
-                        {u.poll.institute}
-                      </a>
-                    </td>
-                    <td className={`${td} num whitespace-nowrap`}>{fieldwork(u.poll.fieldwork)}</td>
-                    <td className={`${td} num text-right`}>{integer(u.poll.sampleSize)}</td>
-                    <td className={td}>{STATUS[u.status]}</td>
-                    <td className={td}>
-                      {u.matchedHypotheses.length > 0
-                        ? `${u.matchedHypotheses.join(', ')} sur ${u.poll.hypotheses.length}`
-                        : '—'}
-                    </td>
-                  </tr>
-                ))}
-            </tbody>
-          </Table>
-          <Table caption="Progression des sondages en 2022">
-            <thead>
-              <tr className="border-b border-rule">
-                <th className={th}>Candidat 2022</th>
-                <th className={`${th} text-right`}>Le {date(progression2022Stats.asOf)}</th>
-                <th className={`${th} text-right`}>Derniers sondages</th>
-                <th className={`${th} text-right`}>Progression</th>
-                <th className={th}>Référence pour 2027</th>
-              </tr>
-            </thead>
-            <tbody>
-              {reference2022.candidates.map((c) => {
-                const users = usersOf(c.id)
-                const r = progression2022Stats.ratio[c.id]
-                return (
-                  <tr key={c.id} className="border-b border-rule/60">
-                    <td className={td}>{c.name}</td>
-                    <td className={`${td} num text-right`}>
-                      {pct(progression2022Stats.earlyAverage[c.id] ?? 0, 2)}
-                    </td>
-                    <td className={`${td} num text-right`}>
-                      {pct(progression2022Stats.finalAverage[c.id] ?? 0, 2)}
-                    </td>
-                    <td className={`${td} num text-right font-medium`}>{r ? ratio(r) : '—'}</td>
-                    <td className={td}>
-                      {users.length > 0 ? users.join(', ') : <span className="text-ink-3">aucun</span>}
-                    </td>
-                  </tr>
-                )
-              })}
-            </tbody>
-          </Table>
-          <div className="prose-method">
-            <p>
-              Limites : en octobre 2021, Éric Zemmour n’était pas encore candidat (déclaré le 30/11/2021) et
-              la candidate LR n’était pas désignée (primaire du 04/12/2021). La dynamique de 2022, notamment
-              la poussée finale de Jean-Luc Mélenchon au détriment du PS et des écologistes, n’a aucune raison
-              de se répéter à l’identique.
-            </p>
-          </div>
-          <p className="text-sm text-ink-3">
-            Source :{' '}
-            <a
-              href={reference2022.campaignPolls.source.url}
-              className="link"
-              target="_blank"
-              rel="noreferrer"
-            >
-              {reference2022.campaignPolls.source.label}
-            </a>{' '}
-            (liens vers chaque sondage dans le tableau ci-dessus).
-          </p>
         </Step>
 
-        <Step id="corrections" n={3} title="Correction des écarts constatés en 2017 et 2022">
+        {/* ÉTAPE 3 : PROJECTION TEMPORELLE */}
+        <Step id="projection" n={3} title="Projection temporelle optionnelle vers avril 2027">
           <div className="prose-method">
             <p>
-              Aux deux dernières présidentielles, les derniers sondages avant le 1er tour ont sous-estimé
-              certains candidats et en ont surestimé d’autres. On mesure cet écart par un ratio à chaque
-              scrutin, on combine les deux mesures en un écart estimé, puis on l’applique au candidat de 2027
-              de la même famille politique.
+              Par défaut, le simulateur affiche la <strong>photographie actuelle</strong> des sondages (projection
+              désactivée). L’utilisateur peut basculer en un clic vers la <strong>projection avril 2027</strong>{' '}
+              (actuellement <strong>{settings.projection.enabled ? 'activée' : 'désactivée'}</strong>, à J−
+              {result.projection.daysRemaining}, facteur d’horizon{' '}
+              <span className="num">{pct(result.projection.horizonFactor * 100, 0)}</span>). Contrairement aux
+              extrapolations candidat par candidat retirées en v2, la projection repose sur trois mécanismes structurels
+              qui <strong>s’annulent tous exactement le jour du scrutin</strong> (facteur{' '}
+              <span className="font-mono text-xs">h = min(1, joursRestants / {PROJECTION_HORIZON_DAYS})</span>) et dont
+              les réglages fins sont regroupés dans les réglages avancés (onglet « Projection 1er tour ») :
             </p>
-            <code className="formula">ratio d’un scrutin = résultat officiel ÷ moyenne des derniers sondages</code>
-            <code className="formula">
-              écart estimé = ratio 2022<sup>{num(ELECTION_WEIGHTS[2022], 1)}</sup> × ratio 2017
-              <sup>{num(ELECTION_WEIGHTS[2017], 1)}</sup> (ratio 2022 seul sans équivalent en 2017)
-            </code>
-            <code className="formula">
-              correction (points) = moyenne 2027 (ou sondages projetés, étape 2) × (écart estimé − 1) ×
-              intensité de la correction
-            </code>
             <ul>
-              {PAST_YEARS.map((year) => {
-                const ref = REFERENCES[year]
-                const stats = year === 2022 ? reference2022Stats : reference2017Stats
+              <li>
+                <strong>Pilier 1 — Vote utile intra-bloc séparé par bloc :</strong> en fin de campagne présidentielle,
+                les électeurs d’un camp fragmenté tendent à se regrouper autour de leur candidat le mieux placé pour
+                accéder au 2nd tour. L’intensité (0 à 100 %) et le candidat pivot (<em>Auto</em> ou candidat forcé) sont
+                réglables séparément pour chacun des quatre blocs. Les cibles de concentration calibrées sur 2017–2022
+                sont <strong>{pct(TARGET_CONCENTRATION.gauche * 100, 0)}</strong> à gauche,{' '}
+                <strong>{pct(TARGET_CONCENTRATION.centre * 100, 0)}</strong> au centre,{' '}
+                <strong>{pct(TARGET_CONCENTRATION.droite * 100, 0)}</strong> à droite et{' '}
+                <strong>{pct(TARGET_CONCENTRATION.extreme_droite * 100, 0)}</strong> à l’extrême droite (déjà au-dessus
+                du seuil dans les sondages actuels, donc sans poussée artificielle). Une option activable permet de{' '}
+                <strong>regrouper centre et droite</strong> autour d’un pivot commun (cible{' '}
+                {pct(MERGED_CENTER_RIGHT_TARGET * 100, 0)}, scénario type 2022), mais les 4 blocs séparés restent le
+                défaut car le backtest prouve qu’ils améliorent <em>à la fois</em> 2017 et 2022. Trois garde-fous
+                empêchent toute concentration caricaturale : <strong>{pct(CROSS_BLOC_LEAK * 100, 0)}</strong> des voix
+                cédées fuient vers les blocs voisins, un plancher de <strong>{pct(CANDIDATE_FLOOR, 1)}</strong> protège
+                les petits partis identitaires, et le drainage épargne proportionnellement un co-favori déjà fort.
+              </li>
+              <li>
+                <strong>Pilier 2 — Amortissement léger des écarts précoces (mean reversion) :</strong> à 5 mois du
+                scrutin, les totaux de blocs peuvent s’écarter temporairement des équilibres électoraux de fond. Les
+                totaux de blocs sont rappelés en douceur vers des fondamentaux structurels (50 % présidentielles
+                2017–2022 + 50 % scrutins nationaux 2024), avec un poids maximal de{' '}
+                <strong>{pct(MAX_PRIOR_WEIGHT * 100, 0)}</strong> à J−{PROJECTION_HORIZON_DAYS} (curseur actuel :{' '}
+                <span className="num">{pct(settings.projection.meanReversion * 100, 0)}</span>), qui décroît
+                linéairement jusqu’à 0 le jour du vote.
+              </li>
+              <li>
+                <strong>Pilier 3 — Historique 2025–2027 et tendance récente amortie :</strong> la synchronisation archive
+                automatiquement l’historique des vagues de 1er tour depuis Wikipedia ({pollHistory.polls.length} vagues
+                {historyStart && historyEnd ? ` du ${date(historyStart)} au ${date(historyEnd)}` : ''}). Une pente
+                récente est calculée par régression pondérée puis amortie exponentiellement sur{' '}
+                <strong>{TREND_DAMPING_DAYS} jours</strong>, recentrée à somme nulle et plafonnée à{' '}
+                <strong>±{num(MAX_TREND_PTS, 1)} pts</strong> par candidat (curseur actuel :{' '}
+                <span className="num">{pct(settings.projection.dampedTrend * 100, 0)}</span>). Cet historique alimente
+                également le graphique de trajectoire temporelle et son cône d’incertitude à 80 % jusqu’au{' '}
+                {date(polls.electionDate)}.
+              </li>
+            </ul>
+          </div>
+
+          <Table
+            caption={`Paramètres structurels de la projection par pôle (${settings.projection.mergeCenterRight ? 'mode Centre + Droite regroupés' : '4 blocs séparés'})`}
+          >
+            <thead>
+              <tr className="border-b border-rule">
+                <th className={th}>Bloc / Pôle</th>
+                <th className={`${th} text-right`}>Cible vote utile</th>
+                <th className={`${th} text-right`}>Fondamental de bloc</th>
+                <th className={th}>Pivot actuel</th>
+                <th className={`${th} text-right`}>Part du pivot (actuel → projeté)</th>
+              </tr>
+            </thead>
+            <tbody>
+              {result.projection.poles.map((pole) => {
+                const label = pole.pole === 'centre_droite' ? 'Centre + Droite' : BLOC_LABELS[pole.pole]
+                const prior =
+                  pole.pole === 'centre_droite'
+                    ? PRIOR_BLOC_SHARES.centre + PRIOR_BLOC_SHARES.droite
+                    : PRIOR_BLOC_SHARES[pole.pole]
                 return (
-                  <li key={year}>
-                    {year} : dernier sondage de chaque institut dont le terrain s’achève dans les{' '}
-                    {ref.windowDays} jours précédant le 1er tour du {date(ref.electionDate)} (
-                    {stats.pollsUsed.length} instituts : {stats.pollsUsed.map((p) => p.institute).join(', ')}).
-                    Résultats : voix officielles divisées par les {integer(ref.expressed)} suffrages exprimés.
-                  </li>
+                  <tr key={pole.pole} className="border-b border-rule/60">
+                    <td className={`${td} font-medium`}>{label}</td>
+                    <td className={`${td} num text-right`}>{pct(pole.targetShare * 100, 0)}</td>
+                    <td className={`${td} num text-right`}>{pct(prior, 0)}</td>
+                    <td className={td}>{pole.beneficiary ? cand(pole.beneficiary).shortName : '—'}</td>
+                    <td className={`${td} num text-right`}>
+                      {pole.saturated
+                        ? `${pct(pole.shareBefore * 100, 0)} (déjà au seuil)`
+                        : `${pct(pole.shareBefore * 100, 0)} → ${pct(pole.shareAfter * 100, 0)}`}
+                    </td>
+                  </tr>
                 )
               })}
+            </tbody>
+          </Table>
+        </Step>
+
+        {/* ÉTAPE 4 : REPORTS & FRONT RÉPUBLICAIN */}
+        <Step id="reports" n={4} title="Matrices de reports et front républicain (vote de rejet du RN)">
+          <div className="prose-method">
+            <p>
+              Pour les duels face au RN, la <strong>base historique</strong> part des taux bruts de l’enquête
+              Ipsos-Talan du 7 juillet 2024 (sans régression écologique de Goodman), <strong>modulés de façon
+              homogène sur les 4 types de duels</strong> par la force du <strong>front républicain</strong> (vote de
+              rejet du RN). En 2017 comme en 2022, environ 42 à 43 % des électeurs d’Emmanuel Macron au 2nd tour
+              déclaraient voter avant tout pour faire barrage au RN : ce socle anti-RN concerne donc{' '}
+              <em>tous les duels face au RN</em> (centre, droite, gauche modérée et LFI), et pas seulement le centre.
+            </p>
+            <p>
+              <strong>Pourquoi une modulation homogène plutôt qu’un mélange réservé au centre :</strong> un ajustement
+              limité aux seuls duels <code>ensemble_rn</code> créait une incohérence interne où les électeurs de gauche
+              se reportaient mieux sur un candidat LR (70 % issus des législatives 2024) que sur un candidat du centre
+              (62 %). Désormais, les 4 profils suivent la même logique transparente sur échelle{' '}
+              <em>logit multinomial</em> (par rapport à l’abstention) :
+            </p>
+            <ul>
+              <li>
+                <strong>Repère barrage fort (100 %, niveau 2017 / 2024) :</strong> les profils{' '}
+                <code>ensemble_rn</code>, <code>ecolo_ps_pcf_rn</code> et <code>lfi_rn</code> partent directement des
+                taux Ipsos-Talan 2024 — qui mesurent <em>déjà</em> la différence de compatibilité selon l’adversaire
+                (72 % gauche → centre, 54 % centre → PS/écolo, 43 % centre → LFI), sans double pénalité cachée sur LFI.
+                Seule la ligne <code>gauche → lr_rn</code> (70 % en 2024, presque égale au centre à cause des
+                désistements locaux) reçoit un léger ajustement de distance politique (δ_finaliste = −0,35, δ_RN =
+                +0,55) afin de rester strictement sous <code>gauche → centre</code>.
+              </li>
+              <li>
+                <strong>Érosion du front républicain (e = 1 − F) :</strong> calibrée sur l’écart réel mesuré entre la
+                présidentielle <strong>2017 (100 %)</strong> et <strong>2022 (75 %)</strong>, l’érosion réduit le report
+                barrage selon la distance politique entre électorat et finaliste (δ_finaliste = −0,45·e sur bloc voisin,
+                −1,35·e sur bloc opposé, −1,50·e sur bloc éloigné). Le recul du front républicain bascule{' '}
+                <strong>très majoritairement vers l’abstention et le vote blanc</strong>, avec un glissement direct
+                modéré vers le RN (δ_RN = +0,10·e sur bloc voisin, +0,15·e sur les électorats déjà à ≥ 6 % de vote RN,
+                et +1,40·e uniquement sur les taux planchers &lt; 6 % hérités des désistements locaux de 2024). Les
+                électeurs du même camp que le finaliste et ceux rattachés au camp RN (Reconquête / DLF) restent
+                inchangés.
+              </li>
+              <li>
+                <strong>Réglage direct global et séparé par famille de duel :</strong> parce que le front républicain
+                peut s’éroder différemment selon l’affiche du 2nd tour (en particulier face à LFI où le double rejet au
+                centre et à droite contrebalance le rejet du RN), le simulateur expose directement 4 préréglages
+                historiques, un curseur global et 3 curseurs indépendants. Réglage actif :{' '}
+                <strong>Centre / Droite {pct(settings.republicanFront.centerRight * 100, 0)}</strong>,{' '}
+                <strong>Gauche modérée {pct(settings.republicanFront.moderateLeft * 100, 0)}</strong>,{' '}
+                <strong>LFI {pct(settings.republicanFront.lfi * 100, 0)}</strong>.
+              </li>
             </ul>
             <p>
-              <strong>Combinaison des deux scrutins.</strong> L’écart estimé est une moyenne géométrique où
-              chaque scrutin pèse {pct(ELECTION_WEIGHTS[2022] * 100, 0)}. Hypothèse : rien ne permet de dire
-              lequel des deux annonce le mieux 2027. La moyenne géométrique traite de la même façon une
-              sous-estimation et une surestimation de même ampleur (×1,25 et ×0,80 se compensent) : un biais
-              qui se répète d’un scrutin à l’autre est conservé, un biais qui s’inverse s’atténue.
-              {(() => {
-                const c = calibration.correction
-                const id = 'melenchon'
-                return c.ratio2022[id] !== undefined && c.ratio2017[id] !== undefined && c.ratio[id] !== undefined
-                  ? ` Exemple : Jean-Luc Mélenchon, à ${ratio(c.ratio2022[id])} en 2022 et ${ratio(c.ratio2017[id])} en 2017, reçoit un écart estimé de ${ratio(c.ratio[id])}.`
-                  : ''
-              })()}
+              <strong>Option déclarations 2027 (désactivée par défaut) :</strong> les tableaux de reports publiés à
+              l’automne 2026 (Harris Interactive / Odoxa) mesurent des intentions très précoces mais révèlent des
+              asymétries réelles entre candidats. Lorsqu’elle est activée (seule ou en mélange pondéré), chaque ligne
+              non-camp est redressée sur échelle <em>logit multinomial</em> (δ_finaliste ={' '}
+              {num(declaredTransfers.logitCorrection.deltaFinalist, 2)}, δ_RN ={' '}
+              {num(declaredTransfers.logitCorrection.deltaRn, 2)} par rapport à l’abstention) d’après l’écart moyen
+              constaté entre déclarations de campagne et jour du vote en 2017 et 2022.
             </p>
             <p>
-              <strong>Équivalents de 2017 (hypothèses).</strong> L’écart de 2017 d’un candidat de 2022 est
-              celui du même candidat, ou du candidat de son parti : Hidalgo → Hamon (PS) ; Jadot → Hamon,
-              candidat commun PS-EELV après le retrait de Jadot en février 2017 ; Pécresse → Fillon (LR).
-              Roussel (le PCF soutenait Mélenchon en 2017) et Zemmour (absent en 2017) n’en ont pas : leur
-              écart estimé est celui de 2022 seul.
-            </p>
-            <p>
-              Appliqué aux derniers sondages de son scrutin, chaque ratio redonne exactement le résultat
-              officiel du 1er tour (un test automatique le vérifie pour 2022 et 2017). L’écart estimé n’est
-              celui d’aucun des deux scrutins : c’est le biais qu’on peut attendre s’il se reproduit en
-              moyenne. À 100 % d’intensité, chaque candidat de 2027 reçoit l’écart estimé de sa référence de
-              2022.
-            </p>
-            <p>
-              Après correction, les scores sont ramenés à 100 %.{' '}
-              {settings.correctionsEnabled
-                ? `Intensité actuelle de la correction : ${pct(settings.correctionIntensity * 100, 0)}${result.firstRound.some((r) => r.isOverride) ? ', certaines corrections sont saisies à la main' : ''}.`
-                : 'Les corrections sont désactivées dans le scénario en cours.'}
+              <strong>Duels hors RN :</strong> pour un duel gauche contre centre ou droite, les reports proviennent des
+              enquêtes « jour du vote » des présidentielles 2007 (Sarkozy – Royal) et 2012 (Hollande – Sarkozy). Une
+              matrice symétrique de repli ne s’applique qu’aux duels entre deux candidats du même côté.
             </p>
           </div>
-          {PAST_YEARS.map((year) => {
-            const ref = REFERENCES[year]
-            const stats = year === 2022 ? reference2022Stats : reference2017Stats
-            return (
-              <Table key={year} caption={`Écarts de ${year}`}>
+
+          <Table caption="Préréglages du front républicain (vote de rejet du RN) : repères historiques et défaut 2027">
+            <thead>
+              <tr className="border-b border-rule">
+                <th className={th}>Préréglage</th>
+                <th className={`${th} text-right`}>Centre / Droite</th>
+                <th className={`${th} text-right`}>Gauche modérée</th>
+                <th className={`${th} text-right`}>LFI</th>
+                <th className={th}>Interprétation</th>
+              </tr>
+            </thead>
+            <tbody>
+              {RF_PRESET_ROWS.map((row) => {
+                const p = REPUBLICAN_FRONT_PRESETS[row.id]
+                return (
+                  <tr key={row.id} className="border-b border-rule/60">
+                    <td className={`${td} font-medium`}>{row.label}</td>
+                    <td className={`${td} num text-right`}>{pct(p.centerRight * 100, 0)}</td>
+                    <td className={`${td} num text-right`}>{pct(p.moderateLeft * 100, 0)}</td>
+                    <td className={`${td} num text-right`}>{pct(p.lfi * 100, 0)}</td>
+                    <td className={`${td} text-ink-2`}>{row.desc}</td>
+                  </tr>
+                )
+              })}
+            </tbody>
+          </Table>
+
+          <Table
+            caption={`Reports effectifs appliqués dans le scénario actif (${
+              settings.transferSource === 'declared2027'
+                ? 'source : déclarations 2027 corrigées en logit'
+                : settings.transferSource === 'blend'
+                  ? `mélange ${pct((1 - settings.declaredWeight) * 100, 0)} base historique / ${pct(settings.declaredWeight * 100, 0)} déclarations 2027`
+                  : 'base historique modulée par le front républicain actif'
+            })`}
+          >
+            <thead>
+              <tr className="border-b border-rule">
+                <th className={th}>Profil (front républicain actif)</th>
+                <th className={th}>Électorat</th>
+                <th className={`${th} text-right`}>Finaliste</th>
+                <th className={`${th} text-right`}>RN</th>
+                <th className={`${th} text-right`}>Abst./BN</th>
+              </tr>
+            </thead>
+            <tbody>
+              {PROFILE_IDS.flatMap((pid) => {
+                const meta = transfers.profiles.find((p) => p.id === pid)!
+                const strength = frontStrengthForProfile(pid, settings.republicanFront)
+                return (['gauche', 'centre', 'droite'] as const).map((b, idx) => {
+                  const eff = activeProfiles[pid][b]
+                  const overridden = Boolean(settings.transferOverrides[pid]?.[b])
+                  return (
+                    <tr key={`${pid}-${b}`} className="border-b border-rule/60">
+                      <td className={`${td} font-medium`}>
+                        {idx === 0
+                          ? `${meta.label}${settings.transferSource !== 'declared2027' ? ` (${pct(strength * 100, 0)})` : ''}`
+                          : ''}
+                      </td>
+                      <td className={td}>
+                        {BLOC_VOTERS[b]}
+                        {overridden && <span className="ml-1.5 text-xs text-ballpoint">(modifié)</span>}
+                      </td>
+                      <td className={`${td} num text-right font-medium`}>{num(eff.finalist, 1)} %</td>
+                      <td className={`${td} num text-right`}>{num(eff.rn, 1)} %</td>
+                      <td className={`${td} num text-right text-ink-3`}>{num(eff.abstention, 1)} %</td>
+                    </tr>
+                  )
+                })
+              })}
+            </tbody>
+          </Table>
+
+          <ProvenanceLegend />
+
+          <div className="grid gap-6 md:grid-cols-2">
+            {transfers.profiles.map((p) => (
+              <Table key={p.id} caption={`${p.label} — source brute Ipsos-Talan 2024 (repère 100 %)`}>
                 <thead>
                   <tr className="border-b border-rule">
-                    <th className={th}>Candidat {year}</th>
-                    <th className={`${th} text-right`}>Derniers sondages</th>
-                    <th className={`${th} text-right`}>Résultat</th>
-                    <th className={`${th} text-right`}>Ratio</th>
-                    {year === 2017 && <th className={th}>Équivalent de</th>}
+                    <th className={th}>Électorat</th>
+                    <th className={`${th} text-right`}>Finaliste</th>
+                    <th className={`${th} text-right`}>RN</th>
+                    <th className={`${th} text-right`}>Abst./BN</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {ref.candidates.map((c) => {
-                    const of2022 = Object.entries(EQUIVALENTS_2017)
-                      .filter(([id, eq]) => eq === c.id && calibration.correction.ratio2017[id] !== undefined)
-                      .map(([id]) => reference2022.candidates.find((x) => x.id === id)?.name ?? id)
+                  {BLOCS.map((b) => {
+                    const r = p.rows[b]
                     return (
-                      <tr key={c.id} className="border-b border-rule/60">
-                        <td className={td}>{c.name}</td>
-                        <td className={`${td} num text-right`}>{pct(stats.pollAverage[c.id] ?? 0, 2)}</td>
-                        <td className={`${td} num text-right`}>{pct(stats.result[c.id] ?? 0, 2)}</td>
-                        <td className={`${td} num text-right font-medium`}>
-                          {stats.ratio[c.id] !== undefined ? ratio(stats.ratio[c.id]!) : '—'}
+                      <tr key={b} className="border-b border-rule/60">
+                        <td className={td}>{BLOC_VOTERS[b]}</td>
+                        <td className={`${td} text-right`}>
+                          <ProvenanceValue value={r.finalist} provenance={r.provenance.finalist} />
                         </td>
-                        {year === 2017 && (
-                          <td className={td}>
-                            {of2022.length > 0 ? of2022.join(', ') : <span className="text-ink-3">aucun</span>}
-                          </td>
-                        )}
+                        <td className={`${td} text-right`}>
+                          <ProvenanceValue value={r.rn} provenance={r.provenance.rn} />
+                        </td>
+                        <td className={`${td} text-right`}>
+                          <ProvenanceValue value={r.abstention} provenance={r.provenance.abstention} />
+                        </td>
                       </tr>
                     )
                   })}
                 </tbody>
               </Table>
-            )
-          })}
-          <Table caption="Écart estimé par référence de 2022">
-            <thead>
-              <tr className="border-b border-rule">
-                <th className={th}>Candidat 2022</th>
-                <th className={`${th} text-right`}>Ratio 2022</th>
-                <th className={`${th} text-right`}>Ratio 2017</th>
-                <th className={`${th} text-right`}>Écart estimé</th>
-                <th className={th}>Référence pour 2027</th>
-              </tr>
-            </thead>
-            <tbody>
-              {reference2022.candidates.map((c) => {
-                const users = usersOf(c.id)
-                const r2017 = calibration.correction.ratio2017[c.id]
-                const eq = EQUIVALENTS_2017[c.id]
-                const estimate = calibration.correction.ratio[c.id]
-                return (
-                  <tr key={c.id} className="border-b border-rule/60">
-                    <td className={td}>{c.name}</td>
-                    <td className={`${td} num text-right`}>
-                      {reference2022Stats.ratio[c.id] !== undefined ? ratio(reference2022Stats.ratio[c.id]!) : '—'}
-                    </td>
-                    <td className={`${td} num text-right`}>
-                      {r2017 !== undefined ? ratio(r2017) : <span className="text-ink-3">aucun équivalent</span>}
-                      {r2017 !== undefined && eq !== c.id && (
-                        <span className="block text-xs text-ink-3">
-                          {reference2017.candidates.find((x) => x.id === eq)?.name ?? eq}
-                        </span>
-                      )}
-                    </td>
-                    <td className={`${td} num text-right font-medium`}>
-                      {estimate !== undefined ? ratio(estimate) : '—'}
-                    </td>
-                    <td className={td}>
-                      {users.length > 0 ? users.join(', ') : <span className="text-ink-3">aucun</span>}
-                    </td>
-                  </tr>
-                )
-              })}
-            </tbody>
-          </Table>
-          <ul className="prose-method list-disc space-y-1 pl-5 text-[0.95rem]">
-            {polls.candidates
-              .filter((c) => c.ref2022Note)
-              .map((c) => (
-                <li key={c.id}>
-                  <strong>{c.shortName}</strong> : {c.ref2022Note}
-                  {settings.referenceBlend[c.id] !== undefined &&
-                    ` Dans le scénario en cours : ${referenceParts(c, settings.referenceBlend[c.id])
-                      .map(
-                        (p) =>
-                          `${reference2022.candidates.find((x) => x.id === p.id)?.name ?? p.id} ${pct(p.weight * 100, 0)}`,
-                      )
-                      .join(', ')}.`}
-                </li>
-              ))}
-            <li>
-              Pour une référence pondérée, l’écart estimé est la moyenne des écarts estimés de chaque
-              référence, pondérée par son poids.
-            </li>
-            <li>
-              Les autres candidats sont comparés à eux-mêmes en 2022, et à leur équivalent de 2017 quand il
-              existe.
-            </li>
-          </ul>
-          <div className="prose-method">
-            <p>
-              <strong>Répartition entre candidats qui partagent une référence.</strong> Chaque part
-              d’électorat rattachée à une référence suit le même ratio. Cela revient à additionner ces parts
-              dans un pot commun, à lui appliquer la progression (étape 2) et la correction de la référence,
-              puis à le répartir au prorata : Glucksmann prend ainsi sa part de la dynamique de Macron,
-              Retailleau sa part de celle de Le Pen, et inversement si elle est négative. Les scores étant
-              ensuite ramenés à 100 %, ce que gagne un candidat est pris aux autres.
-            </p>
-          </div>
-          <Table caption="Pots communs par référence de 2022 (scénario en cours, en points de la moyenne 2027)">
-            <thead>
-              <tr className="border-b border-rule">
-                <th className={th}>Référence 2022</th>
-                <th className={th}>Électorats de 2027 rattachés</th>
-                <th className={`${th} text-right`}>Total</th>
-                <th className={`${th} text-right`}>Progression</th>
-                <th className={`${th} text-right`}>Écart estimé</th>
-              </tr>
-            </thead>
-            <tbody>
-              {reference2022.candidates.flatMap((ref) => {
-                const parts = result.firstRound.flatMap((r) => {
-                  const part = r.references.find((p) => p.id === ref.id)
-                  return part && part.weight > 0
-                    ? [{ id: r.candidateId, weight: part.weight, points: r.base * part.weight }]
-                    : []
-                })
-                if (parts.length === 0) return []
-                const prog = progression2022Stats.ratio[ref.id]
-                const corr = calibration.correction.ratio[ref.id]
-                return [
-                  <tr key={ref.id} className="border-b border-rule/60">
-                    <td className={td}>{ref.name}</td>
-                    <td className={td}>
-                      {parts
-                        .map(
-                          (p) =>
-                            `${cand(p.id).shortName}${p.weight < 1 ? ` (${pct(p.weight * 100, 0)})` : ''} ${num(p.points)}`,
-                        )
-                        .join(' + ')}
-                    </td>
-                    <td className={`${td} num text-right`}>{num(parts.reduce((t, p) => t + p.points, 0))}</td>
-                    <td className={`${td} num text-right ${settings.progressionEnabled ? '' : 'text-ink-3'}`}>
-                      {prog ? ratio(prog) : '—'}
-                    </td>
-                    <td className={`${td} num text-right`}>{corr ? ratio(corr) : '—'}</td>
-                  </tr>,
-                ]
-              })}
-            </tbody>
-          </Table>
-          <Table caption="Corrections appliquées au scénario en cours">
-            <thead>
-              <tr className="border-b border-rule">
-                <th className={th}>Candidat</th>
-                <th className={`${th} text-right`}>Moyenne 2027</th>
-                {settings.progressionEnabled && <th className={`${th} text-right`}>Projetée (étape 2)</th>}
-                <th className={`${th} text-right`}>Écart estimé</th>
-                <th className={`${th} text-right`}>Correction</th>
-                {settings.blogBiasEnabled && <th className={`${th} text-right`}>Billet</th>}
-                {settings.turnoutEnabled && <th className={`${th} text-right`}>Participation</th>}
-                <th className={`${th} text-right`}>Score corrigé</th>
-              </tr>
-            </thead>
-            <tbody>
-              {result.firstRound.map((r) => (
-                <tr key={r.candidateId} className="border-b border-rule/60">
-                  <td className={td}>{cand(r.candidateId).name}</td>
-                  <td className={`${td} num text-right`}>{pct(r.base, 2)}</td>
-                  {settings.progressionEnabled && (
-                    <td className={`${td} num text-right`}>
-                      {pct(r.projected, 2)}
-                      {r.progressionFactor && (
-                        <span className="ml-1 text-xs text-ink-3">{ratio(r.progressionFactor)}</span>
-                      )}
-                    </td>
-                  )}
-                  <td className={`${td} num text-right`}>{r.correctionRatio ? ratio(r.correctionRatio) : '—'}</td>
-                  <td className={`${td} num text-right`}>
-                    {pts(r.appliedCorrection, 2)}
-                    {r.isOverride && <span className="ml-1 text-xs text-ballpoint">manuelle</span>}
-                  </td>
-                  {settings.blogBiasEnabled && (
-                    <td className={`${td} num text-right`}>{r.blogBiasFactor ? ratio(r.blogBiasFactor) : '—'}</td>
-                  )}
-                  {settings.turnoutEnabled && (
-                    <td className={`${td} num text-right`}>{r.turnoutFactor ? ratio(r.turnoutFactor) : '—'}</td>
-                  )}
-                  <td className={`${td} num text-right font-medium`}>
-                    {pct(r.corrected, 2)}
-                    {r.ceded > 1e-9 && (
-                      <span className="ml-1 text-xs font-normal text-ink-3">dont cession {pts(-r.ceded, 2)}</span>
-                    )}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </Table>
-          <div className="prose-method">
-            <h3 id="billet">Option : biais révélés par un billet de blog</h3>
-            <p>
-              Le{' '}
-              <a href={BLOG_BIAS_URL} className="link" target="_blank" rel="noreferrer">
-                billet d’Eliot Thibault publié le 01/11/2026 dans le Club de Mediapart
-              </a>{' '}
-              soutient que, loin du scrutin, les sondages surestiment l’extrême droite et sous-estiment la
-              gauche. Il chiffre l’écart du bloc d’extrême droite à environ 4 points entre les sondages
-              d’octobre 2021 et son score de 2022 (environ 5 points en 2017). L’option « Corriger les biais
-              révélés dans le billet de blog d’Eliot Thibault » mesure ces écarts sur les données de 2022 et de
-              2017 du simulateur, bloc par bloc, les combine comme à l’étape 3 (moyenne géométrique, chaque
-              scrutin pesant {pct(ELECTION_WEIGHTS[2022] * 100, 0)}) et les applique aux candidats de 2027 de
-              ces deux blocs. Elle est{' '}
-              <strong>
-                {settings.blogBiasEnabled
-                  ? `activée, à ${pct(settings.blogBiasIntensity * 100, 0)} d’intensité`
-                  : 'désactivée'}
-              </strong>{' '}
-              dans le scénario en cours.
-              {(() => {
-                const ed = calibration.blogBias.extreme_droite?.years
-                const gap = (y: YearBlocBias | undefined) => (y && y.early > 0 ? pts(y.result - y.early) : null)
-                const [g2022, g2017] = [gap(ed?.[2022]), gap(ed?.[2017])]
-                return g2022 && g2017
-                  ? ` Sur les données du simulateur, à la même distance du scrutin que la base 2027, cet écart est de ${g2022} en 2022 et de ${g2017} en 2017.`
-                  : ''
-              })()}
-            </p>
-            <p>
-              L’écart se décompose comme les étapes 2 et 3 : l’évolution des sondages depuis la même distance
-              du scrutin (le {date(progression2022Stats.asOf)} et le {date(progression2017Stats.asOf)} pour la
-              base 2027 du {date(polls.asOf)}), puis l’écart entre derniers sondages et résultat. La date de
-              comparaison suit la base 2027 : à mesure que le scrutin approche, elle se rapproche des votes de
-              2022 et 2017 et l’évolution mesurée se réduit ; seul demeure, à la fin, l’écart entre derniers
-              sondages et résultat.
-            </p>
-            <p>
-              En 2017, les primaires LR (novembre 2016) et PS (janvier 2017) n’avaient pas encore désigné les
-              candidats : à six mois du scrutin, toutes les hypothèses testant Emmanuel Macron sont retenues,
-              et chaque candidat testé compte dans son bloc (Hollande, Valls, Montebourg ou Peillon à gauche
-              comme Benoît Hamon). Les blocs n’ont pas le même poids d’un scrutin à l’autre : ce sont leurs
-              écarts relatifs qui sont combinés, pas leurs niveaux.
-            </p>
-          </div>
-          <Table caption="Écarts par bloc à la même distance du scrutin (candidats du même bloc à chaque scrutin)">
-            <thead>
-              <tr className="border-b border-rule">
-                <th className={th}>Bloc</th>
-                <th className={th}>Scrutin</th>
-                <th className={`${th} text-right`}>Sondages à la même distance</th>
-                <th className={`${th} text-right`}>Derniers sondages</th>
-                <th className={`${th} text-right`}>Résultat</th>
-                <th className={`${th} text-right`}>Progression</th>
-                <th className={`${th} text-right`}>Correction</th>
-                <th className={`${th} text-right`}>Total</th>
-              </tr>
-            </thead>
-            <tbody>
-              {BLOCS.flatMap((bloc) => {
-                const b = calibration.blogBias[bloc]
-                if (!b) return []
-                const years = PAST_YEARS.filter((y) => b.years[y])
-                return [
-                  ...years.map((year, i) => {
-                    const y = b.years[year]!
-                    return (
-                      <tr key={`${bloc}-${year}`} className="border-b border-rule/60">
-                        {i === 0 && (
-                          <td className={td} rowSpan={years.length + 1}>
-                            {BLOC_LABELS[bloc]}
-                          </td>
-                        )}
-                        <td className={td}>
-                          {year}
-                          <span className="block text-xs text-ink-3">
-                            {(BLOG_BIAS_BLOCS[year][bloc] ?? []).map((id) => pastName(year, id)).join(', ')}
-                          </span>
-                        </td>
-                        <td className={`${td} num text-right`}>
-                          {y.early > 0 ? pct(y.early) : '—'}
-                          <span className="block text-xs text-ink-3">au {date(PROGRESSIONS[year].asOf)}</span>
-                        </td>
-                        <td className={`${td} num text-right`}>{pct(y.final)}</td>
-                        <td className={`${td} num text-right`}>{pct(y.result)}</td>
-                        <td className={`${td} num text-right`}>
-                          {y.progression !== null ? ratio(y.progression) : '—'}
-                        </td>
-                        <td className={`${td} num text-right`}>{ratio(y.correction)}</td>
-                        <td className={`${td} num text-right`}>
-                          {y.progression !== null ? ratio(y.progression * y.correction) : '—'}
-                        </td>
-                      </tr>
-                    )
-                  }),
-                  <tr key={`${bloc}-estimate`} className="border-b border-rule">
-                    <td className={`${td} font-medium`} colSpan={4}>
-                      Estimation (2022 et 2017)
-                    </td>
-                    <td className={`${td} num text-right font-medium`}>{ratio(b.progression)}</td>
-                    <td className={`${td} num text-right font-medium`}>{ratio(b.correction)}</td>
-                    <td className={`${td} num text-right font-medium`}>{ratio(totalBias(b))}</td>
-                  </tr>,
-                ]
-              })}
-            </tbody>
-          </Table>
-          <div className="prose-method">
-            <code className="formula">
-              facteur du bloc = (1 + (progression − 1) × intensité) × (1 + (correction − 1) × intensité)
-            </code>
-            <p>
-              Le facteur multiplie le score de chaque candidat du bloc après l’étape 3, puis les scores sont
-              ramenés à 100 % : le centre et la droite, non corrigés, absorbent l’écart.
-            </p>
-            <p>
-              <strong>Un même biais n’est corrigé qu’une fois.</strong> Pour un candidat disposant d’une
-              référence 2022, chaque composante du facteur est réduite à ce que l’option dédiée ne corrige pas
-              déjà :
-            </p>
-            <ul>
-              <li>
-                progression : « Progression comme en 2022 » ne reprend que 2022 ; quand elle est activée, le
-                billet ne garde que ce que 2017 change à l’estimation (progression estimée ÷ progression de
-                2022 du bloc) ;
-              </li>
-              <li>
-                écart final : « Corriger la moyenne » l’estime déjà sur 2017 et 2022 ; quand elle est activée
-                (ou qu’un écart est saisi à la main), le billet n’en reprend rien, sauf pour un candidat dont
-                la référence n’a pas d’équivalent en 2017 (Roussel, Zemmour), pour qui il garde ce que 2017
-                change à l’écart du bloc.
-              </li>
-            </ul>
-            <p>
-              L’option dédiée s’applique alors, pour ce candidat, à la plus forte des deux intensités (la sienne
-              ou celle du billet). Seule, l’option du billet applique les deux composantes en entier. Les
-              candidats sans référence 2022
-              {(() => {
-                const unreferenced = result.firstRound.filter((r) => {
-                  const { bloc } = cand(r.candidateId)
-                  return r.correctionRatio === null && bloc !== null && calibration.blogBias[bloc]
-                })
-                return unreferenced.length > 0
-                  ? ` (${unreferenced.map((r) => cand(r.candidateId).shortName).join(', ')} dans le scénario en cours)`
-                  : ''
-              })()}{' '}
-              reçoivent toujours le facteur complet de leur bloc.
-            </p>
-
-            <h3 id="participation">Option : participation attendue au 1er tour</h3>
-            <p>
-              Les sondages de 2027 portent sur les électeurs certains d’aller voter, dont la part gagne déjà du
-              terrain : l’Ifop-Fiducial, avec les mêmes questions (« envisagez-vous d’aller voter ? » puis «
-              tout à fait certain », « pratiquement certain »…), mesure {pct(bal?.certainNow.share ?? 0, 1)} des
-              inscrits certains d’aller voter à {bal ? distance(bal.distances.now) : '…'} du scrutin, contre{' '}
-              {pct(bal?.certainRef.share ?? 0, 1)} en 2021-2022 à la même distance ({bal ? referenceLabel(bal.certainRef) : '…'}). Cette hausse est donc{' '}
-              <strong>déjà dans les sondages</strong> : l’option « Participation attendue au 1er tour » ne la
-              compte pas une seconde fois. Elle est{' '}
-              <strong>{settings.turnoutEnabled ? 'activée' : 'désactivée'}</strong> dans le scénario en cours.
-            </p>
-            <p>
-              <strong>Référence 2022 : moyenne à ±15 jours.</strong> E2022 n’est pas la seule mesure de 2021-2022
-              la plus proche en distance : c’est la moyenne des mesures de campagne dont la distance au scrutin
-              (jours avant le 10/04/2022) est à ±{TURNOUT_REFERENCE_WINDOW_DAYS} jours de celle de la dernière
-              mesure 2027, hors mesure finale. Les mesures de l’automne 2021 sont bruitées (le sondage du 04 au
-              06/12/2021 donne 60,7 % des inscrits contre 67 à 72 % autour de lui) : une mesure isolée aurait
-              déplacé la participation attendue de plusieurs points. La fenêtre est la même règle que celle de
-              l’écart historique des sondages de 2nd tour (± 20 jours). Sans mesure dans la fenêtre, on garde la
-              mesure la plus proche, et l’écart de distance est signalé s’il dépasse 30 jours.
-            </p>
-            <p>
-              <strong>Parts parmi ceux qui envisagent de voter, parts des inscrits.</strong> Le billet cite «
-              77 % contre 69-70 % » : ce sont des parts <em>parmi ceux qui envisagent d’aller voter</em>, pas
-              des parts des inscrits. Rapportée aux inscrits (envisagent × tout à fait certains), la hausse est
-              de {bal ? pts(bal.certainNow.share - bal.certainRef.share, 1) : '…'}. Le billet ne donne aucune
-              prévision de participation.
-            </p>
-          </div>
-          <Table caption="Part des inscrits certains d’aller voter au 1er tour (Ifop-Fiducial, chiffres redressés)">
-            <thead>
-              <tr className="border-b border-rule">
-                <th className={th}>Terrain</th>
-                <th className={th}>Scrutin</th>
-                <th className={`${th} text-right`}>Envisagent d’aller voter</th>
-                <th className={`${th} text-right`}>Tout à fait certains, parmi eux</th>
-                <th className={`${th} text-right`}>Part des inscrits</th>
-                <th className={th}>Rôle dans le bilan</th>
-              </tr>
-            </thead>
-            <tbody>
-              {turnoutCertainty.measures.map((m) => {
-                const role = bal
-                  ? m === bal.certainNow.measure
-                    ? 'E2027 (dernière mesure)'
-                    : bal.certainRef.measures.includes(m)
-                      ? 'E2022 (moyenne à ±15 jours)'
-                      : m === bal.finalRef.measure
-                        ? 'F2022 (dernière vague avant le vote)'
-                        : ''
-                  : ''
-                return (
-                  <tr key={m.id} className="border-b border-rule/60">
-                    <td className={td}>
-                      <a href={m.source.url} className="link" target="_blank" rel="noreferrer" title={m.source.label}>
-                        {fieldwork(m.fieldwork)}
-                      </a>
-                    </td>
-                    <td className={td}>{m.cycle}</td>
-                    <td className={`${td} num text-right`}>{m.envisage === undefined ? '—' : pct(m.envisage, 1)}</td>
-                    <td className={`${td} num text-right`}>{m.certain === undefined ? '—' : pct(m.certain, 1)}</td>
-                    <td className={`${td} num text-right font-medium`}>{pct(certainShare(m), 2)}</td>
-                    <td className={td}>{role}</td>
-                  </tr>
-                )
-              })}
-            </tbody>
-          </Table>
-          <div className="prose-method">
-            <p>
-              Le rolling du 05 au 08/04/2022 ne publie que l’indice de participation (73 % des inscrits,
-              abstention 27 %). La part des inscrits des autres mesures se calcule : elle n’est pas saisie.
-            </p>
-            <p>
-              Les mesures de l’Ifop sont reprises automatiquement des notices de la Commission des sondages à
-              chaque synchronisation (les deux questions, chiffres redressés ; les notices qui ne les posent pas
-              sont ignorées). La série 2022 a été complétée une fois avec les
-              notices Ifop de la Commission des sondages qui posent les mêmes questions : vague 4 (29/09 au
-              01/10/2021), baromètres et sondages de novembre 2021 à avril 2022, et notices du rolling
-              Ifop-Fiducial pour Paris Match, LCI et Sud Radio (quasi quotidiennes de janvier à avril 2022,
-              terrains qui se recouvrent). Ces notices publient les mêmes deux questions, en chiffres redressés,
-              ce que ne font pas les rapports du rolling (ROL22), qui ne donnent que l’indice de participation :
-              seule la mesure finale utilise cet indice. Deux notices qui se terminent le même jour ne comptent
-              qu’une fois. Aucune valeur n’est interpolée.
-            </p>
-            <p>
-              <strong>Ce que la campagne ajoute, mesuré en 2022.</strong> Entre la mesure de la campagne 2022 la plus proche et la dernière
-              vague avant le vote, la part des certains a gagné F2022 − E2022 ; entre cette dernière vague et la
-              participation réelle, P2022 − F2022. Ce sont les mobilisations que reproduisent déjà la
-              progression (ou le billet) pour la campagne, et « Corriger la moyenne » (ou le billet) pour les
-              derniers jours.
-            </p>
-          </div>
-          {bal && (
-            <Table caption="Décomposition de la mobilisation de 2022 et mesure de 2027 (en % des inscrits)">
-              <thead>
-                <tr className="border-b border-rule">
-                  <th className={th}>Grandeur</th>
-                  <th className={`${th} text-right`}>Valeur</th>
-                  <th className={th}>Origine</th>
-                </tr>
-              </thead>
-              <tbody>
-                {[
-                  ['E2022', pct(bal.certainRef.share, 2), `certains en 2021-2022 : ${referenceLabel(bal.certainRef)} (J−${Math.round(bal.distances.ref)} en moyenne)`],
-                  ['F2022', pct(bal.finalRef.share, 2), `dernière vague avant le vote, ${date(bal.finalRef.measure.fieldwork.end)}`],
-                  ['P2022', pct(bal.turnoutRef, 2), 'participation réelle au 1er tour 2022 (votants ÷ inscrits)'],
-                  ['Mobilisation de campagne', pts(bal.campaign, 2), 'F2022 − E2022'],
-                  ['Mobilisation de fin de campagne', pts(bal.late, 2), 'P2022 − F2022'],
-                  ['E2027', pct(bal.certainNow.share, 2), `certains aujourd’hui, ${date(bal.certainNow.measure.fieldwork.end)} (J−${bal.distances.now}), déjà dans les sondages`],
-                ].map(([label, value, origin]) => (
-                  <tr key={label} className="border-b border-rule/60">
-                    <td className={td}>{label}</td>
-                    <td className={`${td} num text-right font-medium`}>{value}</td>
-                    <td className={td}>{origin}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </Table>
-          )}
-          <div className="prose-method">
-            <p>
-              <strong>Contrôle : l’intention de participation à plusieurs mois n’est pas prédictive.</strong>{' '}
-              L’enquête Ipsos bva-CEVIPOF (note de 10 sur 10, base : tous les inscrits) le confirme : à
-              plusieurs mois du scrutin, elle reste nettement sous la participation réelle. Ipsos l’explique
-              ainsi : « L’intention de participation à plusieurs mois du scrutin n’est pas prédictive du niveau
-              réel de participation au premier tour car la campagne électorale a vocation à faire progresser la
-              mobilisation du corps électoral. »
-            </p>
-          </div>
-          <Table caption="Contrôle Ipsos bva-CEVIPOF : note de participation de 10/10 et participation réelle au 1er tour">
-            <thead>
-              <tr className="border-b border-rule">
-                <th className={th}>Terrain</th>
-                <th className={th}>Scrutin suivant</th>
-                <th className={`${th} text-right`}>Note 10/10</th>
-                <th className={`${th} text-right`}>Participation réelle</th>
-                <th className={`${th} text-right`}>Écart</th>
-              </tr>
-            </thead>
-            <tbody>
-              {turnoutCertainty.control.measures.map((m) => {
-                const real = m.election === null ? null : turnoutOf(REFERENCES[m.election])
-                return (
-                  <tr key={m.fieldwork.start} className="border-b border-rule/60">
-                    <td className={td}>
-                      <a href={turnoutCertainty.control.source.url} className="link" target="_blank" rel="noreferrer">
-                        {fieldwork(m.fieldwork)}
-                      </a>
-                    </td>
-                    <td className={td}>{m.election ?? '2027'}</td>
-                    <td className={`${td} num text-right`}>{pct(m.share, 0)}</td>
-                    <td className={`${td} num text-right`}>{real === null ? 'à venir' : pct(real, 2)}</td>
-                    <td className={`${td} num text-right`}>{real === null ? '—' : pts(real - m.share, 1)}</td>
-                  </tr>
-                )
-              })}
-            </tbody>
-          </Table>
-          <div className="prose-method">
-            <p>
-              <strong>Le bilan : un même électeur n’est compté qu’une fois.</strong> Les sondages représentent
-              d’abord les certains d’aller voter (E2027). Les options activées leur ajoutent la mobilisation de
-              2022 qu’elles reproduisent déjà, pour la part qu’elles couvrent (globalement, pas par candidat) :
-            </p>
-            <code className="formula">
-              couverture de campagne = max(progression, billet) ; couverture de fin de campagne = max(correction,
-              billet)
-            </code>
-            <code className="formula">
-              V₀ = E2027 + couverture de campagne × (F2022 − E2022) + couverture de fin de campagne × (P2022 −
-              F2022)
-            </code>
-            <code className="formula">ΔV = P2027 − V₀</code>
-            <p>
-              V₀ est l’électorat que représentent les sondages corrigés ; P2027 la participation attendue. Par
-              défaut, P2027 = P2022 + (E2027 − E2022) : la hausse de la part des certains est reportée point
-              pour point sur la participation. Avec le billet à 100 % et la participation par défaut, ΔV = 0 :
-              tout est déjà dans les sondages corrigés et l’option n’a aucun effet. Sans aucune correction, ΔV =
-              P2027 − E2027 : l’option ajoute toute la mobilisation de la campagne. ΔV peut être négatif (une
-              participation attendue inférieure à V₀ retire des votants).
-            </p>
-            {bal && (
-              <p>
-                <strong>Scénario en cours.</strong> Couverture : campagne {pct(bal.coverage.campaign * 100, 0)},
-                fin de campagne {pct(bal.coverage.late * 100, 0)}. V₀ = {pct(bal.v0, 2)} (E2027{' '}
-                {pct(bal.certainNow.share, 2)} + {pts(bal.covered, 2)}). P2027 = {pct(bal.expected, 2)}{' '}
-                ({settings.turnoutExpected === null ? 'défaut' : 'réglée'} ; défaut {pct(bal.defaultExpected, 2)}
-                ). ΔV = {pts(bal.delta, 2)}.
-              </p>
-            )}
-            <p>
-              <strong>Pour qui votent les électeurs en plus (ou en moins) ?</strong> Le meilleur indice disponible
-              est le vote, au 1er tour de 2022, des électeurs qui s’étaient abstenus au 1er tour de 2017,
-              mesuré par le sondage jour du vote d’Ifop-Fiducial. Pour chaque bloc, l’affinité k rapporte sa
-              part chez ces électeurs à sa part chez l’ensemble des votants. Jean Lassalle (
-              {pct(TURNOUT_PROFILE_2022.all.lassalle ?? 0, 1)} de l’ensemble,{' '}
-              {pct(TURNOUT_PROFILE_2022.abstainers2017.lassalle ?? 0, 0)} de ces électeurs), inclassable, est
-              laissé de côté et les parts sont ramenées à 100 %.
-            </p>
-          </div>
-          <Table caption="Vote au 1er tour 2022 selon la participation au 1er tour 2017 (Ifop-Fiducial, sondage jour du vote)">
-            <thead>
-              <tr className="border-b border-rule">
-                <th className={th}>Bloc</th>
-                <th className={`${th} text-right`}>Ensemble des votants</th>
-                <th className={`${th} text-right`}>Abstentionnistes de 2017 venus voter</th>
-                <th className={`${th} text-right`}>Affinité k</th>
-              </tr>
-            </thead>
-            <tbody>
-              {BLOCS.map((bloc) => (
-                <tr key={bloc} className="border-b border-rule/60">
-                  <td className={td}>
-                    {BLOC_LABELS[bloc]}
-                    <span className="block text-xs text-ink-3">
-                      {TURNOUT_BLOCS_2022[bloc].map((id) => pastName(2022, id)).join(', ')}
-                    </span>
-                  </td>
-                  <td className={`${td} num text-right`}>{pct(TURNOUT_SHARES.all[bloc] * 100)}</td>
-                  <td className={`${td} num text-right`}>{pct(TURNOUT_SHARES.returning[bloc] * 100)}</td>
-                  <td className={`${td} num text-right font-medium`}>
-                    {num(calibration.turnout.affinity[bloc], 2)}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </Table>
-          <div className="prose-method">
-            <code className="formula">facteur du candidat = (V₀ + ΔV × k ÷ K) ÷ (V₀ + ΔV)</code>
-            <p>
-              k est l’affinité du bloc du candidat (1 sans bloc) et K l’affinité moyenne des votants du scénario
-              (moyenne des k pondérée par les scores) : les votants en plus ou en moins s’ajoutent sans changer
-              le total. Si ΔV est négatif, les blocs d’affinité supérieure à 1 perdent le plus ; le facteur est
-              borné à 0 et vaut 1 si ΔV = 0. Il s’applique après la correction et le billet, puis les scores
-              sont ramenés à 100 %. Il ne touche que le 1er tour.
-            </p>
-            <p>
-              <strong>Limites.</strong>
-            </p>
-            <ul>
-              <li>
-                La part des certains est mesurée sur un échantillon, la participation sur les inscrits. L’écart
-                entre les deux est supposé stable entre 2021 et 2026 (même institut, mêmes questions) ; rien ne
-                le garantit.
-              </li>
-              <li>
-                Un seul institut (Ifop-Fiducial) fournit la série ; le contrôle Ipsos bva-CEVIPOF n’entre pas
-                dans le calcul.
-              </li>
-              <li>
-                La mobilisation de référence est mesurée sur 2022 seul, alors que le billet combine 2017 et 2022
-                pour ses biais.
-              </li>
-              <li>
-                La couverture est traitée globalement, pas par candidat : le billet ne corrige que la gauche et
-                l’extrême droite, alors que la mobilisation de 2022 entre en entier dans V₀. La remise à 100 %
-                des facteurs de participation répercute cet écart sur l’ensemble des candidats.
-              </li>
-              <li>
-                Le profil des électeurs en plus ou en moins repose sur une partie de l’échantillon d’un seul sondage (marge d’erreur de plusieurs
-                points) et sur une seule élection : rien ne garantit que les électeurs qui reviendraient en
-                2027 votent comme ceux de 2022.
-              </li>
-              <li>
-                Les travaux sur le sujet trouvent en général un effet modeste d’une participation accrue sur
-                les résultats, les abstentionnistes ayant des préférences proches de celles des votants de
-                profil comparable (Citrin, Schickler et Sides, 2003, sur les sénatoriales américaines ; van der
-                Eijk et van Egmond, 2007, sur les élections nationales et européennes). L’effet devient net
-                quand la hausse est forte : en Australie, le vote obligatoire a augmenté la participation
-                d’environ 24 points et le vote travailliste de 7 à 10 points (Fowler, 2013). Le modèle reste
-                dans ce cadre : l’effet est proportionnel à la hausse et repose sur un profil mesuré, pas sur
-                une hypothèse.
-              </li>
-            </ul>
-          </div>
-          <p className="text-sm text-ink-3">
-            Sources :{' '}
-            {PAST_YEARS.map((year) => (
-              <span key={year}>
-                <a href={REFERENCES[year].resultsSource.url} className="link" target="_blank" rel="noreferrer">
-                  {REFERENCES[year].resultsSource.label}
-                </a>
-                ,{' '}
-                <a href={REFERENCES[year].pollsSource.url} className="link" target="_blank" rel="noreferrer">
-                  {REFERENCES[year].pollsSource.label}
-                </a>
-                ,{' '}
-              </span>
             ))}
-            <a href={TURNOUT_PROFILE_SOURCE.url} className="link" target="_blank" rel="noreferrer">
-              {TURNOUT_PROFILE_SOURCE.label}
-            </a>{' '}
-            (liens vers chaque sondage dans les fichiers <code>reference-2022.json</code> et{' '}
-            <code>reference-2017.json</code>).
-          </p>
-        </Step>
-
-        <Step id="alliances" n={4} title="Alliances">
-          <div className="prose-method">
-            <p>
-              Une alliance retire le candidat rallié du 1er tour : on ne garde que les hypothèses des sondages
-              qui testent tous les autres candidats simulés sans lui (ni personne à sa place), et seuls les
-              sondages qui en ont une (étape 1). Aucun taux de report n’est appliqué au 1er tour : ce sont les
-              sondés eux-mêmes qui répartissent ses électeurs.
-            </p>
-            <p>
-              Le retrait d’un candidat ne mesure son ralliement que si le leader reste le seul candidat principal
-              de leur camp (leurs blocs) : quand Philippe se retire alors qu’Attal reste en lice, ses électeurs
-              vont aussi vers Attal, et rien ne dit qu’ils suivraient Glucksmann.
-            </p>
-            {MINORS.length > 0 && (
-              <p>
-                Les mêmes règles valent pour les petits candidats (étape 1). Le ralliement d’un petit candidat se
-                lit dans les hypothèses qui ne le testent pas, si son leader reste le seul candidat principal du
-                camp : « Lisnard rejoint Retailleau » retient les hypothèses sans Lisnard. Les autres (Ruffin
-                vers Mélenchon, alors que Glucksmann reste en lice à gauche) ne sont proposés qu’avec l’option
-                des alliances non évaluées. Un petit candidat qui mène une alliance doit être testé : « Retailleau
-                rejoint Lisnard » retient les hypothèses où Lisnard est le candidat de la droite.
-              </p>
-            )}
-            <p>
-              Les alliances proposées sont donc celles que les sondages de la période testent, seules ou
-              combinées ; la liste suit la synchronisation des sondages.{' '}
-              {PROPOSED.length > 0
-                ? `Actuellement : ${PROPOSED.map((al) => al.label).join(' ; ')}.`
-                : 'Aucune n’est testée actuellement.'}
-              {COMBOS.length > 0 &&
-                ` Certaines ne sont testées qu’ensemble, et s’activent alors ensemble : ${COMBOS.map((c) => c.map((al) => `« ${al.label} »`).join(' + ')).join(' ; ')}.`}{' '}
-              Un candidat ne rallie qu’une alliance, et un candidat rallié ne peut pas en mener une autre.
-            </p>
-            {INCOMPATIBLE.length > 0 && (
-              <details>
-                <summary className="cursor-pointer font-sans text-sm font-medium text-ballpoint">
-                  {INCOMPATIBLE.length} paires d’alliances proposées incompatibles
-                </summary>
-                <p className="mt-2">
-                  {INCOMPATIBLE.map(([x, y]) => `« ${x.label} » et « ${y.label} »`).join(' ; ')}.
-                </p>
-              </details>
-            )}
-            <p>
-              {result.allianceIds.length > 0
-                ? `Dans le scénario en cours : ${polls.alliances
-                    .filter((al) => result.allianceIds.includes(al.id))
-                    .map((al) => `« ${al.label} »`)
-                    .join(', ')} (hypothèse « ${result.hypothesisSet.label} », ${result.institutesUsed} institut${result.institutesUsed > 1 ? 's' : ''}).`
-                : result.estimatedAllianceIds.length === 0 && 'Aucune alliance n’est activée dans le scénario en cours.'}
-            </p>
-            <h3>Option : alliances non évaluées par les sondeurs</h3>
-            <p>
-              Désactivée par défaut, l’option « Permettre de tester des alliances non évaluées par les
-              sondeurs » propose tout le catalogue d’alliances. Une alliance qu’aucune hypothèse ne teste (avec
-              les alliances testées actives) est alors <strong>estimée</strong> : sur la base des sondages,
-              les électeurs du candidat rallié se répartissent comme lors des{' '}
-              <strong>désistements des législatives 2024</strong>. On lit, dans la grille des reports (étape 6),
-              la ligne de son électorat pour le type de duel du leader : une part suit le leader, une part vote
-              pour le candidat RN, le reste s’abstient ; les scores sont ensuite ramenés à 100 %. Une part
-              modifiée dans les réglages garde, pour le reste, la répartition RN / abstention de 2024.
-            </p>
-            <p>
-              Un petit candidat rallié peut manquer aux hypothèses retenues (Ruffin n’est testé qu’avec Attal :
-              absent quand Attal rejoint Philippe). Pour estimer son ralliement, son score est repris des
-              hypothèses qui le testent dans les sondages retenus, puis prélevé, après les corrections, sur les
-              candidats vers lesquels se reportent ses électeurs en son absence (répartition choisie pour ce
-              petit candidat, au prorata de ceux qui sont en lice). Sans référence 2022, il ne reçoit ni
-              progression ni correction : le prélever avant aurait privé ses donneurs de leur correction sur ces
-              électeurs. Ses électeurs suivent ensuite le leader selon les reports de 2024. Si
-              aucun sondage retenu ne le teste, son ralliement ne peut pas être estimé.
-            </p>
-            <h3>Option : alliances groupées</h3>
-            <p>
-              Désactivée par défaut, l’option « Alliances groupées » simplifie le choix : moins d’interrupteurs
-              pour arriver aux alliances les plus logiques. Elle propose d’abord des <strong>options testées par
-              les sondeurs</strong>, tirées des hypothèses des sondages retenus, puis des alliances groupées
-              estimées.
-            </p>
-            <p>
-              <strong>Options testées.</strong> Pour chaque hypothèse du dernier sondage de chaque institut que
-              des alliances simples décrivent, on retient la combinaison la plus petite ; à égalité, celle qui
-              a le plus de paires (rallié, leader) du même bloc, puis le moins de leaders distincts, puis celle
-              dont les leaders comptent le plus de petits candidats testés par l’hypothèse (« Philippe et Attal
-              derrière Lagarde » plutôt que derrière Retailleau quand Cluster17 teste Lagarde), puis l’ordre des
-              données. Chaque combinaison distincte donne une seule option, qui réunit les hypothèses des
-              instituts qui y mènent ; une hypothèse qui décrit déjà le scénario de base (le jeu par défaut, ou seul un petit candidat manque : un petit
-              candidat absent n’est pas rallié, il n’est jamais requis) n’en donne pas, c’est l’état sans option cochée. L’option porte le nom du jeu d’hypothèses correspondant (« Lagarde
-              seule », « Philippe seul »), sinon « Derrière Philippe : Attal ; derrière Lisnard : Retailleau ».
-              Les options sont des choix exclusifs : en cocher une remplace les alliances testées actives par sa
-              combinaison. Ce n’est qu’un raccourci d’interface : les réglages gardent les alliances simples,
-              rien n’est saisi dans les données et la liste suit la synchronisation. Les options couvrent ainsi
-              toutes les hypothèses des sondages retenus qu’une combinaison d’alliances permet de décrire (un
-              test le vérifie sur les données).{' '}
-              {testedOptions(polls).length > 0
-                ? `Dans les sondages actuels : ${testedOptions(polls)
-                    .map((o) => `« ${o.label} »`)
-                    .join(', ')}.`
-                : 'Aucune hypothèse des sondages actuels ne donne d’option.'}
-            </p>
-            <p>
-              <strong>Alliances groupées estimées</strong> (hypothèses qu’aucun sondage ne teste) :{' '}
-              {polls.alliances
-                .filter((al) => al.grouped)
-                .map((al) => `« ${al.label} » (${al.description}, autour de ${cand(al.leader).name})`)
-                .join(' ; ')}
-              . Le leader est choisi par <strong>face-à-face</strong> : pour chaque paire de membres testée par au
-              moins 2 instituts distincts (dernier sondage de chaque institut), on compare la moyenne simple de
-              leurs scores dans les hypothèses qui les testent ensemble. Le membre qui gagne le plus de
-              face-à-face mène l’alliance ; à égalité, celui qui a la plus grande marge cumulée, puis le premier
-              membre. Seuls les scores mesurés comptent, jamais les scores imputés : le plus fort du groupe se
-              mesure là où ses membres sont testés ensemble, et les scores imputés des petits candidats rarement
-              testés (Lagarde, testée par un seul institut, reçoit un score dans les hypothèses de tous les autres)
-              sont exclus. Un petit candidat peut donc mener une alliance (Lisnard, testé par la plupart des
-              instituts). Si aucune paire n’est testée par au moins 2 instituts, repli : le candidat principal qui a
-              le plus d’intentions de vote dans la moyenne du jeu d’hypothèses par défaut (avant corrections) ; un
-              petit candidat ne mène alors que si le groupe ne compte que des petits candidats. Le leader est
-              recalculé à chaque synchronisation. L’alliance « Primaire de la droite et du centre » (Attal,
-              Retailleau, Lisnard ; Philippe n’y participe pas) en est un exemple. On peut aussi la simuler par une
-              combinaison d’alliances simples, « Attal rejoint Lisnard » avec « Retailleau rejoint Lisnard » : aucune
-              hypothèse ne la teste, car Philippe reste candidat au centre (règle du camp), elle n’est donc proposée
-              qu’avec l’option des alliances non évaluées, et elle est alors estimée. L’option testée par l’Ifop
-              (Attal derrière Philippe, Retailleau derrière Lisnard) s’affiche « Philippe au centre, Lisnard seul à
-              droite », d’après un jeu d’hypothèses des données. Aucun sondage ne teste ces alliances : elles sont toujours
-              estimées, comme les alliances non évaluées (reports des législatives 2024), pour chaque candidat
-              rallié. Un candidat ne rallie qu’une alliance : elles sont incompatibles avec une alliance qui
-              partage l’un de leurs membres sans le même leader.
-            </p>
-            <p>
-              Les hypothèses testées gardent la priorité : l’option ne change pas les sondages retenus. Ce sont
-              ceux qui testent la plus grande combinaison d’alliances actives testée par les sondeurs, comme sans
-              l’option (par exemple « Philippe seul » pour Attal rejoint Philippe) ; seules les autres alliances
-              actives, qu’aucune de leurs hypothèses ne permet, y sont estimées, après la moyenne et les
-              corrections.{' '}
-              {settings.untestedAlliances
-                ? 'L’option est activée dans le scénario en cours.'
-                : 'L’option n’est pas activée dans le scénario en cours.'}
-            </p>
-          </div>
-          {(settings.untestedAlliances || settings.groupedAlliances) && <AllianceRates result={result} />}
-          <div className="prose-method">
-            {result.allianceLeaks.length > 0 && (
-              <p>
-                Électeurs ralliés qui votent RN :{' '}
-                {result.allianceLeaks.map((l) => `${pct(l.points)} venus de ${cand(l.from).shortName}`).join(', ')},
-                ajoutés au score de {cand(result.allianceLeaks[0]!.to).shortName}.
-              </p>
-            )}
-            {result.entrants
-              .filter((e) => e.allianceIds.length > 0)
-              .map((e) => (
-                <p key={e.id}>
-                  <strong>{entrantLabel(e)}</strong> (alliance estimée) : {pct(shownScore(result, e))}, soit{' '}
-                  {e.members
-                    .map((m) => `${cand(m.candidateId).shortName} ${pct(m.contribution)} (poids ${num(m.weight, 2)})`)
-                    .join(' et ')}
-                  . Ces poids servent à mélanger les profils de reports au 2nd tour.
-                </p>
-              ))}
-          </div>
-        </Step>
-
-        <Step id="qualification" n={5} title="Qualification">
-          <div className="prose-method">
-            <p>
-              Les deux candidats en tête du 1er tour simulé sont qualifiés :{' '}
-              <strong>{entrantLabel(a)}</strong> ({pct(shownScore(result, a))}) et <strong>{entrantLabel(b)}</strong> (
-              {pct(shownScore(result, b))})
-              {result.entrants[2] && (
-                <>
-                  , devant {entrantLabel(result.entrants[2])} ({pct(shownScore(result, result.entrants[2]))})
-                </>
-              )}
-              . Quand l’écart entre le 2e et le 3e est inférieur à {num(TIGHT_QUALIFICATION_GAP, 0)} point,
-              bien moins que la marge d’erreur des sondages (de l’ordre de 2 à 3 points pour un échantillon de
-              1 000 personnes), la qualification est jugée serrée : les deux seconds tours possibles sont
-              simulés (1er contre 2e, 1er contre 3e) et un sélecteur permet d’afficher l’un ou l’autre.
-              {result.qualification.tight && result.qualification.withThird && (
-                <>
-                  {' '}
-                  C’est le cas ici (écart de {num(result.qualification.gap!, 2)} point) :{' '}
-                  {cand(result.qualification.withSecond.a).shortName}{' '}
-                  {pct(result.qualification.withSecond.pct.a)} contre{' '}
-                  {cand(result.qualification.withSecond.b).shortName}{' '}
-                  {pct(result.qualification.withSecond.pct.b)}, ou{' '}
-                  {cand(result.qualification.withThird.a).shortName}{' '}
-                  {pct(result.qualification.withThird.pct.a)} contre{' '}
-                  {cand(result.qualification.withThird.b).shortName}{' '}
-                  {pct(result.qualification.withThird.pct.b)}. Les étapes suivantes détaillent le second tour
-                  affiché.
-                </>
-              )}
-            </p>
-          </div>
-        </Step>
-
-        <Step id="reports" n={6} title="Reports de voix et calcul du 2nd tour">
-          <div className="prose-method">
-            <p>
-              Le 2nd tour applique les reports de voix mesurés au 2nd tour des{' '}
-              <strong>élections législatives de 2024</strong> par l’enquête Ipsos-Talan publiée par{' '}
-              <a href={transfers.sources.franceinfo.url} target="_blank" rel="noreferrer">
-                franceinfo le 07/07/2024
-              </a>
-              , source de référence. Deux articles reprenant la même enquête complètent certaines valeurs :{' '}
-              <a href={transfers.sources.publicsenat.url} target="_blank" rel="noreferrer">
-                Public Sénat
-              </a>{' '}
-              et{' '}
-              <a href={transfers.sources.lcp.url} target="_blank" rel="noreferrer">
-                LCP
-              </a>
-              .
-            </p>
-            <p>
-              Le type de duel détermine les taux : un candidat LFI face au RN (Mélenchon), un candidat PS,
-              écologiste ou PCF face au RN (Glucksmann, Tondelier, Roussel), un candidat Ensemble face au RN
-              (Philippe, Attal), un candidat LR face au RN (Retailleau). Pour une alliance estimée (option de
-              l’étape 4), on fait la moyenne des profils de ses membres, pondérée par leur poids.
-            </p>
-            <code className="formula">
-              voix du finaliste = Σ (électorat de chaque candidat × taux de report vers ce finaliste)
-            </code>
-            <code className="formula">
-              résultat = voix A ÷ (voix A + voix B), en % des suffrages exprimés
-            </code>
-            <p>
-              Le calcul part de l’électorat de chaque candidat au 1er tour simulé ; les électeurs d’un candidat
-              éliminé se reportent selon leur bloc. Le rallié d’une alliance testée par les sondeurs (étape 4) est
-              absent des hypothèses retenues : ses électeurs sont déjà répartis entre les autres candidats par les
-              sondés. Pour une alliance estimée, le calcul part de l’électorat <strong>avant alliance</strong> :
-              les électeurs d’un candidat rallié à un finaliste suivent le taux d’alliance (la part qui a suivi le
-              leader dès le 1er tour lui reste fidèle, la part qui a voté RN vote RN, et ceux qui se sont abstenus
-              se reportent comme les électeurs de leur bloc) ; une alliance estimée entre candidats éliminés ne
-              change pas le 2nd tour, seulement la qualification.
-            </p>
-            <p>
-              <strong>Seuls des taux mesurés en 2024 sont utilisés par défaut.</strong>{' '}
-              {transfers.completionRule}
-            </p>
-            <p>
-              Les électeurs des finalistes, de leurs alliés et du camp RN votent pour leur candidat à{' '}
-              {pct(sr.fidelity * 100, 0)} : c’est la seule hypothèse sans source des réglages par défaut,
-              modifiable dans les réglages.
-            </p>
-            <p>
-              Scénario en cours :{' '}
-              {sr.duel.kind === 'sourced'
-                ? `profil ${sr.duel.profileWeights.map((w) => `« ${profileLabel(w.profileId)} » (${pct(w.weight * 100, 0)})`).join(', ')}.`
-                : 'ce duel n’est couvert par aucune source, le modèle de repli s’applique (voir plus bas).'}{' '}
-              Le décompte des voix figure à l’étape 7.
-            </p>
           </div>
 
-          <ProvenanceLegend />
-          <Table caption="Taux de report par type de duel (en % de chaque électorat : finaliste / RN / blanc, nul ou abstention)">
-            <thead>
-              <tr className="border-b border-rule">
-                <th className={th}>Type de duel</th>
-                {BLOCS.map((bloc) => (
-                  <th key={bloc} className={th}>
-                    {BLOC_VOTERS[bloc]}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {transfers.profiles.map((p) => (
-                <tr key={p.id} className="border-b border-rule/60">
-                  <td className={`${td} font-medium`}>{p.label}</td>
-                  {BLOCS.map((bloc) => {
-                    const row = p.rows[bloc]
-                    return (
-                      <td key={bloc} className={`${td} whitespace-nowrap`} title={row.note}>
-                        <ProvenanceValue value={row.finalist} provenance={row.provenance.finalist} />
-                        {' / '}
-                        <ProvenanceValue value={row.rn} provenance={row.provenance.rn} />
-                        {' / '}
-                        <ProvenanceValue value={row.abstention} provenance={row.provenance.abstention} />
-                      </td>
-                    )
-                  })}
-                </tr>
-              ))}
-            </tbody>
-          </Table>
-          <details className="prose-method text-[0.95rem]">
-            <summary className="cursor-pointer font-sans text-sm font-medium text-ballpoint">
-              Justification de chaque ligne
-            </summary>
-            <div className="mt-3 space-y-3">
-              {transfers.profiles.map((p) => (
-                <div key={p.id}>
-                  <p className="font-sans text-sm font-semibold">{p.sourceDuel}</p>
-                  <ul className="mt-1 list-disc space-y-1 pl-5">
-                    {BLOCS.map((bloc) => (
-                      <li key={bloc}>
-                        <span className="font-medium">{BLOC_LABELS[bloc]} :</span> {p.rows[bloc].note}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              ))}
-            </div>
-          </details>
-          <div className="prose-method">
-            <p>
-              Les électorats sont regroupés en blocs :{' '}
-              {BLOCS.map(
-                (bloc) =>
-                  `${lowerFirst(BLOC_LABELS[bloc])} (${polls.candidates
-                    .filter((c) => c.bloc === bloc && !c.minor)
-                    .map((c) => c.shortName)
-                    .join(', ')})`,
-              ).join(', ')}
-              . Les chiffres des législatives portent sur des électorats de partis (NFP, Ensemble, LR) et sont
-              appliqués aux candidats de ces familles ; Zemmour et Dupont-Aignan sont rattachés au camp RN,
-              comme l’électorat « RN et alliés » de 2024.
-            </p>
-            {MINORS.length > 0 && (
-              <>
-                <h3>Électeurs des petits candidats</h3>
-                <p>
-                  Aucune enquête ne mesure le report des électeurs des petits candidats. Éliminés au 1er tour,
-                  ils se reportent comme les électeurs d’un ou plusieurs candidats principaux, selon des poids :
-                  une part se comporte comme l’électorat de Glucksmann, l’autre comme celui de Philippe, par
-                  exemple. Chaque part suit ainsi son candidat s’il est finaliste (fidélité de{' '}
-                  {pct(sr.fidelity * 100, 0)}) ou allié d’un finaliste, et sinon le report de son bloc. Ces poids
-                  sont des <strong>hypothèses</strong> fondées sur le positionnement de chaque candidat et sur
-                  les sources citées ; d’autres répartitions sont proposées dans les réglages.
-                </p>
-              </>
-            )}
-          </div>
-          {MINORS.length > 0 && (
-            <Table caption="Report des électeurs des petits candidats au 2nd tour (répartition du scénario en cours)">
+          <div className="grid gap-6 md:grid-cols-2">
+            <Table caption="Repères présidentiels Macron – Le Pen : enquêtes « jour du vote » 2017 et 2022">
               <thead>
                 <tr className="border-b border-rule">
-                  <th className={th}>Candidat</th>
-                  <th className={th}>Se reportent comme</th>
-                  <th className={th}>Justification</th>
-                  <th className={th}>Autres répartitions</th>
+                  <th className={th}>Électorat</th>
+                  <th className={`${th} text-right`}>2017 (Mac / RN / Abst)</th>
+                  <th className={`${th} text-right`}>2022 (Mac / RN / Abst)</th>
                 </tr>
               </thead>
               <tbody>
-                {MINORS.map((c) => {
-                  const chosen = minorTransfer(c, settings.minorTransfers)!
+                {(['gauche', 'centre', 'droite', 'extreme_droite'] as const).map((b) => {
+                  const r17 = transfers.presidentialCenterRn.elections['2017'][b]
+                  const r22 = transfers.presidentialCenterRn.elections['2022'][b]
                   return (
-                    <tr key={c.id} className="border-b border-rule/60">
-                      <td className={`${td} font-medium`}>{c.name}</td>
-                      <td className={td}>{transferLabel(chosen.parts)}</td>
-                      <td className={td}>
-                        {chosen.note}
-                        {chosen.sources?.map((src) => (
-                          <a key={src.url} href={src.url} className="link ml-1.5 text-xs" target="_blank" rel="noreferrer">
-                            {src.label}
-                          </a>
-                        ))}
+                    <tr key={b} className="border-b border-rule/60">
+                      <td className={td}>{BLOC_VOTERS[b]}</td>
+                      <td className={`${td} num text-right`}>
+                        {num(r17.finalist, 0)} / {num(r17.rn, 0)} / {num(r17.abstention, 0)}
                       </td>
-                      <td className={`${td} text-ink-2`}>
-                        {c.minor!.transfers
-                          .filter((t) => t !== chosen)
-                          .map((t) => `${t.label} (${transferLabel(t.parts)})`)
-                          .join(' ; ') || '—'}
+                      <td className={`${td} num text-right`}>
+                        {num(r22.finalist, 0)} / {num(r22.rn, 0)} / {num(r22.abstention, 0)}
                       </td>
                     </tr>
                   )
                 })}
               </tbody>
             </Table>
-          )}
-          <div className="prose-method">
-            <p>
-              <strong>Modèle de repli.</strong> {transfers.fallback.description} Abstention par bloc :{' '}
-              {BLOCS.map(
-                (bloc) => `${lowerFirst(BLOC_LABELS[bloc])} ${pct(transfers.fallback.abstention[bloc], 0)}`,
-              ).join(', ')}
-              .
-            </p>
+
+            <Table caption="Duels hors RN (gauche vs centre/droite) : présidentielles 2007 et 2012">
+              <thead>
+                <tr className="border-b border-rule">
+                  <th className={th}>Électorat</th>
+                  <th className={`${th} text-right`}>Gauche</th>
+                  <th className={`${th} text-right`}>Centre / Droite</th>
+                  <th className={`${th} text-right`}>Abst./BN</th>
+                </tr>
+              </thead>
+              <tbody>
+                {BLOCS.map((b) => {
+                  const r = transfers.nonRnPresidential.leftVsCenterRight[b]
+                  return (
+                    <tr key={b} className="border-b border-rule/60">
+                      <td className={td}>{BLOC_VOTERS[b]}</td>
+                      <td className={`${td} num text-right`}>{num(r.left)}</td>
+                      <td className={`${td} num text-right`}>{num(r.right)}</td>
+                      <td className={`${td} num text-right`}>{num(r.abstention)}</td>
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </Table>
           </div>
 
-          <div className="prose-method">
-            <h3 id="correction-reports">Option : corriger les reports d’après les votes réels de 2024</h3>
-            <p>
-              Les taux de report ci-dessus viennent d’une enquête Ipsos-Talan du jour du vote, c’est-à-dire d’un
-              sondage. On mesure son biais en le comparant aux votes réels de 2024 : pour chaque type de duel, une
-              régression écologique de Goodman sur les circonscriptions de la même base que l’abandon (étape 7)
-              estime ce que les électeurs de chaque bloc ont réellement fait. Pour chaque issue (finaliste, RN,
-              abandon), y = voix de l’issue au 2nd tour ÷ exprimés du 1er tour (abandon : 1 − exprimés du 2nd tour
-              ÷ exprimés du 1er tour), expliqué par les parts au 1er tour des quatre blocs (nuances non classées
-              avec la droite), aux moindres carrés sans constante et sans pondération. Erreurs types : s² = SCR ÷
-              (n − 4), multiplié par la diagonale de (X’X)⁻¹. L’option est{' '}
-              <strong>
-                {settings.transferCorrectionEnabled
-                  ? `activée, à ${pct(settings.transferCorrectionIntensity * 100, 0)} d’intensité`
-                  : 'désactivée'}
-              </strong>{' '}
-              dans le scénario en cours.
-            </p>
-          </div>
-          <Table caption="Reports de l’enquête Ipsos-Talan et votes réels de 2024 estimés (finaliste / RN / blanc, nul ou abstention, en %)">
+          <Table caption="Option déclarations 2027 (Harris / Odoxa) : valeurs brutes → après correction logit multinomial">
             <thead>
               <tr className="border-b border-rule">
-                <th className={th}>Type de duel</th>
-                <th className={th}>Électorat</th>
-                <th className={th}>Enquête Ipsos-Talan</th>
-                <th className={th}>Votes réels 2024 (± erreur type)</th>
-                <th className={th}>Corrigé ?</th>
+                <th className={th}>Profil / Électorat</th>
+                <th className={`${th} text-right`}>Brut (Fin / RN / Abst)</th>
+                <th className={`${th} text-right`}>Corrigé logit (Fin / RN / Abst)</th>
               </tr>
             </thead>
             <tbody>
-              {transfers.profiles.flatMap((p) =>
-                BLOCS.map((bloc) => {
-                  const profile = dropoutData.legislatives2024.profiles[p.id]
-                  const est = actualTransfers(profile)[bloc]
-                  const fixed = correctedTransfer(transfers, dropoutData, p.id, bloc, 1)
-                  const row = p.rows[bloc]
-                  const f = (v: number) => num(v, 1)
+              {PROFILE_IDS.flatMap((pid) =>
+                (['gauche', 'centre', 'droite'] as const).map((b) => {
+                  const raw = declaredTransfers.profiles[pid][b]
+                  const corr = correctDeclaredRowLogit(raw, declaredTransfers.logitCorrection)
                   return (
-                    <tr key={`${p.id}-${bloc}`} className="border-b border-rule/60">
-                      <td className={td}>{bloc === 'gauche' ? DUEL_KIND[p.id] : ''}</td>
-                      <td className={td}>{BLOC_VOTERS[bloc]}</td>
-                      <td className={`${td} num whitespace-nowrap`}>
-                        {f(row.finalist)} / {f(row.rn)} / {f(row.abstention)}
-                      </td>
-                      <td className={`${td} num whitespace-nowrap`}>
-                        {f(est.estimate.finalist)} ± {f(est.se.finalist)} / {f(est.estimate.rn)} ± {f(est.se.rn)} /{' '}
-                        {f(est.estimate.abstention)} ± {f(est.se.abstention)}
-                      </td>
+                    <tr key={`${pid}-${b}`} className="border-b border-rule/60">
                       <td className={td}>
-                        {fixed ? 'oui' : profile.finalistBlocs.includes(bloc) ? 'non : bloc du duel' : 'non'}
+                        {pid.replace(/_/g, ' ')} · {BLOC_VOTERS[b]}
+                      </td>
+                      <td className={`${td} num text-right text-ink-3`}>
+                        {num(raw.finalist, 0)} / {num(raw.rn, 0)} / {num(raw.abstention, 0)}
+                      </td>
+                      <td className={`${td} num text-right font-medium`}>
+                        {num(corr.finalist, 1)} / {num(corr.rn, 1)} / {num(corr.abstention, 1)}
                       </td>
                     </tr>
                   )
@@ -1700,617 +627,309 @@ export function Methodology({ result }: { result: SimulationResult }) {
               )}
             </tbody>
           </Table>
-          <div className="prose-method">
-            <p>
-              <strong>Quelles lignes sont corrigées, et pourquoi.</strong> Seules celles des blocs absents du duel en
-              2024 (hors blocs des finalistes). Les lignes du camp d’un finaliste mesurent surtout ses propres
-              électeurs, chaque camp n’ayant qu’un candidat au 1er tour en 2024 : elles gardent les valeurs de
-              l’enquête. Le report vers le finaliste opposé au RN des électeurs des autres blocs s’écarte nettement
-              de l’enquête : par exemple, au centre face à LFI, {num(actualRow(dropoutData.legislatives2024.profiles.lfi_rn, 'centre')?.finalist ?? 0, 1)} % pour
-              le finaliste en réalité contre {num(transfers.profiles.find((p) => p.id === 'lfi_rn')!.rows.centre.finalist, 0)} % selon l’enquête.
-            </p>
-            <code className="formula">
-              ligne corrigée = enquête + intensité × (réel − enquête), puis bornée à [0 ; 100] et ramenée à 100
-            </code>
-            <p>
-              Le réel est lui-même borné à [0 ; 100] puis ramené à 100 avant le calcul. Une surcharge saisie dans
-              les réglages reste prioritaire sur la correction ; les taux de ralliement des alliances, calculés
-              depuis les profils, utilisent les profils corrigés. Le mode « camps » de l’abandon (étape 7) reste en
-              place : la correction change surtout la répartition finaliste / RN des électeurs qui votent, et
-              l’abstention brute utilisée quand le calage est uniforme.
-            </p>
-            {result.secondRoundSensitivity?.uncorrected && (
-              <p>
-                <strong>Effet dans le scénario en cours.</strong> Sans la correction, {cand(result.secondRoundSensitivity.uncorrected.winner).shortName} l’emporterait avec{' '}
-                {pct(result.secondRoundSensitivity.uncorrected.score)} ; avec elle,{' '}
-                {cand(sr.pct.a >= sr.pct.b ? sr.a : sr.b).shortName} obtient {pct(Math.max(sr.pct.a, sr.pct.b))}.{' '}
-                {result.secondRoundSensitivity.uncorrected.winnerChanges
-                  ? 'Le vainqueur change : la mention « 2nd tour serré » le signale.'
-                  : 'Le vainqueur ne change pas.'}
-              </p>
-            )}
-            <p>
-              <strong>Limites.</strong>
-            </p>
-            <ul>
-              <li>
-                Inférence écologique : les comportements sont déduits d’agrégats. Des estimations sortent de [0 ;
-                100] à cause du bruit et des abstentionnistes du 1er tour qui votent au 2nd ; elles sont bornées
-                puis renormalisées.
-              </li>
-              <li>Élection législative : candidats locaux, désistements, contexte différent d’une présidentielle.</li>
-              <li>Régression non pondérée : chaque circonscription pèse 1.</li>
-              <li>Les erreurs types vont de 2 à 6 points : la correction est un ordre de grandeur, d’où l’intensité réglable.</li>
-            </ul>
-          </div>
         </Step>
 
-        <Step id="abstention" n={7} title="Blancs, nuls et abstention au 2nd tour">
+        {/* ÉTAPE 5 : FLUX BRUTS */}
+        <Step id="flux" n={5} title="Second tour unifié en flux bruts (% des inscrits)">
           <div className="prose-method">
             <p>
-              Le niveau global des votes blancs, nuls et de l’abstention au 2nd tour est une hypothèse{' '}
-              <strong>propre à chaque duel</strong>. Il se mesure en part des électeurs exprimés du 1er tour qui
-              ne s’expriment pas au 2nd (« abandon ») :
+              Le second tour est calculé directement en pourcentage des électeurs inscrits, sans recalibrage post-hoc par
+              camp ni soustraction uniforme sur les électorats de premier tour. Avec une participation au 1er tour{' '}
+              <em>P</em> ({pct(sr.participation, 1)} dans ce scénario), une part de blancs et nuls de{' '}
+              {pct(rates.bnShare * 100, 1)} des votants ({pct(sr.blankNull1, 1)} des inscrits) et{' '}
+              <em>E</em>₁ = {pct(sr.expressed1, 1)} d’exprimés au 1er tour :
             </p>
-            <code className="formula">abandon = 1 − exprimés du 2nd tour ÷ exprimés du 1er tour</code>
-            <p>
-              <strong>Règle de choix.</strong> Pour un duel que les reports de 2024 couvrent, l’abandon est celui
-              constaté aux législatives de 2024 dans les duels équivalents (même profil que les reports de
-              l’étape 6), pondéré par les poids du profil quand une alliance en mêle plusieurs, et{' '}
-              <strong>réparti entre électorats</strong> comme en 2024 (voir plus bas) : le total est alors un
-              résultat. Pour un duel sans RN (repli), c’est la moyenne simple des seconds tours présidentiels sans
-              FN ni RN, {listFr(NO_RN_YEARS.map(String))} : {pct(noRnDropout(dropoutData), 2)}, appliquée par un même
-              coefficient à tous les électorats. Un total saisi dans les réglages l’emporte et vaut pour tous les
-              duels : il est réparti comme en 2024 (mêmes rapports de taux, plafonné à la part de chaque électorat).
-              Le calage peut aussi être désactivé (taux bruts de 2024). Dans tous les cas, les exprimés de chaque
-              électorat gardent la répartition des reports de 2024.
+            <p className="font-mono text-sm">
+              V_A = E₁ · Σ x_c · π(c → A) + (100 − P) · a · q_A
             </p>
             <p>
-              Scénario en cours :{' '}
-              {sr.abstention.mode === 'none'
-                ? `calage désactivé, les taux bruts de 2024 donnent ${pct(sr.abstention.uncalibrated)} de blancs, nuls et abstentions.`
-                : sr.abstention.mode === 'uniform'
-                  ? `taux bruts de 2024 : ${pct(sr.abstention.uncalibrated)}, cible ${pct(sr.abstention.target!, 2)} (${settings.abstentionTarget === null ? `estimation pour ce duel : ${dropoutBasis(sr.duel)}` : 'choisie dans les réglages'}), coefficient ×${num(sr.abstention.factor, 2)}.`
-                  : `abandon de ${pct(sr.abstention.camps!.rates.camp * sr.abstention.factor)} pour ${
-                      sr.abstention.camps!.members.length > 0
-                        ? `les électeurs de ${listFr(sr.abstention.camps!.members.map((id) => cand(id).shortName))}`
-                        : 'les électeurs des camps des finalistes'
-                    } et de ${pct(sr.abstention.camps!.rates.others * sr.abstention.factor)} pour les autres non finalistes (${dropoutBasis(sr.duel)}${settings.abstentionTarget === null ? '' : `, total de ${pct(sr.abstention.total)} choisi dans les réglages`}), soit ${pct(sr.abstention.total, 2)} au total.`}{' '}
-              {cand(sr.a).shortName} obtient {num(sr.votes.a)} points et {cand(sr.b).shortName}{' '}
-              {num(sr.votes.b)} points sur 100 électeurs exprimés du 1er tour ; {num(sr.votes.abstention)}{' '}
-              votent blanc, nul ou s’abstiennent. D’où{' '}
-              <strong>
-                {cand(sr.a).shortName} {pct(sr.pct.a)}
-              </strong>{' '}
-              et{' '}
-              <strong>
-                {cand(sr.b).shortName} {pct(sr.pct.b)}
-              </strong>
-              .
+              Les finalistes bénéficient d’une fidélité différenciée ({transfers.fidelity.byCandidate.lepen?.loyal} %
+              pour Marine Le Pen, {transfers.fidelity.byCandidate.melenchon?.loyal} % pour Jean-Luc Mélenchon,{' '}
+              {transfers.fidelity.default.loyal} % par défaut, ajustable en mode uniforme dans les réglages), incluant
+              une faible part de reports croisés (1 à 2 %). Les électeurs des petits candidats non qualifiés suivent les
+              électorats de référence documentés et ajustables dans les réglages.
+            </p>
+            <p>
+              <strong>Abstentionnistes du 1er tour et couplage au front républicain :</strong> les abstentionnistes du
+              1er tour ({pct(sr.abstention1, 1)} des inscrits) reviennent voter valablement à hauteur de <em>a</em> ={' '}
+              {pct(settings.abstainerMobilization * 100, 0)} (repères : Ifop 2022 {pct(rates.rAbs * 100, 1)}, Insee
+              2017–2022 {rates.insee.map((y) => `${y.year} : ${pct(y.share, 1)}`).join(', ')}). Dans un duel face au RN,
+              leur orientation vers l’adversaire du RN n’est plus fixe : elle est ancrée au niveau 2022 (
+              <em>q</em>₂₀₂₂ = {pct(settings.abstainerAntiRnShare * 100, 0)}, contre 59 % mesurés par Ifop en 2022) puis
+              modulée par la force du front républicain du duel :
+            </p>
+            <p className="font-mono text-sm">
+              q_eff = 50 % + (q₂₀₂₂ − 50 %) × (F_duel / 75 %)
+            </p>
+            <p>
+              Elle revient ainsi à 50 / 50 si le front républicain est effacé (<em>F</em> = 0 %) ou dans un duel hors
+              RN. Sur le duel actuellement affiché ({cand(sr.a).shortName} – {cand(sr.b).shortName}), l’orientation
+              effective est de <strong className="num">{pct(sr.effectiveAbstainerAntiRnShare * 100, 1)}</strong> vers
+              l’adversaire du RN{sr.republicanFrontStrength !== null ? ` (F = ${pct(sr.republicanFrontStrength * 100, 0)})` : ''}.
+              L’abandon net équivalent ({pct(sr.netDropout, 1)}) résulte naturellement du bilan comptable.
             </p>
           </div>
-          <Table caption="Législatives de 2024 : abandon net dans les duels RN – autre camp, par type de duel">
-            <thead>
-              <tr className="border-b border-rule">
-                <th className={th}>Type de duel</th>
-                <th className={`${th} text-right`}>Circonscriptions</th>
-                <th className={`${th} text-right`}>Exprimés du 1er tour</th>
-                <th className={`${th} text-right`}>Exprimés du 2nd tour</th>
-                <th className={`${th} text-right`}>Abandon</th>
-              </tr>
-            </thead>
-            <tbody>
-              {(Object.keys(DUEL_KIND) as (keyof typeof DUEL_KIND)[]).map((id) => {
-                const p = dropoutData.legislatives2024.profiles[id]
-                const totals = profileTotals(p)
-                return (
-                  <tr key={id} className="border-b border-rule/60">
-                    <td className={td}>
-                      {p.label}
-                      <span className="block text-xs text-ink-3">{DUEL_KIND[id]}</span>
-                    </td>
-                    <td className={`${td} num text-right`}>{integer(p.constituencies.length)}</td>
-                    <td className={`${td} num text-right`}>{integer(totals.first)}</td>
-                    <td className={`${td} num text-right`}>{integer(totals.second)}</td>
-                    <td className={`${td} num text-right font-medium`}>{pct(profileDropout(p), 2)}</td>
-                  </tr>
-                )
-              })}
-            </tbody>
-          </Table>
-          <div className="prose-method">
-            <p>
-              Le profil vient de la nuance du candidat non RN (ministère de l’Intérieur). La nuance « UG »
-              ne distinguant pas LFI des autres partis de gauche, le parti du candidat de gauche est lu sur les
-              pages Wikipédia « Élections législatives de 2024 dans… » de chaque département.{' '}
-              {dropoutData.legislatives2024.unclassified.length} duels RN – gauche, surtout à La Réunion, n’ont
-              pas pu être classés et sont exclus. {dropoutData.legislatives2024.method}
-            </p>
-          </div>
-          <div className="prose-method">
-            <p>
-              <strong>De quel côté tombe l’abandon.</strong> L’abandon de 2024 ne touche pas tous les électorats
-              pareil. Une régression écologique (Goodman) sur les circonscriptions de chaque type de duel explique
-              l’abandon net y de chacune par la part x au 1er tour des blocs des deux finalistes et celle (1 − x)
-              des autres blocs, aux moindres carrés sans constante, chaque circonscription pesant 1 :
-            </p>
-            <code className="formula">y = taux des camps × x + taux des autres blocs × (1 − x)</code>
-            <p>
-              Les blocs des finalistes sont, en 2024, ceux du RN et de son adversaire (gauche pour les duels LFI et
-              gauche non LFI, centre, droite). Les valeurs brutes et leurs erreurs types (s² = SCR ÷ (n − 2), variances
-              = s² × diag((X’X)⁻¹)) sont dans le tableau ; pour le calcul, une estimation négative est ramenée à 0.
-            </p>
-          </div>
-          <Table caption="Abandon net par type d’électorat, régression sur les circonscriptions de 2024 (%, erreur type)">
-            <thead>
-              <tr className="border-b border-rule">
-                <th className={th}>Type de duel</th>
-                <th className={th}>Blocs des finalistes</th>
-                <th className={`${th} text-right`}>Camps des finalistes</th>
-                <th className={`${th} text-right`}>Autres blocs</th>
-              </tr>
-            </thead>
-            <tbody>
-              {(Object.keys(DUEL_KIND) as (keyof typeof DUEL_KIND)[]).map((id) => {
-                const p = dropoutData.legislatives2024.profiles[id]
-                const e = campDropout(p)
-                return (
-                  <tr key={id} className="border-b border-rule/60">
-                    <td className={td}>{DUEL_KIND[id]}</td>
-                    <td className={td}>{p.finalistBlocs.map((b) => BLOC_LABELS[b]).join(' + ')}</td>
-                    <td className={`${td} num text-right`}>
-                      {pct(e.camp.value, 2)} ({num(e.camp.se, 2)})
-                    </td>
-                    <td className={`${td} num text-right`}>
-                      {pct(e.others.value, 2)} ({num(e.others.se, 2)})
-                    </td>
-                  </tr>
-                )
-              })}
-            </tbody>
-          </Table>
-          <div className="prose-method">
-            <p>
-              <strong>Lecture.</strong> L’abandon tombe sur les blocs absents du duel : les électeurs des camps des
-              finalistes s’abstiennent à peine (estimations proches de 0, parfois négatives), ceux des autres blocs
-              beaucoup plus. Avant, le modèle appliquait un même coefficient à tous les électorats et faisait
-              abandonner 15 % de la gauche non LFI dans un duel Le Pen – Mélenchon ; la répartition de 2024 donne{' '}
-              {pct(campDropout(dropoutData.legislatives2024.profiles.lfi_rn).camp.value, 1)} pour les camps des
-              finalistes.
-            </p>
-            <p>
-              <strong>Application.</strong> Les électeurs d’un finaliste (et de ses alliés) gardent leurs taux de
-              report. Parmi les autres électorats, ceux dont le <em>bloc</em> est celui d’un membre de l’un des deux
-              finalistes prennent le taux des camps des finalistes ; les autres blocs prennent le taux des autres
-              blocs. Dans Le Pen – Mélenchon, la gauche non LFI et l’extrême droite non finaliste sont au taux du
-              camp, le centre et la droite à celui des autres blocs. Les exprimés de chaque électorat gardent la
-              répartition brute des reports.
-            </p>
-            <p>
-              <strong>Variante structurelle.</strong> Le même duel est aussi calculé en réservant le taux du camp
-              aux électorats de la <em>famille</em> d’un finaliste (candidats de même profil de duel qu’un membre
-              d’un finaliste, et extrême droite face à un finaliste RN) : les électeurs des autres candidats de
-              gauche s’abstiennent alors autant que ceux du centre et de la droite. Comme les variantes 2017 et
-              2022, elle n’est citée sous le duel (« 2nd tour serré ») que si elle change le vainqueur.
-              {result.secondRoundSensitivity?.structural &&
-                ` Scénario en cours : abandon total ${pct(result.secondRoundSensitivity.structural.total, 2)}, ${cand(sr.a).shortName} ${pct(result.secondRoundSensitivity.structural.pct.a)} et ${cand(sr.b).shortName} ${pct(result.secondRoundSensitivity.structural.pct.b)}.`}
-            </p>
-            <p>
-              <strong>Limites de cette répartition.</strong>
-            </p>
-            <ul>
-              <li>
-                Inférence écologique : les comportements sont déduits d’agrégats par circonscription, pas mesurés
-                sur des individus.
-              </li>
-              <li>Les estimations négatives sont ramenées à 0 pour le calcul.</li>
-              <li>
-                En 2024, chaque camp n’avait qu’un candidat au 1er tour (candidat unique du Nouveau Front populaire à
-                gauche) : le taux du camp mesure donc surtout le comportement des propres électeurs du finaliste.
-                L’appliquer aux électeurs d’un autre candidat du même bloc est une extrapolation, d’où la variante
-                structurelle ci-dessus.
-              </li>
-              <li>La régression est non pondérée : chaque circonscription pèse 1, quelle que soit sa taille.</li>
-            </ul>
-          </div>
-          <Table caption="Seconds tours présidentiels de 2002 à 2022 : abandon net, pour comparaison">
+
+          <Table caption="Repères historiques : participation au 1er tour et abandon net entre les deux tours (2002–2022)">
             <thead>
               <tr className="border-b border-rule">
                 <th className={th}>Scrutin</th>
                 <th className={th}>Duel</th>
-                <th className={`${th} text-right`}>Participation au 1er tour</th>
-                <th className={`${th} text-right`}>Exprimés du 1er tour</th>
-                <th className={`${th} text-right`}>Exprimés du 2nd tour</th>
-                <th className={`${th} text-right`}>Abandon</th>
+                <th className={`${th} text-right`}>Participation T1</th>
+                <th className={`${th} text-right`}>Abandon net (1 − E₂/E₁)</th>
               </tr>
             </thead>
             <tbody>
-              {PRESIDENTIAL_ROWS.map((row) => (
-                <tr key={row.year} className="border-b border-rule/60">
-                  <td className={td}>{row.year}</td>
-                  <td className={td}>{row.duel}</td>
-                  <td className={`${td} num text-right`}>{pct(row.turnout, 1)}</td>
-                  <td className={`${td} num text-right`}>{integer(row.first)}</td>
-                  <td className={`${td} num text-right`}>{integer(row.second)}</td>
-                  <td className={`${td} num text-right font-medium`}>{pct(row.dropout, 2)}</td>
+              {PRESIDENTIAL_ROWS.map((r) => (
+                <tr key={r.year} className="border-b border-rule/60">
+                  <td className={`${td} num font-medium`}>{r.year}</td>
+                  <td className={td}>{r.duel}</td>
+                  <td className={`${td} num text-right`}>{pct(r.turnout, 1)}</td>
+                  <td className={`${td} num text-right`}>{pct(r.dropout, 2)}</td>
                 </tr>
               ))}
             </tbody>
           </Table>
-          <p className="text-sm text-ink-3">
-            Sources :{' '}
-            {[...dropoutData.legislatives2024.sources, ...PRESIDENTIAL_ROWS.flatMap((r) => r.sources)].map((src, i, all) => (
-              <span key={src.url}>
-                <a href={src.url} className="link" target="_blank" rel="noreferrer">
-                  {src.label}
-                </a>
-                {i === all.length - 1 ? '.' : ', '}
-              </span>
-            ))}
-          </p>
+        </Step>
+
+        {/* ÉTAPE 6 : MONTE-CARLO & BACKTEST */}
+        <Step id="validation" n={6} title="Incertitude Monte-Carlo et validation historique">
           <div className="prose-method">
             <p>
-              <strong>Pourquoi 2024.</strong> Les législatives de 2024 ont eu lieu dans un contexte de risque RN
-              élevé et de forte participation, comparable à celui d’un 2nd tour avec le RN en 2027. Les seconds
-              tours présidentiels entre candidats acceptables (
-              {PRESIDENTIAL_ROWS.filter((r) => NO_RN_YEARS.includes(r.year))
-                .map((r) => `${r.year} : ${pct(r.dropout, 1)}`)
-                .join(', ')}
-              ) sont du même ordre que les duels RN – centre ou droite de 2024 : une forte participation au 1er
-              tour ne crée pas à elle seule d’abandon.
-            </p>
-            <p>
-              <strong>Pourquoi pas 2002.</strong> Le 2nd tour de 2002 (
-              {pct(PRESIDENTIAL_ROWS.find((r) => r.year === 2002)?.dropout ?? 0, 1)}, un abandon négatif : plus
-              d’exprimés au 2nd tour qu’au 1er) partait d’un 1er tour à faible participation (
-              {pct(PRESIDENTIAL_ROWS.find((r) => r.year === 2002)?.turnout ?? 0, 1)}), un réservoir d’électeurs
-              que 2027 n’aura pas si la participation attendue est élevée.
-            </p>
-            <p>
-              <strong>Lecture.</strong> La mobilisation contre le RN fait baisser l’abandon face au centre, à la
-              droite ou à une gauche non LFI, mais pas face à LFI : {pct(profileDropout(dropoutData.legislatives2024.profiles.lfi_rn), 2)}, proche
-              des {pct(secondRoundDropout(reference2022), 2)} de 2022. Une partie des électeurs du centre et de la
-              droite refuse de choisir, ce qui concorde avec les profils de reports (étape 6) : 43 % des électeurs
-              Ensemble vers LFI contre 54 % vers un candidat PS ou écologiste.
-            </p>
-            <p>
-              <strong>Sensibilité.</strong> Le calage compte beaucoup quand le duel est serré. Le même duel est
-              donc aussi calculé avec l’abandon du 2nd tour de 2017 ({pct(secondRoundDropout(reference2017), 2)}) puis
-              de 2022 ({pct(secondRoundDropout(reference2022), 2)}), présidentielles récentes à risque RN plus faible, tout le reste égal.
-              Seule la mention « 2nd tour serré », sous le résultat, signale celles de ces variantes qui
-              changent le vainqueur, y compris quand la cible est saisie dans les réglages : le résultat
-              affiché ne doit pas être lu comme acquis.
-              {result.secondRoundSensitivity &&
-                ` Scénario en cours : avec 2017 (${pct(result.secondRoundSensitivity.variants[2017].target, 2)}), ${cand(sr.a).shortName} ${pct(result.secondRoundSensitivity.variants[2017].pct.a)} et ${cand(sr.b).shortName} ${pct(result.secondRoundSensitivity.variants[2017].pct.b)} ; avec 2022 (${pct(result.secondRoundSensitivity.variants[2022].target, 2)}), ${pct(result.secondRoundSensitivity.variants[2022].pct.a)} et ${pct(result.secondRoundSensitivity.variants[2022].pct.b)}. ${result.secondRoundSensitivity.winnerChanges ? 'Le vainqueur change.' : 'Le vainqueur ne change pas.'}`}
-            </p>
-            <p>
-              <strong>Limites.</strong>
+              À {distance(result.monteCarlo.daysToElection)} du 1er tour, le premier risque d’erreur n’est pas la marge
+              d’échantillonnage d’un sondage (±2 pts), mais l’évolution de la campagne électorale et la variabilité des
+              reports (en particulier la tenue réelle du front républicain entre les deux tours). Le simulateur exécute{' '}
+              {integer(result.monteCarlo.iterations)} tirages déterministes (graine {result.monteCarlo.seed}) propageant
+              :
             </p>
             <ul>
               <li>
-                Une élection législative n’est pas une présidentielle : candidats locaux, désistements
-                circonscription par circonscription (le « front républicain »).
+                <strong>Chocs de campagne au 1er tour</strong> (distribution Student-t à 8 degrés de liberté en
+                log-ratio, écart-type total σ = {num(result.monteCarlo.sigmaLogit, 2)} à J−
+                {result.monteCarlo.daysToElection}, décroissant vers un plancher de 0,14 la dernière semaine) : choc de
+                bloc (50 % de la variance), transfert de vote utile intra-bloc à somme nulle (30 %) et choc propre par
+                candidat (20 %).
               </li>
               <li>
-                Le classement des partis de gauche s’appuie sur Wikipédia, et {dropoutData.legislatives2024.unclassified.length} duels
-                RN – gauche n’ont pas pu être classés.
+                <strong>Incertitude du 2nd tour</strong> : tirage Dirichlet (κ = 40, soit ±5 à 7 pts par ligne de
+                report), <strong>choc corrélé national sur la force réelle du front républicain</strong> (σ = 15 pts,
+                borné à ±35 pts, affectant simultanément les 4 profils face au RN et les nouveaux votants), poids
+                historique/2027 en mode mélange, participation (±5 pts), mobilisation (±4 pts) et orientation des
+                abstentionnistes, fidélité (±2,5 pts) et choc commun national (σ = 3,0 pts face au RN, 2,0 pts hors RN).
               </li>
               <li>
-                Les échantillons sont limités : {Object.values(dropoutData.legislatives2024.profiles).map((p) => p.constituencies.length).join(', ')}{' '}
-                circonscriptions selon le type de duel.
-              </li>
-              <li>L’estimation suppose que le contexte de 2024 se reproduise en 2027.</li>
-              <li>
-                2017 a connu un record de blancs et nuls (
-                {pct((100 * (reference2017.secondRound.blank + reference2017.secondRound.invalid)) / reference2017.secondRound.voters, 1)} des votants) :
-                son abandon, comme celui de 2022, sert seulement de variante de sensibilité.
+                <strong>Lisibilité visuelle honnête :</strong> toutes les barres de probabilités de victoire (« Issues
+                simulées ») et de scores du 1er tour (« Premier tour simulé / projeté ») sont affichées sur une{' '}
+                <strong>échelle fixe de 0 % à 100 %</strong> avec un repère discret à 50 %, afin qu’un candidat en tête
+                à 30 % ou à 65 % de probabilité de victoire n’apparaisse jamais artificiellement « plein ».
               </li>
             </ul>
-          </div>
-          <div className="prose-method">
             <p>
-              <strong>Écart historique des sondages de 2nd tour (affiché, jamais appliqué).</strong> Les sondages de
-              2nd tour publiés pour 2027 ne servent pas de référence au calcul. On mesure en revanche leur biais
-              passé : pour 2017 et 2022, on moyenne les sondages Macron – Le Pen dont la fin de terrain est à la
-              même distance du 1er tour que la base 2027 (± 20 jours), à défaut le plus proche, et on la compare au
-              résultat du 2nd tour. Écart = résultat − moyenne, pour le candidat opposé au RN.
-              {result.secondRoundPollBias.map((g) => (
-                <span key={g.year}>
-                  {' '}
-                  {g.year} :{' '}
-                  {g.nearest
-                    ? `aucun sondage dans la fenêtre, le plus proche (${g.nearest.institute}, ${date(g.nearest.end)}, J−${g.nearest.distance}) donne ${pct(g.estimate, 0)} pour ${pct(g.result, 2)} au résultat, soit ${pts(g.gap)}.`
-                    : `${g.pollCount} sondages, ${pct(g.estimate)} en moyenne pour ${pct(g.result, 2)} au résultat, soit ${pts(g.gap)}.`}
-                </span>
-              ))}{' '}
-              Ces écarts portent sur des duels Macron – Le Pen d’avant le 1er tour, pas sur le duel simulé ; ils sont
-              donnés pour information (
-              {simulationData.secondRoundPollBias.elections.map((e, i) => (
-                <span key={e.year}>
-                  {i > 0 && ', '}
-                  <a href={e.listSource.url} className="link" target="_blank" rel="noreferrer">
-                    {e.listSource.label}
-                  </a>
-                </span>
-              ))}
-              ).
+              <strong>Validation hors échantillon (backtest automatisé) :</strong> les quatre tableaux ci-dessous
+              évaluent la méthode sur les présidentielles de 2017 et 2022 et sur les 342 circonscriptions agrégées des
+              législatives 2024, sans aucun recalibrage sur les résultats testés.
             </p>
           </div>
-          <div className="prose-method">
-            <h4 id="nouveaux-votants" className="text-lg font-bold tracking-tight">
-              Nouveaux votants du 2nd tour
-            </h4>
-            <p>
-              Le graphique « Reports vers le second tour » montre des flux <strong>bruts</strong>, en % des
-              inscrits, qui incluent les nouveaux votants : des électeurs qui n’ont pas voté au 1er tour
-              (abstention, blanc ou nul) et votent au 2nd. <strong>Le résultat tenait déjà compte de ces
-              électeurs</strong> : l’abandon de l’étape 7 est un solde net, tiré des résultats officiels, où ils
-              sont comptés en déduction des départs. Seul l’affichage change ; le score des finalistes et le total
-              des exprimés du 2nd tour sont les mêmes.
-            </p>
-            <p>
-              <strong>Ce que mesurent les scrutins passés.</strong> Les nouveaux votants existent : l’Insee observe,
-              sur les listes d’émargement, des inscrits qui votent au 2nd tour sans avoir voté au 1er. Les votants
-              et les exprimés du tableau ne baissent que d’un solde net entre ces arrivées et les départs.
-            </p>
+
+          <div className="grid gap-6 lg:grid-cols-2">
+            <Table caption="1er tour — Dernière semaine (2017 et 2022) : sondages bruts vs correction croisée par ratio">
+              <thead>
+                <tr className="border-b border-rule">
+                  <th className={th}>Année</th>
+                  <th className={`${th} text-right`}>Sondages</th>
+                  <th className={`${th} text-right`}>RMSE brut</th>
+                  <th className={`${th} text-right`}>Écart max</th>
+                  <th className={`${th} text-right`}>RMSE ratio croisé</th>
+                </tr>
+              </thead>
+              <tbody>
+                {bt.firstRoundEve.map((r) => (
+                  <tr key={r.year} className="border-b border-rule/60">
+                    <td className={`${td} num font-medium`}>{r.year}</td>
+                    <td className={`${td} num text-right`}>{r.pollCount}</td>
+                    <td className={`${td} num text-right font-medium`}>{num(r.rawRmse, 2)} pts</td>
+                    <td className={`${td} num text-right`}>{num(r.rawMaxError, 2)} pts</td>
+                    <td className={`${td} num text-right text-ink-3`}>{num(r.crossCorrectedRmse, 2)} pts</td>
+                  </tr>
+                ))}
+              </tbody>
+            </Table>
+
+            <Table caption={`1er tour en campagne à J−${bt.daysBefore} (tous candidats inclus, sans biais d'omission)`}>
+              <thead>
+                <tr className="border-b border-rule">
+                  <th className={th}>Année</th>
+                  <th className={th}>Date cible</th>
+                  <th className={`${th} text-right`}>Instituts</th>
+                  <th className={`${th} text-right`}>RMSE brut</th>
+                  <th className={`${th} text-right`}>RMSE projeté</th>
+                  <th className={`${th} text-right`}>RMS logit</th>
+                </tr>
+              </thead>
+              <tbody>
+                {bt.firstRoundCampaign.map((r) => (
+                  <tr key={r.year} className="border-b border-rule/60">
+                    <td className={`${td} num font-medium`}>{r.year}</td>
+                    <td className={`${td} num`}>{date(r.targetDate)}</td>
+                    <td className={`${td} num text-right`}>{r.institutesUsed}</td>
+                    <td className={`${td} num text-right text-ink-3`}>{num(r.rmse, 2)} pts</td>
+                    <td className={`${td} num text-right font-medium`}>{num(r.projectedRmse, 2)} pts</td>
+                    <td className={`${td} num text-right`}>{num(r.empiricalLogitRms, 2)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </Table>
           </div>
-          <Table caption="Participation entre les deux tours : présidentielles de 2017 et de 2022, législatives de 2024">
+
+          <Table caption="2nd tour présidentiel (2017 et 2022, en connaissant le 1er tour réel) : score Macron (% exprimés) — modèle front républicain évalué à 100 % en 2017 et 75 % en 2022">
             <thead>
               <tr className="border-b border-rule">
-                <th className={th} />
-                <th className={`${th} text-right`}>2017</th>
-                <th className={`${th} text-right`}>2022</th>
-                <th className={`${th} text-right`}>
-                  Législatives 2024 ({newVoters.legislatives2024.constituencies} circonscriptions avec 2nd tour)
-                </th>
+                <th className={th}>Année</th>
+                <th className={`${th} text-right`}>Résultat réel</th>
+                <th className={`${th} text-right`}>Modèle 2024 seul</th>
+                <th className={`${th} text-right`}>Présidentielle croisée</th>
+                <th className={`${th} text-right`}>Modèle front républicain</th>
+                <th className={`${th} text-right`}>Sondages T2 à J−{bt.daysBefore}</th>
               </tr>
             </thead>
             <tbody>
-              <tr className="border-b border-rule/60">
-                <td className={td}>Votants T1 → T2</td>
-                {[reference2017, reference2022].map((ref) => (
-                  <td key={ref.electionDate} className={`${td} num text-right`}>
-                    {millions(ref.voters)} → {millions(ref.secondRound.voters)}
+              {bt.secondRoundPresidential.map((r) => (
+                <tr key={r.year} className="border-b border-rule/60">
+                  <td className={`${td} num font-medium`}>{r.year}</td>
+                  <td className={`${td} num text-right font-semibold`}>{pct(r.actualAntiRn, 2)}</td>
+                  <td className={`${td} num text-right`}>
+                    {pct(r.predLeg2024, 2)} ({pts(r.predLeg2024 - r.actualAntiRn, 1)})
                   </td>
-                ))}
-                <td className={`${td} num text-right`}>
-                  {millions(newVoters.legislatives2024.votersFirstRound)} →{' '}
-                  {millions(newVoters.legislatives2024.votersSecondRound)}
-                </td>
-              </tr>
-              <tr className="border-b border-rule/60">
-                <td className={td}>Exprimés T1 → T2</td>
-                {[reference2017, reference2022].map((ref) => (
-                  <td key={ref.electionDate} className={`${td} num text-right`}>
-                    {pct(-secondRoundDropout(ref), 1)}
+                  <td className={`${td} num text-right`}>
+                    {pct(r.predCrossPresidential, 2)} ({pts(r.predCrossPresidential - r.actualAntiRn, 1)})
                   </td>
-                ))}
-                <td className={`${td} num text-right`}>{pct(100 * (newVoters.legislatives2024.expressedSecondRound / newVoters.legislatives2024.expressedFirstRound - 1), 1)}</td>
-              </tr>
-              <tr className="border-b border-rule/60">
-                <td className={td}>Inscrits ayant voté au 2nd tour seulement (Insee)</td>
-                {[2017, 2022].map((year) => (
-                  <td key={year} className={`${td} num text-right`}>
-                    {pct(newVoters.insee.find((y) => y.year === year)?.secondOnly ?? 0, 1)}
+                  <td className={`${td} num text-right font-medium`}>
+                    {pct(r.predRepublicanFront, 2)} ({pts(r.predRepublicanFront - r.actualAntiRn, 1)})
                   </td>
-                ))}
-                <td className={`${td} text-right`}>—</td>
-              </tr>
+                  <td className={`${td} num text-right text-ink-3`}>
+                    {r.directPollsAtDistance !== null ? pct(r.directPollsAtDistance, 1) : '—'}
+                  </td>
+                </tr>
+              ))}
             </tbody>
           </Table>
-          <p className="text-sm text-ink-3">
-            Sources :{' '}
-            {[
-              reference2017.resultsSource,
-              reference2017.secondRound.source,
-              reference2022.resultsSource,
-              reference2022.secondRound.source,
-              ...newVoters.insee.map((y) => y.source),
-              ...newVoters.legislatives2024.sources,
-            ].map((src, i, all) => (
-              <span key={src.url}>
-                <a href={src.url} className="link" target="_blank" rel="noreferrer">
-                  {src.label}
-                </a>
-                {i === all.length - 1 ? '.' : ', '}
-              </span>
-            ))}{' '}
-            Champ de l’Insee : {newVoters.insee.map((y) => `${y.year} : ${y.scope}`).join(' ; ')}.{' '}
-            {newVoters.legislatives2024.note}
-          </p>
-          <div className="prose-method">
-            <p>
-              <strong>Part des abstentionnistes du 1er tour qui votent pour un finaliste (rAbs).</strong> Le
-              sondage Ifop-Fiducial du jour du vote du 2nd tour 2022 (
-              <a href={newVoters.ifop2022.source.url} className="link" target="_blank" rel="noreferrer">
-                {newVoters.ifop2022.source.label}
-              </a>
-              , {newVoters.ifop2022.source.pages}) donne, parmi les électeurs de chaque finaliste, la part qui
-              s’était abstenue au 1er tour :{' '}
-              {newVoters.ifop2022.abstainedFirstRound
-                .map((s) => `${pct(s.share, 0)} pour ${finalist2022Name(s.id)}`)
-                .join(', ')}
-              . Rapportée aux voix officielles du 2nd tour et aux abstentionnistes du 1er tour 2022 (inscrits −
-              votants) :
-            </p>
-            <code className="formula">
-              rAbs = (
-              {newVoters.ifop2022.abstainedFirstRound
-                .map((s) => `${pct(s.share, 0)} × voix de ${finalist2022Name(s.id)}`)
-                .join(' + ')}
-              ) ÷ abstentionnistes du 1er tour
-            </code>
-            <p>
-              soit {integer(Math.round(NEW_VOTER_RATES.finalistVotesFromAbstainers))} ÷{' '}
-              {integer(NEW_VOTER_RATES.abstainers2022)} ={' '}
-              <strong>{pct(NEW_VOTER_RATES.rAbs * 100, 2)}</strong>. L’Ifop arrondit ses parts à l’entier : avec ±{' '}
-              {num(newVoters.ifop2022.roundingMargin, 1)} point sur chacune, la fourchette va de{' '}
-              {num(NEW_VOTER_RATES.rAbsRange.min * 100, 1)} à {pct(NEW_VOTER_RATES.rAbsRange.max * 100, 1)}. Le taux
-              est calculé à partir des données, jamais saisi. La part des blancs et nuls parmi les votants du 1er
-              tour 2022, <code>bnShare</code>, se calcule de même : (votants − exprimés) ÷ votants ={' '}
-              {pct(NEW_VOTER_RATES.bnShare * 100, 2)}.
-            </p>
-            <p>
-              <strong>Contrôle Insee.</strong> Sur les listes d’émargement, la part des inscrits absents au 1er tour
-              qui votent au 2nd (blancs et nuls compris) est de{' '}
-              {NEW_VOTER_RATES.insee.map((y) => `${pct(y.share, 1)} en ${y.year}`).join(' et ')} (votants du 2nd tour
-              seulement ÷ inscrits qui n’ont pas voté au 1er tour). Elle est plus haute que rAbs : elle compte aussi
-              les blancs et nuls du 2nd tour, et son champ et sa source diffèrent de ceux de l’Ifop (sondage,
-              parts arrondies). Les données disponibles n’expliquent pas tout l’écart : rAbs peut sous-estimer les
-              nouveaux votants, et doit se lire comme une estimation prudente.
-            </p>
-            <p>
-              <strong>Règle de répartition de repli.</strong> Les nouveaux votants se répartissent entre les deux
-              finalistes <em>comme l’ensemble des votants du 2nd tour</em>, pour n’importe quel duel. En 2022, c’est
-              ce que mesure l’Ifop :{' '}
-              {pct(newVoters.ifop2022.abstainersVote[0]!.share, 0)} pour{' '}
-              {finalist2022Name(newVoters.ifop2022.abstainersVote[0]!.id)} chez les abstentionnistes du 1er tour,
-              contre {pct(newVoters.ifop2022.allVotersVote[0]!.share, 1)} au total. Aucune mesure n’existe pour un
-              autre duel : la règle ne dépend d’aucun réglage.
-            </p>
-            <p>
-              <strong>Taux de départ uniforme.</strong> Soit P la participation au 1er tour (% des inscrits). Les
-              abstentionnistes sont 100 − P, les blancs et nuls P × bnShare, les exprimés E1 = P − P × bnShare, et k
-              = E1 ÷ 100 convertit les points du résultat en % des inscrits. Les nouveaux votants sont N = rAbs × (100 − P),
-              et les exprimés du 2nd tour X = (A + B) × k, où A et B sont les voix des finalistes en points des
-              électeurs du 1er tour. Chaque électorat reçoit le même taux de départ ajouté u = N ÷ X :
-            </p>
-            <code className="formula">voix de F chez un électorat = point × k × (1 − u)</code>
-            <p>
-              Les nouveaux votants apportent N × A ÷ (A + B) voix à A (de même pour B). Le total de A est donc k × A × (1 − u)
-              + N × A ÷ (A + B) = k × A − k × A × N ÷ X + N × A ÷ (A + B), et comme X = (A + B) × k, les deux derniers
-              termes s’annulent : <strong>A reste égal à k × A, et B à k × B</strong>. Le score
-              A ÷ (A + B), comme le total des exprimés du 2nd tour, ne change pas. Les départs ajoutés (A + B) × k × u
-              s’ajoutent à ceux qui ne s’expriment pas : l’ensemble des flux totalise 100 % des inscrits.
-            </p>
-            <p>
-              Scénario en cours : P = {pct(gross.participation)}, abstentionnistes du 1er tour{' '}
-              {pct(gross.abstention1)}, blancs et nuls {pct(gross.blankNull1)}, nouveaux votants{' '}
-              {pct(gross.newVoters)}, taux de départ ajouté u = {pct(gross.addedDeparture * 100)}, ceux qui ne
-              s’expriment pas {pct(gross.totals.nonExpressed)}, exprimés du 2nd tour {pct(gross.expressed2)} des
-              inscrits.
-            </p>
-            <p>
-              <strong>Limite : les votants blancs ou nuls du 1er tour.</strong> {newVoters.blankNullNote} Le
-              graphique les dirige vers un nœud « Non mesuré » : s’ils votent pour un finaliste, les départs des
-              électeurs du 1er tour sont sous-estimés d’autant (au plus {pct(gross.blankNull1)} des inscrits dans le
-              scénario en cours). Le panel Cevipof ENEF 2022 pourrait lever cette limite.
-            </p>
-          </div>
+
+          <Table caption="Contrôle de cohérence agrégé sur les 342 duels des législatives 2024 (enquête Ipsos-Talan brute vs urnes)">
+            <thead>
+              <tr className="border-b border-rule">
+                <th className={th}>Type de duel</th>
+                <th className={`${th} text-right`}>Circos</th>
+                <th className={`${th} text-right`}>Finaliste réel</th>
+                <th className={`${th} text-right`}>Prédit (Ipsos brut)</th>
+                <th className={`${th} text-right`}>Écart</th>
+                <th className={`${th} text-right`}>Abandon net réel</th>
+              </tr>
+            </thead>
+            <tbody>
+              {bt.legislatives2024Coherence.map((r) => (
+                <tr key={r.profileId} className="border-b border-rule/60">
+                  <td className={td}>{r.label}</td>
+                  <td className={`${td} num text-right`}>{r.constituenciesCount}</td>
+                  <td className={`${td} num text-right font-medium`}>{pct(r.actualFinalistPct, 2)}</td>
+                  <td className={`${td} num text-right`}>{pct(r.predictedFinalistPct, 2)}</td>
+                  <td className={`${td} num text-right`}>{pts(r.gapPts, 2)}</td>
+                  <td className={`${td} num text-right text-ink-3`}>{pct(r.actualNetDropout, 2)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </Table>
         </Step>
 
-        <section
-          id="limites"
-          aria-labelledby="limits-title"
-          className="scroll-mt-6 border-t border-rule pt-8"
-        >
-          <h3 id="limits-title" className="text-xl font-bold tracking-tight">
-            Limites et précautions
+        {/* LIMITES ET SOURCES */}
+        <section id="limites" aria-labelledby="limites-title" className="scroll-mt-6 border-t border-rule pt-8">
+          <h3 id="limites-title" className="text-xl font-bold tracking-tight">
+            Limites, non-réponses et sources
           </h3>
-          <ul className="prose-method mt-4 list-disc space-y-2 pl-5">
-            <li>
-              Cette page est une <strong>simulation</strong> fondée sur des sondages publiés et sur des
-              hypothèses. Ce n’est ni un sondage ni une prévision.
-            </li>
-            <li>
-              Les reports des législatives de 2024 ont été mesurés dans un contexte de désistements et de «
-              front républicain » circonscription par circonscription. La simulation est nettement plus
-              favorable aux adversaires du RN que les sondages directs de 2nd tour, affichés en repère à côté
-              du résultat. Ces sondages ne portent que sur les « votants décidés » : à six mois du scrutin,{' '}
-              {NO_INTENTION ? range(NO_INTENTION.min, NO_INTENTION.max) : 'une part importante'} des personnes
-              interrogées, selon les instituts et les duels, n’expriment aucun choix entre les deux candidats
-              (indécis, vote blanc ou nul et abstention compris), alors qu’au 2nd tour de 2022 et de 2017, seuls{' '}
-              {pct(secondRoundDropout(reference2022), 2)} et {pct(secondRoundDropout(reference2017), 2)} des
-              électeurs exprimés au 1er tour ne se sont pas exprimés au 2nd.
-              {NO_INTENTION && (
-                <>
-                  {' '}
-                  La fourchette va de la part la plus basse à la plus haute des {NO_INTENTION.polls.length} duels du
-                  tableau ci-dessous, lue dans la notice ou le rapport de chaque institut. La base diffère : l’ensemble
-                  des inscrits interrogés ({institutesOf('inscrits')}) ou les seuls inscrits comptant voter (
-                  {institutesOf('votants')}), les autres n’étant pas interrogés
-                  sur leur choix, ce qui abaisse la part.
-                  {COMPUTED.length > 0 &&
-                    ` ${listFr(COMPUTED)} ne ${COMPUTED.length > 1 ? 'publient' : 'publie'} pas cette part telle quelle : elle est calculée d’après la notice (≈, détail du calcul dans le tableau).`}
-                  {UNDECIDED.length > 0 &&
-                    ` Seul${UNDECIDED.length > 1 ? 's' : ''} ${listFr(UNDECIDED)} ${UNDECIDED.length > 1 ? 'distinguent' : 'distingue'} les indécis (« ne sait pas ») du vote blanc ou nul ; les autres instituts ne proposent pas cette réponse ou n’en publient pas le score à part.`}
-                  <details className="mt-2 font-sans text-sm">
-                    <summary className="cursor-pointer font-medium text-ballpoint">
-                      Part sans intention de vote, duel par duel
-                    </summary>
-                    <div className="mt-2">
-                      <Table>
-                        <thead>
-                          <tr className="border-b border-rule">
-                            <th className={th}>Institut</th>
-                            <th className={th}>Terrain</th>
-                            <th className={th}>Duel publié</th>
-                            <th className={th}>Sans intention de vote</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {NO_INTENTION.polls.map((p) => {
-                            const n = p.noIntention!
-                            return (
-                              <tr key={`${p.institute}-${p.fieldwork.end}-${Object.keys(p.scores).join('-')}`} className="border-b border-rule/60">
-                                <td className={td}>
-                                  <span className="font-medium text-ink">{p.institute}</span>
-                                  <a href={n.source.url} className="link mt-0.5 block text-xs" target="_blank" rel="noreferrer">
-                                    {n.source.label}
-                                  </a>
-                                </td>
-                                <td className={`${td} num whitespace-nowrap`}>{fieldwork(p.fieldwork)}</td>
-                                <td className={`${td} num`}>
-                                  {Object.entries(p.scores)
-                                    .map(([id, v]) => `${cand(id).shortName} ${pct(v, Number.isInteger(v) ? 0 : 1)}`)
-                                    .join(' – ')}
-                                </td>
-                                <td className={td}>
-                                  {noIntentionLabel(n)}
-                                  {n.calculation && (
-                                    <span className="mt-0.5 block text-xs text-ink-3">{n.calculation}</span>
-                                  )}
-                                </td>
-                              </tr>
-                            )
-                          })}
-                        </tbody>
-                      </Table>
-                    </div>
-                  </details>
-                </>
-              )}
-            </li>
-            <li>
-              Chaque sondage a une marge d’erreur et décrit l’opinion au moment de son terrain, à six mois du
-              scrutin. Les corrections de 2017 et 2022 supposent que les biais se répètent en moyenne, ce qui
-              n’est pas garanti : deux scrutins ne suffisent pas à distinguer un biais durable d’un accident.
-            </li>
-            <li>
-              Par défaut, seule la fidélité des électeurs des finalistes ({pct(sr.fidelity * 100, 0)}) ne
-              vient d’aucune source, ainsi que le modèle de repli, utilisé seulement pour un duel sans le RN.
-              Les taux repris d’un autre duel et le rattachement de Zemmour et Dupont-Aignan au camp RN sont
-              des choix de modélisation, signalés dans le tableau de l’étape 6.
-            </li>
-            {MINORS.length > 0 && (
-              <li>
-                Le score d’un petit candidat peut reposer sur un seul sondage. Les candidats auxquels il prend
-                ses points dans les hypothèses qui ne le testent pas sont lus dans les sondages, souvent dans
-                une seule paire d’hypothèses où d’autres candidats entrent avec lui : les points que ceux-ci
-                prennent (Attal à Philippe, par exemple) lui sont attribués aussi. Faute de paire, ils suivent
-                la répartition de ses électeurs, qui est une hypothèse (étape 6), comme leur report au 2nd tour.
-              </li>
+          <div className="prose-method mt-4">
+            <p>
+              <strong>Principales limites :</strong> l’offre de candidatures 2027 n’est pas arrêtée (des candidats
+              peuvent se retirer, fusionner ou apparaître) ; la projection temporelle reste une projection structurelle
+              conditionnelle qui ne peut pas anticiper un événement exogène de campagne ; l’intensité réelle du front
+              républicain en mai 2027 — en particulier dans un duel inédit comme LFI – RN — n’est pas observable avant
+              l’entre-deux-tours (d’où les curseurs par famille et le choc aléatoire corrélé dans Monte-Carlo) ; enfin,
+              le devenir au 2nd tour des votants blancs et nuls du 1er tour n’est mesuré par aucune enquête publique.
+            </p>
+            {NO_INTENTION && (
+              <p>
+                <strong>Part sans intention de vote dans les sondages directs de 2nd tour :</strong> selon les instituts
+                et les duels, {range(NO_INTENTION.min, NO_INTENTION.max)} des personnes interrogées n’expriment aucun
+                choix :
+              </p>
             )}
-            <li>
-              Le calage de l’abstention suppose une participation au 1er tour comparable à celle de 2017 et 2022.
-              L’option de participation attendue ne modifie que le 1er tour, sur un profil d’électeurs mesuré
-              par un seul sondage.
-            </li>
-            <li>
-              Les chiffres des sondages viennent de la liste des sondages de Wikipedia et ne sont pas
-              revérifiés dans les notices de la Commission des sondages (en lien pour chaque sondage, étape 1).
-            </li>
-          </ul>
+          </div>
+
+          {NO_INTENTION && (
+            <div className="mt-4">
+              <Table caption="Sondages directs de 2nd tour publiant la part sans intention de vote">
+                <thead>
+                  <tr className="border-b border-rule">
+                    <th className={th}>Institut</th>
+                    <th className={th}>Terrain</th>
+                    <th className={th}>Duel</th>
+                    <th className={th}>Sans intention de vote</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {NO_INTENTION.polls.map((p) => {
+                    const [c1, c2] = Object.keys(p.scores)
+                    return (
+                      <tr key={`${p.institute}-${p.fieldwork.end}-${c1}-${c2}`} className="border-b border-rule/60">
+                        <td className={`${td} font-medium`}>{p.institute}</td>
+                        <td className={`${td} num`}>{fieldwork(p.fieldwork)}</td>
+                        <td className={td}>
+                          {cand(c1!).shortName} – {cand(c2!).shortName}
+                        </td>
+                        <td className={td}>
+                          <a href={p.noIntention!.source.url} target="_blank" rel="noreferrer" className="link">
+                            {noIntentionLabel(p.noIntention!)}
+                          </a>
+                        </td>
+                      </tr>
+                    )
+                  })}
+                </tbody>
+              </Table>
+            </div>
+          )}
+
+          <div className="prose-method mt-6">
+            <h4 className="font-semibold text-ink">Sources principales</h4>
+            <ul>
+              {polls.collection.sources.map((s) => (
+                <li key={s.url}>
+                  <a href={s.url} target="_blank" rel="noreferrer" className="link">
+                    {s.label}
+                  </a>
+                </li>
+              ))}
+              <li>
+                <strong>Historique des vagues 2025–2027 ({pollHistory.polls.length} sondages archivés)</strong> —{' '}
+                {pollHistory.description}
+              </li>
+              {Object.values(transfers.sources)
+                .filter((s) => s.url)
+                .map((s) => (
+                  <li key={`${s.label}-${s.url}`}>
+                    <a href={s.url} target="_blank" rel="noreferrer" className="link">
+                      {s.label}
+                    </a>{' '}
+                    — {s.description}
+                  </li>
+                ))}
+              {declaredTransfers.sources.map((s) => (
+                <li key={s.url}>
+                  <a href={s.url} target="_blank" rel="noreferrer" className="link">
+                    {s.label}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </div>
         </section>
       </div>
     </article>
