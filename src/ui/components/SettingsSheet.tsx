@@ -2,34 +2,34 @@ import { useState } from 'react'
 import * as Dialog from '@radix-ui/react-dialog'
 import * as Tabs from '@radix-ui/react-tabs'
 import { simulationData } from '../../data/schema'
+import { effectiveProfiles, frontStrengthForProfile, minorTransfer } from '../../domain/transfers'
 import { BLOCS } from '../../domain/types'
-import type { Bloc, ProfileId, SimulationResult, TransferValues } from '../../domain/types'
+import type { Bloc, CandidateId, ProfileId, SimulationResult, TransferSource, TransferValues } from '../../domain/types'
 import { useSettings } from '../../state/settingsStore'
-import { BLOC_VOTERS, MINOR_CANDIDATES, cand, colorVars, transferLabel } from '../candidates'
-import { num, pct, pts, ratio } from '../format'
-import { referenceParts } from '../../domain/references'
-import { secondRoundDropout } from '../../domain/secondRound'
-import { minorTransfer } from '../../domain/transfers'
-import { AllianceRates } from './AllianceRates'
-import { AllianceSwitches, GroupedAlliancesSwitch, UntestedAlliancesSwitch } from './AllianceSwitches'
-import { Segmented, Slider, Switch, TextButton } from './controls'
-import { DROPOUT_ROWS, dropoutBasis } from '../dropout'
-import { correctedTransfer } from '../../domain/transferCorrection'
+import { BLOC_LABELS, BLOC_VOTERS, MINOR_CANDIDATES, cand, colorVars, transferLabel } from '../candidates'
+import { num, pct } from '../format'
 import { provenanceClass } from '../provenance'
+import { AllianceSwitches } from './AllianceSwitches'
 import { ProvenanceLegend } from './Provenance'
+import { RepublicanFrontControls } from './RepublicanFrontControls'
+import { Segmented, Slider, Switch, TextButton } from './controls'
 
-const { transfers } = simulationData
-const COMPOSITE = simulationData.polls.candidates.filter((c) => Array.isArray(c.ref2022) && c.ref2022.length === 2)
-const REF_NAMES = new Map(simulationData.reference2022.candidates.map((c) => [c.id, c.name]))
+export type SettingsTab = 'reports' | 'projection' | 'alliances'
+
+const { transfers, declaredTransfers } = simulationData
 
 export function SettingsSheet({
   open,
   onOpenChange,
   result,
+  tab = 'reports',
+  onTabChange,
 }: {
   open: boolean
   onOpenChange: (v: boolean) => void
   result: SimulationResult
+  tab?: SettingsTab
+  onTabChange?: (tab: SettingsTab) => void
 }) {
   const resetAll = useSettings((s) => s.resetAll)
   return (
@@ -39,7 +39,7 @@ export function SettingsSheet({
         <Dialog.Content className="fixed inset-y-0 right-0 z-50 flex w-full max-w-[36rem] flex-col bg-paper shadow-2xl focus:outline-none">
           <header className="flex items-start justify-between gap-4 border-b border-rule px-5 py-4">
             <div>
-              <Dialog.Title className="text-xl font-bold tracking-tight">Réglages</Dialog.Title>
+              <Dialog.Title className="text-xl font-bold tracking-tight">Réglages avancés</Dialog.Title>
               <Dialog.Description className="mt-0.5 text-sm text-ink-3">
                 Enregistrés dans ce navigateur. Les valeurs par défaut restent calculées à partir des sources.
               </Dialog.Description>
@@ -49,16 +49,22 @@ export function SettingsSheet({
             </Dialog.Close>
           </header>
 
-          <Tabs.Root defaultValue="corrections" className="flex min-h-0 flex-1 flex-col">
+          <Tabs.Root
+            value={tab}
+            onValueChange={(v) => onTabChange?.(v as SettingsTab)}
+            className="flex min-h-0 flex-1 flex-col"
+          >
             <Tabs.List aria-label="Catégories de réglages" className="flex gap-1 border-b border-rule px-5">
-              {[
-                ['corrections', 'Corrections'],
-                ['alliances', 'Alliances'],
-                ['reports', 'Reports et abstention'],
-              ].map(([v, l]) => (
+              {(
+                [
+                  ['reports', 'Reports et 2nd tour'],
+                  ['projection', 'Projection 1er tour'],
+                  ['alliances', 'Alliances'],
+                ] as const
+              ).map(([v, l]) => (
                 <Tabs.Trigger
                   key={v}
-                  value={v!}
+                  value={v}
                   className="-mb-px border-b-2 border-transparent px-2 py-2.5 text-sm font-medium text-ink-3 hover:text-ink data-[state=active]:border-ballpoint data-[state=active]:text-ink"
                 >
                   {l}
@@ -66,14 +72,14 @@ export function SettingsSheet({
               ))}
             </Tabs.List>
             <div className="min-h-0 flex-1 overflow-y-auto px-5 py-5">
-              <Tabs.Content value="corrections">
-                <CorrectionsPanel result={result} />
+              <Tabs.Content value="reports">
+                <TransfersEditor result={result} />
+              </Tabs.Content>
+              <Tabs.Content value="projection">
+                <ProjectionPanel result={result} />
               </Tabs.Content>
               <Tabs.Content value="alliances">
                 <AlliancesPanel result={result} />
-              </Tabs.Content>
-              <Tabs.Content value="reports">
-                <TransfersEditor result={result} />
               </Tabs.Content>
             </div>
           </Tabs.Root>
@@ -109,7 +115,7 @@ function NumberInput({
       type="number"
       inputMode="decimal"
       aria-label={label}
-      value={value === undefined ? '' : Number(value.toFixed(2))}
+      value={value === undefined ? '' : Number(value.toFixed(1))}
       placeholder={placeholder}
       min={min}
       max={max}
@@ -125,241 +131,370 @@ function NumberInput({
   )
 }
 
-function CorrectionsPanel({ result }: { result: SimulationResult }) {
-  const s = useSettings()
-  return (
-    <div className="space-y-5">
-      <p className="text-sm text-ink-2">
-        La correction par défaut vaut <em>moyenne × (écart estimé − 1) × intensité de la correction</em>, appliquée
-        aux sondages projetés si la progression comme en 2022 est activée. L’écart estimé combine, à poids égal, les
-        écarts entre derniers sondages et résultat de 2022 et de 2017 (2022 seul pour un candidat sans équivalent en
-        2017). Saisissez une valeur en points pour la remplacer ; videz le champ pour revenir au calcul.
-      </p>
-      <Switch
-        id="sheet-corrections"
-        checked={s.correctionsEnabled}
-        onCheckedChange={s.setCorrectionsEnabled}
-        label="Corriger la moyenne des sondages"
-      />
-      <div className="space-y-4 rounded-lg bg-sunken/60 p-4">
-        <p className="text-sm text-ink-2">
-          <span className="font-medium text-ink">Références pondérées.</span> L’écart estimé de ces candidats
-          mélange deux références de 2022 ; il sert à la correction et à la progression.
-        </p>
-        {COMPOSITE.map((c) => {
-          const [first, second] = referenceParts(c, s.referenceBlend[c.id])
-          const name = (id: string) => REF_NAMES.get(id) ?? id
-          return (
-            <div key={c.id}>
-              <p className="text-sm">
-                <span className="font-medium">{c.shortName}</span> : {name(first!.id)} {pct(first!.weight * 100, 0)},{' '}
-                {name(second!.id)} {pct(second!.weight * 100, 0)}
-                {s.referenceBlend[c.id] !== undefined && (
-                  <TextButton className="ml-2" onClick={() => s.setReferenceBlend(c.id, undefined)}>
-                    Rétablir
-                  </TextButton>
-                )}
-              </p>
-              <div className="mt-2">
-                <Slider
-                  label={`Poids de ${name(second!.id)} dans la référence de ${c.shortName}`}
-                  value={Math.round(second!.weight * 100)}
-                  onValueChange={(v) => s.setReferenceBlend(c.id, v / 100)}
-                  min={0}
-                  max={100}
-                  step={5}
-                />
-              </div>
-            </div>
-          )
-        })}
-      </div>
-      <table className="w-full text-sm">
-        <thead>
-          <tr className="border-b border-rule text-left text-ink-3">
-            <th className="py-1.5 font-medium">Candidat</th>
-            <th className="py-1.5 text-right font-medium">{s.progressionEnabled ? 'Projetée' : result.institutesUsed === 1 ? 'Sondage' : 'Moyenne'}</th>
-            <th className="py-1.5 text-right font-medium">Écart estimé</th>
-            <th className="py-1.5 text-right font-medium">Calculée</th>
-            <th className="py-1.5 text-right font-medium">Manuelle</th>
-          </tr>
-        </thead>
-        <tbody>
-          {result.firstRound.map((r) => {
-            const c = cand(r.candidateId)
-            const override = s.correctionOverrides[c.id]
-            return (
-              <tr key={c.id} className="border-b border-rule/70">
-                <td className="py-1.5">
-                  <span className="flex items-center gap-2">
-                    <span style={colorVars(c)} className="cand-fill h-2.5 w-2.5 rounded-full" />
-                    {c.shortName}
-                  </span>
-                </td>
-                <td className="num py-1.5 text-right">{pct(r.projected)}</td>
-                <td className="num py-1.5 text-right text-ink-2">{r.correctionRatio ? ratio(r.correctionRatio) : '—'}</td>
-                <td className="num py-1.5 text-right text-ink-2">{pts(r.defaultCorrection * r.correctionIntensity)}</td>
-                <td className="py-1 text-right">
-                  <NumberInput
-                    label={`Correction manuelle pour ${c.name}, en points`}
-                    value={override}
-                    placeholder={num(r.defaultCorrection * r.correctionIntensity)}
-                    onChange={(v) => s.setCorrectionOverride(c.id, v)}
-                    min={-30}
-                    max={30}
-                  />
-                </td>
-              </tr>
-            )
-          })}
-        </tbody>
-      </table>
-      <TextButton onClick={s.resetCorrections}>Rétablir les corrections calculées</TextButton>
-    </div>
-  )
-}
-
 function AlliancesPanel({ result }: { result: SimulationResult }) {
-  const untested = useSettings((s) => s.untestedAlliances)
-  const grouped = useSettings((s) => s.groupedAlliances)
   return (
     <div className="space-y-6">
-      <UntestedAlliancesSwitch id="sheet-untested-alliances" />
-      <GroupedAlliancesSwitch id="sheet-grouped-alliances" />
       <AllianceSwitches idPrefix="sheet-alliance" result={result} />
-      {grouped && (
-        <div className="space-y-3">
-          <p className="text-[0.95rem] font-medium">Alliances groupées</p>
-          <AllianceSwitches idPrefix="sheet-grouped" result={result} grouped />
-        </div>
-      )}
       <p className="text-sm text-ink-3">
-        Une alliance testée par les sondeurs retire le candidat rallié du 1er tour : on ne retient que les
-        hypothèses de sondage qui testent tous les autres candidats sans lui, et seuls les sondages qui en ont
-        une. Aucun taux de report n’est appliqué : ce sont les sondés qui répartissent ses électeurs. Une
-        alliance testée seulement avec une autre active les deux. Un candidat ne peut rallier qu’une alliance,
-        et un candidat rallié ne peut pas en mener une autre.
+        Une alliance testée par les sondeurs retire le candidat rallié du 1er tour : on retient les hypothèses où il est
+        absent et où son leader reste seul candidat principal de son camp. Aucun taux de report artificiel n’est
+        appliqué : ce sont les sondés eux-mêmes qui répartissent ses électeurs.
       </p>
-      {(untested || grouped) && (
-        <div className="space-y-4 border-t border-rule pt-5">
-          <div>
-            <p className="text-[0.95rem] font-medium">Report des voix du candidat rallié (alliances estimées)</p>
-            <p className="mt-0.5 text-sm text-ink-3">
-              Une alliance qu’aucun sondage ne teste est estimée : par défaut, taux constatés aux législatives
-              2024 après les désistements, les électeurs du candidat rallié se comportant comme leur électorat
-              dans les duels où un candidat de la famille du leader affrontait le RN. Le curseur règle la part
-              qui suit le leader ; le reste se répartit entre vote RN et abstention dans les proportions de
-              2024. Si le leader est au 2nd tour, ceux qui se sont abstenus au 1er tour se reportent alors comme
-              les électeurs de leur bloc.
-            </p>
-          </div>
-          <AllianceRates result={result} editable />
-        </div>
-      )}
     </div>
   )
 }
 
-function SecondRoundPanel({ result }: { result: SimulationResult }) {
+function ProjectionPanel({ result }: { result: SimulationResult }) {
   const s = useSettings()
-  const fidelity = s.fidelity ?? transfers.defaultFidelity
-  const target = s.abstentionTarget ?? result.secondRound.abstention.total
+  const proj = s.projection
+  const activeIds = result.firstRound.map((r) => r.candidateId)
+  const membersOf = (blocs: Bloc[]) =>
+    activeIds
+      .filter((id) => {
+        const b = cand(id).bloc
+        return b !== null && blocs.includes(b)
+      })
+      .sort((a, b) => {
+        const sa = result.firstRound.find((r) => r.candidateId === a)?.currentScore ?? 0
+        const sb = result.firstRound.find((r) => r.candidateId === b)?.currentScore ?? 0
+        return sb - sa
+      })
+
+  const polesToRender: {
+    key: 'gauche' | 'centre' | 'droite' | 'centre_droite' | 'extreme_droite'
+    label: string
+    blocs: Bloc[]
+    settingBloc: Bloc
+  }[] = proj.mergeCenterRight
+    ? [
+        { key: 'gauche', label: BLOC_LABELS.gauche, blocs: ['gauche'], settingBloc: 'gauche' },
+        { key: 'centre_droite', label: 'Centre + Droite', blocs: ['centre', 'droite'], settingBloc: 'centre' },
+        {
+          key: 'extreme_droite',
+          label: BLOC_LABELS.extreme_droite,
+          blocs: ['extreme_droite'],
+          settingBloc: 'extreme_droite',
+        },
+      ]
+    : BLOCS.map((b) => ({ key: b, label: BLOC_LABELS[b], blocs: [b], settingBloc: b }))
+
   return (
-    <div className="space-y-6 border-b border-rule pb-6">
-      <div>
-        <Switch
-          id="sheet-abstention"
-          checked={s.abstentionCalibration}
-          onCheckedChange={s.setAbstentionCalibration}
-          label={`Caler blancs, nuls et abstention : ${pct(target, 2)}`}
-          description={`Part des électeurs exprimés du 1er tour qui ne s’expriment pas au 2nd. Par défaut, estimation pour le duel en cours : ${pct(result.secondRound.abstention.total, 2)} (${dropoutBasis(result.secondRound.duel)}), répartie comme en 2024. Un total saisi ici est imposé et réparti de la même façon entre les électorats. Rappel : 2nd tour de 2017 ${pct(secondRoundDropout(simulationData.reference2017), 2)}, de 2022 ${pct(secondRoundDropout(simulationData.reference2022), 2)}. Désactivé : taux bruts des législatives 2024.`}
-        />
-        <div className="mt-3 pl-12">
-          <Slider
-            label="Blancs, nuls et abstention au 2nd tour"
-            value={target}
-            onValueChange={(v) => s.setAbstentionTarget(v)}
-            min={0}
-            max={25}
-            step={0.25}
-            disabled={!s.abstentionCalibration}
-          />
-          {s.abstentionTarget !== null && (
-            <TextButton className="mt-2" onClick={() => s.setAbstentionTarget(null)}>
-              Revenir à l’estimation par duel
-            </TextButton>
-          )}
+    <div className="space-y-5">
+      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-rule pb-4">
+        <div>
+          <p className="text-[0.95rem] font-medium text-ink">Horizon temporel du 1er tour</p>
+          <p className="mt-0.5 text-xs text-ink-3">
+            {proj.enabled
+              ? `Projection active jusqu’au 1er tour (J−${result.projection.daysRemaining}).`
+              : 'Photographie actuelle affichée. Activez la projection pour appliquer les réglages ci-dessous.'}
+          </p>
         </div>
-      </div>
-      <table className="w-full text-sm">
-        <caption className="pb-1 text-left text-ink-3">
-          Abandon net par type de duel (législatives 2024) : total, puis électeurs des blocs des finalistes et des
-          autres blocs (± erreur type)
-        </caption>
-        <thead>
-          <tr className="border-b border-rule text-ink-3">
-            <th className="py-1 text-left font-medium">Duel</th>
-            <th className="py-1 text-right font-medium">Total</th>
-            <th className="py-1 text-right font-medium">Camps</th>
-            <th className="py-1 text-right font-medium">Autres</th>
-          </tr>
-        </thead>
-        <tbody>
-          {DROPOUT_ROWS.map((row) => (
-            <tr key={row.label} className="border-b border-rule/60">
-              <td className="py-1">
-                {row.label}
-                {row.count !== null && <span className="block text-xs text-ink-3">{row.count} circonscriptions</span>}
-              </td>
-              <td className="num py-1 text-right font-medium">{pct(row.dropout, 2)}</td>
-              <td className="num py-1 text-right text-ink-3">
-                {row.camps ? `${pct(row.camps.camp.value)} ± ${num(row.camps.camp.se)}` : '—'}
-              </td>
-              <td className="num py-1 text-right text-ink-3">
-                {row.camps ? `${pct(row.camps.others.value)} ± ${num(row.camps.others.se)}` : '—'}
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-      <div>
-        <p className="text-[0.95rem] font-medium">Fidélité des électeurs des finalistes : {pct(fidelity * 100, 0)}</p>
-        <p className="mb-3 mt-0.5 text-sm text-ink-3">
-          Part des électeurs d’un finaliste, de ses alliés et du camp RN qui votent pour lui au 2nd tour.
-          Hypothèse par défaut : {pct(transfers.defaultFidelity * 100, 0)}.
-        </p>
-        <Slider
-          label="Fidélité des électeurs des finalistes"
-          value={fidelity * 100}
-          onValueChange={(v) => s.setFidelity(v / 100)}
-          min={70}
-          max={100}
-          step={1}
+        <Segmented<'now' | 'projected'>
+          label="Horizon temporel (réglages)"
+          value={proj.enabled ? 'projected' : 'now'}
+          onValueChange={(v) => s.setProjectionEnabled(v === 'projected')}
+          options={[
+            { value: 'now', label: 'Aujourd’hui' },
+            { value: 'projected', label: 'Projection avril 2027' },
+          ]}
         />
+      </div>
+
+      <div className="space-y-4">
+        <div className="flex items-center justify-between gap-2">
+          <p className="text-xs font-semibold uppercase tracking-wide text-ink-3">Vote utile par bloc</p>
+          <TextButton onClick={s.resetProjection}>Rétablir la projection</TextButton>
+        </div>
+
+        <Switch
+          id="sheet-merge-center-right"
+          checked={proj.mergeCenterRight}
+          onCheckedChange={s.setMergeCenterRight}
+          label="Regrouper centre et droite (scénario type 2022)"
+          description="Si activé, le vote utile concentre centre et droite vers un seul pivot (cible 65 %) ; sinon les 4 blocs se consolident séparément."
+        />
+
+        <div className="space-y-2.5">
+          {polesToRender.map(({ key, label, blocs, settingBloc }) => {
+            const stat = result.projection.poles.find((p) => p.pole === key)
+            const members = membersOf(blocs)
+            const autoLeader = members[0]
+            const uv = proj.usefulVote[settingBloc]
+            const intensity =
+              proj.mergeCenterRight && key === 'centre_droite'
+                ? (proj.usefulVote.centre.intensity + proj.usefulVote.droite.intensity) / 2
+                : uv.intensity
+            const setIntensity = (val: number) => {
+              if (proj.mergeCenterRight && key === 'centre_droite') {
+                s.setBlocUsefulVote('centre', { intensity: val })
+                s.setBlocUsefulVote('droite', { intensity: val })
+              } else {
+                s.setBlocUsefulVote(settingBloc, { intensity: val })
+              }
+            }
+            const setBeneficiary = (val: CandidateId | 'auto') => {
+              if (proj.mergeCenterRight && key === 'centre_droite') {
+                s.setBlocUsefulVote('centre', { beneficiary: val })
+                s.setBlocUsefulVote('droite', { beneficiary: val })
+              } else {
+                s.setBlocUsefulVote(settingBloc, { beneficiary: val })
+              }
+            }
+
+            return (
+              <div key={key} className="rounded-md border border-rule bg-surface px-3 py-2.5 text-xs">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <span className="font-semibold text-ink">{label}</span>
+                  {stat && (
+                    <span className="num text-ink-3">
+                      {stat.saturated
+                        ? `déjà à ${pct(stat.shareBefore * 100, 0)} (seuil ${pct(stat.targetShare * 100, 0)})`
+                        : `part du pivot : ${pct(stat.shareBefore * 100, 0)} → ${pct(stat.shareAfter * 100, 0)}`}
+                    </span>
+                  )}
+                </div>
+                <div className="mt-2 flex flex-wrap items-center gap-3">
+                  <div className="flex min-w-[10rem] flex-1 items-center gap-2">
+                    <Slider
+                      label={`Intensité du vote utile : ${label}`}
+                      value={intensity * 100}
+                      onValueChange={(v) => setIntensity(v / 100)}
+                      min={0}
+                      max={100}
+                      step={5}
+                    />
+                    <span className="num w-10 text-right font-medium text-ink">{num(intensity * 100, 0)}&#8239;%</span>
+                  </div>
+                  {members.length > 1 && (
+                    <label className="flex items-center gap-1.5 text-ink-3">
+                      <span>Pivot</span>
+                      <select
+                        aria-label={`Candidat pivot du vote utile : ${label}`}
+                        value={uv.beneficiary}
+                        onChange={(e) => setBeneficiary(e.target.value as CandidateId | 'auto')}
+                        className="rounded border border-rule bg-paper px-1.5 py-0.5 text-xs text-ink"
+                      >
+                        <option value="auto">Auto ({autoLeader ? cand(autoLeader).shortName : '—'})</option>
+                        {members.slice(0, 5).map((id) => (
+                          <option key={id} value={id}>
+                            {cand(id).shortName}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                  )}
+                </div>
+              </div>
+            )
+          })}
+        </div>
+
+        <div className="space-y-4 border-t border-rule pt-4">
+          <div>
+            <div className="mb-1 flex justify-between text-sm">
+              <span className="font-medium text-ink">Amortissement vers les fondamentaux (option)</span>
+              <span className="num font-medium">{num(proj.meanReversion * 100, 0)}&#8239;%</span>
+            </div>
+            <p className="mb-2 text-xs text-ink-3">
+              Désactivé par défaut (0 %). Si activé, rappelle les totaux de blocs vers une moyenne 2017–2024 (poids max
+              25 % à J−150, s’annulant le jour du scrutin).
+            </p>
+            <Slider
+              label="Amortissement des écarts précoces"
+              value={proj.meanReversion * 100}
+              onValueChange={(v) => s.setMeanReversion(v / 100)}
+              min={0}
+              max={100}
+              step={10}
+            />
+          </div>
+          <div>
+            <div className="mb-1 flex justify-between text-sm">
+              <span className="font-medium text-ink">Tendance récente amortie sur 21 jours (option)</span>
+              <span className="num font-medium">{num(proj.dampedTrend * 100, 0)}&#8239;%</span>
+            </div>
+            <p className="mb-2 text-xs text-ink-3">
+              Désactivé par défaut (0 %) : sur les présidentielles 1995–2022, la persistance des pentes sur 6 semaines
+              est non significative (r = −0,26). Plafonné à ±2,5 pts si activé.
+            </p>
+            <Slider
+              label="Tendance récente amortie"
+              value={proj.dampedTrend * 100}
+              onValueChange={(v) => s.setDampedTrend(v / 100)}
+              min={0}
+              max={100}
+              step={10}
+            />
+          </div>
+        </div>
       </div>
     </div>
   )
 }
 
-/** Répartition des électeurs de chaque petit candidat au 2nd tour, parmi celles des données. */
-function MinorTransfersPanel() {
-  const choices = useSettings((s) => s.minorTransfers)
-  const setMinorTransfer = useSettings((s) => s.setMinorTransfer)
-  if (MINOR_CANDIDATES.length === 0) return null
+function SecondRoundParamsPanel() {
+  const s = useSettings()
   return (
     <div className="space-y-5 border-b border-rule pb-6">
       <div>
-        <p className="text-[0.95rem] font-medium">Électeurs des petits candidats</p>
+        <p className="mb-1.5 text-[0.95rem] font-medium">Source des reports (duels face au RN)</p>
+        <Segmented<TransferSource>
+          label="Source des reports au second tour"
+          value={s.transferSource}
+          onValueChange={s.setTransferSource}
+          options={[
+            { value: 'legislatives2024', label: 'Base historique' },
+            { value: 'blend', label: 'Mélange' },
+            { value: 'declared2027', label: 'Déclarations 2027' },
+          ]}
+        />
+      </div>
+
+      <RepublicanFrontControls compact />
+
+      <div className="rounded-md border border-rule bg-surface px-3 py-2.5 text-xs">
+        <p className="font-medium text-ink">Plage Monte-Carlo : gauche hors LFI → Mélenchon (%)</p>
+        <p className="mt-0.5 text-ink-3">
+          Tirage uniforme dans chaque simulation (défaut provisoire : 35 % à 75 %).
+        </p>
+        <div className="mt-2 flex flex-wrap items-center gap-3">
+          <label className="flex items-center gap-1.5 text-ink-2">
+            <span>Min</span>
+            <NumberInput
+              label="Borne basse du report gauche hors LFI vers Mélenchon"
+              value={s.lfiLeftTransferRange[0]}
+              onChange={(v) => v !== undefined && s.setLfiLeftTransferRange([v, s.lfiLeftTransferRange[1]])}
+              min={5}
+              max={95}
+              step={1}
+            />
+          </label>
+          <label className="flex items-center gap-1.5 text-ink-2">
+            <span>Max</span>
+            <NumberInput
+              label="Borne haute du report gauche hors LFI vers Mélenchon"
+              value={s.lfiLeftTransferRange[1]}
+              onChange={(v) => v !== undefined && s.setLfiLeftTransferRange([s.lfiLeftTransferRange[0], v])}
+              min={5}
+              max={95}
+              step={1}
+            />
+          </label>
+        </div>
+      </div>
+
+      {s.transferSource === 'blend' && (
+        <div>
+          <p className="text-sm font-medium">
+            Poids des déclarations 2027 corrigées en logit :{' '}
+            <span className="num">{pct(s.declaredWeight * 100, 0)}</span>
+          </p>
+          <Slider
+            label="Poids des déclarations 2027 dans le mélange"
+            value={s.declaredWeight * 100}
+            onValueChange={(v) => s.setDeclaredWeight(v / 100)}
+            min={0}
+            max={100}
+            step={5}
+          />
+        </div>
+      )}
+
+      <div>
+        <p className="text-sm font-medium">
+          Participation au 1er tour : <span className="num">{pct(s.firstRoundTurnout, 1)}</span> des inscrits
+        </p>
+        <p className="mb-2 mt-0.5 text-xs text-ink-3">
+          Rappel : 77,8 % en 2017, 73,7 % en 2022. Défaut : 74 %.
+        </p>
+        <Slider
+          label="Participation au 1er tour"
+          value={s.firstRoundTurnout}
+          onValueChange={s.setFirstRoundTurnout}
+          min={60}
+          max={85}
+          step={0.5}
+        />
+      </div>
+
+      <div>
+        <p className="text-sm font-medium">
+          Abstentionnistes du 1er tour votant valablement au 2nd :{' '}
+          <span className="num">{pct(s.abstainerMobilization * 100, 0)}</span>
+        </p>
+        <p className="mb-2 mt-0.5 text-xs text-ink-3">
+          Repères : ~14–22 % (Ifop 2022 / Insee 2017–2022). Défaut : 20 %.
+        </p>
+        <Slider
+          label="Part des abstentionnistes mobilisés au 2nd tour"
+          value={s.abstainerMobilization * 100}
+          onValueChange={(v) => s.setAbstainerMobilization(v / 100)}
+          min={5}
+          max={40}
+          step={1}
+        />
+      </div>
+
+      <div>
+        <p className="text-sm font-medium">
+          Orientation des nouveaux votants (adversaire du RN) :{' '}
+          <span className="num">{pct(s.abstainerAntiRnShare * 100, 0)}</span>
+        </p>
+        <p className="mb-2 mt-0.5 text-xs text-ink-3">
+          Part des abstentionnistes du 1er tour qui votent pour l’adversaire du RN au 2nd tour (repère Ifop 2022 : 59 % ;
+          50 % dans les duels hors RN). Défaut : 55 %.
+        </p>
+        <Slider
+          label="Orientation des nouveaux votants face au RN"
+          value={s.abstainerAntiRnShare * 100}
+          onValueChange={(v) => s.setAbstainerAntiRnShare(v / 100)}
+          min={30}
+          max={75}
+          step={1}
+        />
+      </div>
+
+      <div>
+        <p className="text-sm font-medium">
+          Fidélité des finalistes :{' '}
+          {s.fidelity === null
+            ? `différenciée (Le Pen ${transfers.fidelity.byCandidate.lepen?.loyal} %, Mélenchon ${transfers.fidelity.byCandidate.melenchon?.loyal} %, autres ${transfers.fidelity.default.loyal} %)`
+            : `uniforme à ${pct(s.fidelity * 100, 0)}`}
+        </p>
+        <p className="mb-2 mt-0.5 text-xs text-ink-3">{transfers.fidelity.note}</p>
+        <Slider
+          label="Fidélité uniforme des finalistes"
+          value={(s.fidelity ?? transfers.fidelity.default.loyal / 100) * 100}
+          onValueChange={(v) => s.setFidelity(v / 100)}
+          min={75}
+          max={100}
+          step={1}
+        />
+        {s.fidelity !== null && (
+          <TextButton className="mt-2" onClick={() => s.setFidelity(null)}>
+            Revenir à la fidélité différenciée par finaliste
+          </TextButton>
+        )}
+      </div>
+    </div>
+  )
+}
+
+function MinorTransfersPanel({ eligibleMinors }: { eligibleMinors: string[] }) {
+  const choices = useSettings((s) => s.minorTransfers)
+  const setMinorTransfer = useSettings((s) => s.setMinorTransfer)
+  const shown = MINOR_CANDIDATES.filter((c) => eligibleMinors.includes(c.id))
+  if (shown.length === 0) return null
+
+  return (
+    <div className="space-y-5 border-b border-rule pb-6">
+      <div>
+        <p className="text-[0.95rem] font-medium">Électeurs des petits candidats (≥ 3 instituts)</p>
         <p className="mt-0.5 text-sm text-ink-3">
-          Éliminés au 1er tour, leurs électeurs se reportent comme ceux des candidats principaux indiqués,
-          selon leurs poids : fidèles à ce candidat s’il est finaliste ou allié d’un finaliste, sinon comme
-          les électeurs de son bloc. Au 1er tour, ses points dans les hypothèses qui ne le testent pas sont pris
-          aux candidats qui en perdent quand un sondage l’ajoute ; à défaut d’un tel sondage, selon cette
-          répartition. Ces répartitions sont des hypothèses, appuyées sur
-          les sources citées.
+          Éliminés au 1er tour, leurs électeurs suivent au 2nd tour les électorats principaux ci-dessous.
         </p>
       </div>
-      {MINOR_CANDIDATES.map((c) => {
+      {shown.map((c) => {
         const variants = c.minor!.transfers
         const chosen = minorTransfer(c, choices)!
         return (
@@ -367,7 +502,6 @@ function MinorTransfersPanel() {
             <legend className="flex items-center gap-2 text-sm font-medium">
               <span style={colorVars(c)} className="cand-fill h-2.5 w-2.5 rounded-full" />
               {c.name}
-              {c.auto && <span className="text-xs font-normal text-ink-3">ajouté automatiquement, sans source</span>}
             </legend>
             <div className="mt-2 space-y-1.5">
               {variants.map((t, i) => (
@@ -407,16 +541,14 @@ function TransfersEditor({ result }: { result: SimulationResult }) {
   const s = useSettings()
   const profile = transfers.profiles.find((p) => p.id === profileId)!
   const overrides = s.transferOverrides[profileId] ?? {}
-
-  // Valeur par défaut d'une ligne : report de l'enquête, corrigé d'après les votes réels de 2024 si l'option est active.
-  const corrected = (bloc: Bloc) =>
-    s.transferCorrectionEnabled
-      ? correctedTransfer(transfers, simulationData.secondRoundDropout, profileId, bloc, s.transferCorrectionIntensity)
-      : null
-  const defaultOf = (bloc: Bloc): TransferValues => corrected(bloc) ?? profile.rows[bloc]
+  const effectiveWithoutOverrides = effectiveProfiles(transfers, declaredTransfers, {
+    ...s,
+    transferOverrides: {},
+  })
 
   const update = (bloc: Bloc, current: TransferValues, key: 'finalist' | 'rn', v: number | undefined) => {
-    const next = { ...current, [key]: Math.min(100, Math.max(0, v ?? defaultOf(bloc)[key])) }
+    const def = effectiveWithoutOverrides[profileId][bloc]
+    const next = { ...current, [key]: Math.min(100, Math.max(0, v ?? def[key])) }
     if (next.finalist + next.rn > 100) {
       if (key === 'finalist') next.rn = 100 - next.finalist
       else next.finalist = 100 - next.rn
@@ -427,11 +559,11 @@ function TransfersEditor({ result }: { result: SimulationResult }) {
 
   return (
     <div className="space-y-5">
-      <SecondRoundPanel result={result} />
-      <MinorTransfersPanel />
+      <SecondRoundParamsPanel />
+      <MinorTransfersPanel eligibleMinors={result.eligibleMinors} />
       <p className="text-sm text-ink-2">
-        Taux de report de chaque électorat selon le type de duel (enquête Ipsos-Talan, corrigée d’après les votes réels de 2024 pour les blocs absents du duel si l’option est activée). Le taux de blanc, nul ou abstention est
-        recalculé pour que la ligne totalise 100 %.
+        Taux de report effectifs selon le type de duel face au RN. Toute valeur saisie ici surcharge la source
+        sélectionnée ; l’abstention/blanc/nul complète automatiquement à 100 %.
       </p>
       <Segmented
         label="Type de duel"
@@ -458,21 +590,33 @@ function TransfersEditor({ result }: { result: SimulationResult }) {
         <tbody>
           {BLOCS.map((bloc) => {
             const row = profile.rows[bloc]
-            const fixed = corrected(bloc)
-            const current = overrides[bloc] ?? fixed ?? row
+            const def = effectiveWithoutOverrides[profileId][bloc]
+            const current = overrides[bloc] ?? def
             const modified = overrides[bloc] !== undefined
+            const isLfiLeft = profileId === 'lfi_rn' && bloc === 'gauche'
+            const provList =
+              s.transferSource === 'declared2027' && !row.camp
+                ? (['declare2027'] as const)
+                : [...new Set(Object.values(row.provenance))]
             return (
               <tr key={bloc} className="border-b border-rule/70 align-middle">
                 <td className="py-1.5 pr-2">
                   {BLOC_VOTERS[bloc]}
                   {!modified && (
                     <span className="block text-xs text-ink-3">
-                      {[...new Set(fixed ? (['reels2024'] as const) : Object.values(row.provenance))].map((p, i) => (
+                      {provList.map((p, i) => (
                         <span key={p}>
                           {i > 0 && ', '}
                           <span className={provenanceClass(p)}>{transfers.sources[p].label}</span>
                         </span>
                       ))}
+                      {!row.camp && s.transferSource !== 'declared2027' && (
+                        <span>
+                          {isLfiLeft
+                            ? ` · curseur dédié (${s.lfiLeftTransfer} %, MC ${s.lfiLeftTransferRange[0]}–${s.lfiLeftTransferRange[1]} %)`
+                            : ` · 2022 ↔ 2024 (${pct(frontStrengthForProfile(profileId, s.republicanFront) * 100, 0)})`}
+                        </span>
+                      )}
                     </span>
                   )}
                   {modified && <span className="block text-xs font-medium text-ballpoint">modifié</span>}
@@ -509,7 +653,7 @@ function TransfersEditor({ result }: { result: SimulationResult }) {
         </tbody>
       </table>
       <ProvenanceLegend />
-      <TextButton onClick={s.resetTransfers}>Rétablir tous les reports sourcés</TextButton>
+      <TextButton onClick={s.resetTransfers}>Rétablir tous les paramètres de 2nd tour</TextButton>
     </div>
   )
 }

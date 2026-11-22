@@ -1,4 +1,7 @@
+import { minorTransferParts } from './transfers'
+import { measurePairTransfers, projectHypothesis } from './offerProjection'
 import type {
+  Candidate,
   CandidateId,
   Fieldwork,
   Hypothesis,
@@ -11,15 +14,28 @@ import type {
   ReferencePart,
   Settings,
 } from './types'
-import { minorTransferParts } from './transfers'
 
 type Scores = Record<CandidateId, number>
 
 const DAY_MS = 86_400_000
 
+/** Demi-vie des sondages de 1er tour (jours) : un sondage perd la moitié de son poids tous les 14 jours. */
+export const POLL_HALF_LIFE_DAYS = 14
+
+/** Plafond d'échantillon pour éviter qu'une très grande enquête n'écrase les autres instituts. */
+export const SAMPLE_SIZE_CAP = 2000
+
+/** Nombre minimal d'instituts distincts testant un petit candidat pour l'inclure dans l'offre de base. */
+export const MIN_MINOR_INSTITUTES = 3
+
 export function addDays(isoDate: string, days: number): string {
   const d = new Date(`${isoDate}T00:00:00Z`)
   return new Date(d.getTime() + days * DAY_MS).toISOString().slice(0, 10)
+}
+
+/** Nombre de jours entre deux dates ISO. */
+export function daysBetween(from: string, to: string): number {
+  return Math.round((Date.parse(`${to}T00:00:00Z`) - Date.parse(`${from}T00:00:00Z`)) / DAY_MS)
 }
 
 /** Ramène un ensemble de scores à un total de 100. */
@@ -29,7 +45,7 @@ export function normalize(scores: Scores): Scores {
   return Object.fromEntries(Object.entries(scores).map(([id, v]) => [id, (v * 100) / total]))
 }
 
-/** Moyenne par clé, calculée uniquement sur les enregistrements où la clé est présente. */
+/** Moyenne simple par clé, calculée uniquement sur les enregistrements où la clé est présente. */
 export function meanByKey(records: Scores[]): Scores {
   const sums = new Map<string, { total: number; count: number }>()
   for (const record of records) {
@@ -41,6 +57,21 @@ export function meanByKey(records: Scores[]): Scores {
     }
   }
   return Object.fromEntries([...sums].map(([id, { total, count }]) => [id, total / count]))
+}
+
+/** Moyenne pondérée par clé, calculée uniquement sur les enregistrements où la clé est présente. */
+export function weightedMeanByKey(records: { scores: Scores; weight: number }[]): Scores {
+  const sums = new Map<string, { total: number; weight: number }>()
+  for (const { scores, weight } of records) {
+    if (weight <= 0) continue
+    for (const [id, v] of Object.entries(scores)) {
+      const acc = sums.get(id) ?? { total: 0, weight: 0 }
+      acc.total += v * weight
+      acc.weight += weight
+      sums.set(id, acc)
+    }
+  }
+  return Object.fromEntries([...sums].map(([id, { total, weight }]) => [id, weight > 0 ? total / weight : 0]))
 }
 
 export function pick(scores: Scores, ids: ReadonlySet<CandidateId>): Scores {
@@ -58,7 +89,6 @@ export interface WindowSelection<T> {
   outOfWindow: T[]
 }
 
-/** `poll` est plus récent que `current` : date de fin de terrain, puis date de début. */
 function isNewer(poll: Dated, current: Dated | undefined): boolean {
   return (
     !current ||
@@ -67,9 +97,23 @@ function isNewer(poll: Dated, current: Dated | undefined): boolean {
   )
 }
 
-/** Tri du plus récent au plus ancien : date de fin de terrain, puis date de début. */
 export function newestFirst(a: Dated, b: Dated): number {
   return b.fieldwork.end.localeCompare(a.fieldwork.end) || b.fieldwork.start.localeCompare(a.fieldwork.start)
+}
+
+/**
+ * Poids d'un sondage : décroissance exponentielle de demi-vie `POLL_HALF_LIFE_DAYS` (14 jours)
+ * multipliée par la racine carrée de la taille d'échantillon plafonnée à `SAMPLE_SIZE_CAP` (2 000).
+ */
+export function pollWeight(
+  poll: Pick<Poll, 'fieldwork' | 'sampleSize'>,
+  asOf: string,
+  halfLifeDays = POLL_HALF_LIFE_DAYS,
+): number {
+  const age = Math.max(0, daysBetween(poll.fieldwork.end, asOf))
+  const recency = 2 ** (-age / halfLifeDays)
+  const sample = Math.sqrt(Math.min(poll.sampleSize, SAMPLE_SIZE_CAP) / 1000)
+  return recency * sample
 }
 
 /**
@@ -102,50 +146,55 @@ export function hypothesisMatches(h: Hypothesis, set: HypothesisFilter): boolean
 
 export interface PollAverageResult<P = Poll> {
   usage: PollUsage<P>[]
-  /** Moyenne entre instituts, normalisée à 100, sur les candidats retenus présents. */
   average: Scores
   institutesUsed: number
-  /** Donneurs de chaque candidat imputable (`imputed`, hors exclus). */
+  projectedInstitutes: number
+  eligibleMinors: CandidateId[]
+  excludedMinors: CandidateId[]
   donors: Record<CandidateId, ImputationDonors>
 }
 
 interface HypothesisPoll extends Dated {
+  sampleSize: number
   hypotheses: Hypothesis[]
 }
 
-/** Répartition, pour chaque candidat imputable, des électeurs qu'il prend aux autres candidats. */
 export type Donors = Readonly<Record<CandidateId, readonly ReferencePart[]>>
 
 /**
- * Donneurs observés dans les sondages. Quand un sondage teste deux hypothèses dont l'une, avec X, contient
- * tous les candidats de l'autre, sans X, les points que chaque candidat perd de la seconde à la première
- * sont ceux que lui prennent X et les autres candidats ajoutés avec lui (ils reçoivent les mêmes parts).
- * Pour chaque candidat de `ids` : moyenne, sur toutes les paires de `polls`, des pertes des candidats
- * `donor` en parts de leur total. Un candidat sans paire n'est pas renvoyé.
+ * Donneurs observés dans les sondages — règle stricte *ceteris paribus* :
+ * deux hypothèses (a, b) d'un même sondage ne forment une paire valide pour un candidat x que si
+ * `a` contient exactement les mêmes candidats que `b` PLUS l'unique candidat `x` (aucun autre candidat
+ * ajouté ni retiré). Cela garantit qu'aucune perte causée par un autre candidat (ex. Attal, Philippe ou
+ * un autre petit candidat) n'est attribuée à tort à `x`.
  */
 export function observedDonors(
-  polls: readonly HypothesisPoll[],
+  polls: readonly Pick<HypothesisPoll, 'institute' | 'hypotheses'>[],
   ids: readonly CandidateId[],
   donor: (id: CandidateId) => boolean,
 ): Record<CandidateId, ImputationDonors> {
+  const idSet = new Set(ids)
   const sums: Record<CandidateId, Scores> = {}
   const pairs: Record<CandidateId, ImputationDonors['pairs']> = {}
   for (const poll of polls) {
     for (const a of poll.hypotheses) {
       for (const b of poll.hypotheses) {
-        const added = ids.filter((id) => id in a.scores && !(id in b.scores))
-        if (added.length === 0 || !Object.keys(b.scores).every((id) => id in a.scores)) continue
+        if (a === b) continue
+        const added = Object.keys(a.scores).filter((id) => !(id in b.scores))
+        if (added.length !== 1) continue
+        const x = added[0]!
+        if (!idSet.has(x)) continue
+        const removed = Object.keys(b.scores).filter((id) => !(id in a.scores))
+        if (removed.length !== 0) continue
         const [withX, withoutX] = [normalize(a.scores), normalize(b.scores)]
         const loss = Object.keys(withoutX)
           .filter(donor)
           .map((id) => [id, Math.max(0, withoutX[id]! - withX[id]!)] as const)
         const total = loss.reduce((s, [, v]) => s + v, 0)
         if (total <= 0) continue
-        for (const id of added) {
-          const sum = (sums[id] ??= {})
-          for (const [k, v] of loss) if (v > 0) sum[k] = (sum[k] ?? 0) + v / total
-          ;(pairs[id] ??= []).push({ institute: poll.institute, without: b.id, with: a.id })
-        }
+        const sum = (sums[x] ??= {})
+        for (const [k, v] of loss) if (v > 0) sum[k] = (sum[k] ?? 0) + v / total
+        ;(pairs[x] ??= []).push({ institute: poll.institute, without: b.id, with: a.id })
       }
     }
   }
@@ -163,11 +212,8 @@ export function observedDonors(
 }
 
 /**
- * Ajoute à des scores (total 100) des candidats qu'ils ne comptent pas, avec la part `shares[id]`. Cette
- * part est prise aux candidats vers lesquels vont leurs électeurs en leur absence (`donors[id]`, au prorata
- * des poids de ceux qui sont en lice ; à défaut, à tous au prorata de leur score). Un candidat ne cède
- * jamais plus que son score : l'excédent est pris aux autres au prorata. Le total reste 100, et chaque
- * candidat ajouté garde exactement sa part.
+ * Ajoute à des scores (total 100) des candidats qu'ils ne comptent pas, avec la part `shares[id]`.
+ * Cette part est prise aux donneurs au prorata de leurs poids ; aucun donneur ne cède plus que son score.
  */
 export function imputeShares(scores: Scores, shares: Scores, donors: Donors): Scores {
   const taken: Scores = {}
@@ -182,17 +228,12 @@ export function imputeShares(scores: Scores, shares: Scores, donors: Donors): Sc
   const excess = Object.entries(scores).reduce((s, [id, v]) => s + Math.max(0, (taken[id] ?? 0) - v), 0)
   if (excess <= 0) return { ...left, ...shares }
   const rest = Object.values(left).reduce((s, v) => s + v, 0)
-  // Parts ajoutées supérieures à ce qu'il reste : simple normalisation.
   if (rest <= excess) return normalize({ ...scores, ...shares })
   return { ...Object.fromEntries(Object.entries(left).map(([id, v]) => [id, v * (1 - excess / rest)])), ...shares }
 }
 
-/**
- * Imputation des candidats `imputed` dans les hypothèses retenues qui ne les testent pas : leur part y est
- * leur score moyen dans les autres hypothèses retenues du même sondage, sinon leur score moyen dans les
- * sondages qui les testent (moyenne de chaque sondage, puis entre sondages), prise aux autres candidats
- * selon `imputed[id]` (`imputeShares`). Un candidat qu'aucune hypothèse retenue ne teste n'est pas imputé.
- */
+const mean = (values: number[]) => values.reduce((s, v) => s + v, 0) / values.length
+
 function imputer<P>(retained: Map<P, Scores[]>, imputed: Donors): (poll: P, scores: Scores) => Scores {
   const byPoll = Object.keys(imputed).flatMap((id) => {
     const scores = new Map(
@@ -213,23 +254,47 @@ function imputer<P>(retained: Map<P, Scores[]>, imputed: Donors): (poll: P, scor
     )
 }
 
-const mean = (values: number[]) => values.reduce((s, v) => s + v, 0) / values.length
+/**
+ * Petits candidats éligibles : testés par au moins `minInstitutes` instituts distincts parmi `polls`
+ * (hors remplacement dans `replacing`), ou explicitement requis par `filter.require`.
+ */
+export function partitionMinors(
+  polls: readonly Pick<HypothesisPoll, 'institute' | 'hypotheses'>[],
+  minorIds: readonly CandidateId[],
+  filter: HypothesisFilter,
+  minInstitutes = MIN_MINOR_INSTITUTES,
+): { eligible: CandidateId[]; excluded: CandidateId[] } {
+  const eligible: CandidateId[] = []
+  const excluded: CandidateId[] = []
+  for (const id of minorIds) {
+    if (filter.exclude.includes(id)) continue
+    if (filter.require.includes(id)) {
+      eligible.push(id)
+      continue
+    }
+    const insts = new Set<string>()
+    for (const p of polls) {
+      if (p.hypotheses.some((h) => id in h.scores && !(id in (h.replacing ?? {})))) insts.add(p.institute)
+    }
+    if (insts.size >= minInstitutes) eligible.push(id)
+    else excluded.push(id)
+  }
+  return { eligible, excluded }
+}
+
+/** Durée retenue avant la date de référence : depuis le début de la période, sinon la fenêtre glissante. */
+export function windowDaysOf(data: Pick<PollsData, 'asOf' | 'windowDays' | 'period'>): number {
+  return data.period ? Math.max(0, daysBetween(data.period.start, data.asOf)) : data.windowDays
+}
+
+export function minorDonors(data: Pick<PollsData, 'candidates'>, choices: Settings['minorTransfers'] = {}): Donors {
+  const parts = minorTransferParts(data.candidates, choices)
+  return Object.fromEntries(data.candidates.filter((c) => c.minor).map((c) => [c.id, parts[c.id] ?? []]))
+}
 
 /**
- * Moyenne de 1er tour :
- * 1. dernier sondage de chaque institut dans la fenêtre [asOf − windowDays ; asOf], parmi ceux que
- *    `include` retient ; si aucun sondage ayant une hypothèse conforme n'est retenu, `include` est
- *    ignoré ;
- * 2. dans ce sondage, hypothèses conformes au filtre (candidats requis présents, exclus absents),
- *    réduites aux candidats retenus puis renormalisées à 100, et moyennées entre elles ; un candidat
- *    `optional` absent d'une hypothèse y compte pour 0 ;
- * 3. moyenne simple entre instituts (aucune s'il n'en reste qu'un), puis normalisation à 100.
- * Un candidat `imputed` (petit candidat) absent d'une hypothèse retenue y est imputé (`imputer`), sauf s'il
- * est exclu du filtre (rallié) : chaque hypothèse garde un total de 100, et son score final est celui de
- * l'unique sondage qui le teste, ou la moyenne des sondages qui le testent. Testé par aucune hypothèse
- * retenue, il n'est pas présenté. Ses points sont pris aux candidats retenus non imputés selon les donneurs
- * observés dans les sondages retenus (`observedDonors`, toutes hypothèses confondues), à défaut selon
- * `imputed[id]`.
+ * Moyenne pondérée de 1er tour sur des sondages à hypothèses (utilisée aussi par le backtest).
+ * Quand `weighted` vaut false, tous les instituts pèsent 1 (utile pour comparaison historique).
  */
 export function averageHypothesisPolls<P extends HypothesisPoll>(
   polls: P[],
@@ -240,71 +305,158 @@ export function averageHypothesisPolls<P extends HypothesisPoll>(
   include: (poll: P) => boolean = () => true,
   optional: readonly CandidateId[] = [],
   imputed: Donors = {},
+  options: {
+    weighted?: boolean
+    candidates?: readonly Candidate[]
+    offerProjection?: boolean
+    minMinorInstitutes?: number
+  } = {},
 ): PollAverageResult<P> {
+  const weighted = options.weighted ?? true
   const { latest, superseded } = latestPerInstitute(polls, asOf, windowDays)
   const inWindow = [...latest, ...superseded]
-  const matches = new Map(latest.map((p) => [p, p.hypotheses.filter((h) => hypothesisMatches(h, filter))]))
-  const eligible = latest.filter((p) => matches.get(p)!.length > 0)
-  const included = eligible.some(include) ? eligible.filter(include) : eligible
-  const absent = (id: CandidateId) => filter.exclude.includes(id) || !keep.has(id)
-  const zeros = Object.fromEntries(optional.filter((id) => !absent(id) && !(id in imputed)).map((id) => [id, 0]))
-  const retained = new Map(
-    included.map((p) => [p, matches.get(p)!.map((h) => ({ ...zeros, ...normalize(pick(h.scores, keep)) }))]),
+  const minorIds = Object.keys(imputed)
+  const { eligible: eligibleMinors, excluded: excludedMinors } = partitionMinors(
+    latest,
+    minorIds,
+    filter,
+    options.minMinorInstitutes ?? MIN_MINOR_INSTITUTES,
   )
-  const imputable = Object.keys(imputed).filter((id) => !absent(id))
-  const observed = observedDonors(included, imputable, (id) => keep.has(id) && !(id in imputed))
+  const effectiveKeep = new Set([...keep].filter((id) => !excludedMinors.includes(id)))
+  const activeImputed: Donors = Object.fromEntries(
+    eligibleMinors.map((id) => [id, imputed[id] ?? []]),
+  )
+
+  // Mesure des transferts sur paires propres intra-institut (sur tous les sondages récents)
+  const pairModel =
+    options.offerProjection && options.candidates
+      ? measurePairTransfers(latest, options.candidates, asOf)
+      : null
+
+  // Pour chaque sondage récent : hypothèses exactes ou (si projection activée) meilleure hypothèse projetée.
+  const exactMatches = new Map(latest.map((p) => [p, p.hypotheses.filter((h) => hypothesisMatches(h, filter))]))
+  const projections = new Map<P, { hypothesis: Hypothesis; scores: Scores; steps: string[] } | null>()
+
+  // Éviter qu'une hypothèse "fourre-tout" remplie de petits candidats hors-seuil (ex. Cluster17 H4 avec
+  // Lagarde 8 % + 6 autres = 16 % hors-offre) ne soit choisie quand une hypothèse propre à 1 candidat près existe.
+  const offTargetMass = (h: Hypothesis) =>
+    Object.entries(h.scores).reduce((s, [id, v]) => s + (effectiveKeep.has(id) ? 0 : v), 0)
+
+  for (const poll of latest) {
+    const exact = exactMatches.get(poll)!
+    const cleanestExact = exact.filter((h) => offTargetMass(h) <= 8)
+    if (cleanestExact.length > 0) {
+      // S'il y a des hypothèses exactes propres, garder celles qui minimisent le bruit hors-offre
+      const minNoise = Math.min(...cleanestExact.map(offTargetMass))
+      exactMatches.set(
+        poll,
+        cleanestExact.filter((h) => offTargetMass(h) <= minNoise + 2),
+      )
+      projections.set(poll, null)
+      continue
+    }
+    if (pairModel && options.candidates) {
+      const projected = projectHypothesis(poll, filter, effectiveKeep, pairModel, options.candidates)
+      if (projected && (exact.length === 0 || projected.penalty < offTargetMass(exact[0]!))) {
+        projections.set(poll, {
+          hypothesis: projected.hypothesis,
+          scores: projected.scores,
+          steps: projected.steps,
+        })
+        continue
+      }
+    }
+    projections.set(poll, null)
+  }
+
+  const hasMatch = (p: P) => exactMatches.get(p)!.length > 0 || projections.get(p) !== null
+  const eligiblePolls = latest.filter(hasMatch)
+  const included = eligiblePolls.some(include) ? eligiblePolls.filter(include) : eligiblePolls
+  const absent = (id: CandidateId) => filter.exclude.includes(id) || !effectiveKeep.has(id)
+  const zeros = Object.fromEntries(
+    optional.filter((id) => !absent(id) && !(id in activeImputed)).map((id) => [id, 0]),
+  )
+
+  const retained = new Map<P, Scores[]>()
+  for (const p of included) {
+    const proj = projections.get(p)
+    if (proj) {
+      retained.set(p, [{ ...zeros, ...normalize(pick(proj.scores, effectiveKeep)) }])
+    } else {
+      retained.set(
+        p,
+        exactMatches.get(p)!.map((h) => ({ ...zeros, ...normalize(pick(h.scores, effectiveKeep)) })),
+      )
+    }
+  }
+
+  const imputable = Object.keys(activeImputed).filter((id) => !absent(id))
+  const observed = observedDonors(latest, imputable, (id) => effectiveKeep.has(id) && !(id in activeImputed))
   const donors: Record<CandidateId, ImputationDonors> = Object.fromEntries(
-    imputable.map((id) => [id, observed[id] ?? { parts: [...imputed[id]!], pairs: [] }]),
+    imputable.map((id) => [id, observed[id] ?? { parts: [...activeImputed[id]!], pairs: [] }]),
   )
   const impute = imputer(retained, Object.fromEntries(Object.entries(donors).map(([id, d]) => [id, d.parts])))
+
+  const rawWeights = new Map(included.map((p) => [p, weighted ? pollWeight(p, asOf) : 1]))
+  const totalWeight = [...rawWeights.values()].reduce((s, w) => s + w, 0)
+
   const usage: PollUsage<P>[] = polls.map((poll) => {
     const skip = (status: PollStatus): PollUsage<P> => ({
       poll,
       status,
       matchedHypotheses: [],
+      weight: 0,
+      weightShare: 0,
+      projected: false,
+      projectionSteps: [],
       average: null,
     })
     if (!inWindow.includes(poll)) return skip('out-of-window')
     if (superseded.includes(poll)) return skip('superseded')
-    const matched = matches.get(poll)!
-    if (matched.length === 0) return skip('no-matching-hypothesis')
+    if (!hasMatch(poll)) return skip('no-matching-hypothesis')
     if (!included.includes(poll)) return skip('excluded')
+    const proj = projections.get(poll)
     const average = meanByKey(retained.get(poll)!.map((s) => impute(poll, s)))
-    return { poll, status: 'used', matchedHypotheses: matched.map((h) => h.id), average }
+    const w = rawWeights.get(poll) ?? 0
+    return {
+      poll,
+      status: 'used',
+      matchedHypotheses: proj ? [proj.hypothesis.id] : exactMatches.get(poll)!.map((h) => h.id),
+      weight: w,
+      weightShare: totalWeight > 0 ? (100 * w) / totalWeight : 0,
+      projected: proj !== null,
+      projectionSteps: proj ? proj.steps : [],
+      average,
+    }
   })
-  const used = usage.filter((u) => u.average)
-  // Un petit candidat à 0 % n'est pas présenté.
+
+  const used = usage.filter((u) => u.average !== null)
   const average = used.length
     ? Object.fromEntries(
-        Object.entries(normalize(meanByKey(used.map((u) => u.average!)))).filter(
-          ([id, v]) => v > 0 || !(optional.includes(id) || id in imputed),
-        ),
+        Object.entries(
+          normalize(weightedMeanByKey(used.map((u) => ({ scores: u.average!, weight: u.weight })))),
+        ).filter(([id, v]) => v > 0 || !(optional.includes(id) || id in activeImputed)),
       )
     : {}
-  return { usage, average, institutesUsed: used.length, donors }
+
+  return {
+    usage,
+    average,
+    institutesUsed: used.length,
+    projectedInstitutes: used.filter((u) => u.projected).length,
+    eligibleMinors,
+    excludedMinors,
+    donors,
+  }
 }
 
-/** Durée retenue avant la date de référence : depuis le début de la période, sinon la fenêtre glissante. */
-export function windowDaysOf(data: Pick<PollsData, 'asOf' | 'windowDays' | 'period'>): number {
-  return data.period ? Math.max(0, daysBetween(data.period.start, data.asOf)) : data.windowDays
-}
-
-/**
- * Petits candidats des données, imputés dans les hypothèses qui ne les testent pas. Faute de donneurs
- * observés, leur part est prise aux candidats vers lesquels vont leurs électeurs (répartition choisie dans
- * les réglages, sinon la première).
- */
-export function minorDonors(data: Pick<PollsData, 'candidates'>, choices: Settings['minorTransfers'] = {}): Donors {
-  const parts = minorTransferParts(data.candidates, choices)
-  return Object.fromEntries(data.candidates.filter((c) => c.minor).map((c) => [c.id, parts[c.id] ?? []]))
-}
-
-/** Moyenne des sondages 2027 pour un jeu d'hypothèses, sur les candidats simulés, hors sondages exclus. */
+/** Moyenne pondérée des sondages 2027 pour un jeu d'hypothèses, sur les candidats simulés. */
 export function averagePolls(
   data: PollsData,
   set: HypothesisFilter,
   excluded: ReadonlySet<string> = new Set(),
   choices: Settings['minorTransfers'] = {},
+  options: { offerProjection?: boolean; weighted?: boolean; minMinorInstitutes?: number } = {},
 ): PollAverageResult {
   const simulated = new Set(data.candidates.map((c) => c.id))
   const include = (p: Poll) => !excluded.has(p.id)
@@ -317,10 +469,11 @@ export function averagePolls(
     include,
     [],
     minorDonors(data, choices),
+    {
+      weighted: options.weighted ?? true,
+      candidates: data.candidates,
+      offerProjection: options.offerProjection ?? true,
+      minMinorInstitutes: options.minMinorInstitutes,
+    },
   )
-}
-
-/** Nombre de jours entre deux dates ISO. */
-export function daysBetween(from: string, to: string): number {
-  return Math.round((Date.parse(`${to}T00:00:00Z`) - Date.parse(`${from}T00:00:00Z`)) / DAY_MS)
 }

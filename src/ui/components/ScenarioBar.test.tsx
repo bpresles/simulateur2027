@@ -1,24 +1,24 @@
 // @vitest-environment jsdom
-// Options du bloc « Paramètres de la simulation » : description selon les écarts saisis, lien vers les
-// réglages, biais du billet, participation attendue et réinitialisation.
+// Paramètres de la simulation : projection d'offre, front républicain 2022↔2024, report gauche hors LFI, candidatures et réinitialisation.
 import { cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { act } from 'react'
 import { simulationData } from '../../data/schema'
-import { BLOG_BIAS_URL } from '../../domain/blogBias'
 import { simulate } from '../../domain/simulate'
 import { selectSettings, useSettings } from '../../state/settingsStore'
 import { ScenarioBar } from './ScenarioBar'
+import { SettingsSheet } from './SettingsSheet'
+import type { SettingsTab } from './SettingsSheet'
 
-const DEFAULT_DESCRIPTION =
-  'Selon une estimation basée sur les écarts réels entre les derniers sondages et résultats de 2017 et 2022'
-const OVERRIDE_DESCRIPTION = 'Selon les écarts saisis dans les réglages'
-
-function Harness({ onOpenSettings = () => {} }: { onOpenSettings?: () => void }) {
+function Harness({ onOpenSettings = () => {} }: { onOpenSettings?: (tab?: SettingsTab) => void }) {
   const state = useSettings((s) => s)
   return <ScenarioBar result={simulate(simulationData, selectSettings(state))} onOpenSettings={onOpenSettings} />
 }
 
-// Les curseurs Radix mesurent leur taille ; jsdom ne fournit pas ResizeObserver.
+function SheetHarness({ tab = 'projection' }: { tab?: SettingsTab }) {
+  const state = useSettings((s) => s)
+  return <SettingsSheet open onOpenChange={() => {}} tab={tab} result={simulate(simulationData, selectSettings(state))} />
+}
+
 beforeAll(() => {
   vi.stubGlobal(
     'ResizeObserver',
@@ -37,151 +37,115 @@ afterEach(() => {
   act(() => useSettings.getState().resetAll())
 })
 
-describe('ScenarioBar : corrections', () => {
-  it('décrit la correction calculée tant qu’aucun écart n’est saisi', () => {
+describe('ScenarioBar : projection d’offre, front républicain 2022↔2024 et sources de reports', () => {
+  it('active la projection d’offre par défaut et permet de la désactiver', () => {
     render(<Harness />)
-    expect(screen.getByText(DEFAULT_DESCRIPTION)).toBeTruthy()
-    expect(screen.queryByText(OVERRIDE_DESCRIPTION)).toBeNull()
+    const sw = screen.getByRole('switch', { name: /Projeter les sondages à offre proche/ })
+    expect(sw.getAttribute('aria-checked')).toBe('true')
+    act(() => fireEvent.click(sw))
+    expect(useSettings.getState().offerProjectionEnabled).toBe(false)
+    expect(sw.getAttribute('aria-checked')).toBe('false')
   })
 
-  it('renvoie aux écarts saisis dès qu’un écart est surchargé', () => {
-    act(() => useSettings.getState().setCorrectionOverride('melenchon', -3))
+  it('active l’incertitude des candidatures par défaut et permet de la désactiver', () => {
     render(<Harness />)
-    expect(screen.getByText(OVERRIDE_DESCRIPTION)).toBeTruthy()
-    expect(screen.queryByText(DEFAULT_DESCRIPTION)).toBeNull()
+    const sw = screen.getByRole('switch', { name: /Intégrer l’incertitude des candidatures/ })
+    expect(sw.getAttribute('aria-checked')).toBe('true')
+    act(() => fireEvent.click(sw))
+    expect(useSettings.getState().candidacyUncertaintyEnabled).toBe(false)
+    expect(sw.getAttribute('aria-checked')).toBe('false')
   })
 
-  it('ouvre les réglages depuis le lien, avec ou sans écart saisi', () => {
+  it('propose les 3 sources de reports (Base historique par défaut) et affiche le curseur en mode mélange', () => {
+    render(<Harness />)
+    expect(useSettings.getState().transferSource).toBe('legislatives2024')
+    expect(screen.queryByRole('slider', { name: 'Poids des déclarations 2027' })).toBeNull()
+
+    act(() => fireEvent.click(screen.getByRole('radio', { name: /Mélange hist\. \/ 2027/ })))
+    expect(useSettings.getState().transferSource).toBe('blend')
+    expect(screen.getByRole('slider', { name: 'Poids des déclarations 2027' })).toBeTruthy()
+
+    act(() => fireEvent.click(screen.getByRole('radio', { name: /Déclarations 2027/ })))
+    expect(useSettings.getState().transferSource).toBe('declared2027')
+    expect(screen.queryByRole('slider', { name: 'Poids des déclarations 2027' })).toBeNull()
+  })
+
+  it('expose directement le Front républicain 2022↔2024 et le report gauche hors LFI → Mélenchon', () => {
+    render(<Harness />)
+    expect(screen.getByRole('slider', { name: 'Intensité globale du front républicain' })).toBeTruthy()
+    expect(screen.getByRole('slider', { name: 'Front républicain : Centre / Droite' })).toBeTruthy()
+    expect(screen.getByRole('slider', { name: 'Front républicain : Gauche modérée' })).toBeTruthy()
+    expect(screen.getByRole('slider', { name: 'Front républicain : LFI' })).toBeTruthy()
+    expect(screen.getByRole('slider', { name: 'Report gauche hors LFI vers Mélenchon' })).toBeTruthy()
+
+    act(() => fireEvent.click(screen.getByRole('button', { name: 'Présidentielle 2022' })))
+    expect(useSettings.getState().republicanFront).toEqual({ centerRight: 0, moderateLeft: 0, lfi: 0 })
+
+    act(() => fireEvent.click(screen.getByRole('button', { name: 'Mi-chemin' })))
+    expect(useSettings.getState().republicanFront).toEqual({ centerRight: 0.5, moderateLeft: 0.5, lfi: 0.5 })
+
+    act(() => fireEvent.click(screen.getByRole('button', { name: 'Législatives 2024' })))
+    expect(useSettings.getState().republicanFront).toEqual({ centerRight: 1, moderateLeft: 1, lfi: 1 })
+
+    act(() => fireEvent.click(screen.getByRole('button', { name: '36 % (décl. 2027)' })))
+    expect(useSettings.getState().lfiLeftTransfer).toBe(36)
+  })
+
+  it('ouvre la feuille des réglages sur le bon onglet au clic sur les liens dédiés', () => {
     const onOpenSettings = vi.fn()
-    const { unmount } = render(<Harness onOpenSettings={onOpenSettings} />)
-    fireEvent.click(screen.getByRole('button', { name: 'Modifier les écarts' }))
-    unmount()
-    act(() => useSettings.getState().setCorrectionOverride('melenchon', -3))
     render(<Harness onOpenSettings={onOpenSettings} />)
-    fireEvent.click(screen.getByRole('button', { name: 'Modifier les écarts' }))
-    expect(onOpenSettings).toHaveBeenCalledTimes(2)
+    fireEvent.click(screen.getByRole('button', { name: /Ajuster les reports/ }))
+    expect(onOpenSettings).toHaveBeenCalledWith('reports')
+    fireEvent.click(screen.getByRole('button', { name: /Régler finement le vote utile par bloc/ }))
+    expect(onOpenSettings).toHaveBeenCalledWith('projection')
   })
 
-  it('« Réinitialiser tous les paramètres » efface aussi les écarts saisis', () => {
+  it('la section « Alliances testées par les sondeurs » est repliée par défaut et s’ouvre au clic', () => {
+    render(<Harness />)
+    const summary = screen.getByText('Alliances testées par les sondeurs', { selector: 'summary span' }).closest('summary')!
+    const details = summary.closest('details')!
+    expect(details.open).toBe(false)
+    fireEvent.click(summary)
+    expect(details.open).toBe(true)
+  })
+
+  it('active la projection avril 2027 par défaut dans ScenarioBar et déplace les réglages fins du vote utile par bloc dans les réglages avancés', () => {
+    render(<Harness />)
+    expect(useSettings.getState().projection.enabled).toBe(true)
+    act(() => fireEvent.click(screen.getByRole('radio', { name: 'Aujourd’hui' })))
+    expect(useSettings.getState().projection.enabled).toBe(false)
+    act(() => fireEvent.click(screen.getByRole('radio', { name: 'Projection avril 2027' })))
+    expect(useSettings.getState().projection.enabled).toBe(true)
+    // Les réglages fins par bloc ne sont plus dans ScenarioBar
+    expect(screen.queryByRole('slider', { name: 'Intensité du vote utile : Gauche' })).toBeNull()
+
+    cleanup()
+    render(<SheetHarness tab="projection" />)
+    expect(screen.getByRole('slider', { name: 'Intensité du vote utile : Gauche' })).toBeTruthy()
+    expect(screen.getByRole('slider', { name: 'Intensité du vote utile : Centre' })).toBeTruthy()
+    expect(screen.getByRole('slider', { name: 'Intensité du vote utile : Droite (LR)' })).toBeTruthy()
+
+    const selectGauche = screen.getByLabelText('Candidat pivot du vote utile : Gauche') as HTMLSelectElement
+    act(() => fireEvent.change(selectGauche, { target: { value: 'glucksmann' } }))
+    expect(useSettings.getState().projection.usefulVote.gauche.beneficiary).toBe('glucksmann')
+
+    act(() => fireEvent.click(screen.getByRole('switch', { name: /Regrouper centre et droite/ })))
+    expect(useSettings.getState().projection.mergeCenterRight).toBe(true)
+    expect(screen.getByRole('slider', { name: 'Intensité du vote utile : Centre + Droite' })).toBeTruthy()
+  })
+
+  it('« Réinitialiser tous les paramètres » rétablit la projection et la source par défaut', () => {
     act(() => {
-      useSettings.getState().setCorrectionOverride('melenchon', -3)
-      useSettings.getState().setCorrectionOverride('lepen', 2)
+      useSettings.getState().setOfferProjectionEnabled(false)
+      useSettings.getState().setTransferSource('declared2027')
+      useSettings.getState().setLfiLeftTransfer(40)
     })
     render(<Harness />)
     act(() => fireEvent.click(screen.getByRole('button', { name: 'Réinitialiser tous les paramètres' })))
-    expect(useSettings.getState().correctionOverrides).toEqual({})
-    expect(screen.getByText(DEFAULT_DESCRIPTION)).toBeTruthy()
-  })
-})
-
-describe('ScenarioBar : biais du billet de blog', () => {
-  const name = /Corriger les biais révélés dans le billet de blog d’Eliot Thibault/
-  const slider = () => screen.getByRole('slider', { name: 'Intensité de la correction des biais du billet' })
-
-  it('propose l’option, activée par défaut, avec un lien vers le billet dans un nouvel onglet', () => {
-    render(<Harness />)
-    expect(screen.getByRole('switch', { name }).getAttribute('aria-checked')).toBe('true')
-    const link = screen.getByRole('link', { name: /Lire le billet de blog d’Eliot Thibault/ })
-    expect(link.getAttribute('href')).toBe(BLOG_BIAS_URL)
-    expect(link.getAttribute('target')).toBe('_blank')
-    expect(
-      screen.getByText(/En 2017 et 2022, des sondages à .* du scrutin au résultat : extrême droite ×.*, gauche ×/),
-    ).toBeTruthy()
-  })
-
-  it('le curseur d’intensité (100 % par défaut) suit l’option', () => {
-    render(<Harness />)
-    expect(slider().getAttribute('aria-valuenow')).toBe('100')
-    expect(slider().hasAttribute('data-disabled')).toBe(false)
-    act(() => fireEvent.click(screen.getByRole('switch', { name })))
-    expect(useSettings.getState().blogBiasEnabled).toBe(false)
-    expect(slider().hasAttribute('data-disabled')).toBe(true)
-  })
-
-  it('signale les biais déjà corrigés par les autres options', () => {
-    render(<Harness />)
-    // Seule l'option du billet est activée par défaut : rien à signaler.
-    expect(screen.queryByText(/corrigé qu’une fois/)).toBeNull()
-    act(() => useSettings.getState().setCorrectionsEnabled(true))
-    expect(screen.getByText(/il n’est corrigé qu’une fois, à la plus forte des deux intensités/)).toBeTruthy()
-    act(() => useSettings.getState().setCorrectionsEnabled(false))
-    expect(screen.queryByText(/corrigé qu’une fois/)).toBeNull()
-  })
-
-  it('« Réinitialiser tous les paramètres » réactive l’option et rétablit son intensité', () => {
-    act(() => {
-      useSettings.getState().setBlogBiasEnabled(false)
-      useSettings.getState().setBlogBiasIntensity(1.2)
+    expect(useSettings.getState()).toMatchObject({
+      offerProjectionEnabled: true,
+      transferSource: 'legislatives2024',
+      lfiLeftTransfer: 72,
     })
-    render(<Harness />)
-    act(() => fireEvent.click(screen.getByRole('button', { name: 'Réinitialiser tous les paramètres' })))
-    expect(useSettings.getState()).toMatchObject({ blogBiasEnabled: true, blogBiasIntensity: 1 })
-  })
-})
-
-describe('ScenarioBar : participation attendue', () => {
-  const name = /Participation attendue au 1er tour/
-  const slider = () => screen.getByRole('slider', { name: 'Participation attendue' })
-  const defaultExpected = () => simulate(simulationData, selectSettings(useSettings.getState())).turnoutBalance!.defaultExpected
-
-  it('propose l’option, activée par défaut, curseur sur la participation par défaut, bilan en trois lignes', () => {
-    render(<Harness />)
-    expect(screen.getByRole('switch', { name }).getAttribute('aria-checked')).toBe('true')
-    expect(Number(slider().getAttribute('aria-valuenow'))).toBeCloseTo(defaultExpected(), 6)
-    expect(slider().hasAttribute('data-disabled')).toBe(false)
-    expect(screen.getByText(/Certains d’aller voter aujourd’hui \(Ifop, \d{2}\/\d{2}\/\d{4}\)/)).toBeTruthy()
-    expect(screen.getByText(/Mobilisation de 2022 déjà corrigée/)).toBeTruthy()
-    expect(screen.getByText(/Supplément appliqué : ±0,0/)).toBeTruthy()
-    expect(screen.queryByRole('button', { name: /Revenir au défaut/ })).toBeNull()
-  })
-
-  it('désactivée, elle retire le bilan et l’ajustement du 1er tour', () => {
-    const before = simulate(simulationData, { ...selectSettings(useSettings.getState()), turnoutExpected: 85 })
-    render(<Harness />)
-    act(() => fireEvent.click(screen.getByRole('switch', { name })))
-    expect(useSettings.getState().turnoutEnabled).toBe(false)
-    expect(slider().hasAttribute('data-disabled')).toBe(true)
-    expect(screen.queryByText(/Supplément appliqué/)).toBeNull()
-    const after = simulate(simulationData, selectSettings(useSettings.getState()))
-    const score = (r: typeof before, id: string) => r.firstRound.find((x) => x.candidateId === id)!.corrected
-    expect(score(after, 'melenchon')).toBeLessThan(score(before, 'melenchon'))
-  })
-
-  it('une participation réglée propose de revenir au défaut', () => {
-    act(() => useSettings.getState().setTurnoutExpected(85))
-    render(<Harness />)
-    expect(Number(slider().getAttribute('aria-valuenow'))).toBe(85)
-    act(() => fireEvent.click(screen.getByRole('button', { name: /Revenir au défaut/ })))
-    expect(useSettings.getState().turnoutExpected).toBeNull()
-  })
-
-  it('« Réinitialiser tous les paramètres » la réactive et rétablit la participation par défaut', () => {
-    act(() => {
-      useSettings.getState().setTurnoutEnabled(false)
-      useSettings.getState().setTurnoutExpected(85)
-    })
-    render(<Harness />)
-    act(() => fireEvent.click(screen.getByRole('button', { name: 'Réinitialiser tous les paramètres' })))
-    expect(useSettings.getState()).toMatchObject({ turnoutEnabled: true, turnoutExpected: null })
-  })
-})
-
-describe('ScenarioBar : correction des reports', () => {
-  const name = /Reports de voix tirés des votes réels de 2024, et non d’un sondage/
-  const slider = () => screen.getByRole('slider', { name: 'Intensité de la correction des reports' })
-
-  it('activée par défaut, à 100 %', () => {
-    render(<Harness />)
-    expect(screen.getByRole('switch', { name }).getAttribute('aria-checked')).toBe('true')
-    expect(slider().getAttribute('aria-valuenow')).toBe('100')
-  })
-  it('désactivée, elle grise le curseur et abaisse Mélenchon au 2nd tour', () => {
-    const before = simulate(simulationData, selectSettings(useSettings.getState()))
-    render(<Harness />)
-    act(() => fireEvent.click(screen.getByRole('switch', { name })))
-    expect(useSettings.getState().transferCorrectionEnabled).toBe(false)
-    expect(slider().hasAttribute('data-disabled')).toBe(true)
-    const after = simulate(simulationData, selectSettings(useSettings.getState()))
-    expect(after.secondRound.pct.b).toBeLessThan(before.secondRound.pct.b)
   })
 })

@@ -24,7 +24,7 @@ export function colorVars(c: Candidate): CSSProperties {
 }
 
 export function entrantLabel(e: Entrant): string {
-  return e.members.map((m) => cand(m.candidateId).shortName).join(' + ')
+  return cand(e.id).shortName
 }
 
 export const BLOC_LABELS: Record<Bloc, string> = {
