@@ -1,10 +1,11 @@
 import * as ToggleGroup from '@radix-ui/react-toggle-group'
+import { PLAUSIBLE_DUEL_MIN_FREQUENCY } from '../../domain/simulate'
 import type { SimulationResult } from '../../domain/types'
 import { useSettings } from '../../state/settingsStore'
 import { cand, colorVars } from '../candidates'
 import { pct } from '../format'
 
-/** Sélecteur des duels plausibles de 2nd tour (classés par fréquence dans les 2 000 simulations). */
+/** Sélecteur des duels plausibles de 2nd tour (fréquence > 30 % dans les 2 000 simulations). */
 export function QualificationSwitch({ result }: { result: SimulationResult }) {
   const setSelectedDuel = useSettings((s) => s.setSelectedDuel)
   const duels = result.selectableDuels
@@ -23,7 +24,8 @@ export function QualificationSwitch({ result }: { result: SimulationResult }) {
           Duels plausibles au second tour
         </h2>
         <span className="text-xs text-ink-3">
-          Fréquence estimée sur {result.monteCarlo.iterations.toLocaleString('fr-FR')} simulations
+          Fréquence &gt; {PLAUSIBLE_DUEL_MIN_FREQUENCY}&#8239;% sur{' '}
+          {result.monteCarlo.iterations.toLocaleString('fr-FR')} simulations
         </span>
       </div>
       <p className="mt-1 text-sm text-ink-2">

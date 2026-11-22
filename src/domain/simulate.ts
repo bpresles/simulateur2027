@@ -46,6 +46,9 @@ export function defaultSettings(): Settings {
   }
 }
 
+/** Fréquence minimale (%) dans Monte-Carlo pour proposer un duel alternatif dans « Duels plausibles ». */
+export const PLAUSIBLE_DUEL_MIN_FREQUENCY = 30
+
 /**
  * Pondérations explicites de scénarios de candidatures testés (inspirées du tableau 4 de `methode.pdf`),
  * activées uniquement lorsque l'utilisateur coche l'option `candidacyUncertaintyEnabled` sans alliance forcée.
@@ -122,7 +125,7 @@ export function simulate(data: SimulationData, settings: Settings): SimulationRe
     .map((r) => ({ id: r.candidateId, score: r.score }))
     .sort((x, y) => y.score - x.score)
 
-  const [first, second, third] = entrants
+  const [first, second] = entrants
   if (!first || !second) throw new Error('Moins de deux candidats au 1er tour')
 
   const rnId = polls.candidates.find((c) => c.isRN)?.id ?? 'lepen'
@@ -245,9 +248,8 @@ export function simulate(data: SimulationData, settings: Settings): SimulationRe
   }
   addPair(first.id, second.id)
   for (const d of monteCarlo.topDuels) {
-    if (d.frequency >= 5) addPair(d.a, d.b)
+    if (d.frequency > PLAUSIBLE_DUEL_MIN_FREQUENCY) addPair(d.a, d.b)
   }
-  if (third) addPair(first.id, third.id)
   if (displayedPair[0] !== first.id || displayedPair[1] !== second.id) {
     addPair(displayedPair[0], displayedPair[1])
   }

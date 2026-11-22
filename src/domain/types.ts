@@ -749,7 +749,7 @@ export interface SimulationResult {
   projection: CampaignProjectionResult
   trajectory: CampaignTrajectoryData
   secondRound: SecondRoundResult
-  /** Duels alternatifs sélectionnables (≥ 5 % des simulations ou top 2/3). */
+  /** Duels alternatifs sélectionnables (> 30 % des simulations, plus le top 2 déterministe). */
   selectableDuels: { id: string; a: CandidateId; b: CandidateId; frequency: number; result: SecondRoundResult }[]
   secondRoundPollBias: PollBiasGap[]
   monteCarlo: MonteCarloSummary
