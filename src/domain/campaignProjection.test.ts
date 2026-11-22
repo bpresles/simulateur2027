@@ -127,7 +127,7 @@ describe('campaignProjection : vote utile séparé, amortissement, tendance amor
     expect(trend.a! + trend.b!).toBeCloseTo(0, 10)
   })
 
-  it('buildTrajectory couvre passé, présent et futur jusqu’à la date du scrutin avec cône P10 ≤ score ≤ P90', () => {
+  it('buildTrajectory couvre passé, présent et futur en projection, mais s’arrête à asOf en photographie actuelle', () => {
     const projSim = simulate(simulationData, {
       ...defaultSettings(),
       projection: { ...defaultProjectionSettings(), enabled: true },
@@ -151,5 +151,19 @@ describe('campaignProjection : vote utile séparé, amortissement, tendance amor
       expect(last.p10![id]!).toBeLessThanOrEqual(last.scores[id]! + 1e-6)
       expect(last.p90![id]!).toBeGreaterThanOrEqual(last.scores[id]! - 1e-6)
     }
+
+    // Photographie actuelle (`enabled: false`) : aucun point projeté après `asOf`
+    const nowTraj = buildTrajectory(
+      simulationData.pollHistory.polls,
+      baseScores,
+      candidates,
+      { ...defaultProjectionSettings(), enabled: false },
+      simulationData.polls.asOf,
+      simulationData.polls.electionDate,
+      projSim.monteCarlo.candidates,
+    )
+    expect(nowTraj.points.some((p) => p.kind === 'projection')).toBe(false)
+    expect(nowTraj.points.at(-1)!.kind).toBe('now')
+    expect(nowTraj.points.at(-1)!.date).toBe(simulationData.polls.asOf)
   })
 })
