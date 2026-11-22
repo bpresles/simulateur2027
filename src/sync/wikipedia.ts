@@ -1,7 +1,11 @@
 // Lecture de la page Wikipedia « Liste de sondages sur l'élection présidentielle française de 2027 »,
 // à partir de son wikitext : sondages de 1er tour de la période la plus récente, duels de 2nd tour.
+import { addDays } from '../domain/pollAverage'
 import type { Fieldwork, HistoricalPoll, Hypothesis, Poll, SecondRoundPoll } from '../domain/types'
 import { CandidateResolver, FEEDS, isoDate, knownInstitute, pollId } from './feeds'
+
+/** Fenêtre glissante par défaut (jours) pour relier deux sections consécutives (ex. fin décembre → début janvier). */
+export const ROLLING_BRIDGE_DAYS = 21
 
 export interface WikipediaPolls {
   /** Période la plus récente du 1er tour : titre de sa section et premier jour. */
@@ -61,6 +65,7 @@ interface Period {
   label: string
   year?: number
   start?: string
+  isOfficialList: boolean
   rows: PollRow[]
   skipped: string[]
 }
@@ -383,26 +388,43 @@ function periodStart(label: string): { year?: number; start?: string } {
 /** Nom de famille (nom court par défaut) : « Christine Lagarde » → « Lagarde ». */
 export const surname = (name: string) => name.split(' ').slice(1).join(' ') || name
 
+const OFFICIAL_LIST_HEADING = /liste officielle|campagne officielle|candidats officiels|depuis l.officialisation/
+const EXCLUDED_FIRST_ROUND_HEADING = /^autres\b|vote blanc/
+
 export function fromWikipedia(
   text: string,
   resolver: CandidateResolver,
   simulated: ReadonlySet<string>,
+  rollingWindowDays = ROLLING_BRIDGE_DAYS,
 ): WikipediaPolls | undefined {
   const tables = readTables(text)
   const idOf = (p: Person) => resolver.resolve(p.keys, p.name, surname(p.name))
   const names = new Map<string, string>()
 
-  // 1er tour : sections « Année AAAA » (la section « Autres » compte le vote blanc comme exprimé).
+  // 1er tour : sections « Année AAAA » et sections de campagne/liste officielle (hors section « Autres » / vote blanc).
   const periods = new Map<string, Period>()
   for (const table of tables) {
-    if (
-      !/premier tour/i.test(table.headings[2] ?? '') ||
-      !/^annee \d{4}$/.test(fold(table.headings[3] ?? ''))
-    )
-      continue
+    if (!/premier tour/i.test(table.headings[2] ?? '')) continue
+    const h3 = fold(table.headings[3] ?? '')
+    if (EXCLUDED_FIRST_ROUND_HEADING.test(h3)) continue
+    const isYearSection = /^annee \d{4}$/.test(h3)
+    const isOfficialList =
+      OFFICIAL_LIST_HEADING.test(h3) || table.headings.slice(3).some((h) => OFFICIAL_LIST_HEADING.test(fold(h ?? '')))
+    if (!isYearSection && !isOfficialList) continue
+
     const label = table.headings.at(-1)!
-    const yearHeading = [...table.headings].reverse().find((h) => h && /\b\d{4}\b/.test(h)) ?? ''
-    const period = periods.get(label) ?? { label, ...periodStart(yearHeading), rows: [], skipped: [] }
+    const yearHeading =
+      [...table.headings].reverse().find((h) => h && /\b\d{4}\b/.test(h)) ?? (isOfficialList ? '2027' : '')
+    const parsedStart = periodStart(yearHeading)
+    const period =
+      periods.get(label) ?? {
+        label,
+        year: parsedStart.year ?? (isOfficialList ? 2027 : undefined),
+        start: parsedStart.start,
+        isOfficialList,
+        rows: [],
+        skipped: [],
+      }
     period.rows.push(...readPollRows(table, period.year, TOTAL_TOLERANCE.firstRound, period.skipped))
     periods.set(label, period)
   }
@@ -413,9 +435,33 @@ export function fromWikipedia(
     .reduce<Period | undefined>((best, p) => (!best || latestEnd(p) > latestEnd(best) ? p : best), undefined)
   if (!current) return undefined
 
+  // Pont glissant inter-sections (ex. fin décembre 2026 → premier sondage de janvier 2027) :
+  // évite de retomber à 1 seul institut lors d'un changement de section, sauf dès que ≥ 3 instituts
+  // publient sur la liste officielle des candidats.
+  const maxEnd = latestEnd(current)
+  const officialInstitutes = new Set(current.rows.map((r) => r.institute)).size
+  const bridgePrevious = rollingWindowDays > 0 && !(current.isOfficialList && officialInstitutes >= 3)
+  const bridgeCutoff = addDays(maxEnd, -rollingWindowDays)
+  const activeRows: { periodLabel: string; row: PollRow }[] = current.rows.map((row) => ({
+    periodLabel: current.label,
+    row,
+  }))
+  const bridgedDates: string[] = []
+  if (bridgePrevious) {
+    for (const p of periods.values()) {
+      if (p.label === current.label) continue
+      for (const row of p.rows) {
+        if (row.fieldwork.end >= bridgeCutoff && row.fieldwork.end <= maxEnd) {
+          activeRows.push({ periodLabel: p.label, row })
+          bridgedDates.push(row.fieldwork.end)
+        }
+      }
+    }
+  }
+
   const byHead = new Map<string, Poll>()
   const skipped = [...current.skipped]
-  for (const row of current.rows) {
+  for (const { periodLabel, row } of activeRows) {
     const scores: Record<string, number> = {}
     const replacing: Record<string, string> = {}
     let duplicate = false
@@ -438,7 +484,8 @@ export function fromWikipedia(
     }
     // Un candidat nommé dans la colonne d'un autre le remplace, sauf si celui-ci est aussi testé.
     const replaced = Object.entries(replacing).filter(([, col]) => !(col in scores))
-    const poll = byHead.get(row.head) ?? {
+    const headKey = `${periodLabel}|${row.head}`
+    const poll = byHead.get(headKey) ?? {
       id: pollId(row.institute, row.fieldwork.end),
       origin: 'wikipedia' as const,
       institute: row.institute,
@@ -466,7 +513,7 @@ export function fromWikipedia(
       scores,
       ...(replaced.length ? { replacing: Object.fromEntries(replaced) } : {}),
     })
-    byHead.set(row.head, poll)
+    byHead.set(headKey, poll)
   }
   const polls = [...byHead.values()].map((p) => ({ ...p, hypotheses: labelHypotheses(p.hypotheses, names) }))
 
@@ -528,8 +575,8 @@ export function fromWikipedia(
     }))
     .sort((a, b) => b.fieldwork.end.localeCompare(a.fieldwork.end) || a.institute.localeCompare(b.institute))
 
-  // 2nd tour : un duel par ligne, à partir du début de la période.
-  const start = [current.start, ...current.rows.map((r) => r.fieldwork.end)]
+  // 2nd tour : un duel par ligne, à partir du début de la période (étendu au pont glissant si actif).
+  const start = [current.start, ...current.rows.map((r) => r.fieldwork.end), ...bridgedDates]
     .filter((d): d is string => !!d)
     .sort()[0]!
   const secondRound: SecondRoundPoll[] = []

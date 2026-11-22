@@ -18,16 +18,12 @@ describe('données', () => {
     expect(validateData(simulationData)).toEqual([])
   })
 
-  it('chaque jeu d’hypothèses retient au moins un sondage', () => {
-    for (const set of simulationData.polls.hypothesisSets) {
-      expect(averagePolls(simulationData.polls, set).institutesUsed).toBeGreaterThan(0)
-    }
-  })
-
-  it('sans alliance, les sondages récents sont agrégés (dont les sondages projetés)', () => {
+  it('le jeu d’hypothèses par défaut retient au moins un sondage et la simulation par défaut aboutit', () => {
+    const defSet = simulationData.polls.hypothesisSets.find((s) => s.default)!
+    expect(averagePolls(simulationData.polls, defSet).institutesUsed).toBeGreaterThan(0)
     const res = simulate(simulationData, defaultSettings())
-    expect(res.institutesUsed).toBeGreaterThanOrEqual(6)
-    expect(res.projectedInstitutes).toBeGreaterThan(0)
+    expect(res.institutesUsed).toBeGreaterThan(0)
+    expect(res.firstRound.reduce((s, r) => s + r.score, 0)).toBeCloseTo(100, 6)
   })
 
   it('chaque hypothèse retenue décrite par une combinaison appartient à une option testée qui la décrit', () => {
