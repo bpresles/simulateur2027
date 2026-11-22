@@ -118,5 +118,30 @@ describe('simulate (données figées)', () => {
     expect(Object.values(mixed.monteCarlo.candidates).reduce((s, c) => s + c.winProb, 0)).toBeCloseTo(100, 6)
     // Avec incertitude des candidatures, les scores de Philippe / Attal diffèrent de l'offre fixe.
     expect(mixed.monteCarlo.candidates.philippe!.median).not.toBeCloseTo(fixed.monteCarlo.candidates.philippe!.median, 3)
+
+    // Dès que la liste officielle est publiée (`officialList: true`), l'incertitude pré-campagne se désactive automatiquement.
+    const officialData = { ...simulationData, polls: { ...simulationData.polls, officialList: true } }
+    const official = simulate(officialData, { ...defaultSettings(), candidacyUncertaintyEnabled: true })
+    expect(official.monteCarlo.candidates.philippe!.median).toBeCloseTo(fixed.monteCarlo.candidates.philippe!.median, 6)
+  })
+
+  it('repli automatique sur l’offre majoritaire si un candidat principal du jeu par défaut disparaît des sondages', () => {
+    const withoutPhilippe = {
+      ...simulationData,
+      polls: {
+        ...simulationData.polls,
+        polls: simulationData.polls.polls.map((p) => ({
+          ...p,
+          hypotheses: p.hypotheses.map((h) => {
+            const { philippe: _p, ...rest } = h.scores
+            return { ...h, scores: rest }
+          }),
+        })),
+      },
+    }
+    const res = simulate(withoutPhilippe, defaultSettings())
+    expect(res.hypothesisSet.id).toBe('offre-majoritaire')
+    expect(res.institutesUsed).toBeGreaterThanOrEqual(4)
+    expect(res.warnings.some((w) => w.includes('repli automatique'))).toBe(true)
   })
 })

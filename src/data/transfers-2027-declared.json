@@ -1,5 +1,6 @@
 {
   "description": "Option activable (désactivée par défaut) : reports de voix au 2nd tour déclarés dans les sondages de l'automne 2026 (Toluna Harris Interactive notices nos 10263, 10277, 10305, 10332 et 10362 ; Odoxa-Backbone, sept.–oct. 2026), corrigés sur échelle logit de l'écart moyen mesuré en 2017 et 2022 entre déclarations de campagne et enquêtes « jour du vote ».",
+  "updatedAt": "2026-11-09",
   "sources": [
     {
       "label": "Toluna Harris Interactive (M6 / RTL), notices nos 10263–10362 (sept.–nov. 2026)",

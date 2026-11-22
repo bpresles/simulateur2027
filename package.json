@@ -11,7 +11,8 @@
     "test:watch": "vitest",
     "lint": "eslint .",
     "typecheck": "tsc -b --noEmit",
-    "sync-polls": "bun scripts/sync-polls.ts"
+    "sync-polls": "bun scripts/sync-polls.ts",
+    "check-notices": "bun scripts/check-notices.ts"
   },
   "dependencies": {
     "@radix-ui/react-dialog": "^1.3.1",

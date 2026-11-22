@@ -4,6 +4,7 @@ import { WIKITEXT } from '../test/wikipediaFixture'
 import {
   NOTICE_LABEL,
   SYNTHESIS_LABEL,
+  addSecondRoundNotices,
   findNotice,
   findSynthesis,
   isVotingIntentionNotice,
@@ -176,5 +177,30 @@ describe('liens ajoutés par la synchronisation', () => {
     }
     const again = syncPolls(fixed, WIKITEXT, '2026-10-21', links)!
     expect(again.data.polls.find((p) => p.id === 'elabe-20261016')!.sources[0]).toEqual(pdf)
+  })
+
+  it('rattache automatiquement la notice officielle aux duels de 2nd tour depuis le 1er tour ou l’index des notices', () => {
+    const notices = parseNoticeIndex(INDEX)
+    const duels = [
+      {
+        institute: 'Ifop-Fiducial',
+        sponsor: 'LCI',
+        fieldwork: { start: '2026-10-12', end: '2026-10-14' },
+        sampleSize: 1390,
+        url: 'https://fr.wikipedia.org/wiki/Liste_de_sondages',
+        scores: { philippe: 52, lepen: 48 },
+      },
+      {
+        institute: 'Odoxa',
+        sponsor: 'Presse',
+        fieldwork: { start: '2026-10-05', end: '2026-10-07' },
+        sampleSize: 1000,
+        url: 'https://www.odoxa.fr/sondage',
+        scores: { philippe: 50, lepen: 50 },
+      },
+    ]
+    const enriched = addSecondRoundNotices(duels, data.polls, notices)
+    expect(enriched[0]!.url).toBe(`${ADD}/2329`)
+    expect(enriched[1]!.url).toBe(`${ADD}/2325`)
   })
 })

@@ -135,6 +135,8 @@ export interface PollsData {
   electionDate: string
   windowDays: number
   period?: { label: string; start: string }
+  /** Vrai dès que ≥ 3 instituts publient dans la section « liste officielle » des candidats. */
+  officialList?: boolean
   collection: { description: string; sources: SourceLink[] }
   candidates: Candidate[]
   otherCandidates: OtherCandidate[]
@@ -314,6 +316,8 @@ export interface DeclaredTransferRow extends TransferValues {
 
 export interface DeclaredTransfersData {
   description: string
+  /** Date ISO (AAAA-MM-JJ) de la dernière mise à jour manuelle des matrices déclarées. */
+  updatedAt?: string
   sources: SourceLink[]
   logitCorrection: {
     description: string

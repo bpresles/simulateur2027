@@ -1,10 +1,10 @@
-// Synchronise src/data/polls-2027.json avec la page Wikipedia de la liste des sondages (bun run sync-polls),
-// en y ajoutant les synthèses des instituts et les notices de la Commission des sondages.
-// N'écrit le fichier que si les données changent ; échoue si la page est injoignable, si son format n'est
-// plus reconnu ou si les données obtenues sont invalides. Un site d'institut ou de la Commission injoignable
-// n'est qu'un avertissement : les liens déjà trouvés sont gardés.
+// Synchronise src/data/polls-2027.json et src/data/polls-history-2027.json avec la page Wikipedia de la liste
+// des sondages (bun run sync-polls), en y ajoutant les synthèses des instituts et les notices de la Commission
+// des sondages. N'écrit les fichiers que si les données changent ; échoue si la page est injoignable, si son
+// format n'est plus reconnu ou si les données obtenues sont invalides.
 import { appendFile, readFile, writeFile } from 'node:fs/promises'
 import { parseData } from '../src/data/schema'
+import { daysBetween } from '../src/domain/pollAverage'
 import type { PollHistoryData, PollsData } from '../src/domain/types'
 import { FEEDS, SYNTHESES } from '../src/sync/feeds'
 import { parseFeed, parseNoticeIndex } from '../src/sync/links'
@@ -18,6 +18,7 @@ import secondRoundPollBias from '../src/data/second-round-poll-bias.json'
 
 const POLLS_FILE = new URL('../src/data/polls-2027.json', import.meta.url)
 const HISTORY_FILE = new URL('../src/data/polls-history-2027.json', import.meta.url)
+const DECLARED_STALE_DAYS = 45
 
 // Wikipedia demande un user-agent qui permette de contacter l'auteur.
 const USER_AGENT = 'simulateur2027-sync (+https://github.com/bpresles/simulateur2027)'
@@ -89,11 +90,24 @@ parseData({
   secondRoundPollBias,
 })
 
+// Rappel non bloquant si les matrices de reports déclarés 2027 datent de plus de 45 jours.
+const declaredUpdatedAt = (declaredTransfers as { updatedAt?: string }).updatedAt
+if (declaredUpdatedAt && daysBetween(declaredUpdatedAt, today) > DECLARED_STALE_DAYS) {
+  const age = Math.round(daysBetween(declaredUpdatedAt, today))
+  warnings.push(
+    `Reports déclarés 2027 (src/data/transfers-2027-declared.json) mis à jour il y a ${age} j (${declaredUpdatedAt}) : vérifier si de nouvelles matrices Harris/Ipsos/Ifop ont été publiées`,
+  )
+}
+
 const anyChanged = report.changed || historyChanged
+const hasAlerts = report.structuralAlerts.length > 0
 const list = (items: string[], none: string) => (items.length ? items.join(', ') : none)
+const missingMd = report.missingNoIntentionNotices.length
+  ? report.missingNoIntentionNotices.map((m) => `[${m.label}](${m.url})`).join(', ')
+  : 'aucun'
 const lines = [
   anyChanged ? `Données mises à jour au ${report.asOf}.` : 'Aucun changement dans les données.',
-  `Période retenue : ${report.period}`,
+  `Période retenue : ${report.period}${report.officialList ? ' (liste officielle)' : ''}`,
   `Historique des vagues (2025–2027) : ${historyData.polls.length} sondages`,
   `Sondages ajoutés : ${list(report.added, 'aucun')}`,
   `Sondages mis à jour : ${list(report.replaced, 'aucun')}`,
@@ -103,18 +117,40 @@ const lines = [
   `Liens ajoutés : ${list(report.newLinks, 'aucun')}`,
   `Candidats ajoutés aux simulés (≥ 3 instituts, bloc/couleurs/reports par défaut à compléter) : ${list(report.promoted, 'aucun')}`,
   `Nouveaux candidats non simulés : ${list(report.newCandidates, 'aucun')}`,
+  `Alertes structurelles : ${report.structuralAlerts.length ? report.structuralAlerts.join(' ; ') : 'aucune'}`,
   `Lignes écartées : ${report.skipped.length ? report.skipped.join(' ; ') : 'aucune'}`,
-  ...(warnings.length ? [`Avertissements : ${warnings.join(' ; ')} — liens déjà trouvés conservés.`] : []),
+  ...(warnings.length ? [`Avertissements : ${warnings.join(' ; ')}.`] : []),
 ]
 
 console.log(lines.join('\n'))
 
 if (report.changed) await writeFile(POLLS_FILE, `${JSON.stringify(data, null, 2)}\n`)
 if (historyChanged) await writeFile(HISTORY_FILE, `${JSON.stringify(historyData, null, 2)}\n`)
-if (process.env.GITHUB_OUTPUT) await appendFile(process.env.GITHUB_OUTPUT, `changed=${anyChanged}\n`)
+
+if (hasAlerts && process.env.SYNC_ALERTS_FILE) {
+  const alertBody = [
+    `## Alertes structurelles détectées le ${today}`,
+    '',
+    'La synchronisation quotidienne des sondages a détecté un changement de structure de l’offre de candidatures nécessitant une vérification humaine (les sondages valides restent publiés normalement) :',
+    '',
+    ...report.structuralAlerts.map((a) => `- ${a}`),
+    '',
+    `Période active : **${report.period}** (${data.polls.length} sondages retenus).`,
+  ].join('\n')
+  await writeFile(process.env.SYNC_ALERTS_FILE, `${alertBody}\n`)
+}
+
+if (process.env.GITHUB_OUTPUT) {
+  await appendFile(process.env.GITHUB_OUTPUT, `changed=${anyChanged}\nhas_alerts=${hasAlerts}\n`)
+}
 if (process.env.GITHUB_STEP_SUMMARY) {
+  const summaryLines = lines.map((l) =>
+    l.startsWith('Duels sans part sans intention de vote')
+      ? `Duels sans part sans intention de vote (notices) : ${missingMd}`
+      : l,
+  )
   await appendFile(
     process.env.GITHUB_STEP_SUMMARY,
-    `## Synchronisation des sondages\n\n${lines.map((l) => `- ${l}`).join('\n')}\n`,
+    `## Synchronisation des sondages\n\n${summaryLines.map((l) => `- ${l}`).join('\n')}\n`,
   )
 }

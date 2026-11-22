@@ -7,6 +7,7 @@ import { CandidateResolver, canonicalInstitute } from './feeds'
 import {
   AUTO_COLORS,
   autoCandidate,
+  detectStructuralAlerts,
   mergePollHistory,
   promoteTested,
   stableStringify,
@@ -246,5 +247,31 @@ describe('candidats apparus dans les sondages (seuil MIN_MINOR_INSTITUTES = 3)',
     expect(merged.data.polls.map((p) => p.id)).toEqual(['elabe-20261015', 'ifop-20250601'])
     expect(merged.data.polls[1]?.scores.lepen).toBe(36)
     expect(mergePollHistory(merged.data, incoming).changed).toBe(false)
+  })
+
+  it('detectStructuralAlerts repère liste officielle, retrait d’un candidat principal et remplaçant fréquent (Bardella → Le Pen)', () => {
+    const withReplacement: PollsData = {
+      ...current,
+      otherCandidates: [...current.otherCandidates, { id: 'bardella', name: 'Jordan Bardella' }],
+      polls: ['A', 'B', 'C'].map((inst) => ({
+        id: `${inst.toLowerCase()}-20270201`,
+        institute: inst,
+        sponsor: '',
+        fieldwork: { start: '2027-01-30', end: '2027-02-01' },
+        sampleSize: 1000,
+        sources: [],
+        hypotheses: [
+          {
+            id: 'H1',
+            scores: { arthaud: 1, melenchon: 20, roussel: 2, tondelier: 4, glucksmann: 12, philippe: 18, retailleau: 8, 'dupont-aignan': 2, zemmour: 3, bardella: 30 },
+            replacing: { bardella: 'lepen' },
+          },
+        ],
+      })),
+    }
+    const alerts = detectStructuralAlerts(withReplacement, [], true, false)
+    expect(alerts.some((a) => /liste officielle/i.test(a))).toBe(true)
+    expect(alerts.some((a) => /Marine Le Pen/.test(a))).toBe(true)
+    expect(alerts.some((a) => /Jordan Bardella remplace Marine Le Pen/.test(a))).toBe(true)
   })
 })

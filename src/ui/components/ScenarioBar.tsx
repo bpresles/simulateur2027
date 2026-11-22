@@ -1,3 +1,4 @@
+import { simulationData } from '../../data/schema'
 import { newestFirst } from '../../domain/pollAverage'
 import type { SimulationResult, TransferSource } from '../../domain/types'
 import { useSettings } from '../../state/settingsStore'
@@ -96,14 +97,16 @@ export function ScenarioBar({
 
               <Switch
                 id="candidacy-uncertainty"
-                checked={s.candidacyUncertaintyEnabled}
+                checked={s.candidacyUncertaintyEnabled && !simulationData.polls.officialList}
                 onCheckedChange={s.setCandidacyUncertaintyEnabled}
-                disabled={result.allianceIds.length > 0}
+                disabled={result.allianceIds.length > 0 || Boolean(simulationData.polls.officialList)}
                 label="Intégrer l’incertitude des candidatures (Monte-Carlo)"
                 description={
-                  result.allianceIds.length > 0
-                    ? 'Inactif lorsqu’une alliance est cochée : désactivez les alliances pour pondérer les 5 configurations de candidatures.'
-                    : 'Tire à chaque simulation parmi 5 offres testées au centre et à droite (Philippe + Lisnard 40 %, Philippe seul 30 %, Philippe + Attal 15 %, Attal seul 10 %, Lagarde seule 5 %).'
+                  simulationData.polls.officialList
+                    ? 'Inactif : la liste officielle des candidats du Conseil constitutionnel est arrêtée.'
+                    : result.allianceIds.length > 0
+                      ? 'Inactif lorsqu’une alliance est cochée : désactivez les alliances pour pondérer les 5 configurations de candidatures.'
+                      : 'Tire à chaque simulation parmi 5 offres testées au centre et à droite (Philippe + Lisnard 40 %, Philippe seul 30 %, Philippe + Attal 15 %, Attal seul 10 %, Lagarde seule 5 %).'
                 }
               />
 

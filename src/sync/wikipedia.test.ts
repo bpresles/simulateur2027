@@ -194,8 +194,22 @@ ${row('[https://example.org OpinionWay]', '21-22 mars', '1 200', ['19', 'colspan
 ${preOfficial}
 `
     const full = fromWikipedia(threeOfficial, resolver(), simulated)!
+    expect(full.officialList).toBe(true)
     expect(full.polls.map((p) => p.id)).toEqual(['elabe-20270321', 'ifop-fiducial-20270322', 'opinionway-20270322'])
     expect(full.history.length).toBeGreaterThanOrEqual(3)
+    expect(partial.officialList).toBe(false)
+  })
+
+  it('extrait l’historique en utilisant un pôle RN générique (`rnIds`, ex. Bardella à la place de Le Pen)', () => {
+    const withBardella = WIKITEXT.replaceAll('[[Marine Le Pen|Le Pen]]', '[[Jordan Bardella|Bardella]]')
+    const res = new CandidateResolver(
+      [...current.candidates, { ...current.candidates.find((c) => c.isRN)!, id: 'bardella', name: 'Jordan Bardella', shortName: 'Bardella' }],
+      current.otherCandidates,
+    )
+    const simWithBardella = new Set([...simulated, 'bardella'])
+    const parsed = fromWikipedia(withBardella, res, simWithBardella, 21, new Set(['bardella']))!
+    expect(parsed.history.length).toBeGreaterThan(0)
+    expect(parsed.history.every((h) => 'bardella' in h.scores && 'melenchon' in h.scores)).toBe(true)
   })
 
   it('page méconnaissable : aucun résultat', () => {
