@@ -1,6 +1,6 @@
 import { frozenData as simulationData } from '../test/frozenData'
 import { defaultProjectionSettings } from './campaignProjection'
-import { defaultSettings, simulate } from './simulate'
+import { defaultSettings, PLAUSIBLE_DUEL_MIN_FREQUENCY, simulate } from './simulate'
 
 const run = (overrides: Partial<ReturnType<typeof defaultSettings>> = {}) =>
   simulate(simulationData, { ...defaultSettings(), ...overrides })
@@ -19,11 +19,20 @@ describe('simulate (données figées)', () => {
     expect(res.firstRound.reduce((s, r) => s + r.score, 0)).toBeCloseTo(100, 8)
     expect(res.entrants.reduce((s, e) => s + e.score, 0)).toBeCloseTo(100, 8)
     expect(res.monteCarlo.iterations).toBe(2000)
-    expect(res.selectableDuels.length).toBeGreaterThanOrEqual(2)
+    // Seuls les duels alternatifs > 30 % (en plus du top 2 déterministe) sont proposés
+    expect(res.selectableDuels.length).toBeGreaterThanOrEqual(1)
+    for (const d of res.selectableDuels.slice(1)) {
+      expect(d.frequency).toBeGreaterThan(PLAUSIBLE_DUEL_MIN_FREQUENCY)
+    }
 
     // En photographie actuelle (projection désactivée) sur les données figées du 18/10/2026, Philippe devance Mélenchon.
     const now = run({ projection: { ...defaultProjectionSettings(), enabled: false } })
     expect([now.secondRound.a, now.secondRound.b]).toEqual(['lepen', 'philippe'])
+    // Ici deux duels dépassent 30 % (Le Pen – Philippe et Le Pen – Mélenchon) et aucun duel ≤ 30 % n'apparaît
+    expect(now.selectableDuels.length).toBeGreaterThanOrEqual(2)
+    for (const d of now.selectableDuels.slice(1)) {
+      expect(d.frequency).toBeGreaterThan(PLAUSIBLE_DUEL_MIN_FREQUENCY)
+    }
   })
 
   it('un seul sondage coché : base de ce sondage, sans alerte de moyenne fragile', () => {
