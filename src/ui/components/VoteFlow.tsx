@@ -34,7 +34,10 @@ export function VoteFlow({ result }: { result: SimulationResult }) {
   )
 
   return (
-    <section aria-labelledby="flow-title">
+    <section
+      aria-labelledby="flow-title"
+      className="rounded-xl bg-surface p-5 shadow-(--ballot-shadow) sm:p-6"
+    >
       <div className="flex flex-wrap items-end justify-between gap-x-6 gap-y-2">
         <h2 id="flow-title" className="text-2xl font-bold tracking-tight">
           Reports vers le second tour
@@ -50,16 +53,16 @@ export function VoteFlow({ result }: { result: SimulationResult }) {
         />
       </div>
       <p className="mt-1 text-ink-2">
-        D’où viennent les voix de {a.shortName} et de {b.shortName} au 2nd tour, en flux bruts (% des inscrits), y
-        compris les abstentionnistes du 1er tour qui votent au 2nd.
+        D’où viennent les voix de {a.shortName} et de {b.shortName} au 2nd tour, en flux bruts (% des
+        inscrits), y compris les abstentionnistes du 1er tour qui votent au 2nd.
       </p>
 
       {view === 'chart' ? (
         <figure className="mt-4">
           <figcaption className="mb-2 text-sm text-ink-3">
-            Scores en % des exprimés, blancs et nuls en % des votants, abstention en % des inscrits ; l’épaisseur des
-            rubans suit le nombre d’électeurs. À gauche, les électorats du 1er tour ; à droite, les finalistes, ceux qui
-            ne s’expriment pas et le vote non mesuré des blancs et nuls.
+            Scores en % des exprimés, blancs et nuls en % des votants, abstention en % des inscrits ;
+            l’épaisseur des rubans suit le nombre d’électeurs. À gauche, les électorats du 1er tour ; à
+            droite, les finalistes, ceux qui ne s’expriment pas et le vote non mesuré des blancs et nuls.
           </figcaption>
           <VoteFlowSankey
             sr={sr}
@@ -107,7 +110,8 @@ export function VoteFlow({ result }: { result: SimulationResult }) {
           <>
             {' '}
             Curseur front républicain (0 % = Prés. 2022, 100 % = Lég. 2024) :{' '}
-            <strong className="num font-medium text-ink-2">{pct(sr.republicanFrontStrength * 100, 0)}</strong>.
+            <strong className="num font-medium text-ink-2">{pct(sr.republicanFrontStrength * 100, 0)}</strong>
+            .
           </>
         )}
         {flows.some((f) => f.like) &&
@@ -141,8 +145,8 @@ function TransferTable({
     <div className="mt-5 overflow-x-auto">
       <table className="w-full min-w-[22rem] text-sm">
         <caption className="mb-2 text-left text-ink-3">
-          Électorats du 1er tour (% des exprimés) et leurs reports directs au 2nd tour. Blancs et nuls : % des votants ;
-          abstention : % des inscrits.
+          Électorats du 1er tour (% des exprimés) et leurs reports directs au 2nd tour. Blancs et nuls : % des
+          votants ; abstention : % des inscrits.
         </caption>
         <thead>
           <tr className="border-b border-rule text-left text-ink-3">
@@ -171,7 +175,9 @@ function TransferTable({
             <td className="num py-1.5 pr-2 text-right text-ink-2">{pct(abstainers.volume)} des inscrits</td>
             <td className="num py-1.5 pr-2 text-right">{num(share(abstainers.toA), 1)}&#8239;%</td>
             <td className="num py-1.5 pr-2 text-right">{num(share(abstainers.toB), 1)}&#8239;%</td>
-            <td className="num py-1.5 text-right text-ink-2">{num(share(abstainers.nonExpressed), 1)}&#8239;%</td>
+            <td className="num py-1.5 text-right text-ink-2">
+              {num(share(abstainers.nonExpressed), 1)}&#8239;%
+            </td>
           </tr>
           <tr className="border-b border-rule/70">
             <td className="py-1.5 pr-2">
