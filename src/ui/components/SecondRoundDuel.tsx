@@ -35,45 +35,41 @@ export function SecondRoundDuel({ result }: { result: SimulationResult }) {
           : `Duel sélectionné : ${entrantLabel(a)} (${pct(shownScore(result, a))}, ${rankA}e) contre ${entrantLabel(b)} (${pct(shownScore(result, b))}, ${rankB}e).`}
       </p>
 
-      <div className="lg:grid lg:grid-cols-2 lg:items-start lg:gap-x-12">
-        <div className="min-w-0 max-w-prose lg:mt-5">
-          <div className="mt-5 grid grid-cols-2 gap-3 sm:gap-5 lg:mt-0">
-            <Ballot
-              entrant={a}
-              value={sr.pct.a}
-              p10={dispMc.aScoreP10}
-              p90={dispMc.aScoreP90}
-              winProb={dispMc.aWinProb}
-              ahead={leaderA}
-            />
-            <Ballot
-              entrant={b}
-              value={sr.pct.b}
-              p10={100 - dispMc.aScoreP90}
-              p90={100 - dispMc.aScoreP10}
-              winProb={100 - dispMc.aWinProb}
-              ahead={!leaderA}
-            />
-          </div>
-
-          <SplitBar a={a} b={b} pctA={sr.pct.a} p10A={dispMc.aScoreP10} p90A={dispMc.aScoreP90} />
-
-          <p className="mt-3 text-sm text-ink-3">
-            Score central en % des suffrages exprimés (moteur en flux bruts : participation T1 {pct(sr.participation, 1)},
-            exprimés T2 {pct(sr.expressed2, 1)} des inscrits, soit un abandon net équivalent de {pct(sr.netDropout, 1)} ;
-            nouveaux votants {pct(sr.newVoters, 1)} des inscrits). Fidélité appliquée : {cand(sr.a).shortName}{' '}
-            {pct(sr.fidelity.a.loyal, 0)}, {cand(sr.b).shortName} {pct(sr.fidelity.b.loyal, 0)}. Détail dans les{' '}
-            <Link to="simulateur" hash="flow-title" className="link">
-              reports
-            </Link>
-            .
-          </p>
+      <div className="min-w-0 max-w-auto lg:mt-5">
+        <div className="mt-5 grid grid-cols-2 gap-3 sm:gap-5 lg:mt-0">
+          <Ballot
+            entrant={a}
+            value={sr.pct.a}
+            p10={dispMc.aScoreP10}
+            p90={dispMc.aScoreP90}
+            winProb={dispMc.aWinProb}
+            ahead={leaderA}
+          />
+          <Ballot
+            entrant={b}
+            value={sr.pct.b}
+            p10={100 - dispMc.aScoreP90}
+            p90={100 - dispMc.aScoreP10}
+            winProb={100 - dispMc.aWinProb}
+            ahead={!leaderA}
+          />
         </div>
 
-        <div className="min-w-0 max-w-prose lg:mt-5">
-          <MethodLine result={result} />
-          <PollBiasLine result={result} />
-        </div>
+        <SplitBar a={a} b={b} pctA={sr.pct.a} p10A={dispMc.aScoreP10} p90A={dispMc.aScoreP90} />
+
+        <p className="mt-3 text-sm text-ink-3">
+          Score central en % des suffrages exprimés (moteur en flux bruts : participation T1{' '}
+          {pct(sr.participation, 1)}, exprimés T2 {pct(sr.expressed2, 1)} des inscrits, soit un abandon net
+          équivalent de {pct(sr.netDropout, 1)} ; nouveaux votants {pct(sr.newVoters, 1)} des inscrits).
+          Fidélité appliquée : {cand(sr.a).shortName} {pct(sr.fidelity.a.loyal, 0)}, {cand(sr.b).shortName}{' '}
+          {pct(sr.fidelity.b.loyal, 0)}. Détail dans les{' '}
+          <Link to="simulateur" hash="flow-title" className="link">
+            reports
+          </Link>
+          .
+        </p>
+        <MethodLine result={result} />
+        <PollBiasLine result={result} />
       </div>
     </section>
   )
@@ -89,8 +85,8 @@ function PollBiasLine({ result }: { result: SimulationResult }) {
   return (
     <p className="mt-2 text-sm text-ink-3">
       À la même distance du scrutin, les sondages de 2nd tour sous-estimaient le candidat opposé au RN :{' '}
-      {gaps.map((g, i) => `${i > 0 ? ' ; ' : `${g.duel.split(' – ')[0]} `}${one(g)}`).join('')}. Mesuré sur des duels{' '}
-      {gaps[0]!.duel} ; non appliqué au calcul.
+      {gaps.map((g, i) => `${i > 0 ? ' ; ' : `${g.duel.split(' – ')[0]} `}${one(g)}`).join('')}. Mesuré sur
+      des duels {gaps[0]!.duel} ; non appliqué au calcul.
     </p>
   )
 }
@@ -116,12 +112,12 @@ function Ballot({
     <motion.article
       layout
       transition={spring}
-      className={`relative flex flex-col overflow-hidden rounded-[6px] bg-surface px-3 pb-4 pt-5 text-center shadow-[var(--ballot-shadow)] sm:px-5 ${
+      className={`relative flex flex-col overflow-hidden rounded-md bg-surface px-3 pb-4 pt-5 text-center shadow-(--ballot-shadow) sm:px-5 ${
         ahead ? 'ring-2 ring-ballpoint' : ''
       }`}
       aria-label={`${leader.name} : ${pct(value)}`}
     >
-      <div className="min-h-[4.25rem]">
+      <div className="min-h-17">
         <p className="text-[0.95rem] leading-tight text-ink-2 sm:text-base">{first}</p>
         <p className="wide text-lg font-extrabold uppercase leading-tight tracking-wide sm:text-xl">
           {rest.join(' ')}
@@ -155,14 +151,14 @@ function SplitBar({
 }) {
   return (
     <div className="mt-5" aria-hidden>
-      <div className="relative flex h-3.5 gap-[2px]">
+      <div className="relative flex h-3.5 gap-0.5">
         <motion.div
           style={colorVars(cand(a.id))}
-          className="cand-fill h-full rounded-l-[4px]"
+          className="cand-fill h-full rounded-l-sm"
           animate={{ width: `${pctA}%` }}
           transition={spring}
         />
-        <div style={colorVars(cand(b.id))} className="cand-fill h-full flex-1 rounded-r-[4px]" />
+        <div style={colorVars(cand(b.id))} className="cand-fill h-full flex-1 rounded-r-sm" />
         {/* Bandeau d'incertitude 80 % sur la ligne de partage */}
         <motion.div
           className="pointer-events-none absolute -bottom-1 -top-1 rounded border border-ink/40 bg-surface/40"
@@ -171,7 +167,9 @@ function SplitBar({
         />
         <div className="absolute -bottom-1.5 -top-1.5 left-1/2 w-0.5 -translate-x-1/2 bg-ink" />
       </div>
-      <p className="mt-2 text-center text-xs text-ink-3">50&#8239;% : majorité absolue · cadre : intervalle à 80 %</p>
+      <p className="mt-2 text-center text-xs text-ink-3">
+        50&#8239;% : majorité absolue · cadre : intervalle à 80 %
+      </p>
     </div>
   )
 }
@@ -200,7 +198,8 @@ function MethodLine({ result }: { result: SimulationResult }) {
       ) : duel.kind === 'non-rn-presidential' ? (
         <p className="text-sm text-ink-2">
           <span className="font-medium text-ink">Reports utilisés (duel hors RN) : </span>
-          enquêtes « jour du vote » des seconds tours présidentiels 2007 (Sarkozy – Royal) et 2012 (Hollande – Sarkozy).{' '}
+          enquêtes « jour du vote » des seconds tours présidentiels 2007 (Sarkozy – Royal) et 2012 (Hollande –
+          Sarkozy).{' '}
           <Link to="methodologie" hash="reports" className="link">
             Détail des reports
           </Link>
@@ -208,7 +207,8 @@ function MethodLine({ result }: { result: SimulationResult }) {
       ) : (
         <p className="text-sm text-ink-2">
           <span className="font-medium text-hypo">Duel de même camp : </span>
-          aucune mesure historique directe ne couvre ce duel ; le calcul repose sur une matrice de repli symétrique.
+          aucune mesure historique directe ne couvre ce duel ; le calcul repose sur une matrice de repli
+          symétrique.
         </p>
       )}
 
@@ -218,8 +218,9 @@ function MethodLine({ result }: { result: SimulationResult }) {
             Sensibilité au report gauche hors LFI → Mélenchon (non mesuré en présidentielle)
           </p>
           <p className="mt-1">
-            Entre <strong className="num">{lfiLeftSensitivity.lowRate}&#8239;%</strong> (proche des déclarations 2027
-            corrigées) et <strong className="num">{lfiLeftSensitivity.highRate}&#8239;%</strong> (repère NFP 2024),{' '}
+            Entre <strong className="num">{lfiLeftSensitivity.lowRate}&#8239;%</strong> (proche des
+            déclarations 2027 corrigées) et{' '}
+            <strong className="num">{lfiLeftSensitivity.highRate}&#8239;%</strong> (repère NFP 2024),{' '}
             {rnCand.shortName} varie de{' '}
             <strong className="num">
               {pct(Math.min(lfiLeftSensitivity.rnAtLow, lfiLeftSensitivity.rnAtHigh))}
@@ -232,8 +233,8 @@ function MethodLine({ result }: { result: SimulationResult }) {
             <span className="num font-medium">
               {num(Math.abs(lfiLeftSensitivity.rnAtLow - lfiLeftSensitivity.rnAtHigh), 1)} pts
             </span>
-            , valeur centrale active : <span className="num">{lfiLeftSensitivity.currentRate}&#8239;%</span>). Cette
-            plage est tirée uniformément dans Monte-Carlo.
+            , valeur centrale active : <span className="num">{lfiLeftSensitivity.currentRate}&#8239;%</span>).
+            Cette plage est tirée uniformément dans Monte-Carlo.
           </p>
         </div>
       )}
@@ -251,7 +252,8 @@ function MethodLine({ result }: { result: SimulationResult }) {
                   {p.institute} ({fieldwork(p.fieldwork)})
                 </span>
                 <span className="num font-medium">
-                  {cand(a).shortName} {pct(p.scores[a] ?? 0, 0)} – {cand(b).shortName} {pct(p.scores[b] ?? 0, 0)}
+                  {cand(a).shortName} {pct(p.scores[a] ?? 0, 0)} – {cand(b).shortName}{' '}
+                  {pct(p.scores[b] ?? 0, 0)}
                 </span>
                 {p.noIntention && (
                   <span className="col-span-2 text-xs text-ink-3">
@@ -270,11 +272,11 @@ function MethodLine({ result }: { result: SimulationResult }) {
             </p>
           )}
           <p className="mt-2 text-sm text-ink-3">
-            Ces sondages directs ne servent jamais à recalibrer le modèle : la part élevée de personnes sans intention
-            de vote ({NO_INTENTION ? range(NO_INTENTION.min, NO_INTENTION.max) : 'élevée'}) est écartée des
-            pourcentages publiés. Au 2nd tour réel, {pct(secondRoundDropout(simulationData.reference2022), 2)} des
-            exprimés du 1er tour en 2022 et {pct(secondRoundDropout(simulationData.reference2017), 2)} en 2017 ne se
-            sont pas exprimés.
+            Ces sondages directs ne servent jamais à recalibrer le modèle : la part élevée de personnes sans
+            intention de vote ({NO_INTENTION ? range(NO_INTENTION.min, NO_INTENTION.max) : 'élevée'}) est
+            écartée des pourcentages publiés. Au 2nd tour réel,{' '}
+            {pct(secondRoundDropout(simulationData.reference2022), 2)} des exprimés du 1er tour en 2022 et{' '}
+            {pct(secondRoundDropout(simulationData.reference2017), 2)} en 2017 ne se sont pas exprimés.
           </p>
         </div>
       )}

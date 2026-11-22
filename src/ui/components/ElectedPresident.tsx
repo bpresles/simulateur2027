@@ -43,11 +43,11 @@ export function ElectedPresident({ result }: { result: SimulationResult }) {
 
       {leader && leaderCand && (
         <p className="mt-2 text-ink-2">
-          À cet horizon, aucune issue n’est acquise : compte tenu de la volatilité historique des campagnes (1995–2022)
-          et de l’incertitude des reports, <strong>{leaderCand.shortName}</strong> l’emporte dans{' '}
+          À cet horizon, aucune issue n’est acquise : compte tenu de la volatilité historique des campagnes
+          (1995–2022) et de l’incertitude des reports, <strong>{leaderCand.shortName}</strong> l’emporte dans{' '}
           <strong className="num">{pct(leader.winProb, 0)}</strong> des simulations (qualification dans{' '}
-          <span className="num">{pct(leader.qualifProb, 0)}</span> des cas). Dans le duel affiché ({cand(sr.a).shortName}{' '}
-          – {cand(sr.b).shortName}), {cand(sr.a).shortName} gagne dans{' '}
+          <span className="num">{pct(leader.qualifProb, 0)}</span> des cas). Dans le duel affiché (
+          {cand(sr.a).shortName} – {cand(sr.b).shortName}), {cand(sr.a).shortName} gagne dans{' '}
           <strong className="num">{pct(mc.displayedDuel.aWinProb, 0)}</strong> des tirages (intervalle 80 % :{' '}
           <span className="num">
             {pct(mc.displayedDuel.aScoreP10)} – {pct(mc.displayedDuel.aScoreP90)}
@@ -56,7 +56,7 @@ export function ElectedPresident({ result }: { result: SimulationResult }) {
         </p>
       )}
 
-      <div aria-live="polite" className="mt-4 rounded-xl bg-surface p-5 shadow-[var(--ballot-shadow)] sm:p-6">
+      <div aria-live="polite" className="mt-4 rounded-xl bg-surface p-5 shadow-(--ballot-shadow) sm:p-6">
         <div className="mb-3 grid grid-cols-[9rem_1fr_4.5rem_5rem] gap-x-3 text-xs font-medium uppercase tracking-wide text-ink-3">
           <span>Candidat</span>
           <span className="flex items-baseline justify-between">
@@ -80,7 +80,10 @@ export function ElectedPresident({ result }: { result: SimulationResult }) {
                   <span className="truncate">{info.shortName}</span>
                 </span>
                 <div className="relative h-3 overflow-hidden rounded-full bg-sunken">
-                  <span aria-hidden className="pointer-events-none absolute inset-y-0 left-1/2 w-px bg-rule" />
+                  <span
+                    aria-hidden
+                    className="pointer-events-none absolute inset-y-0 left-1/2 w-px bg-rule"
+                  />
                   <motion.div
                     style={colorVars(info)}
                     className="cand-fill relative h-full rounded-full"
@@ -97,13 +100,13 @@ export function ElectedPresident({ result }: { result: SimulationResult }) {
       </div>
 
       <p className="mt-3 text-sm text-ink-3">
-        Scénario : {result.projection.enabled ? 'projection avril 2027' : 'photographie actuelle'}, hypothèse «{' '}
-        {result.hypothesisSet.label} »
+        Scénario : {result.projection.enabled ? 'projection avril 2027' : 'photographie actuelle'}, hypothèse
+        « {result.hypothesisSet.label} »
         {settings.candidacyUncertaintyEnabled && result.allianceIds.length === 0
           ? ' (+ incertitude des candidatures pondérée)'
           : ''}
-        , {transferDesc}, {alliances.length > 0 ? alliances.join(', ') : 'sans alliance'}. Ce n’est ni un sondage ni une
-        prévision.
+        , {transferDesc}, {alliances.length > 0 ? alliances.join(', ') : 'sans alliance'}. Ce n’est ni un
+        sondage ni une prévision.
       </p>
     </section>
   )
