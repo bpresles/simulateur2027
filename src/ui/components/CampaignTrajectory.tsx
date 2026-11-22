@@ -1,9 +1,7 @@
 import { useMemo, useState } from 'react'
 import type { CandidateId, SimulationResult, TrajectoryPoint } from '../../domain/types'
-import { useSettings } from '../../state/settingsStore'
 import { cand, colorVars } from '../candidates'
 import { date, integer, pct } from '../format'
-import { Segmented } from './controls'
 
 const W = 780
 const H = 300
@@ -23,8 +21,7 @@ const shortMonth = (iso: string) => shortMonthFmt.format(new Date(`${iso}T00:00:
  */
 export function CampaignTrajectory({ result }: { result: SimulationResult }) {
   const { trajectory, projection } = result
-  const projectionEnabled = useSettings((s) => s.projection.enabled)
-  const setProjectionEnabled = useSettings((s) => s.setProjectionEnabled)
+  const projectionEnabled = projection.enabled
 
   const [focusedId, setFocusedId] = useState<CandidateId | null>(null)
   const [hoverIndex, setHoverIndex] = useState<number | null>(null)
@@ -143,26 +140,15 @@ export function CampaignTrajectory({ result }: { result: SimulationResult }) {
       aria-labelledby="trajectory-title"
       className="rounded-xl bg-surface p-5 shadow-[var(--ballot-shadow)] sm:p-6"
     >
-      <div className="flex flex-col items-start gap-3">
-        <div>
-          <h2 id="trajectory-title" className="text-xl font-bold tracking-tight sm:text-2xl">
-            {hasFuture ? 'Évolution et trajectoire vers avril 2027' : 'Évolution des intentions de vote'}
-          </h2>
-          <p className="mt-1 text-sm text-ink-2">
-            {hasFuture
-              ? `Projection structurelle jusqu’au ${date(trajectory.electionDate)} (vote utile par bloc sur ${integer(trajectory.historyPollCount)} vagues passées), avec cône d’incertitude à 80 %.`
-              : `Courbe lissée sur ${integer(trajectory.historyPollCount)} vagues passées (demi-vie 14 j), arrêtée au ${date(trajectory.asOf)}.`}
-          </p>
-        </div>
-        <Segmented<'now' | 'projected'>
-          label="Horizon de la simulation"
-          value={projectionEnabled ? 'projected' : 'now'}
-          onValueChange={(v) => setProjectionEnabled(v === 'projected')}
-          options={[
-            { value: 'now', label: 'Photographie actuelle' },
-            { value: 'projected', label: 'Projection avril 2027' },
-          ]}
-        />
+      <div>
+        <h2 id="trajectory-title" className="text-xl font-bold tracking-tight sm:text-2xl">
+          {hasFuture ? 'Évolution et trajectoire vers avril 2027' : 'Évolution des intentions de vote'}
+        </h2>
+        <p className="mt-1 text-sm text-ink-2">
+          {hasFuture
+            ? `Projection structurelle jusqu’au ${date(trajectory.electionDate)} (vote utile par bloc sur ${integer(trajectory.historyPollCount)} vagues passées), avec cône d’incertitude à 80 %.`
+            : `Courbe lissée sur ${integer(trajectory.historyPollCount)} vagues passées (demi-vie 14 j), arrêtée au ${date(trajectory.asOf)}.`}
+        </p>
       </div>
 
       {/* Sélecteur de candidat mis en avant (et cône d'incertitude 80 % en mode projection) */}
