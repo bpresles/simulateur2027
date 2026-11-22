@@ -1,8 +1,10 @@
 import { useState } from 'react'
 import { simulationData } from '../data/schema'
+import { POLL_HALF_LIFE_DAYS, SAMPLE_SIZE_CAP } from '../domain/pollAverage'
 import { noIntentionRange } from '../domain/secondRound'
 import type { SimulationResult } from '../domain/types'
-import { progression2022Stats, useSimulation } from '../hooks/useSimulation'
+import { useSimulation } from '../hooks/useSimulation'
+import { CampaignTrajectory } from './components/CampaignTrajectory'
 import { ElectedPresident } from './components/ElectedPresident'
 import { FirstRoundChart } from './components/FirstRoundChart'
 import { Methodology } from './components/Methodology'
@@ -11,8 +13,9 @@ import { RetainedPolls } from './components/RetainedPolls'
 import { ScenarioBar } from './components/ScenarioBar'
 import { SecondRoundDuel } from './components/SecondRoundDuel'
 import { SettingsSheet } from './components/SettingsSheet'
+import type { SettingsTab } from './components/SettingsSheet'
 import { VoteFlow } from './components/VoteFlow'
-import { date, month, range } from './format'
+import { date, integer, range } from './format'
 import { Link } from './Link'
 import { useRoute } from './router'
 import type { Route } from './router'
@@ -31,14 +34,17 @@ export function App() {
   const route = useRoute()
   const result = useSimulation()
   const [settingsOpen, setSettingsOpen] = useState(false)
+  const [settingsTab, setSettingsTab] = useState<SettingsTab>('reports')
   const { preference, setPreference } = useTheme()
-  const openSettings = () => setSettingsOpen(true)
+  const openSettings = (tab: SettingsTab = 'reports') => {
+    setSettingsTab(tab)
+    setSettingsOpen(true)
+  }
 
   return (
     <div className="mx-auto max-w-[80rem] px-4 pb-16 sm:px-6 lg:px-8">
       <header className="flex flex-wrap items-center justify-between gap-x-6 gap-y-3 border-b border-rule py-4">
         <nav aria-label="Pages">
-          {/* Marge négative : le texte du premier lien s'aligne sur le bord gauche du contenu. */}
           <ul className="-ml-3 flex gap-1">
             {NAV.map((item) => (
               <li key={item.route}>
@@ -64,7 +70,7 @@ export function App() {
           </button>
           <button
             type="button"
-            onClick={openSettings}
+            onClick={() => openSettings('reports')}
             className="rounded-lg bg-ballpoint px-4 py-2 text-sm font-semibold text-surface hover:opacity-90"
           >
             Réglages
@@ -89,32 +95,42 @@ export function App() {
         </p>
       </footer>
 
-      <SettingsSheet open={settingsOpen} onOpenChange={setSettingsOpen} result={result} />
+      <SettingsSheet
+        open={settingsOpen}
+        onOpenChange={setSettingsOpen}
+        result={result}
+        tab={settingsTab}
+        onTabChange={setSettingsTab}
+      />
     </div>
   )
 }
 
-function SimulatorPage({ result, onOpenSettings }: { result: SimulationResult; onOpenSettings: () => void }) {
+function SimulatorPage({
+  result,
+  onOpenSettings,
+}: {
+  result: SimulationResult
+  onOpenSettings: (tab?: SettingsTab) => void
+}) {
   return (
     <>
       <div className="max-w-full pb-8 pt-10 sm:pt-14">
         <h1 className="wide text-[2rem] font-extrabold leading-[1.05] tracking-tight sm:text-[2.75rem]">
           Présidentielle 2027
         </h1>
-        <h2 className="text-[1.7rem]" >Simulateur des résultats de second tour</h2>
+        <h2 className="text-[1.7rem]">Simulateur probabiliste des résultats de second tour</h2>
         <div className="mt-3 space-y-[1lh] text-[1.05rem] leading-relaxed text-ink-2">
           <p>
-            Cet outil a été développé suite au constat que, dans les sondages de second tour,{' '}
+            Dans les sondages directs de second tour,{' '}
             {NO_INTENTION ? range(NO_INTENTION.min, NO_INTENTION.max) : 'une part importante'} des personnes
-            interrogées n’expriment aucun choix entre les deux candidats selon les instituts et les duels (indécis,
-            vote blanc ou nul et abstention compris), réduisant de ce fait leur fiabilité.
+            interrogées n’expriment aucun choix entre les deux candidats (indécis, blanc, nul ou abstention), ce qui
+            fragilise leur lecture directe.
             {NO_INTENTION && (
               <>
                 {' '}
-                Cette fourchette va de la part la plus basse à la plus haute des {NO_INTENTION.polls.length} duels
-                publiés en dernier par chaque institut (
-                {new Set(NO_INTENTION.polls.map((p) => p.institute)).size} instituts) ; selon l’institut, elle porte
-                sur l’ensemble des inscrits ou sur les seuls inscrits comptant voter (
+                Cette fourchette couvre les {NO_INTENTION.polls.length} duels publiés en dernier par{' '}
+                {new Set(NO_INTENTION.polls.map((p) => p.institute)).size} instituts (
                 <Link to="methodologie" hash="limites" className="link">
                   détail par sondage
                 </Link>
@@ -122,60 +138,40 @@ function SimulatorPage({ result, onOpenSettings }: { result: SimulationResult; o
               </>
             )}
           </p>
+          <p>Ce simulateur reconstruit les seconds tours de 2027 selon une méthode sobre et testable :</p>
+          <ul className="list-disc space-y-1 pl-5">
+            <li>
+              <strong>1er tour pondéré</strong> : dernier sondage de chaque institut pondéré par sa fraîcheur (demi-vie
+              de {POLL_HALF_LIFE_DAYS} jours) et sa taille d’échantillon (plafonnée à {integer(SAMPLE_SIZE_CAP)}), avec
+              projection d’offre par paires propres intra-institut et aucune correction déterministe fondée sur 2017–2022.
+            </li>
+            <li>
+              <strong>Alliances testées uniquement</strong> : seules les configurations effectivement posées aux sondés
+              par au moins un institut sont proposées.
+            </li>
+            <li>
+              <strong>2nd tour en flux bruts (% des inscrits)</strong> : base historique des législatives 2024
+              (Ipsos-Talan) transposée en scrutin présidentiel via 2017–2022 et modulée de façon homogène sur les 4
+              types de duels face au RN par la force du <em>front républicain</em> (réglable globalement et par famille
+              de duel), présidentielles 2007–2012 pour les duels hors RN, et option activable pour les déclarations 2027
+              corrigées en logit.
+            </li>
+            <li>
+              <strong>Projection temporelle (optionnelle)</strong> : bascule entre la photographie actuelle et une
+              projection vers avril 2027 combinant vote utile (réglable par bloc dans les réglages avancés), léger
+              amortissement des écarts précoces et tendance récente amortie sur l’historique des vagues.
+            </li>
+            <li>
+              <strong>Incertitude explicite</strong> : {integer(result.monteCarlo.iterations)} simulations Monte-Carlo
+              propageant la volatilité de campagne (calibrée sur 2017 et 2022) et l’incertitude des reports, pour
+              afficher des probabilités de victoire et des intervalles à 80 %.
+            </li>
+          </ul>
           <p>
-            Pour tenter d’offrir une meilleure simulation du résultat du second tour pour les présidentielles de 2027, cet outil se base sur les hypothèses
-            suivantes :
-          </p>
-          <div>
-            <ul className="list-disc space-y-1 pl-5">
-              <li>
-                La moyenne du dernier sondage de chaque institut (ou des seuls sondages choisis en option), repris
-                de la liste des sondages de Wikipedia
-              </li>
-              <li>Les reports de voix des législatives 2024 entre le premier tour et le second tour</li>
-              <li>
-                Les données réelles d’écarts entre les sondages d’avant premier tour et les résultats réels du premier
-                tour des présidentielles 2017 et 2022, combinées en une estimation (en option)
-              </li>
-              <li>
-                L’évolution des sondages de 2022 depuis la même distance du scrutin (
-                {month(progression2022Stats.asOf)}) jusqu’aux derniers sondages (en option)
-              </li>
-              <li>
-                Les écarts de la gauche et de l’extrême droite relevés par le billet de blog d’Eliot Thibault,
-                mesurés sur 2017 et 2022 à la même distance du scrutin (en option, activée par défaut)
-              </li>
-              <li>
-                La participation attendue au 1er tour, par défaut la hausse des électeurs certains d’aller voter
-                (Ifop-Fiducial) reportée sur la participation de 2022, l’écart avec les sondages corrigés étant
-                réparti selon le vote en 2022 des abstentionnistes de 2017 (en option, activée par défaut)
-              </li>
-            </ul>
-          </div>
-          <p>
-            Les alliances ne sont pas des calculs de report : chaque sondeur teste plusieurs listes de candidats
-            (hypothèses), et activer une alliance revient à retenir les hypothèses où le candidat rallié n’est
-            pas présent (et où personne ne le remplace), le leader de l’alliance l’étant. Ce sont donc les
-            sondés eux-mêmes qui répartissent ses électeurs, et seuls les sondages qui testent cette hypothèse
-            sont retenus. Pour qu’une absence vaille ralliement, le leader doit rester le seul candidat principal
-            de leur camp. Les alliances proposées sont celles que les sondages testent : la liste évolue avec
-            les hypothèses publiées par les instituts.
-          </p>
-          <p>
-            En option, désactivée par défaut, vous pouvez aussi tester des alliances qu’aucun sondeur n’a
-            évaluées : elles sont alors estimées en appliquant aux sondages les reports de voix des législatives
-            2024. Une estimation reste moins fiable qu’une hypothèse testée, qui garde toujours la priorité :
-            l’option ne change ni les sondages retenus ni les alliances testées, elle ajoute seulement, sur ces
-            mêmes sondages, les alliances qu’aucune hypothèse ne permet.
-          </p>
-          <p>
-            Les résultats et reports de voix des élections passées ne présagent pas des résultats futurs réels : il ne faut donc pas
-            prendre ce simulateur comme un outil de prévision des résultats de 2027.
-          </p>
-          <p>
-            Cet outil est proposé à titre d’expérimentation uniquement.{' '}
+            À cet horizon, les rapports de force évoluent encore fortement : cet outil permet d’explorer des scénarios
+            et leurs marges d’incertitude, pas de prédire l’issue de 2027.{' '}
             <Link to="methodologie" className="link">
-              Voir la méthodologie
+              Voir la méthodologie et la validation historique
             </Link>
           </p>
         </div>
@@ -193,23 +189,25 @@ function SimulatorPage({ result, onOpenSettings }: { result: SimulationResult; o
         </ul>
       )}
 
+      <RetainedPolls result={result} />
+
       <QualificationSwitch result={result} />
 
-      <RetainedPolls result={result} />
+      <div className="mt-10">
+        <SecondRoundDuel result={result} />
+      </div>
 
       <ElectedPresident result={result} />
 
-      <div className="mt-12">
-        <SecondRoundDuel result={result} />
-      </div>
+      <CampaignTrajectory result={result} />
 
       <div className="mt-12 grid items-start gap-x-12 gap-y-12 lg:grid-cols-2">
         <div className="min-w-0">
           <FirstRoundChart result={result} />
           <p className="mt-4 text-sm text-ink-3">
-            Survolez ou sélectionnez un candidat pour voir le détail du calcul. Les corrections se règlent
-            candidat par candidat dans les{' '}
-            <button type="button" className="link" onClick={onOpenSettings}>
+            Survolez ou sélectionnez un candidat pour voir son intervalle à 80 % et ses probabilités de qualification et
+            de victoire. Les paramètres de reports se règlent dans les{' '}
+            <button type="button" className="link" onClick={() => onOpenSettings('reports')}>
               réglages
             </button>
             .

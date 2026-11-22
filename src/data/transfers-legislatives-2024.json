@@ -2,7 +2,7 @@
   "sources": {
     "franceinfo": {
       "label": "franceinfo / Ipsos-Talan",
-      "description": "« Législatives 2024 : comment les reports de voix du \"front républicain\" ont joué contre le RN, selon notre sondage », franceinfo, 07/07/2024. Enquête Ipsos-Talan pour Radio France, France Télévisions, France 24-RFI et LCP-Assemblée nationale. Source de référence du simulateur.",
+      "description": "« Législatives 2024 : comment les reports de voix du \"front républicain\" ont joué contre le RN, selon notre sondage », franceinfo, 07/07/2024. Enquête Ipsos-Talan pour Radio France, France Télévisions, France 24-RFI et LCP-Assemblée nationale. Source de référence par défaut pour les duels face au RN.",
       "url": "https://www.franceinfo.fr/elections/legislatives/legislatives-2024-comment-les-reports-de-voix-du-front-republicain-ont-joue-contre-le-rn-selon-notre-sondage_6652164.html"
     },
     "publicsenat": {
@@ -15,6 +15,21 @@
       "description": "« Législatives 2024 : la France politique en cartes et en infographies à l'issue des élections », LCP-Assemblée nationale, 14/07/2024. Reprend la même enquête Ipsos-Talan.",
       "url": "https://lcp.fr/actualites/legislatives-2024-la-france-politique-en-cartes-et-en-infographies-a-l-issue-des"
     },
+    "presidentielles2017_2022": {
+      "label": "Présidentielles 2017 et 2022 (Ipsos / Ifop)",
+      "description": "Enquêtes « jour du vote » des seconds tours présidentiels Macron – Le Pen de 2017 et 2022 (Ipsos Sopra Steria, Ifop-Fiducial). Servent de repères historiques (100 % en 2017, 75 % en 2022) pour calibrer l'érosion du front républicain sur les 4 types de duels face au RN.",
+      "url": "https://www.ipsos.com/fr-fr/presidentielle-2022/second-tour-profil-des-abstentionnistes-et-sociologie-des-electorats"
+    },
+    "presidentielles2007_2012": {
+      "label": "Présidentielles 2007 et 2012 (Ipsos / Ifop)",
+      "description": "Moyenne des enquêtes « jour du vote » des seconds tours présidentiels sans RN : 2007 (Sarkozy – Royal) et 2012 (Hollande – Sarkozy).",
+      "url": "https://www.ipsos.com/fr-fr/2nd-tour-de-lelection-presidentielle-comprendre-le-vote-des-francais"
+    },
+    "declare2027": {
+      "label": "Déclarations 2027 corrigées (Harris / Odoxa)",
+      "description": "Reports déclarés dans les sondages de 2027 (Harris Interactive notices 10263 à 10362, Odoxa oct. 2026), corrigés en logit de l'écart mesuré entre déclarations de campagne et jour du vote en 2017 et 2022 (option activable, désactivée par défaut).",
+      "url": "https://www.commission-des-sondages.fr/notices/"
+    },
     "derive": {
       "label": "Complété par règle",
       "description": "Valeur non publiée, déduite des valeurs sourcées selon la règle de complétion (voir la note de la ligne)."
@@ -25,19 +40,99 @@
     },
     "camp": {
       "label": "Camp RN",
-      "description": "Électorat rattaché au camp du RN, comme l'électorat « RN et alliés » des législatives 2024 : il vote pour le candidat RN selon le taux de fidélité, comme les électeurs du finaliste."
-    },
-    "reels2024": {
-      "label": "Votes réels 2024",
-      "description": "Report estimé sur les résultats réels des législatives 2024 (régression écologique de Goodman sur les circonscriptions du même type de duel), pour les électorats des blocs absents du duel : il remplace le report de l'enquête, à hauteur de l'intensité de la correction. Voir la méthodologie."
+      "description": "Électorat rattaché au camp du RN, comme l'électorat « RN et alliés » des législatives 2024 : il vote pour le candidat RN selon le taux de fidélité du camp RN."
     },
     "hypothese": {
       "label": "Hypothèse",
-      "description": "Valeur sans source : hypothèse de modélisation. Par défaut, seuls le taux de fidélité et le modèle de repli (duel sans le RN) en utilisent."
+      "description": "Valeur sans mesure directe disponible (ex. duel entre deux candidats du même camp)."
     }
   },
   "completionRule": "Quand une seule valeur manque et que les deux autres sont sourcées, elle est déduite par soustraction (le total fait 100). Quand seul le report vers le finaliste est connu, le reste est réparti entre RN et blanc/nul/abstention au prorata d'une ligne sourcée du même électorat dans un autre type de duel. Quand l'enquête ne publie aucun report pour un électorat (électeurs du même camp que le finaliste), on reprend son taux mesuré dans le duel le plus proche. Les électeurs de Zemmour et Dupont-Aignan, que l'enquête ne couvre pas, sont rattachés au camp RN.",
-  "defaultFidelity": 1,
+  "fidelity": {
+    "default": {
+      "loyal": 95,
+      "cross": 1.5,
+      "abstention": 3.5
+    },
+    "byCandidate": {
+      "lepen": {
+        "loyal": 96,
+        "cross": 1,
+        "abstention": 3
+      },
+      "melenchon": {
+        "loyal": 92,
+        "cross": 2,
+        "abstention": 6
+      }
+    },
+    "note": "Depuis 2007, 90 à 99 % des électeurs des finalistes revotent pour leur candidat au 2nd tour (1 à 2 % votent pour l'adversaire, le reste s'abstient ou vote blanc/nul). Dans les enquêtes Harris Interactive de l'automne 2026 (notices 10263–10362), la fidélité déclarée est asymétrique : 97–98 % pour Marine Le Pen, 91–93 % pour Jean-Luc Mélenchon. Valeurs ajustables dans les réglages."
+  },
+  "presidentialCenterRn": {
+    "description": "Reports mesurés par enquête « jour du vote » (Ipsos Sopra Steria / Ifop-Fiducial) lors des deux seconds tours présidentiels Macron – Le Pen (2017 et 2022). Ancres historiques utilisées pour calibrer le modèle homogène du front républicain et le backtest présidentiel.",
+    "defaultWeight": 0.5,
+    "elections": {
+      "2017": {
+        "gauche": { "finalist": 58, "rn": 9, "abstention": 33 },
+        "centre": { "finalist": 79, "rn": 7, "abstention": 14 },
+        "droite": { "finalist": 48, "rn": 23, "abstention": 29 },
+        "extreme_droite": { "finalist": 0, "rn": 96, "abstention": 4 }
+      },
+      "2022": {
+        "gauche": { "finalist": 47, "rn": 15, "abstention": 38 },
+        "centre": { "finalist": 79, "rn": 7, "abstention": 14 },
+        "droite": { "finalist": 53, "rn": 18, "abstention": 29 },
+        "extreme_droite": { "finalist": 0, "rn": 96, "abstention": 4 }
+      }
+    },
+    "rows": {
+      "gauche": {
+        "finalist": 52.5,
+        "rn": 12,
+        "abstention": 35.5,
+        "provenance": {
+          "finalist": "presidentielles2017_2022",
+          "rn": "presidentielles2017_2022",
+          "abstention": "presidentielles2017_2022"
+        },
+        "note": "Moyenne 2017 (Mélenchon 53/11/36 et Hamon 75/3/22 pondérés : 58/9/33) et 2022 (Mélenchon 42/17/41 et Jadot 65/8/27 pondérés : 47/15/38)."
+      },
+      "centre": {
+        "finalist": 79,
+        "rn": 7,
+        "abstention": 14,
+        "provenance": {
+          "finalist": "transpose",
+          "rn": "transpose",
+          "abstention": "transpose"
+        },
+        "note": "Électeurs d'un second candidat du centre non qualifié : report transposé du profil Ensemble face à LR/RN en 2024."
+      },
+      "droite": {
+        "finalist": 50.5,
+        "rn": 20.5,
+        "abstention": 29,
+        "provenance": {
+          "finalist": "presidentielles2017_2022",
+          "rn": "presidentielles2017_2022",
+          "abstention": "presidentielles2017_2022"
+        },
+        "note": "Moyenne 2017 (Fillon : 48/23/29) et 2022 (Pécresse : 53/18/29)."
+      },
+      "extreme_droite": {
+        "finalist": 0,
+        "rn": 100,
+        "abstention": 0,
+        "camp": "rn",
+        "provenance": {
+          "finalist": "camp",
+          "rn": "camp",
+          "abstention": "camp"
+        },
+        "note": "Électorat Reconquête / DLF rattaché au camp RN (suit la fidélité du camp RN)."
+      }
+    }
+  },
   "profiles": [
     {
       "id": "lfi_rn",
@@ -87,7 +182,7 @@
             "rn": "camp",
             "abstention": "camp"
           },
-          "note": "Électeurs Reconquête et DLF : non couverts par l'enquête. Rattachés au camp RN (électorat « RN et alliés » des législatives 2024) : ils votent RN selon le taux de fidélité."
+          "note": "Électeurs Reconquête et DLF : non couverts par l'enquête. Rattachés au camp RN (électorat « RN et alliés » des législatives 2024) : ils votent RN selon la fidélité du camp RN."
         }
       }
     },
@@ -139,7 +234,7 @@
             "rn": "camp",
             "abstention": "camp"
           },
-          "note": "Électeurs Reconquête et DLF : non couverts par l'enquête. Rattachés au camp RN (électorat « RN et alliés » des législatives 2024) : ils votent RN selon le taux de fidélité."
+          "note": "Électeurs Reconquête et DLF : non couverts par l'enquête. Rattachés au camp RN : ils votent RN selon la fidélité du camp RN."
         }
       }
     },
@@ -191,7 +286,7 @@
             "rn": "camp",
             "abstention": "camp"
           },
-          "note": "Électeurs Reconquête et DLF : non couverts par l'enquête. Rattachés au camp RN (électorat « RN et alliés » des législatives 2024) : ils votent RN selon le taux de fidélité."
+          "note": "Électeurs Reconquête et DLF : non couverts par l'enquête. Rattachés au camp RN : ils votent RN selon la fidélité du camp RN."
         }
       }
     },
@@ -243,44 +338,32 @@
             "rn": "camp",
             "abstention": "camp"
           },
-          "note": "Électeurs Reconquête et DLF : non couverts par l'enquête. Rattachés au camp RN (électorat « RN et alliés » des législatives 2024) : ils votent RN selon le taux de fidélité."
+          "note": "Électeurs Reconquête et DLF : non couverts par l'enquête. Rattachés au camp RN : ils votent RN selon la fidélité du camp RN."
         }
       }
     }
   ],
-  "fallback": {
-    "description": "Duel sans le RN, ou finaliste sans profil sourcé : aucune donnée des législatives 2024 ne s'applique. Chaque électorat s'abstient selon un taux fixe, et le reste se répartit entre les finalistes au prorata de son affinité avec le bloc de chacun. Toutes ces valeurs sont des hypothèses.",
-    "affinity": {
-      "gauche": {
-        "gauche": 1,
-        "centre": 0.45,
-        "droite": 0.15,
-        "extreme_droite": 0.05
-      },
-      "centre": {
-        "gauche": 0.35,
-        "centre": 1,
-        "droite": 0.6,
-        "extreme_droite": 0.15
-      },
-      "droite": {
-        "gauche": 0.15,
-        "centre": 0.7,
-        "droite": 1,
-        "extreme_droite": 0.45
-      },
-      "extreme_droite": {
-        "gauche": 0.1,
-        "centre": 0.2,
-        "droite": 0.6,
-        "extreme_droite": 1
-      }
+  "nonRnPresidential": {
+    "description": "Duels sans candidat RN : calibrés sur les enquêtes « jour du vote » des présidentielles 2007 (Sarkozy – Royal) et 2012 (Hollande – Sarkozy) d'Ipsos/Ifop pour les duels opposant la gauche au centre ou à la droite. En cas de duel entre deux candidats du même côté (rare), matrice de repli symétrique documentée.",
+    "leftVsCenterRight": {
+      "gauche": { "left": 75, "right": 6, "abstention": 19 },
+      "centre": { "left": 32.5, "right": 40, "abstention": 27.5 },
+      "droite": { "left": 10, "right": 65, "abstention": 25 },
+      "extreme_droite": { "left": 12.5, "right": 56.5, "abstention": 31 }
     },
-    "abstention": {
-      "gauche": 25,
-      "centre": 20,
-      "droite": 25,
-      "extreme_droite": 30
+    "sameSide": {
+      "abstention": {
+        "gauche": 25,
+        "centre": 25,
+        "droite": 25,
+        "extreme_droite": 35
+      },
+      "affinity": {
+        "gauche": { "gauche": 1, "centre": 0.45, "droite": 0.15, "extreme_droite": 0.05 },
+        "centre": { "gauche": 0.35, "centre": 1, "droite": 0.6, "extreme_droite": 0.15 },
+        "droite": { "gauche": 0.15, "centre": 0.7, "droite": 1, "extreme_droite": 0.45 },
+        "extreme_droite": { "gauche": 0.1, "centre": 0.2, "droite": 0.6, "extreme_droite": 1 }
+      }
     }
   }
 }

@@ -1,7 +1,7 @@
 // Synchronisation des sondages depuis la page Wikipedia de la liste des sondages : période la plus
 // récente du 1er tour, dernier sondage de chaque institut avec toutes ses hypothèses.
-import { meanByKey, normalize, pick } from '../domain/pollAverage'
-import type { Candidate, CandidateId, Poll, PollsData, SecondRoundPoll } from '../domain/types'
+import { MIN_MINOR_INSTITUTES, meanByKey, normalize, pick } from '../domain/pollAverage'
+import type { Candidate, CandidateId, HistoricalPoll, Poll, PollHistoryData, PollsData, SecondRoundPoll } from '../domain/types'
 import { CandidateResolver, FEEDS, canonicalInstitute } from './feeds'
 import { NO_LINKS, addLinks } from './links'
 import type { LinkSources } from './links'
@@ -112,14 +112,28 @@ export const AUTO_COLORS: readonly (readonly [string, string])[] = [
 ]
 
 /**
- * Candidats non simulés testés dans au moins une hypothèse des sondages, autrement qu'à la place d'un autre
- * candidat (Hollande à la place de Glucksmann : une variante de candidature, pas un candidat de plus).
+ * Candidats non simulés testés par au moins `minInstitutes` instituts distincts dans la période, autrement
+ * qu'à la place d'un autre candidat (Hollande à la place de Glucksmann : variante de candidature, pas un
+ * candidat de plus). Évite d'ajouter automatiquement un candidat testé par un seul institut.
  */
-export function testedNewcomers(polls: Poll[], simulated: ReadonlySet<CandidateId>): CandidateId[] {
-  const tested = polls
-    .flatMap((p) => p.hypotheses)
-    .flatMap((h) => Object.keys(h.scores).filter((id) => !(id in (h.replacing ?? {}))))
-  return [...new Set(tested)].filter((id) => !simulated.has(id))
+export function testedNewcomers(
+  polls: Poll[],
+  simulated: ReadonlySet<CandidateId>,
+  minInstitutes = MIN_MINOR_INSTITUTES,
+): CandidateId[] {
+  const byCandidate = new Map<CandidateId, Set<string>>()
+  for (const p of polls) {
+    const inst = canonicalInstitute(p.institute)
+    for (const h of p.hypotheses) {
+      for (const id of Object.keys(h.scores)) {
+        if (id in (h.replacing ?? {}) || simulated.has(id)) continue
+        const set = byCandidate.get(id) ?? new Set<string>()
+        set.add(inst)
+        byCandidate.set(id, set)
+      }
+    }
+  }
+  return [...byCandidate.entries()].filter(([, insts]) => insts.size >= minInstitutes).map(([id]) => id)
 }
 
 /**
@@ -171,8 +185,6 @@ export function autoCandidate(
     color,
     colorDark,
     duelProfile: null,
-    ref2022: null,
-    ref2022Note: 'aucune référence 2022 : pas de correction ni de progression.',
     minor: {
       transfers: [
         {
@@ -232,6 +244,23 @@ export interface SyncReport {
   newCandidates: string[]
   /** Lignes de la période écartées. */
   skipped: string[]
+  /** Historique complet des vagues de 1er tour extrait de la page Wikipedia (depuis 2025). */
+  history: HistoricalPoll[]
+}
+
+/** Fusionne l'historique existant avec les vagues extraites de Wikipedia (dédupliqué par institut et date). */
+export function mergePollHistory(
+  current: PollHistoryData,
+  imported: HistoricalPoll[],
+): { data: PollHistoryData; changed: boolean } {
+  const byKey = new Map<string, HistoricalPoll>()
+  for (const p of current.polls) byKey.set(pollKey(p), p)
+  for (const p of imported) byKey.set(pollKey(p), p)
+  const polls = [...byKey.values()].sort(
+    (a, b) => b.fieldwork.end.localeCompare(a.fieldwork.end) || a.institute.localeCompare(b.institute),
+  )
+  const next: PollHistoryData = { ...current, polls }
+  return { data: next, changed: stableStringify(next) !== stableStringify(current) }
 }
 
 /**
@@ -309,6 +338,7 @@ export function syncPolls(
         .filter((c) => !current.otherCandidates.some((o) => o.id === c.id))
         .map((c) => c.name),
       skipped: wiki.skipped,
+      history: wiki.history,
     },
   }
 }

@@ -1,6 +1,6 @@
 // Lecture de la page Wikipedia « Liste de sondages sur l'élection présidentielle française de 2027 »,
 // à partir de son wikitext : sondages de 1er tour de la période la plus récente, duels de 2nd tour.
-import type { Fieldwork, Hypothesis, Poll, SecondRoundPoll } from '../domain/types'
+import type { Fieldwork, HistoricalPoll, Hypothesis, Poll, SecondRoundPoll } from '../domain/types'
 import { CandidateResolver, FEEDS, isoDate, knownInstitute, pollId } from './feeds'
 
 export interface WikipediaPolls {
@@ -8,6 +8,8 @@ export interface WikipediaPolls {
   period: { label: string; start: string }
   /** Sondages de cette période, dans l'ordre de la page (une entrée par bloc institut / dates / échantillon). */
   polls: Poll[]
+  /** Historique agrégé des vagues de 1er tour (depuis 2025) pour la trajectoire temporelle. */
+  history: HistoricalPoll[]
   /** Duels de 2nd tour entre candidats simulés terminés depuis le début de la période. */
   secondRound: SecondRoundPoll[]
   /** Lignes de la période écartées, pour le rapport. */
@@ -468,6 +470,63 @@ export function fromWikipedia(
   }
   const polls = [...byHead.values()].map((p) => ({ ...p, hypotheses: labelHypotheses(p.hypotheses, names) }))
 
+  // Historique agrégé des vagues de 1er tour (toutes les périodes à partir de 2025) : un résumé par
+  // sondage (institut + date de fin), moyennant ses hypothèses sur les candidats simulés.
+  const historyBuckets = new Map<
+    string,
+    { institute: string; fieldwork: Fieldwork; sampleSize: number; scoreLists: Record<string, number[]> }
+  >()
+  for (const period of periods.values()) {
+    if ((period.year ?? 0) < 2025) continue
+    for (const row of period.rows) {
+      if (row.fieldwork.end < '2025-01-01') continue
+      const scores: Record<string, number> = {}
+      let duplicate = false
+      for (const { candidate, entries } of row.columns) {
+        for (const { value, person: named } of entries) {
+          const p = named ?? candidate
+          if (!p) continue
+          const id = idOf(p)
+          if (id in scores) duplicate = true
+          if (simulated.has(id)) scores[id] = value
+        }
+      }
+      if (duplicate) continue
+      const total = Object.values(scores).reduce((s, v) => s + v, 0)
+      if (total < 50) continue
+      const key = `${row.institute}|${row.fieldwork.end}`
+      const bucket = historyBuckets.get(key) ?? {
+        institute: row.institute,
+        fieldwork: row.fieldwork,
+        sampleSize: row.sampleSize,
+        scoreLists: {},
+      }
+      bucket.sampleSize = Math.max(bucket.sampleSize, row.sampleSize)
+      for (const [id, v] of Object.entries(scores)) {
+        ;(bucket.scoreLists[id] ??= []).push((v * 100) / total)
+      }
+      historyBuckets.set(key, bucket)
+    }
+  }
+  const history: HistoricalPoll[] = [...historyBuckets.values()]
+    .map((b) => {
+      const avg = Object.fromEntries(
+        Object.entries(b.scoreLists).map(([id, vals]) => [id, vals.reduce((s, v) => s + v, 0) / vals.length]),
+      )
+      const total = Object.values(avg).reduce((s, v) => s + v, 0)
+      const norm = Object.fromEntries(
+        Object.entries(avg).map(([id, v]) => [id, Math.round(((v * 100) / total) * 10) / 10]),
+      )
+      return {
+        id: pollId(b.institute, b.fieldwork.end),
+        institute: b.institute,
+        fieldwork: b.fieldwork,
+        sampleSize: b.sampleSize,
+        scores: norm,
+      }
+    })
+    .sort((a, b) => b.fieldwork.end.localeCompare(a.fieldwork.end) || a.institute.localeCompare(b.institute))
+
   // 2nd tour : un duel par ligne, à partir du début de la période.
   const start = [current.start, ...current.rows.map((r) => r.fieldwork.end)]
     .filter((d): d is string => !!d)
@@ -493,7 +552,7 @@ export function fromWikipedia(
       })
     }
   }
-  return { period: { label: current.label, start }, polls, secondRound, skipped }
+  return { period: { label: current.label, start }, polls, history, secondRound, skipped }
 }
 
 /** Candidats propres à chaque hypothèse (ceux qui ne sont pas testés partout), comme libellé. */

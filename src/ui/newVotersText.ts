@@ -14,23 +14,26 @@ function surname(fullName: string): string {
 export const finalist2022Name = (id: string) => finalistNames.get(id) ?? id
 
 /**
- * Infobulle des flux venus de l'abstention du 1er tour : source de la part, contrôle Insee et règle de
- * répartition (comme l'ensemble des votants, mesuré en 2022).
+ * Infobulle des flux venus de l'abstention du 1er tour : paramètres du moteur unifié en flux bruts
+ * et repères empiriques (Ifop 2022 et Insee 2017–2022).
  */
-export function abstentionNote(rates: Pick<NewVoterRates, 'insee'>): string {
+export function abstentionNote(
+  rates: Pick<NewVoterRates, 'insee' | 'rAbs'>,
+  mobilization?: number,
+  antiRnShare?: number,
+): string {
   const { ifop2022 } = newVoters
-  const abstained = ifop2022.abstainedFirstRound
-    .map((s) => `${pct(s.share, 0)} des électeurs de ${finalist2022Name(s.id)}`)
-    .join(' et ')
   const insee = rates.insee.find((y) => y.year === 2022) ?? rates.insee.at(-1)
   const first = ifop2022.abstainersVote[0]!
-  const overall = ifop2022.allVotersVote.find((s) => s.id === first.id)!
   return [
-    `Source : sondage Ifop-Fiducial du jour du vote, 2nd tour 2022 (${abstained} s’étaient abstenus au 1er tour).`,
-    insee
-      ? `Contrôle Insee : en ${insee.year}, ${pct(insee.share, 1)} des inscrits absents au 1er tour ont voté au 2nd (blancs et nuls compris).`
+    mobilization !== undefined
+      ? `Paramètre de mobilisation : ${pct(mobilization * 100, 0)} des abstentionnistes du 1er tour votent valablement au 2nd` +
+        (antiRnShare !== undefined ? ` (${pct(antiRnShare * 100, 0)} pour l’adversaire du RN).` : '.')
       : '',
-    `Répartis comme l’ensemble des votants (mesuré en 2022 : ${pct(first.share, 0)} pour ${finalist2022Name(first.id)} chez eux, contre ${pct(overall.share, 1)} au total).`,
+    `Repère Ifop-Fiducial 2022 : environ ${pct(rates.rAbs * 100, 1)} des abstentionnistes du 1er tour se sont exprimés au 2nd (${pct(first.share, 0)} pour ${finalist2022Name(first.id)}).`,
+    insee
+      ? `Contrôle Insee (${insee.year}) : ${pct(insee.share, 1)} des absents du 1er tour ont voté au 2nd (blancs et nuls compris).`
+      : '',
   ]
     .filter(Boolean)
     .join(' ')
@@ -38,5 +41,5 @@ export function abstentionNote(rates: Pick<NewVoterRates, 'insee'>): string {
 
 /** Infobulle du nœud « Non mesuré » : `blankNull` en % des inscrits. */
 export function unmeasuredNote(blankNull: number): string {
-  return `Aucune source publique ne mesure le vote au 2nd tour des votants blancs ou nuls du 1er tour. S’ils votent pour un finaliste, les départs des électeurs du 1er tour sont sous-estimés d’autant (au plus ${points(blankNull, 1, true)}).`
+  return `Aucune source publique ne mesure le vote au 2nd tour des votants blancs ou nuls du 1er tour (${points(blankNull, 1, true)} des inscrits). Ils sont isolés comme flux non mesuré.`
 }

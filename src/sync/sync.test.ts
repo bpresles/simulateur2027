@@ -1,9 +1,18 @@
 import { parseData, simulationData } from '../data/schema'
+import { MIN_MINOR_INSTITUTES } from '../domain/pollAverage'
 import type { Poll, PollsData } from '../domain/types'
 import { frozenData } from '../test/frozenData'
 import { WIKITEXT } from '../test/wikipediaFixture'
 import { CandidateResolver, canonicalInstitute } from './feeds'
-import { AUTO_COLORS, autoCandidate, promoteTested, stableStringify, syncPolls, testedNewcomers } from './sync'
+import {
+  AUTO_COLORS,
+  autoCandidate,
+  mergePollHistory,
+  promoteTested,
+  stableStringify,
+  syncPolls,
+  testedNewcomers,
+} from './sync'
 
 const { polls: current } = frozenData
 
@@ -36,7 +45,6 @@ describe('syncPolls', () => {
       period: { label: 'Octobre-décembre 2026', start: '2026-10-01' },
     })
     expect(report).toMatchObject({ changed: true, period: 'Octobre-décembre 2026' })
-    // Elabe (ligne écartée) et Harris (absent de la page) : saisies manuelles de la période conservées.
     expect(data.polls.map((p) => `${p.institute} ${p.fieldwork.end} ${p.origin ?? 'manuel'}`)).toEqual([
       'Elabe 2026-10-16 manuel',
       'YouGov 2026-10-15 wikipedia',
@@ -85,25 +93,22 @@ describe('syncPolls', () => {
     expect(syncPolls(current as PollsData, '== Page vide ==', '2026-10-20')).toBeUndefined()
   })
 
-  it('garde les petits candidats simulés et leurs reports, sans les rajouter aux candidats non simulés', () => {
+  it('garde les petits candidats simulés et n’en promeut un nouveau que s’il atteint MIN_MINOR_INSTITUTES', () => {
     const live = syncPolls(simulationData.polls, WIKITEXT, '2026-10-20')!
-    const known = simulationData.polls.candidates.length
-    expect(live.data.candidates.slice(0, known)).toEqual(simulationData.polls.candidates)
+    expect(live.data.candidates).toEqual(simulationData.polls.candidates)
     expect(live.data.otherCandidates.map((c) => c.id)).not.toContain('lisnard')
-    // Olivier Faure, testé seul (Ifop H1) dans la page de test : ajouté aux candidats simulés.
-    expect(live.report.promoted).toEqual(['Olivier Faure'])
+    // Olivier Faure n'est testé que par 1 institut (Ifop) < MIN_MINOR_INSTITUTES (3) : pas promu.
+    expect(live.report.promoted).toEqual([])
     expect(live.report.newCandidates).toEqual([])
     const scores = live.data.polls.flatMap((p) => p.hypotheses.map((h) => h.scores))
     expect(scores).toContainEqual(expect.objectContaining({ lisnard: 4, bouamrane: 0.5 }))
   })
 
-  it('conserve les alliances (dont la primaire) et les jeux d’hypothèses des données', () => {
+  it('conserve les alliances et les jeux d’hypothèses des données', () => {
     const live = syncPolls(simulationData.polls, WIKITEXT, '2026-10-20')!
     const ids = (list: { id: string }[]) => list.map((x) => x.id)
     expect(ids(live.data.alliances)).toEqual(ids(simulationData.polls.alliances))
-    expect(ids(live.data.alliances)).toEqual(
-      expect.arrayContaining(['groupe-primaire-droite-centre', 'attal-lisnard', 'lisnard-attal']),
-    )
+    expect(ids(live.data.alliances)).toEqual(expect.arrayContaining(['attal-lisnard', 'lisnard-attal']))
     expect(live.data.hypothesisSets).toEqual(simulationData.polls.hypothesisSets)
     expect(ids(live.data.hypothesisSets)).toContain('philippe-lisnard')
   })
@@ -112,20 +117,19 @@ describe('syncPolls', () => {
     expect(stableStringify({ a: 1, b: { c: 2, d: 3 } })).toBe(stableStringify({ b: { d: 3, c: 2 }, a: 1 }))
   })
 
-  it('ajoute aux candidats simulés ceux que les sondages testent, sauf ceux cités dans un jeu d’hypothèses', () => {
-    expect(report.promoted).toEqual(['Dominique de Villepin', 'Natacha Polony', 'Olivier Faure'])
-    expect(data.candidates.filter((c) => c.auto).map((c) => c.id)).toEqual(['villepin', 'polony', 'faure'])
-    const others = data.otherCandidates.map((c) => c.id)
-    expect(others).not.toContain('villepin')
-    // Exclus des jeux d'hypothèses : restent non simulés.
-    expect(others).toEqual(expect.arrayContaining(['hollande', 'lisnard']))
-    // Testé seulement à la place d'un autre candidat : reste non simulé.
-    expect(report.newCandidates).toEqual(['Jordan Bardella'])
+  it('ne promeut pas un candidat sous le seuil de 3 instituts et produit des données valides', () => {
+    // Dans la fixture Wikipedia réduite, aucun candidat non simulé n'atteint MIN_MINOR_INSTITUTES (3).
+    expect(report.promoted).toEqual([])
+    expect(data.candidates.filter((c) => c.auto)).toEqual([])
+    expect(data.otherCandidates.map((c) => c.id)).toEqual(
+      expect.arrayContaining(['hollande', 'lisnard', 'villepin', 'faure']),
+    )
+    expect(report.newCandidates).toEqual(['Olivier Faure', 'Jordan Bardella'])
     expect(() => parseData({ ...frozenData, polls: data })).not.toThrow()
   })
 })
 
-describe('candidats apparus dans les sondages', () => {
+describe('candidats apparus dans les sondages (seuil MIN_MINOR_INSTITUTES = 3)', () => {
   const hypothesis = (id: string, scores: Record<string, number>, replacing?: Record<string, string>) => ({
     id,
     scores,
@@ -144,13 +148,15 @@ describe('candidats apparus dans les sondages', () => {
   const [first, second] = main.map((c) => c.id) as [string, string]
   const polls = [
     poll('a', [
-      hypothesis('H1', { [first]: 60, [second]: 30, nouveau: 10 }),
+      hypothesis('H1', { [first]: 60, [second]: 30, nouveau: 10, rare: 2 }),
       hypothesis('H2', { [first]: 50, remplaçant: 50 }, { remplaçant: second }),
     ]),
-    poll('b', [hypothesis('H1', { [first]: 50, [second]: 50 })]),
+    poll('b', [hypothesis('H1', { [first]: 50, [second]: 40, nouveau: 10 })]),
+    poll('c', [hypothesis('H1', { [first]: 55, [second]: 35, nouveau: 10 })]),
   ]
   const others = [
     { id: 'nouveau', name: 'Camille Nouveau' },
+    { id: 'rare', name: 'Sam Rare' },
     { id: 'remplaçant', name: 'Alex Remplaçant' },
   ]
   const input: PollsData = {
@@ -160,29 +166,25 @@ describe('candidats apparus dans les sondages', () => {
     polls,
   }
 
-  it('repère les candidats testés, sauf à la place d’un autre candidat', () => {
+  it('repère uniquement les candidats testés par au moins MIN_MINOR_INSTITUTES instituts distincts', () => {
+    expect(MIN_MINOR_INSTITUTES).toBe(3)
     expect(testedNewcomers(polls, new Set([first, second]))).toEqual(['nouveau'])
   })
 
-  it('les ajoute en petits candidats, avec des valeurs par défaut', () => {
+  it('les ajoute en petits candidats, avec des valeurs par défaut sans champ ref2022', () => {
     const { data: out, promoted } = promoteTested(input)
     expect(promoted.map((c) => c.id)).toEqual(['nouveau'])
-    expect(out.otherCandidates).toEqual([others[1]])
+    expect(out.otherCandidates).toEqual([others[1], others[2]])
     expect(out.candidates.at(-1)).toMatchObject({
       id: 'nouveau',
       name: 'Camille Nouveau',
       shortName: 'Nouveau',
       bloc: null,
       duelProfile: null,
-      ref2022: null,
       auto: true,
       minor: { transfers: [expect.objectContaining({ id: 'ensemble' })] },
     })
-    // Électeurs répartis comme l'ensemble des électeurs principaux de l'hypothèse qui le teste (2/3, 1/3).
-    expect(out.candidates.at(-1)!.minor!.transfers[0]!.parts).toEqual([
-      { id: first, weight: 65 },
-      { id: second, weight: 35 },
-    ])
+    expect(out.candidates.at(-1)).not.toHaveProperty('ref2022')
   })
 
   it('donne à chaque candidat ajouté une couleur neutre non utilisée', () => {
@@ -195,15 +197,54 @@ describe('candidats apparus dans les sondages', () => {
     const withHollande: PollsData = {
       ...input,
       otherCandidates: [...others, { id: 'hollande', name: 'François Hollande' }],
-      polls: [...polls, poll('c', [hypothesis('H1', { [first]: 50, [second]: 45, hollande: 5 })])],
+      polls: polls.map((p) => ({
+        ...p,
+        hypotheses: p.hypotheses.map((h) => ({ ...h, scores: { ...h.scores, hollande: 5 } })),
+      })),
     }
     const { data: out, promoted } = promoteTested(withHollande)
     expect(promoted.map((c) => c.id)).toEqual(['nouveau'])
     expect(out.otherCandidates.map((c) => c.id)).toContain('hollande')
   })
 
-  it('ne change rien quand aucun candidat non simulé n’est testé', () => {
-    const none = { ...input, polls: [polls[1]!] }
+  it('ne change rien quand aucun candidat non simulé n’atteint le seuil', () => {
+    const none = { ...input, polls: [polls[0]!] }
     expect(promoteTested(none)).toEqual({ data: none, promoted: [] })
+  })
+
+  it('fusionne et trie l’historique des sondages sans doublon ni perte des vagues archivées', () => {
+    const existing = {
+      description: 'Historique test',
+      polls: [
+        {
+          id: 'ifop-20250601',
+          institute: 'Ifop-Fiducial',
+          fieldwork: { start: '2025-05-30', end: '2025-06-01' },
+          sampleSize: 1000,
+          scores: { lepen: 35, philippe: 22 },
+        },
+      ],
+    }
+    const incoming = [
+      {
+        id: 'elabe-20261015',
+        institute: 'Elabe',
+        fieldwork: { start: '2026-10-13', end: '2026-10-15' },
+        sampleSize: 1200,
+        scores: { lepen: 34, philippe: 18 },
+      },
+      {
+        id: 'ifop-20250601',
+        institute: 'Ifop-Fiducial',
+        fieldwork: { start: '2025-05-30', end: '2025-06-01' },
+        sampleSize: 1000,
+        scores: { lepen: 36, philippe: 21 },
+      },
+    ]
+    const merged = mergePollHistory(existing, incoming)
+    expect(merged.changed).toBe(true)
+    expect(merged.data.polls.map((p) => p.id)).toEqual(['elabe-20261015', 'ifop-20250601'])
+    expect(merged.data.polls[1]?.scores.lepen).toBe(36)
+    expect(mergePollHistory(merged.data, incoming).changed).toBe(false)
   })
 })

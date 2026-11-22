@@ -1,24 +1,20 @@
-# simulateur2027 : simulateur de la présidentielle 2027
+# simulateur2027 : simulateur probabiliste de la présidentielle 2027
 
-Ce simulateur calcule l'élection présidentielle de 2027 en trois temps :
+Ce simulateur reconstruit les scénarios de 1er et 2nd tour de l'élection présidentielle de 2027 selon une méthode sobre, sourcée et validée hors échantillon sur 2017, 2022 et les agrégats des législatives 2024 :
 
-1. **Premier tour.** On part de la moyenne des derniers sondages (dernier sondage de chaque institut sur la période la plus récente de la liste des sondages de Wikipedia) ; des cases à cocher, triées du plus récent au plus ancien, permettent de choisir les sondages retenus (tous par défaut ; un seul coché sert tel quel, sans moyenne) parmi ceux qui testent l'hypothèse retenue (« Philippe + Attal » par défaut). Les petits candidats (Ruffin, Villepin, Polony, Lisnard, Bouamrane, Lagarde, Riner, Asselineau) ne sont testés que dans une partie des hypothèses : ils ne sont jamais requis. Dans une hypothèse retenue qui ne le teste pas, un petit candidat est imputé : il y reçoit son score dans les autres hypothèses du même sondage (à défaut, sa moyenne sur les sondages qui le testent), pris aux candidats principaux qui perdent des points quand un sondage l'ajoute (paires d'hypothèses d'un même sondage retenu, l'une avec lui et tous les candidats de l'autre : moyenne des pertes relatives ; à défaut de paire, la répartition de ses électeurs choisie dans les réglages), au prorata, plafonnée au score de chacun ; chaque hypothèse totalise ainsi 100 %, sans double compte, et son score vaut la moyenne des sondages qui le testent. Un petit candidat qu'aucune hypothèse retenue ne teste n'est pas affiché ; rallié, il n'est pas imputé. Leur ralliement se lit dans les hypothèses qui ne les testent pas (« Lisnard rejoint Retailleau »), avec la même règle du camp que pour les autres, et un petit candidat qui mène une alliance doit être testé (« Retailleau rejoint Lisnard »). Les alliances ne passent pas par des taux de report : activer une alliance retient les hypothèses qui testent tous les autres candidats simulés sans le rallié (ni personne à sa place), et seuls les sondages qui en ont une. Pour qu'une absence vaille ralliement, le leader doit rester le seul candidat principal de leur camp (leurs blocs) : Philippe absent alors qu'Attal reste en lice ne dit pas que ses électeurs suivent Glucksmann. Ne sont proposées que les alliances (ou combinaisons, activées ensemble) que les sondages de la période testent : la liste suit la synchronisation. Une option, désactivée par défaut (« Alliances groupées »), simplifie ce choix : elle propose d'abord une option par combinaison d'alliances que les sondeurs testent (`testedOptions`, `src/domain/alliances.ts`), tirée automatiquement des hypothèses du dernier sondage de chaque institut, sans donnée en plus : pour chaque hypothèse décrite par des alliances simples, la combinaison la plus petite, puis celle qui a le plus de paires (rallié, leader) du même bloc, puis le moins de leaders, puis celle dont les leaders comptent le plus de petits candidats testés, puis l'ordre des données ; les hypothèses menant à la même combinaison (de plusieurs instituts) forment une seule option, nommée d'après le jeu d'hypothèses correspondant (« Lagarde seule », « Philippe seul ») ou, pour l'option testée par l'Ifop, « Philippe au centre, Lisnard seul à droite » (jeu d'hypothèses `philippe-lisnard` ; sans jeu correspondant, « Derrière Philippe : Attal ; derrière Lisnard : Retailleau »). Ces options sont des choix exclusifs qui couvrent toutes les hypothèses retenues qu'une combinaison décrit ; viennent ensuite les alliances groupées estimées (droite et centre large, centre, primaire de la droite et du centre, droites, gauche sans PS, gauche sans LFI), qui sont des hypothèses non testées. Le leader d'une alliance groupée estimée se choisit par face-à-face (`groupedLeaderChoice`, `src/domain/alliances.ts`) : pour chaque paire de membres testée par au moins 2 instituts distincts (dernier sondage de chaque institut), on compare la moyenne simple de leurs scores bruts dans les hypothèses qui les testent ensemble ; le membre qui gagne le plus de face-à-face mène, à égalité celui qui a la plus grande marge cumulée, puis le premier membre. Le plus fort du groupe se mesure là où ses membres sont testés ensemble, et les scores imputés des petits candidats rarement testés (Lagarde, testée par un seul institut, reçoit un score dans les hypothèses de tous les autres) sont exclus ; un petit candidat peut donc mener (Lisnard). Si aucune paire n'est testée par 2 instituts, repli : le candidat principal en tête de la moyenne du jeu par défaut (un petit candidat ne mène alors que si le groupe n'en compte que des petits). L'alliance « Primaire de la droite et du centre » (Attal, Retailleau, Lisnard ; Philippe n'y participe pas) se simule aussi par la combinaison d'alliances simples « Attal rejoint Lisnard » + « Retailleau rejoint Lisnard » : aucune hypothèse ne la teste (Philippe reste candidat au centre, la règle du camp l'écarte), elle n'est donc proposée qu'avec l'option des alliances non évaluées, et elle est estimée. Une autre option, désactivée par défaut (« Permettre de tester des alliances non évaluées par les sondeurs »), ouvre tout le catalogue : une alliance qu'aucune hypothèse ne teste est alors estimée en appliquant à la base les reports des législatives 2024 (part qui suit le leader, part RN, abstention, réglable par alliance) ; l'option ne change pas les sondages retenus : ce sont ceux qui testent la plus grande combinaison d'alliances actives testée par les sondeurs, comme sans l'option, et seules les autres alliances actives y sont estimées. Un petit candidat rallié absent des hypothèses retenues (Ruffin, testé seulement avec Attal, quand Attal rejoint Philippe) y est ajouté pour l'estimation : score repris des hypothèses qui le testent, prélevé sur les candidats vers lesquels se reportent ses électeurs en son absence. En option, on la projette jusqu'aux derniers sondages avant le vote en reproduisant, avec une intensité réglable, la progression observée en 2022 à la même distance du scrutin (sondages de l'automne 2021). Par défaut, on la corrige strictement de l'écart relatif réel de 2022 entre les derniers sondages et le résultat officiel, avec sa propre intensité : appliquée aux sondages de 2022, la correction redonne exactement le résultat. Les alliances incompatibles sont exclues : un candidat ne rallie qu'une alliance, et un candidat rallié n'en mène pas d'autre.
-2. **Qualification.** Les deux candidats en tête du premier tour simulé passent au second tour.
-3. **Second tour.** Par défaut, on applique strictement les reports de voix mesurés aux législatives 2024 (enquête Ipsos-Talan publiée par franceinfo le 07/07/2024), selon le type de duel ; pour une alliance estimée, on mélange les profils de ses membres selon leur poids. Les électeurs d'un petit candidat se reportent comme ceux d'un ou plusieurs candidats principaux, selon des poids (Ruffin comme Mélenchon, Villepin pour moitié comme Glucksmann et pour moitié comme Philippe…) : ce sont des hypothèses, documentées dans les données, avec d'autres répartitions au choix dans les réglages. Le niveau global des blancs, nuls et abstentions est calé sur le niveau réel du second tour 2022 (Conseil constitutionnel). Le graphique et le tableau des reports sont affichés en flux bruts, en % des inscrits, avec les nouveaux votants venus de l'abstention du 1er tour (part tirée du sondage Ifop-Fiducial du 2nd tour 2022, contrôle Insee) : l'abandon net les comptait déjà, seul l'affichage change, ni le score des finalistes ni les exprimés du 2nd tour.
-
-Le site a deux pages, accessibles par le menu du haut :
-
-- **Simulateur** (`/`) : le scénario et ses résultats.
-- **Méthodologie** (`/methodologie`) : chaque source, chaque formule et chaque hypothèse, avec les valeurs du scénario en cours.
+1. **Premier tour pondéré et projection d'offre.** On conserve le dernier sondage de chaque institut sur la période la plus récente, pondéré par sa fraîcheur (demi-vie de **14 jours**) et sa taille d'échantillon (plafonnée à **2 000** répondants). Un petit candidat n'entre dans l'offre de base que s'il est testé par au moins **3 instituts distincts**, et ses donneurs ne sont mesurés que sur des paires strictement *ceteris paribus* (un seul candidat d'écart au sein d'un même sondage). Lorsqu'un institut récent ne teste pas exactement l'offre cible (ex. Odoxa ou Cluster17 sans Gabriel Attal sur leur hypothèse principale), son hypothèse la plus propre est projetée via les paires propres intra-institut (option activée par défaut).
+2. **Alliances testées uniquement.** Seules les alliances (et combinaisons) effectivement testées par au moins un sondage de la période sont proposées : activer une alliance sélectionne les hypothèses où le candidat rallié est absent et où son leader reste seul candidat principal de son camp.
+3. **Second tour unifié en flux bruts (% des inscrits) et front républicain.** Chaque électorat exprimé du 1er tour applique directement ses taux de report (fidélité différenciée pour les finalistes : 96 % Le Pen, 92 % Mélenchon, 95 % par défaut ; base historique des législatives 2024 d'Ipsos-Talan transposée en scrutin présidentiel d'après 2017–2022 et modulée de façon homogène sur les **4 types de duels face au RN** par la force du *front républicain*, réglable globalement et séparément pour Centre/Droite, Gauche modérée et LFI ; présidentielles 2007–2012 pour les duels gauche vs centre/droite hors RN ; option activable pour les déclarations 2027 corrigées sur échelle logit multinomial). Les abstentionnistes du 1er tour mobilisés au 2nd sont modélisés explicitement (`P = 74 %`, mobilisation `a = 20 %`, orientation anti-RN ancrée à `55 %` au niveau 2022 et modulée par le front républicain du duel).
+4. **Incertitude Monte-Carlo et validation historique.** À chaque calcul, 2 000 tirages déterministes (graine `2027`) propagent la volatilité de campagne (distribution Student-t(8) en log-ratio calibrée sur 2017 et 2022) et l'incertitude des reports (Dirichlet `κ = 40` + choc commun national), produisant des probabilités de qualification, des probabilités de victoire et des intervalles à 80 % (P10–P90). La page `/methodologie` expose un backtest automatisé sur 2017, 2022 et les 342 duels des législatives 2024.
 
 > Ceci est une simulation fondée sur des sondages publiés et des hypothèses explicites. Ce n'est ni un sondage ni une prévision.
 
 ## Stack
 
-- **Vite, React 19, TypeScript** (strict) et **Tailwind CSS v4** : une SPA statique.
-- **Radix UI** pour les composants accessibles et **Motion** pour les animations.
-- **Zustand** (`persist`) pour les réglages de l'utilisateur, stockés dans le localStorage.
-- **Zod** pour valider les données JSON au chargement.
+- **Vite, React 19, TypeScript** (strict) et **Tailwind CSS v4** : SPA statique.
+- **Radix UI** (composants accessibles) et **Motion** (animations).
+- **Zustand** (`persist`) pour les réglages locaux (`localStorage`).
+- **Zod** pour la validation des données JSON au chargement.
 - **Vitest** pour les tests et **bun** comme gestionnaire de paquets.
 
 ## Commandes
@@ -26,82 +22,46 @@ Le site a deux pages, accessibles par le menu du haut :
 ```bash
 bun install
 bun run dev        # serveur de développement
-bun run test       # tests (domaine + données)
+bun run typecheck  # vérification TypeScript
 bun run lint       # ESLint
+bun run test       # tests unitaires, domaine, backtest et UI
 bun run build      # vérification TypeScript + build de production dans dist/
 bun run preview    # sert dist/ en local
-bun run sync-polls # synchronise les sondages depuis les flux ouverts
+bun run sync-polls # synchronise les sondages depuis Wikipedia et les flux RSS/notices
 ```
 
 ## Architecture
 
-```
+```text
 src/
-  domain/   Calcul pur en TypeScript, sans React : moyenne des sondages, corrections, alliances,
-            reports, 2nd tour. simulate() enchaîne les étapes et renvoie une trace complète.
-  data/     Les trois fichiers JSON et leur validation (schema.ts : Zod + contrôles croisés).
-  sync/     Conversion et fusion des flux de sondages externes (utilisé par scripts/sync-polls.ts).
-  state/    Réglages de l'utilisateur (seules les surcharges sont stockées ; les valeurs
-            par défaut restent calculées à partir des données).
-  hooks/    useSimulation() : réglages → résultat.
-  ui/       Composants React, routeur minimal (router.ts, Link.tsx) pour les deux pages.
+  domain/   Calcul pur en TypeScript (sans React) : pollAverage, offerProjection, alliances,
+            transfers, newVoters, secondRound, backtest, monteCarlo, simulate.
+  data/     Fichiers JSON sourcés + validation Zod et contrôles croisés (schema.ts).
+  sync/     Synchronisation Wikipedia, flux RSS d'instituts et notices (scripts/sync-polls.ts).
+  state/    Réglages utilisateur persistés (settingsStore.ts, v13).
+  hooks/    useSimulation(), backtestReport, newVoterReferenceRates.
+  ui/       Composants React, graphiques (Sankey, barres + IC 80 %), page /methodologie.
+docs/
+  changelog-methode.md  Journal daté des évolutions méthodologiques et choix paramétriques.
 ```
 
 ## Données
 
 | Fichier | Contenu |
 |---|---|
-| `src/data/polls-2027.json` | Candidats (dont les petits candidats, `minor`, avec leurs répartitions de reports au 2nd tour), jeux d'hypothèses, alliances, sondages de 1er tour (toutes les hypothèses de chaque sondage), sondages directs de 2nd tour (repères), avec la part des personnes interrogées sans intention de vote (`noIntention`). |
-| `src/data/reference-2022.json` | Voix officielles des deux tours de 2022 (Conseil constitutionnel), dernier sondage de chaque institut avant le 1er tour, et sondages de l'automne 2021 (progression). |
-| `src/data/transfers-legislatives-2024.json` | Taux de report par type de duel et par électorat. Chaque valeur indique sa provenance : `franceinfo`, `publicsenat`, `lcp`, `derive` (complété par règle), `transpose` (taux 2024 d'un autre duel), `camp` (rattaché au camp RN) ou `hypothese`. |
-| `src/data/turnout-certainty.json` | Mesures de la part des inscrits certains d'aller voter (Ifop-Fiducial : « envisagez-vous d'aller voter ? » puis « tout à fait certain », chiffres redressés), pour 2027 et pour la campagne 2022, et mesures de contrôle Ipsos bva. Les mesures Ifop sont reprises automatiquement des notices par `bun run sync-polls`. La référence 2022 de la participation (E2022) est la moyenne des mesures de campagne 2022 dont la distance au scrutin est à ±15 jours (`TURNOUT_REFERENCE_WINDOW_DAYS`) de celle de la dernière mesure 2027, hors mesure finale, à défaut la plus proche : les mesures de l'automne 2021 sont bruitées (04–06/12/2021 : 60,7 % contre 67 à 72 % autour). Même principe que la fenêtre de ±20 jours de l'écart historique des sondages de 2nd tour. |
+| `src/data/polls-2027.json` | Candidats (dont petits candidats `minor`), jeux d'hypothèses, alliances testables, sondages 1er tour et repères directs 2nd tour (`noIntention`). |
+| `src/data/polls-history-2027.json` | Historique agrégé des vagues de sondages 2025–2027 (extrait automatiquement de Wikipedia via `sync-polls`) pour la courbe d'évolution temporelle et la tendance récente amortie. |
+| `src/data/reference-2017.json`, `src/data/reference-2022.json` | Résultats officiels des deux tours et sondages de 2017 et 2022 (utilisés uniquement pour le backtest et le calibrage de la variance). |
+| `src/data/transfers-legislatives-2024.json` | Fidélité différenciée, profils Ipsos-Talan 2024, enquêtes « jour du vote » présidentielles 2017–2022 (centre–RN) et 2007–2012 (hors RN). |
+| `src/data/transfers-2027-declared.json` | Option activable : reports déclarés 2026 (Harris Interactive / Odoxa) et paramètres de correction logit multinomial. |
+| `src/data/second-round-dropout.json` | Totaux agrégés des 342 duels des législatives 2024 (contrôle de cohérence), repères présidentiels 2002–2012 et statistiques nouveaux votants (Ifop 2022, Insee). |
+| `src/data/second-round-poll-bias.json` | Écart historique des sondages directs de 2nd tour (2017 et 2022), affiché à titre informatif uniquement. |
 
-### Synchronisation automatique des sondages
+## Synchronisation automatique
 
-`bun run sync-polls` met à jour `src/data/polls-2027.json` à partir de la page Wikipedia [« Liste de sondages sur l'élection présidentielle française de 2027 »](https://fr.wikipedia.org/wiki/Liste_de_sondages_sur_l%27%C3%A9lection_pr%C3%A9sidentielle_fran%C3%A7aise_de_2027) (wikitext de la page, licence CC BY-SA 4.0), qui compile tous les sondages avec un lien vers leur notice à la Commission des sondages. Les chiffres ne sont pas revérifiés dans ces notices. Le script y ajoute les liens vers la synthèse de chaque institut et vers sa notice, affichés à côté de chaque sondage retenu.
-
-Le script :
-
-1. lit les tableaux du 1er tour et retient la **période la plus récente** (actuellement « Octobre-décembre 2026 ») : celle dont un sondage se termine le plus tard, quel que soit son titre, pour s'adapter à l'ouverture d'une nouvelle période. La section « Autres » (vote blanc compté comme exprimé) est ignorée ;
-2. lit chaque ligne comme une **hypothèse** : colonnes des candidats, candidat nommé dans la colonne d'un autre (Hollande dans la colonne de Glucksmann : il le remplace, ce qui est noté dans `replacing`), colonne « Autres » à plusieurs candidats, « <1 » compté pour 0,5 ; les lignes au total éloigné de 100 (± 3 points, ± 1 au 2nd tour), décalées ou d'un institut inconnu sont écartées et signalées ;
-3. réunit les blocs d'un même sondage (même institut, même fin de terrain, par exemple un bloc par commanditaire) et ne garde que le **dernier sondage de chaque institut** sur la période ; le commanditaire est lu dans le nom de la notice. Un sondage déjà présent garde son identifiant (les sondages décochés le restent). Une saisie manuelle de la période est conservée si elle est plus récente que le sondage de son institut sur la page ;
-4. reprend les duels de 2nd tour de la période entre candidats simulés, le dernier par institut et par duel, en gardant la part sans intention de vote saisie pour un duel resté sur la page, et liste les duels où elle manque ;
-5. associe à chaque sondage la **synthèse de l'institut** (`kind: "synthese"`), lue dans le flux RSS d'Elabe, Ifop, OpinionWay, Toluna-Harris, Cluster17 ou Odoxa : la publication d'intentions de vote la plus proche après la fin du terrain, dans les 10 jours. Si la page ne donne pas sa **notice** (`kind: "notice"`), il la cherche dans la [liste des notices de la Commission des sondages](https://www.commission-des-sondages.fr/notices/) : notice d'intentions de vote (« Pres IV … ») de l'institut publiée dans les 10 jours. Ces sites sont facultatifs : injoignables, ils ne donnent qu'un avertissement et les liens déjà trouvés sont gardés, comme une synthèse saisie à la main (YouGov n'a pas de flux) ;
-6. **ajoute aux candidats simulés** tout candidat non simulé testé dans une hypothèse retenue autrement qu'à la place d'un autre (Hollande dans la colonne de Glucksmann reste non simulé), sauf s'il est cité dans un jeu d'hypothèses (`hypothesisSets`). Il devient un petit candidat marqué `auto: true`, avec des valeurs par défaut à compléter à la main : nom court (nom de famille), parti « Non renseigné », bloc non classé (`bloc: null`, moyenne des quatre blocs au 2nd tour), couleurs grises, pas de profil de duel ni de référence 2022, et une seule répartition de ses électeurs, « comme l'ensemble des électeurs » des candidats principaux dans les hypothèses qui le testent. Son score ne vient que des sondages qui le testent : absent de tous, il n'est pas affiché ; testé par un seul, il en garde le score ; par plusieurs, la moyenne de leurs scores. Comme tout petit candidat, il est imputé dans les hypothèses qui ne le testent pas, pris aux candidats qui perdent des points quand un sondage l'ajoute (à défaut, cette répartition par défaut) : le total reste de 100 %. Ses duels de 2nd tour sont repris comme ceux des autres candidats simulés ;
-7. remplace les sondages des données par cette sélection, et la période (`period`) remplace la fenêtre glissante de `windowDays` ; le fichier (et la date de référence `asOf`) ne change que si la page, un lien ou un candidat change ;
-8. **met à jour les mesures de participation** (`src/data/turnout-certainty.json`) : pour chaque notice Ifop des sondages retenus et chaque notice Ifop d'intentions de vote de la liste de la Commission publiée dans les 45 derniers jours (hors adresses déjà présentes dans les mesures), le script télécharge le PDF (facultatif, 20 s) et en extrait le texte avec `unpdf`. `src/sync/turnout.ts` lit la question « envisagez-vous d'aller voter » à la présidentielle, puis « tout à fait certain », en chiffres redressés ; les autres scrutins sont ignorés, et un document qui ne passe pas les contrôles de plausibilité est signalé (« Notices Ifop sans mesure reconnue ») sans rien ajouter. Une mesure s'ajoute sans doublon (même scrutin et même fin de terrain, ou même adresse : une enquête peut avoir deux notices) ; une mesure existante n'est jamais modifiée. Le rapport donne la distance de la dernière mesure à la base et avertit au-delà de 30 jours, sans jamais faire échouer la synchronisation. Le rolling Ifop de 2027, quand il paraîtra, sera signalé comme notice sans mesure reconnue si son format diffère ;
-9. valide le résultat avec le même schéma que l'application, et échoue sans rien modifier si la page est injoignable ou si son format n'est plus reconnu.
-
-Les tests qui vérifient des chiffres précis utilisent un instantané figé des sondages (`src/data/__fixtures__/polls-2027-20261018.json`) et des mesures de participation (`src/data/__fixtures__/turnout-certainty-20261115.json`) : une synchronisation ne les casse donc pas. Les données vivantes sont contrôlées par `src/data/data.test.ts`.
-
-### GitHub Action et redéploiement
-
-`.github/workflows/sync-polls.yml` lance la synchronisation chaque jour à 06:17 UTC (et à la demande depuis l'onglet Actions). Si les données changent, elle exécute les tests et le build, puis commite `src/data/polls-2027.json` et `src/data/turnout-certainty.json` sur la branche principale.
-
-- **Dépôt relié à Vercel par Git (recommandé)** : ce push déclenche le déploiement de production, rien d'autre à configurer.
-- **Sans intégration Git** : créez un *Deploy Hook* dans Vercel (Project Settings → Git → Deploy Hooks) et enregistrez son URL dans le secret GitHub `VERCEL_DEPLOY_HOOK_URL` ; l'action l'appelle après le commit. N'utilisez pas les deux à la fois (double déploiement).
-- Si la branche principale est protégée, autorisez `github-actions[bot]` à y pousser.
-
-### Mettre à jour les sondages à la main
-
-1. Ajoutez le sondage dans `polls` avec **toutes** ses hypothèses, en reprenant les scores tels que publiés. Les candidats non simulés sont permis s'ils figurent dans `otherCandidates`. Pour simuler un nouveau petit candidat, déplacez-le de `otherCandidates` vers `candidates` avec un champ `minor` (répartitions de ses électeurs entre candidats principaux, la première par défaut : elles servent aux reports du 2nd tour et, faute de sondage qui le teste avec et sans lui, à son imputation au 1er tour). Pour un candidat ajouté par la synchronisation (`auto: true`), complétez le parti, le bloc, les couleurs et des répartitions sourcées, puis retirez `auto`.
-2. Renseignez les sources (`sources`), avec `kind: "synthese"` pour la synthèse de l'institut et `kind: "notice"` pour la notice de la Commission des sondages (liens affichés à côté du sondage) et, si vous avez recoupé les chiffres avec la publication de l'institut, le champ `verified`.
-3. Mettez à jour `asOf` (date de référence).
-4. Lancez `bun run test` : la validation détecte un candidat inconnu, une date incohérente ou une ligne de reports qui ne totalise pas 100.
-5. Redéployez.
-
-La page Wikipedia ne donne pas la part des personnes interrogées sans intention de vote pour un duel de 2nd tour (indécis, vote blanc ou nul, abstention), affichée sous le résultat et dont la fourchette est citée en introduction. Pour chaque duel que la synchronisation signale, renseignez `noIntention` d'après la notice ou le rapport de l'institut : `share` (en %), `base` (`inscrits`, ou `votants` si seuls les inscrits comptant voter sont interrogés), `undecided` si l'institut distingue les indécis, `calculation` si la part n'est pas publiée telle quelle (détail du calcul, par exemple à partir des effectifs) et `source`.
-
-Une saisie manuelle (sans `origin`) reste en place tant qu'elle est plus récente que le sondage de son institut sur la page Wikipedia ; la synchronisation la remplace ensuite, et la retire quand une nouvelle période commence.
-
-## Déploiement sur Vercel
-
-Le dépôt se déploie tel quel. `vercel.json` fixe le preset Vite, les commandes bun et la réécriture vers `index.html`, nécessaire pour l'accès direct à `/methodologie`. Le site est servi depuis `dist/`.
-
-- Connectez le dépôt à Vercel, ou lancez `bunx vercel` pour un déploiement d'aperçu.
-- Les URL Vercel sont publiques par défaut. Pour un usage interne, activez la *Deployment Protection*.
+`.github/workflows/sync-polls.yml` exécute `bun run sync-polls` chaque jour à 06:17 UTC : le script lit la période la plus récente de la page Wikipedia des sondages 2027, rattache les liens vers les synthèses et notices officielles, promeut automatiquement un nouveau candidat seulement s'il est testé par au moins **3 instituts distincts**, valide le schéma et lance tests + build avant de commiter `src/data/polls-2027.json`.
 
 ## Précautions
 
-- La publication d'une simulation fondée sur des sondages peut relever de la loi n° 77-808 du 19/07/1977 relative aux sondages : notices, période de silence électoral la veille et le jour du scrutin. Faites valider la diffusion publique par un juriste.
-- Les valeurs marquées « hypothèse » ne viennent d'aucune source. Elles sont visibles dans la méthodologie et modifiables dans les réglages.
+- La publication d'une simulation fondée sur des sondages peut relever de la loi n° 77-808 du 19/07/1977 relative aux sondages (notices, période de silence électoral).
+- Les sondages directs de 2nd tour 2027 ne sont jamais utilisés pour recalibrer les paramètres par défaut du modèle.
