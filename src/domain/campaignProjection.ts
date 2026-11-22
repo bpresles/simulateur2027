@@ -374,8 +374,8 @@ export function projectCampaign(
  * Construit la série temporelle complète pour le graphique de trajectoire :
  * - Passé (`history`) : moyenne pondérée glissante (demi-vie 14 jours) sur les vagues 2025–2027 ;
  * - Aujourd'hui (`now`) : photographie pondérée actuelle `baseScores` ;
- * - Futur (`projection`, jusqu'à `electionDate`) : trajectoire continue vers la projection (ou constante si
- *   le mode photographie actuelle est actif) entourée du cône d'incertitude à 80 % (P10–P90).
+ * - Futur (`projection`, jusqu'à `electionDate`) : ajouté uniquement lorsque la projection est activée,
+ *   entouré du cône d'incertitude à 80 % (P10–P90). En mode photographie actuelle, la série s'arrête à `asOf`.
  */
 export function buildTrajectory(
   history: readonly HistoricalPoll[],
@@ -436,16 +436,22 @@ export function buildTrajectory(
   }
   points.push({ date: asOf, kind: 'now', scores: nowScores, p10: nowP10, p90: nowP90 })
 
-  // 3. Points futurs (de asOf jusqu'au 1er tour d'avril 2027)
+  // 3. Points futurs (de asOf jusqu'au 1er tour d'avril 2027) — uniquement si la projection est activée
   const daysToElection = Math.max(0, daysBetween(asOf, electionDate))
-  if (daysToElection > 0) {
+  if (settings.enabled && daysToElection > 0) {
     const steps = Math.max(4, Math.round(daysToElection / 14))
     for (let i = 1; i <= steps; i++) {
       const progress = i / steps
       const dt = i === steps ? electionDate : addDays(asOf, Math.round(daysToElection * progress))
-      const proj = settings.enabled
-        ? projectCampaign(baseScores, candidates, settings, validHistory, asOf, electionDate, progress).projectedScores
-        : baseScores
+      const proj = projectCampaign(
+        baseScores,
+        candidates,
+        settings,
+        validHistory,
+        asOf,
+        electionDate,
+        progress,
+      ).projectedScores
       const growth = Math.sqrt(progress)
       const scores: Scores = {}
       const p10: Scores = {}

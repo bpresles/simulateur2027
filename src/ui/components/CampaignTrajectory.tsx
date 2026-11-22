@@ -16,10 +16,10 @@ const shortMonth = (iso: string) => shortMonthFmt.format(new Date(`${iso}T00:00:
 
 /**
  * Graphique de trajectoire temporelle :
- * - courbes pleines : moyenne pondérée glissante des sondages passés (2025–2026) ;
+ * - courbes pleines : moyenne pondérée glissante des sondages passés (2025–2026) jusqu'à aujourd'hui ;
  * - ligne verticale « Aujourd'hui » ;
- * - courbes en pointillés : projection vers le 1er tour d'avril 2027 (ou maintien si photographie actuelle) ;
- * - cône translucide : intervalle d'incertitude à 80 % (P10–P90) pour le candidat sélectionné.
+ * - en mode « Projection avril 2027 » uniquement : courbes en pointillés jusqu'au 1er tour et cône
+ *   translucide représentant l'intervalle d'incertitude à 80 % (P10–P90) du candidat sélectionné.
  */
 export function CampaignTrajectory({ result }: { result: SimulationResult }) {
   const { trajectory, projection } = result
@@ -32,17 +32,18 @@ export function CampaignTrajectory({ result }: { result: SimulationResult }) {
   const points = trajectory.points
   const tracked = trajectory.trackedIds
   const activeFocus = focusedId && tracked.includes(focusedId) ? focusedId : (tracked[0] ?? null)
+  const hasFuture = projectionEnabled && points.some((p) => p.kind === 'projection')
 
   const { minTs, maxTs, maxY, xOf, yOf, ticksX, ticksY, nowX } = useMemo(() => {
     const ts = points.map((p) => Date.parse(`${p.date}T00:00:00Z`))
     const minT = ts[0] ?? Date.parse(`${trajectory.asOf}T00:00:00Z`)
-    const maxT = ts.at(-1) ?? Date.parse(`${trajectory.electionDate}T00:00:00Z`)
+    const maxT = ts.at(-1) ?? Date.parse(`${trajectory.asOf}T00:00:00Z`)
     const spanT = Math.max(1, maxT - minT)
 
     let peak = 35
     for (const pt of points) {
       for (const id of tracked) {
-        peak = Math.max(peak, pt.scores[id] ?? 0, pt.p90?.[id] ?? 0)
+        peak = Math.max(peak, pt.scores[id] ?? 0, hasFuture ? (pt.p90?.[id] ?? 0) : 0)
       }
     }
     const ceilY = Math.min(60, Math.ceil(peak / 5) * 5)
@@ -75,7 +76,7 @@ export function CampaignTrajectory({ result }: { result: SimulationResult }) {
       ticksY: ty,
       nowX: x(trajectory.asOf),
     }
-  }, [points, tracked, trajectory.asOf, trajectory.electionDate])
+  }, [points, tracked, trajectory.asOf, hasFuture])
 
   if (points.length < 2 || tracked.length === 0) return null
 
@@ -145,12 +146,12 @@ export function CampaignTrajectory({ result }: { result: SimulationResult }) {
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
           <h2 id="trajectory-title" className="text-xl font-bold tracking-tight sm:text-2xl">
-            Évolution et trajectoire vers avril 2027
+            {hasFuture ? 'Évolution et trajectoire vers avril 2027' : 'Évolution des intentions de vote'}
           </h2>
           <p className="mt-1 text-sm text-ink-2">
-            {projectionEnabled
-              ? `Projection structurelle jusqu’au ${date(trajectory.electionDate)} (vote utile par bloc, léger amortissement et tendance amortie sur ${integer(trajectory.historyPollCount)} vagues passées).`
-              : `Courbe lissée sur ${integer(trajectory.historyPollCount)} vagues passées (demi-vie 14 j), prolongée à scores constants avec le cône d’incertitude à 80 %.`}
+            {hasFuture
+              ? `Projection structurelle jusqu’au ${date(trajectory.electionDate)} (vote utile par bloc sur ${integer(trajectory.historyPollCount)} vagues passées), avec cône d’incertitude à 80 %.`
+              : `Courbe lissée sur ${integer(trajectory.historyPollCount)} vagues passées (demi-vie 14 j), arrêtée au ${date(trajectory.asOf)}.`}
           </p>
         </div>
         <Segmented<'now' | 'projected'>
@@ -164,13 +165,13 @@ export function CampaignTrajectory({ result }: { result: SimulationResult }) {
         />
       </div>
 
-      {/* Sélecteur de candidat pour le cône d'incertitude 80 % */}
+      {/* Sélecteur de candidat mis en avant (et cône d'incertitude 80 % en mode projection) */}
       <div
         className="mt-4 flex flex-wrap items-center gap-1.5"
         role="group"
-        aria-label="Candidat mis en avant pour le cône d’incertitude"
+        aria-label={hasFuture ? 'Candidat mis en avant pour le cône d’incertitude' : 'Candidat mis en avant sur la courbe'}
       >
-        <span className="mr-1 text-xs text-ink-3">Cône 80 % :</span>
+        <span className="mr-1 text-xs text-ink-3">{hasFuture ? 'Cône 80 % :' : 'Mettre en avant :'}</span>
         {tracked.map((id) => {
           const c = cand(id)
           const active = activeFocus === id
@@ -196,7 +197,7 @@ export function CampaignTrajectory({ result }: { result: SimulationResult }) {
       <div className="mt-3 overflow-x-auto">
         <svg
           role="img"
-          aria-label={`Trajectoire des intentions de vote du ${date(points[0]!.date)} au ${date(trajectory.electionDate)}`}
+          aria-label={`Trajectoire des intentions de vote du ${date(points[0]!.date)} au ${date(lastPt.date)}`}
           viewBox={`0 0 ${W} ${H}`}
           className="block h-auto w-full min-w-[560px] select-none"
           onPointerMove={handlePointerMove}
@@ -219,14 +220,16 @@ export function CampaignTrajectory({ result }: { result: SimulationResult }) {
             </g>
           ))}
 
-          {/* Zone future légèrement teintée */}
-          <rect
-            x={nowX}
-            y={PAD.top}
-            width={Math.max(0, W - PAD.right - nowX)}
-            height={PLOT_H}
-            className="fill-sunken/45"
-          />
+          {/* Zone future légèrement teintée (uniquement en mode projection) */}
+          {hasFuture && (
+            <rect
+              x={nowX}
+              y={PAD.top}
+              width={Math.max(0, W - PAD.right - nowX)}
+              height={PLOT_H}
+              className="fill-sunken/45"
+            />
+          )}
 
           {/* Repère vertical « Aujourd'hui » */}
           <line
@@ -238,12 +241,17 @@ export function CampaignTrajectory({ result }: { result: SimulationResult }) {
             strokeWidth={1.25}
             strokeDasharray="3 3"
           />
-          <text x={nowX} y={PAD.top - 5} textAnchor="middle" className="fill-ink-2 text-[10px] font-medium">
+          <text
+            x={nowX}
+            y={PAD.top - 5}
+            textAnchor={hasFuture ? 'middle' : 'end'}
+            className="fill-ink-2 text-[10px] font-medium"
+          >
             Aujourd’hui ({date(trajectory.asOf)})
           </text>
 
-          {/* Cône d'incertitude 80 % du candidat sélectionné */}
-          {activeFocus && conePath(activeFocus) && (
+          {/* Cône d'incertitude 80 % du candidat sélectionné (uniquement en mode projection) */}
+          {hasFuture && activeFocus && conePath(activeFocus) && (
             <path
               d={conePath(activeFocus)}
               style={colorVars(cand(activeFocus))}
@@ -270,24 +278,25 @@ export function CampaignTrajectory({ result }: { result: SimulationResult }) {
             )
           })}
 
-          {/* Courbes futures (pointillés) */}
-          {tracked.map((id) => {
-            const c = cand(id)
-            const isFocus = activeFocus === id
-            const d = linePath(futurePoints, id)
-            if (!d) return null
-            return (
-              <path
-                key={`fut-${id}`}
-                d={d}
-                fill="none"
-                style={{ stroke: 'var(--c)', ...colorVars(c) }}
-                strokeWidth={isFocus ? 2.5 : 1.5}
-                strokeOpacity={isFocus ? 1 : 0.65}
-                strokeDasharray="5 4"
-              />
-            )
-          })}
+          {/* Courbes futures (pointillés, uniquement en mode projection) */}
+          {hasFuture &&
+            tracked.map((id) => {
+              const c = cand(id)
+              const isFocus = activeFocus === id
+              const d = linePath(futurePoints, id)
+              if (!d) return null
+              return (
+                <path
+                  key={`fut-${id}`}
+                  d={d}
+                  fill="none"
+                  style={{ stroke: 'var(--c)', ...colorVars(c) }}
+                  strokeWidth={isFocus ? 2.5 : 1.5}
+                  strokeOpacity={isFocus ? 1 : 0.65}
+                  strokeDasharray="5 4"
+                />
+              )
+            })}
 
           {/* Étiquettes de droite à la date du 1er tour */}
           {endLabels.map(({ id, score, y }) => {
@@ -353,9 +362,7 @@ export function CampaignTrajectory({ result }: { result: SimulationResult }) {
                 ? 'historique lissé'
                 : hovered.kind === 'now'
                   ? 'aujourd’hui'
-                  : projectionEnabled
-                    ? 'projection'
-                    : 'maintien + incertitude'}
+                  : 'projection'}
               ) :
             </span>
             {tracked.map((id) => {
@@ -366,7 +373,8 @@ export function CampaignTrajectory({ result }: { result: SimulationResult }) {
               return (
                 <span key={id} className="num">
                   <strong>{cand(id).shortName}</strong> {pct(v)}
-                  {activeFocus === id &&
+                  {hasFuture &&
+                    activeFocus === id &&
                     lo !== undefined &&
                     hi !== undefined &&
                     ` [${pct(lo, 0)}–${pct(hi, 0)}]`}
@@ -376,10 +384,19 @@ export function CampaignTrajectory({ result }: { result: SimulationResult }) {
           </div>
         ) : (
           <p className="text-ink-3">
-            Survolez la courbe pour lire les scores à chaque date. Trait plein : moyenne glissante des vagues
-            publiées ; pointillés : {projectionEnabled ? 'trajectoire projetée' : 'scores actuels constants'}{' '}
-            jusqu’au {date(trajectory.electionDate)} (J−{projection.daysRemaining}).
-            {maxY > 0 && ' Le cône ombré représente l’intervalle à 80 % (P10–P90) du candidat sélectionné.'}
+            {hasFuture ? (
+              <>
+                Survolez la courbe pour lire les scores à chaque date. Trait plein : moyenne glissante des vagues
+                publiées ; pointillés : trajectoire projetée jusqu’au {date(trajectory.electionDate)} (J−
+                {projection.daysRemaining}).
+                {maxY > 0 && ' Le cône ombré représente l’intervalle à 80 % (P10–P90) du candidat sélectionné.'}
+              </>
+            ) : (
+              <>
+                Survolez la courbe pour lire les scores à chaque date. Trait plein : moyenne pondérée glissante des
+                vagues publiées jusqu’au {date(trajectory.asOf)} (photographie actuelle, sans projection).
+              </>
+            )}
           </p>
         )}
       </div>
