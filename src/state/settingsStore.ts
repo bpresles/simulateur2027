@@ -2,7 +2,12 @@ import { create } from 'zustand'
 import { createJSONStorage, persist } from 'zustand/middleware'
 import { defaultProjectionSettings } from '../domain/campaignProjection'
 import { defaultSettings } from '../domain/simulate'
-import { defaultRepublicanFront, REPUBLICAN_FRONT_PRESETS } from '../domain/transfers'
+import {
+  DEFAULT_LFI_LEFT_TRANSFER,
+  DEFAULT_LFI_LEFT_TRANSFER_RANGE,
+  defaultRepublicanFront,
+  REPUBLICAN_FRONT_PRESETS,
+} from '../domain/transfers'
 import { REPUBLICAN_FRONT_FAMILIES } from '../domain/types'
 import type {
   Bloc,
@@ -16,7 +21,8 @@ import type {
   TransferValues,
 } from '../domain/types'
 
-const clamp01 = (v: number) => Math.max(0, Math.min(1, v))
+const clamp = (v: number, min: number, max: number) => Math.max(min, Math.min(max, v))
+const clamp01 = (v: number) => clamp(v, 0, 1)
 const roundPct = (v: number) => Math.round(clamp01(v) * 100) / 100
 
 interface SettingsActions {
@@ -25,6 +31,7 @@ interface SettingsActions {
   /** Remplace les alliances actives (seules les combinaisons testées sont appliquées). */
   setAlliances: (alliances: Record<string, boolean>) => void
   setOfferProjectionEnabled: (enabled: boolean) => void
+  setCandidacyUncertaintyEnabled: (enabled: boolean) => void
   setProjectionEnabled: (enabled: boolean) => void
   setBlocUsefulVote: (bloc: Bloc, patch: Partial<BlocUsefulVote>) => void
   setMergeCenterRight: (merged: boolean) => void
@@ -37,6 +44,9 @@ interface SettingsActions {
   setRepublicanFrontGlobal: (value: number) => void
   applyRepublicanFrontPreset: (preset: RepublicanFrontPreset) => void
   resetRepublicanFront: () => void
+  setLfiLeftTransfer: (rate: number) => void
+  setLfiLeftTransferRange: (range: [number, number]) => void
+  resetLfiLeftTransfer: () => void
   setTransferOverride: (profile: ProfileId, bloc: Bloc, values: TransferValues | undefined) => void
   /** `undefined` rétablit la répartition par défaut des électeurs de ce petit candidat. */
   setMinorTransfer: (id: CandidateId, transferId: string | undefined) => void
@@ -52,7 +62,7 @@ interface SettingsActions {
 export type SettingsStore = Settings & SettingsActions
 
 const STORAGE_KEY = 'simulateur2027:settings'
-const STORAGE_VERSION = 13
+const STORAGE_VERSION = 15
 
 export const useSettings = create<SettingsStore>()(
   persist(
@@ -66,6 +76,7 @@ export const useSettings = create<SettingsStore>()(
       includeAllPolls: () => set({ excludedPolls: [] }),
       setAlliances: (alliances) => set({ alliances }),
       setOfferProjectionEnabled: (offerProjectionEnabled) => set({ offerProjectionEnabled }),
+      setCandidacyUncertaintyEnabled: (candidacyUncertaintyEnabled) => set({ candidacyUncertaintyEnabled }),
       setProjectionEnabled: (enabled) => set((s) => ({ projection: { ...s.projection, enabled } })),
       setBlocUsefulVote: (bloc, patch) =>
         set((s) => ({
@@ -113,6 +124,17 @@ export const useSettings = create<SettingsStore>()(
       applyRepublicanFrontPreset: (preset) =>
         set({ republicanFront: { ...REPUBLICAN_FRONT_PRESETS[preset] } }),
       resetRepublicanFront: () => set({ republicanFront: defaultRepublicanFront() }),
+      setLfiLeftTransfer: (rate) => set({ lfiLeftTransfer: Math.round(clamp(rate, 5, 95)) }),
+      setLfiLeftTransferRange: (range) => {
+        const lo = Math.round(clamp(Math.min(range[0], range[1]), 5, 95))
+        const hi = Math.round(clamp(Math.max(range[0], range[1]), 5, 95))
+        set({ lfiLeftTransferRange: [lo, hi] })
+      },
+      resetLfiLeftTransfer: () =>
+        set({
+          lfiLeftTransfer: DEFAULT_LFI_LEFT_TRANSFER,
+          lfiLeftTransferRange: [...DEFAULT_LFI_LEFT_TRANSFER_RANGE],
+        }),
       setTransferOverride: (profile, bloc, values) =>
         set((s) => {
           const { [bloc]: _, ...rows } = s.transferOverrides[profile] ?? {}
@@ -139,6 +161,8 @@ export const useSettings = create<SettingsStore>()(
           transferSource: d.transferSource,
           declaredWeight: d.declaredWeight,
           republicanFront: d.republicanFront,
+          lfiLeftTransfer: d.lfiLeftTransfer,
+          lfiLeftTransferRange: d.lfiLeftTransferRange,
           transferOverrides: d.transferOverrides,
           minorTransfers: d.minorTransfers,
           fidelity: d.fidelity,
@@ -157,10 +181,13 @@ export const useSettings = create<SettingsStore>()(
         excludedPolls: s.excludedPolls,
         alliances: s.alliances,
         offerProjectionEnabled: s.offerProjectionEnabled,
+        candidacyUncertaintyEnabled: s.candidacyUncertaintyEnabled,
         projection: s.projection,
         transferSource: s.transferSource,
         declaredWeight: s.declaredWeight,
         republicanFront: s.republicanFront,
+        lfiLeftTransfer: s.lfiLeftTransfer,
+        lfiLeftTransferRange: s.lfiLeftTransferRange,
         transferOverrides: s.transferOverrides,
         minorTransfers: s.minorTransfers,
         fidelity: s.fidelity,
@@ -170,18 +197,40 @@ export const useSettings = create<SettingsStore>()(
         selectedDuel: s.selectedDuel,
       }),
       migrate: (persisted, version) => {
-        if (version < 1 || version > 12 || !persisted || typeof persisted !== 'object') return defaultSettings()
+        if (version < 1 || version > 14 || !persisted || typeof persisted !== 'object') return defaultSettings()
         const old = persisted as Partial<Settings> & {
           hypothesisSetId?: string | null
           centerRnPresidentialWeight?: number
         }
-        if (version === 12 || version === 11) {
+        if (version === 14) {
+          const defProj = defaultProjectionSettings()
+          return {
+            ...defaultSettings(),
+            ...old,
+            projection: old.projection ? { ...defProj, ...old.projection, enabled: true } : defProj,
+            candidacyUncertaintyEnabled: true,
+          }
+        }
+        if (version >= 11 && version <= 13) {
           const { centerRnPresidentialWeight: _legacy, ...rest } = old
+          const defProj = defaultProjectionSettings()
+          const keptProj =
+            version >= 12 && old.projection
+              ? {
+                  ...defProj,
+                  enabled: true,
+                  usefulVote: old.projection.usefulVote,
+                  mergeCenterRight: old.projection.mergeCenterRight,
+                }
+              : defProj
           return {
             ...defaultSettings(),
             ...rest,
-            projection: version === 12 && old.projection ? old.projection : defaultProjectionSettings(),
+            projection: keptProj,
             republicanFront: defaultRepublicanFront(),
+            lfiLeftTransfer: DEFAULT_LFI_LEFT_TRANSFER,
+            lfiLeftTransferRange: [...DEFAULT_LFI_LEFT_TRANSFER_RANGE],
+            candidacyUncertaintyEnabled: true,
           }
         }
         const { 'philippe-glucksmann': _dynamic, ...keptAlliances } = old.alliances ?? {}
@@ -206,10 +255,13 @@ export function selectSettings(s: SettingsStore): Settings {
     excludedPolls: s.excludedPolls,
     alliances: s.alliances,
     offerProjectionEnabled: s.offerProjectionEnabled,
+    candidacyUncertaintyEnabled: s.candidacyUncertaintyEnabled,
     projection: s.projection,
     transferSource: s.transferSource,
     declaredWeight: s.declaredWeight,
     republicanFront: s.republicanFront,
+    lfiLeftTransfer: s.lfiLeftTransfer,
+    lfiLeftTransferRange: s.lfiLeftTransferRange,
     transferOverrides: s.transferOverrides,
     minorTransfers: s.minorTransfers,
     fidelity: s.fidelity,

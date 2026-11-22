@@ -15,6 +15,7 @@ import {
   effectiveAbstainerAntiRnShare,
   effectiveProfiles,
   fidelityFor,
+  lfiLeftTransferRow,
   nonRnSplit,
   resolveDuel,
 } from './transfers'
@@ -57,7 +58,7 @@ describe('resolveDuel & nonRnSplit', () => {
   })
 })
 
-describe('effectiveProfiles, fidélité différenciée & correction logit 2027', () => {
+describe('effectiveProfiles, interpolation 2022↔2024, report gauche hors LFI & correction logit', () => {
   it('différencie la fidélité par finaliste (Le Pen 96 %, Mélenchon 92 %, autres 95 %)', () => {
     expect(fidelityFor('lepen', transfers, null)).toEqual({ loyal: 96, cross: 1, abstention: 3 })
     expect(fidelityFor('melenchon', transfers, null)).toEqual({ loyal: 92, cross: 2, abstention: 6 })
@@ -65,19 +66,22 @@ describe('effectiveProfiles, fidélité différenciée & correction logit 2027',
     expect(fidelityFor('melenchon', transfers, 0.9)).toEqual({ loyal: 90, cross: 0, abstention: 10 })
   })
 
-  it('module le front républicain de façon homogène et cohérente sur les 4 profils face au RN', () => {
-    const prof2027 = effectiveProfiles(transfers, declaredTransfers, defaultSettings())
-    const prof2017 = effectiveProfiles(transfers, declaredTransfers, {
+  it('interpole proprement en logit entre Présidentielle 2022 (0 %) et Législatives 2024 (100 %) sur les 4 profils', () => {
+    const prof2024 = effectiveProfiles(transfers, declaredTransfers, {
       ...defaultSettings(),
-      republicanFront: REPUBLICAN_FRONT_PRESETS.level2017,
+      republicanFront: REPUBLICAN_FRONT_PRESETS.leg2024,
     })
-    const profNone = effectiveProfiles(transfers, declaredTransfers, {
+    const profMid = effectiveProfiles(transfers, declaredTransfers, {
       ...defaultSettings(),
-      republicanFront: REPUBLICAN_FRONT_PRESETS.none,
+      republicanFront: REPUBLICAN_FRONT_PRESETS.midpoint,
+    })
+    const prof2022 = effectiveProfiles(transfers, declaredTransfers, {
+      ...defaultSettings(),
+      republicanFront: REPUBLICAN_FRONT_PRESETS.pres2022,
     })
 
     // Conservation à 100 % sur tous les profils et blocs
-    for (const table of [profNone, prof2027, prof2017]) {
+    for (const table of [prof2022, profMid, prof2024]) {
       for (const pid of ['lfi_rn', 'ecolo_ps_pcf_rn', 'ensemble_rn', 'lr_rn'] as ProfileId[]) {
         for (const b of BLOCS) {
           const r = table[pid][b]
@@ -89,31 +93,46 @@ describe('effectiveProfiles, fidélité différenciée & correction logit 2027',
       }
     }
 
-    // Monotonie stricte : un front républicain plus fort augmente le report barrage sur les 4 profils
-    expect(prof2017.ensemble_rn.gauche.finalist).toBeGreaterThan(profNone.ensemble_rn.gauche.finalist)
-    expect(prof2017.lr_rn.gauche.finalist).toBeGreaterThan(profNone.lr_rn.gauche.finalist)
-    expect(prof2017.ecolo_ps_pcf_rn.centre.finalist).toBeGreaterThan(profNone.ecolo_ps_pcf_rn.centre.finalist)
-    expect(prof2017.lfi_rn.centre.finalist).toBeGreaterThan(profNone.lfi_rn.centre.finalist)
-    expect(prof2017.lfi_rn.droite.finalist).toBeGreaterThan(profNone.lfi_rn.droite.finalist)
+    // Extrémités exactes sur ensemble_rn : 100 % = Ipsos-Talan 2024 (72 %), 0 % = Présidentielle 2022 (47 % gauche, 53 % droite)
+    expect(prof2024.ensemble_rn.gauche.finalist).toBeCloseTo(72, 6)
+    expect(prof2022.ensemble_rn.gauche.finalist).toBeCloseTo(47, 4)
+    expect(prof2022.ensemble_rn.gauche.rn).toBeCloseTo(15, 4)
+    expect(prof2022.ensemble_rn.droite.finalist).toBeCloseTo(53, 4)
+    expect(prof2022.ensemble_rn.droite.rn).toBeCloseTo(18, 4)
 
-    // Cohérence ordinale (plus d'inversion où la gauche se reporterait mieux sur LR que sur le centre)
-    expect(prof2027.ensemble_rn.gauche.finalist).toBeGreaterThan(prof2027.lr_rn.gauche.finalist)
-    expect(prof2027.lr_rn.centre.finalist).toBeGreaterThan(prof2027.ecolo_ps_pcf_rn.centre.finalist)
-    expect(prof2027.ecolo_ps_pcf_rn.centre.finalist).toBeGreaterThan(prof2027.lfi_rn.centre.finalist)
-    expect(prof2027.ensemble_rn.droite.finalist).toBeGreaterThan(prof2027.ecolo_ps_pcf_rn.droite.finalist)
-    expect(prof2027.ecolo_ps_pcf_rn.droite.finalist).toBeGreaterThan(prof2027.lfi_rn.droite.finalist)
+    // Monotonie stricte entre 2022 (0 %) et 2024 (100 %) sur les 4 profils
+    expect(prof2024.ensemble_rn.gauche.finalist).toBeGreaterThan(profMid.ensemble_rn.gauche.finalist)
+    expect(profMid.ensemble_rn.gauche.finalist).toBeGreaterThan(prof2022.ensemble_rn.gauche.finalist)
+    expect(prof2024.lr_rn.gauche.finalist).toBeGreaterThan(prof2022.lr_rn.gauche.finalist)
+    expect(prof2024.ecolo_ps_pcf_rn.centre.finalist).toBeGreaterThan(prof2022.ecolo_ps_pcf_rn.centre.finalist)
+    expect(prof2024.lfi_rn.centre.finalist).toBeGreaterThan(prof2022.lfi_rn.centre.finalist)
+    expect(prof2024.lfi_rn.droite.finalist).toBeGreaterThan(prof2022.lfi_rn.droite.finalist)
 
-    // Repère 2017 (F = 1) : pas de double décote sur lfi_rn (centre = 43 % comme en 2024), gauche → ensemble_rn = 72 %
-    expect(prof2017.ensemble_rn.gauche.finalist).toBeCloseTo(72, 6)
-    expect(prof2017.lfi_rn.centre.finalist).toBeCloseTo(43, 6)
-    expect(prof2027.ensemble_rn.gauche.finalist).toBeLessThan(60)
-    expect(prof2027.ensemble_rn.gauche.finalist).toBeGreaterThan(50)
+    // Cohérence ordinale (aucune inversion)
+    expect(prof2024.ensemble_rn.gauche.finalist).toBeGreaterThan(prof2024.lr_rn.gauche.finalist)
+    expect(prof2022.lr_rn.centre.finalist).toBeGreaterThan(prof2022.ecolo_ps_pcf_rn.centre.finalist)
+    expect(prof2022.ecolo_ps_pcf_rn.centre.finalist).toBeGreaterThan(prof2022.lfi_rn.centre.finalist)
+    expect(prof2022.ensemble_rn.droite.finalist).toBeGreaterThan(prof2022.ecolo_ps_pcf_rn.droite.finalist)
+    expect(prof2022.ecolo_ps_pcf_rn.droite.finalist).toBeGreaterThan(prof2022.lfi_rn.droite.finalist)
 
-    // Nouveaux votants : couplés au front républicain (50 % à F=0 ou hors RN, baseShare à F=0,75)
+    // Nouveaux votants : 50 % hors RN, baseShare conservé face au RN (sans règle inventée)
     expect(effectiveAbstainerAntiRnShare(0.55, null)).toBe(0.5)
-    expect(effectiveAbstainerAntiRnShare(0.55, 0)).toBeCloseTo(0.5, 8)
-    expect(effectiveAbstainerAntiRnShare(0.55, 0.75)).toBeCloseTo(0.55, 8)
-    expect(effectiveAbstainerAntiRnShare(0.55, 1)).toBeGreaterThan(0.55)
+    expect(effectiveAbstainerAntiRnShare(0.55, 0)).toBeCloseTo(0.55, 8)
+    expect(effectiveAbstainerAntiRnShare(0.55, 1)).toBeCloseTo(0.55, 8)
+  })
+
+  it('lfiLeftTransferRow interpole proprement le report gauche hors LFI → Mélenchon entre 36 % et 72 %', () => {
+    const at72 = lfiLeftTransferRow(72, transfers, declaredTransfers)
+    const at36 = lfiLeftTransferRow(36, transfers, declaredTransfers)
+    const at54 = lfiLeftTransferRow(54, transfers, declaredTransfers)
+    for (const r of [at72, at54, at36]) {
+      expect(r.finalist + r.rn + r.abstention).toBeCloseTo(100, 8)
+    }
+    expect(at72.finalist).toBeCloseTo(72, 6)
+    expect(at72.rn).toBeCloseTo(3, 6)
+    expect(at36.finalist).toBeCloseTo(36, 6)
+    expect(at36.rn).toBeGreaterThan(at72.rn)
+    expect(at54.finalist).toBeCloseTo(54, 6)
   })
 
   it('corrige les déclarations 2027 sur échelle logit multinomial (dans [0 ; 100], somme 100)', () => {
@@ -144,7 +163,7 @@ describe('computeSecondRound (moteur unifié en flux bruts)', () => {
       blankNullShare: 0.05,
       abstainerMobilization: 0.2,
       abstainerAntiRnShare: 0.55,
-      republicanFrontStrength: 0.35,
+      republicanFrontStrength: 1,
       secondRoundPolls: [],
     })
     // P = 80, BN1 = 4, E1 = 76, scale = 0.76, abst1 = 20, newVoters = 4 (2.2 Mélenchon, 1.8 Le Pen)
@@ -171,9 +190,9 @@ describe('computeSecondRound (moteur unifié en flux bruts)', () => {
   it('électeurs d’un petit candidat : chaque part suit l’électorat principal indiqué', () => {
     const minor = { ...cand('pt', 'gauche', null), minor: { transfers: [] } } as Candidate
     const map = new Map([...byId, ['pt', minor]])
-    const prof17 = effectiveProfiles(transfers, declaredTransfers, {
+    const prof24 = effectiveProfiles(transfers, declaredTransfers, {
       ...defaultSettings(),
-      republicanFront: REPUBLICAN_FRONT_PRESETS.level2017,
+      republicanFront: REPUBLICAN_FRONT_PRESETS.leg2024,
     })
     const expectedGauche = applyRepublicanFrontRow(
       'ensemble_rn',
@@ -187,7 +206,7 @@ describe('computeSecondRound (moteur unifié en flux bruts)', () => {
       a: 'lepen',
       b: 'ens',
       duel: resolveDuel('lepen', 'ens', map),
-      profiles: prof17,
+      profiles: prof24,
       nonRnPresidential: transfers.nonRnPresidential,
       fidelityA: { loyal: 100, cross: 0, abstention: 0 },
       fidelityB: { loyal: 100, cross: 0, abstention: 0 },

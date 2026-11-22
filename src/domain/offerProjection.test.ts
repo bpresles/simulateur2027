@@ -90,6 +90,24 @@ describe('offerProjection : paires propres et projection d’offre', () => {
     expect(projectHypothesis(swapped, filter, new Set(Object.keys(withAttal)), model, candidates)).toBeNull()
   })
 
+  it('retire un candidat en redistribuant 100 % de son score sur les poids mesurés (sans fuite arbitraire)', () => {
+    const ifop = poll('p1', 'Ifop', '2026-11-15', [
+      { id: 'H1', scores: base },
+      { id: 'H2', scores: withAttal },
+    ])
+    const onlyWithAttal = poll('p2', 'Elabe', '2026-11-14', [{ id: 'H1', scores: withAttal }])
+    const model = measurePairTransfers([ifop, onlyWithAttal], candidates, '2026-11-20')
+    const filter = { require: Object.keys(base), exclude: ['attal'] }
+    const proj = projectHypothesis(onlyWithAttal, filter, new Set(Object.keys(base)), model, candidates)
+    expect(proj).not.toBeNull()
+    expect(proj!.steps).toEqual(['−Attal'])
+    // 100 % des 5 pts d'Attal reviennent aux donneurs mesurés (3 Philippe, 1 Glucksmann, 1 Retailleau) ; Le Pen reste à 36.
+    expect(proj!.scores.philippe).toBeCloseTo(15, 6)
+    expect(proj!.scores.glucksmann).toBeCloseTo(11, 6)
+    expect(proj!.scores.retailleau).toBeCloseTo(8, 6)
+    expect(proj!.scores.lepen).toBeCloseTo(36, 6)
+  })
+
   it('intègre Odoxa et Cluster17 proprement sur les données vivantes 2027', () => {
     const model = measurePairTransfers(liveData.polls.polls, candidates, liveData.polls.asOf)
     expect(model.byCandidate.attal!.pairs.length).toBeGreaterThanOrEqual(3)

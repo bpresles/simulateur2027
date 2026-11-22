@@ -4,7 +4,7 @@ import { noIntentionRange, secondRoundDropout } from '../../domain/secondRound'
 import type { Entrant, SimulationResult } from '../../domain/types'
 import { useSettings } from '../../state/settingsStore'
 import { cand, colorVars, entrantLabel, profileLabel } from '../candidates'
-import { date, fieldwork, noIntentionLabel, pct, pts, range, shownScore } from '../format'
+import { date, fieldwork, noIntentionLabel, num, pct, pts, range, shownScore } from '../format'
 import { Link } from '../Link'
 import { AnimatedNumber } from './AnimatedNumber'
 
@@ -177,10 +177,11 @@ function SplitBar({
 }
 
 function MethodLine({ result }: { result: SimulationResult }) {
-  const { duel, directPolls, a, b, republicanFrontStrength } = result.secondRound
+  const { duel, directPolls, a, b, republicanFrontStrength, lfiLeftSensitivity } = result.secondRound
   const settings = useSettings()
   const shown = directPolls.slice(0, MAX_DIRECT_POLLS)
   const profileId = duel.profileWeights[0]?.profileId
+  const rnCand = duel.rnId ? cand(duel.rnId) : null
 
   return (
     <div className="mt-6 space-y-4 border-t border-rule pt-4 lg:mt-0 lg:border-t-0 lg:pt-0">
@@ -190,8 +191,8 @@ function MethodLine({ result }: { result: SimulationResult }) {
           {settings.transferSource === 'declared2027'
             ? `déclarations 2027 corrigées en logit (profil « ${profileLabel(profileId)} »).`
             : settings.transferSource === 'blend'
-              ? `mélange ${pct((1 - settings.declaredWeight) * 100, 0)} base historique (front républicain ${pct((republicanFrontStrength ?? 0) * 100, 0)}) / ${pct(settings.declaredWeight * 100, 0)} déclarations 2027 corrigées (« ${profileLabel(profileId)} »).`
-              : `base historique présidentielle (« ${profileLabel(profileId)} », front républicain à ${pct((republicanFrontStrength ?? 0) * 100, 0)}).`}{' '}
+              ? `mélange ${pct((1 - settings.declaredWeight) * 100, 0)} base historique 2022 ↔ 2024 (position ${pct((republicanFrontStrength ?? 0) * 100, 0)}) / ${pct(settings.declaredWeight * 100, 0)} déclarations 2027 corrigées (« ${profileLabel(profileId)} »).`
+              : `base historique 2022 ↔ 2024 (« ${profileLabel(profileId)} », curseur à ${pct((republicanFrontStrength ?? 0) * 100, 0)} : 0 % = Prés. 2022, 100 % = Lég. 2024).`}{' '}
           <Link to="methodologie" hash="reports" className="link">
             Détail des reports
           </Link>
@@ -209,6 +210,32 @@ function MethodLine({ result }: { result: SimulationResult }) {
           <span className="font-medium text-hypo">Duel de même camp : </span>
           aucune mesure historique directe ne couvre ce duel ; le calcul repose sur une matrice de repli symétrique.
         </p>
+      )}
+
+      {lfiLeftSensitivity && rnCand && (
+        <div className="rounded-lg border border-rule bg-paper/70 px-3.5 py-2.5 text-xs text-ink-2">
+          <p className="font-semibold text-ink">
+            Sensibilité au report gauche hors LFI → Mélenchon (non mesuré en présidentielle)
+          </p>
+          <p className="mt-1">
+            Entre <strong className="num">{lfiLeftSensitivity.lowRate}&#8239;%</strong> (proche des déclarations 2027
+            corrigées) et <strong className="num">{lfiLeftSensitivity.highRate}&#8239;%</strong> (repère NFP 2024),{' '}
+            {rnCand.shortName} varie de{' '}
+            <strong className="num">
+              {pct(Math.min(lfiLeftSensitivity.rnAtLow, lfiLeftSensitivity.rnAtHigh))}
+            </strong>{' '}
+            à{' '}
+            <strong className="num">
+              {pct(Math.max(lfiLeftSensitivity.rnAtLow, lfiLeftSensitivity.rnAtHigh))}
+            </strong>{' '}
+            (écart de{' '}
+            <span className="num font-medium">
+              {num(Math.abs(lfiLeftSensitivity.rnAtLow - lfiLeftSensitivity.rnAtHigh), 1)} pts
+            </span>
+            , valeur centrale active : <span className="num">{lfiLeftSensitivity.currentRate}&#8239;%</span>). Cette
+            plage est tirée uniformément dans Monte-Carlo.
+          </p>
+        </div>
       )}
 
       {directPolls.length > 0 && (

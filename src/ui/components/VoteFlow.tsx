@@ -106,7 +106,7 @@ export function VoteFlow({ result }: { result: SimulationResult }) {
         {sr.republicanFrontStrength !== null && settings.transferSource !== 'declared2027' && (
           <>
             {' '}
-            Front républicain appliqué à ce duel :{' '}
+            Curseur front républicain (0 % = Prés. 2022, 100 % = Lég. 2024) :{' '}
             <strong className="num font-medium text-ink-2">{pct(sr.republicanFrontStrength * 100, 0)}</strong>.
           </>
         )}

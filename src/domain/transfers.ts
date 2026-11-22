@@ -24,17 +24,26 @@ export type ProfileTable = Record<ProfileId, Record<Bloc, TransferValues>>
 const clamp = (v: number, min: number, max: number) => Math.max(min, Math.min(max, v))
 const mean = (values: number[]) => values.reduce((s, v) => s + v, 0) / values.length
 
-/** Préréglages historiques et tendanciels de la force du front républicain (0 = effacé, 0,75 = 2022, 1 = 2017). */
+/**
+ * Préréglages du front républicain : interpolation directe entre deux repères mesurés :
+ * - `pres2022` (0 %) : niveau des enquêtes « jour du vote » de la présidentielle 2022 ;
+ * - `midpoint` (50 %) : mi-chemin entre 2022 et 2024 ;
+ * - `leg2024` (100 %) : niveau direct de l'enquête Ipsos-Talan des législatives 2024.
+ */
 export const REPUBLICAN_FRONT_PRESETS: Record<RepublicanFrontPreset, RepublicanFrontSettings> = {
-  none: { centerRight: 0, moderateLeft: 0, lfi: 0 },
-  eroded2027: { centerRight: 0.55, moderateLeft: 0.5, lfi: 0.35 },
-  level2022: { centerRight: 0.75, moderateLeft: 0.75, lfi: 0.75 },
-  level2017: { centerRight: 1, moderateLeft: 1, lfi: 1 },
+  pres2022: { centerRight: 0, moderateLeft: 0, lfi: 0 },
+  midpoint: { centerRight: 0.5, moderateLeft: 0.5, lfi: 0.5 },
+  leg2024: { centerRight: 1, moderateLeft: 1, lfi: 1 },
 }
 
+/** Défaut provisoire : législatives 2024 (100 %), seule enquête mesurant directement les 4 types de duels. */
 export function defaultRepublicanFront(): RepublicanFrontSettings {
-  return { ...REPUBLICAN_FRONT_PRESETS.eroded2027 }
+  return { ...REPUBLICAN_FRONT_PRESETS.leg2024 }
 }
+
+/** Défaut provisoire du report gauche hors LFI → Mélenchon (72 % = repère 2024) et plage Monte-Carlo [35 ; 75 %]. */
+export const DEFAULT_LFI_LEFT_TRANSFER = 72
+export const DEFAULT_LFI_LEFT_TRANSFER_RANGE: [number, number] = [35, 75]
 
 export function profileFamily(profileId: ProfileId): RepublicanFrontFamily {
   if (profileId === 'lfi_rn') return 'lfi'
@@ -46,7 +55,7 @@ export function frontStrengthForProfile(profileId: ProfileId, rf: RepublicanFron
   return clamp(rf[profileFamily(profileId)], 0, 1)
 }
 
-/** Force du front républicain applicable à un duel résolu (null hors duel face au RN). */
+/** Position du front républicain (0 = Prés. 2022, 1 = Lég. 2024) pour un duel résolu (null hors duel RN). */
 export function frontStrengthForDuel(duel: ResolvedDuel, rf: RepublicanFrontSettings): number | null {
   if (duel.kind !== 'rn-sourced' || duel.profileWeights.length === 0) return null
   const totalWeight = duel.profileWeights.reduce((s, w) => s + w.weight, 0)
@@ -57,12 +66,11 @@ export function frontStrengthForDuel(duel: ResolvedDuel, rf: RepublicanFrontSett
 
 /**
  * Orientation effective des nouveaux votants (abstentionnistes du 1er tour) vers l'adversaire du RN :
- * ancrée au niveau 2022 (F = 0,75 → `baseShare`, 55 % par défaut), elle revient à 50/50 quand le
- * front républicain est effacé (F = 0) et augmente modérément au niveau 2017 (F = 1).
+ * `baseShare` (défaut 55 %, repère 2022) dans un duel face au RN, 50 % hors duel RN.
  */
 export function effectiveAbstainerAntiRnShare(baseShare: number, strength: number | null): number {
   if (strength === null) return 0.5
-  return clamp(0.5 + (baseShare - 0.5) * (clamp(strength, 0, 1) / 0.75), 0.2, 0.85)
+  return clamp(baseShare, 0.2, 0.85)
 }
 
 function mixValues(a: TransferValues, b: TransferValues, weightB: number): TransferValues {
@@ -96,49 +104,86 @@ export function shiftTransferLogit(row: TransferValues, deltaFinalist: number, d
 }
 
 /** Distance politique entre un électorat éliminé et le profil du finaliste opposé au RN. */
-type BlocRelation = 'same' | 'neighbor' | 'opposite' | 'far'
+type BlocRelation = 'same' | 'neighbor' | 'opposite'
 
 const BLOC_RELATIONS: Record<ProfileId, Record<Exclude<Bloc, 'extreme_droite'>, BlocRelation>> = {
-  lfi_rn: { gauche: 'same', centre: 'opposite', droite: 'far' },
-  ecolo_ps_pcf_rn: { gauche: 'same', centre: 'neighbor', droite: 'far' },
+  lfi_rn: { gauche: 'same', centre: 'opposite', droite: 'opposite' },
+  ecolo_ps_pcf_rn: { gauche: 'same', centre: 'neighbor', droite: 'opposite' },
   ensemble_rn: { gauche: 'opposite', centre: 'same', droite: 'neighbor' },
-  lr_rn: { gauche: 'far', centre: 'neighbor', droite: 'same' },
+  lr_rn: { gauche: 'opposite', centre: 'neighbor', droite: 'same' },
+}
+
+function logitDelta(from: TransferValues, to: TransferValues): { df: number; dr: number } {
+  const eps = 1e-4
+  const df =
+    Math.log(Math.max(eps, to.finalist) / Math.max(eps, to.abstention)) -
+    Math.log(Math.max(eps, from.finalist) / Math.max(eps, from.abstention))
+  const dr =
+    Math.log(Math.max(eps, to.rn) / Math.max(eps, to.abstention)) -
+    Math.log(Math.max(eps, from.rn) / Math.max(eps, from.abstention))
+  return { df, dr }
 }
 
 /**
- * Transpose une ligne des législatives 2024 en contexte présidentiel et applique la force du front
- * républicain `strength` (1 = niveau barrage fort 2017/2024, 0,75 = niveau 2022, 0 = effacé).
+ * Interpolation directe sur échelle logit entre les deux repères mesurés :
+ * - `strength = 1` (100 %) : enquête Ipsos-Talan des législatives 2024 (`raw2024`) ;
+ * - `strength = 0` (0 %) : transposition au niveau des enquêtes « jour du vote » de la présidentielle 2022
+ *   (`transfers.presidentialCenterRn.elections['2022']`), sans coefficients ad hoc ni extrapolation sous 2022.
  *
- * Calibrage empirique (sans aucun calage sur les sondages T2 2027) :
- * - À `strength = 1` (barrage fort), les profils `ensemble_rn`, `ecolo_ps_pcf_rn` et `lfi_rn` partent
- *   directement des taux Ipsos-Talan 2024 — qui reflètent déjà la différence de compatibilité entre candidats
- *   (72 % gauche→centre, 54 % centre→PS/écolo, 43 % centre→LFI) sans double pénalité. Seule la ligne
- *   `gauche → lr_rn` (70 % en 2024, presque égale à `gauche → ensemble_rn` en raison des désistements locaux)
- *   reçoit un léger ajustement de distance politique (δ_f = −0,35, δ_r = +0,55) pour rester sous `gauche → centre`.
- * - L'érosion du front républicain `(1 − strength)` reproduit sur `ensemble_rn` l'écart réel entre 2017 (100 %)
- *   et 2022 (75 %, soit ~58,9 % Macron vs 58,55 % réel). Sur les blocs déjà dotés d'un vote RN significatif
- *   (≥ 6 %), le recul du barrage bascule très majoritairement vers l'abstention/blanc (δ_r modéré à +0,15 / +0,10).
+ * Pour `ensemble_rn`, les deux extrémités sont directement mesurées (`raw2024` et `2022`).
+ * Pour les autres profils, on applique à proportion `(1 − strength)` l'écart logit 2024 → 2022 mesuré sur
+ * `ensemble_rn` (bloc opposé `gauche` ou bloc voisin `droite`). Pour les lignes disposant déjà d'un taux RN
+ * élevé en 2024 (≥ 10 %, ex. centre/droite face à la gauche), seul le recul du barrage `df` est appliqué
+ * (`dr = 0` par rapport à l'abstention) afin de ne pas amplifier artificiellement le vote RN.
  */
 export function applyRepublicanFrontRow(
   profileId: ProfileId,
   bloc: Bloc,
   raw2024: TransferValues,
-  _transfers: TransfersData,
+  transfers: TransfersData,
   strength: number,
 ): TransferValues {
   if (bloc === 'extreme_droite') return raw2024
   const rel = BLOC_RELATIONS[profileId][bloc]
   if (rel === 'same') return raw2024
 
-  // Seul ajustement d'ancre à F = 1 : éviter que gauche → LR (70 % en 2024) égale gauche → Centre (72 %).
-  const anchor =
-    profileId === 'lr_rn' && bloc === 'gauche' ? shiftTransferLogit(raw2024, -0.35, 0.55) : raw2024
+  const w2022 = 1 - clamp(strength, 0, 1)
+  if (w2022 === 0) return { ...raw2024 }
 
-  const erosion = 1 - clamp(strength, 0, 1)
-  if (erosion === 0) return { ...anchor }
-  const df = rel === 'neighbor' ? -0.45 * erosion : rel === 'opposite' ? -1.35 * erosion : -1.5 * erosion
-  const dr = rel === 'neighbor' ? 0.1 * erosion : (anchor.rn < 6 ? 1.4 : 0.15) * erosion
-  return shiftTransferLogit(anchor, df, dr)
+  const ens2024 = transfers.profiles.find((p) => p.id === 'ensemble_rn')!.rows
+  const ens2022 = transfers.presidentialCenterRn.elections['2022']
+
+  if (profileId === 'ensemble_rn') {
+    const target = ens2022[bloc]
+    const { df, dr } = logitDelta(raw2024, target)
+    return shiftTransferLogit(raw2024, df * w2022, dr * w2022)
+  }
+
+  const refBloc: 'gauche' | 'droite' = rel === 'opposite' ? 'gauche' : 'droite'
+  const { df, dr } = logitDelta(ens2024[refBloc], ens2022[refBloc])
+  const appliedDr = raw2024.rn < 10 ? dr * w2022 : 0
+  return shiftTransferLogit(raw2024, df * w2022, appliedDr)
+}
+
+/**
+ * Construit la ligne de report `gauche hors LFI → Mélenchon` (`lfi_rn.gauche`) pour un taux cible `ratePct` (%)
+ * en interpolant entre les deux bornes sourcées :
+ * - borne haute (`72 %`) : report NFP 2024 (`72 / 3 / 25`) ;
+ * - borne basse (`~36 %`) : déclarations 2027 corrigées en logit (`36 / 11 / 53`).
+ */
+export function lfiLeftTransferRow(
+  ratePct: number,
+  transfers: TransfersData,
+  declaredTransfers: DeclaredTransfersData,
+): TransferValues {
+  const high = transfers.profiles.find((p) => p.id === 'lfi_rn')!.rows.gauche
+  const low = correctDeclaredRowLogit(declaredTransfers.profiles.lfi_rn.gauche, declaredTransfers.logitCorrection)
+  const finalist = clamp(ratePct, 5, 95)
+  const span = high.finalist - low.finalist
+  const t = span > 0 ? clamp((finalist - low.finalist) / span, -0.2, 1.2) : 1
+  const rawRn = clamp(low.rn + (high.rn - low.rn) * t, 0, 100 - finalist)
+  const abstention = Math.max(0, 100 - finalist - rawRn)
+  return { finalist, rn: rawRn, abstention }
 }
 
 /**
@@ -171,25 +216,27 @@ export function fidelityFor(
  * Profils de reports effectifs au 2nd tour (duels face au RN) :
  * 1. Surcharges manuelles de l'utilisateur (toujours prioritaires).
  * 2. Lignes « camp RN » (Reconquête / DLF) : suivent la fidélité du camp RN.
- * 3. Base historique par défaut : législatives 2024 (Ipsos-Talan) transposées en présidentielle d'après
- *    2017–2022 et modulées de façon homogène sur les 4 profils par la force du front républicain.
- * 4. Option activable : déclarations 2027 corrigées sur échelle logit (`declared2027`), ou mélange pondéré (`blend`).
+ * 3. Ligne `lfi_rn.gauche` (gauche hors LFI → Mélenchon) : suit le curseur dédié `lfiLeftTransfer` en base historique.
+ * 4. Base historique par défaut : interpolation logit entre Présidentielle 2022 (0 %) et Législatives 2024 (100 %).
+ * 5. Option activable : déclarations 2027 corrigées sur échelle logit (`declared2027`), ou mélange pondéré (`blend`).
  */
 export function effectiveProfiles(
   transfers: TransfersData,
   declaredTransfers: DeclaredTransfersData,
   settings: Pick<
     Settings,
-    'transferSource' | 'declaredWeight' | 'republicanFront' | 'transferOverrides' | 'fidelity'
+    'transferSource' | 'declaredWeight' | 'republicanFront' | 'lfiLeftTransfer' | 'transferOverrides' | 'fidelity'
   >,
   options: {
     rnId?: CandidateId
     republicanFront?: RepublicanFrontSettings
+    lfiLeftTransfer?: number
     declaredWeight?: number
   } = {},
 ): ProfileTable {
   const rnFid = fidelityFor(options.rnId ?? 'lepen', transfers, settings.fidelity)
   const rf = options.republicanFront ?? settings.republicanFront
+  const lfiLeft = options.lfiLeftTransfer ?? settings.lfiLeftTransfer
   const wDecl = clamp(options.declaredWeight ?? settings.declaredWeight, 0, 1)
 
   return Object.fromEntries(
@@ -208,13 +255,16 @@ export function effectiveProfiles(
               return [b, correctDeclaredRowLogit(declaredTransfers.profiles[p.id][b], declaredTransfers.logitCorrection)]
             }
 
-            const base = applyRepublicanFrontRow(
-              p.id,
-              b,
-              { finalist: row.finalist, rn: row.rn, abstention: row.abstention },
-              transfers,
-              strength,
-            )
+            const base =
+              p.id === 'lfi_rn' && b === 'gauche'
+                ? lfiLeftTransferRow(lfiLeft, transfers, declaredTransfers)
+                : applyRepublicanFrontRow(
+                    p.id,
+                    b,
+                    { finalist: row.finalist, rn: row.rn, abstention: row.abstention },
+                    transfers,
+                    strength,
+                  )
 
             if (settings.transferSource === 'legislatives2024') return [b, base]
             const decl = correctDeclaredRowLogit(declaredTransfers.profiles[p.id][b], declaredTransfers.logitCorrection)

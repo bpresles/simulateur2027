@@ -211,7 +211,7 @@ function ProjectionPanel({ result }: { result: SimulationResult }) {
           checked={proj.mergeCenterRight}
           onCheckedChange={s.setMergeCenterRight}
           label="Regrouper centre et droite (scénario type 2022)"
-          description="Si activé, le vote utile concentre centre et droite vers un seul pivot (cible 65 %) ; sinon les 4 blocs se consolident séparément (validé sur 2017 et 2022)."
+          description="Si activé, le vote utile concentre centre et droite vers un seul pivot (cible 65 %) ; sinon les 4 blocs se consolident séparément."
         />
 
         <div className="space-y-2.5">
@@ -292,12 +292,12 @@ function ProjectionPanel({ result }: { result: SimulationResult }) {
         <div className="space-y-4 border-t border-rule pt-4">
           <div>
             <div className="mb-1 flex justify-between text-sm">
-              <span className="font-medium text-ink">Amortissement des écarts précoces</span>
+              <span className="font-medium text-ink">Amortissement vers les fondamentaux (option)</span>
               <span className="num font-medium">{num(proj.meanReversion * 100, 0)}&#8239;%</span>
             </div>
             <p className="mb-2 text-xs text-ink-3">
-              Léger rappel des totaux de blocs vers les fondamentaux (50 % 2017–2022 + 50 % 2024), plafonné à 25 % à
-              J−150 et s’annulant le jour du scrutin.
+              Désactivé par défaut (0 %). Si activé, rappelle les totaux de blocs vers une moyenne 2017–2024 (poids max
+              25 % à J−150, s’annulant le jour du scrutin).
             </p>
             <Slider
               label="Amortissement des écarts précoces"
@@ -310,12 +310,12 @@ function ProjectionPanel({ result }: { result: SimulationResult }) {
           </div>
           <div>
             <div className="mb-1 flex justify-between text-sm">
-              <span className="font-medium text-ink">Tendance récente amortie (21 jours)</span>
+              <span className="font-medium text-ink">Tendance récente amortie sur 21 jours (option)</span>
               <span className="num font-medium">{num(proj.dampedTrend * 100, 0)}&#8239;%</span>
             </div>
             <p className="mb-2 text-xs text-ink-3">
-              Prolonge les évolutions récentes mesurées sur les vagues 2025–2027 avec amortissement exponentiel sur 21
-              jours et plafond strict à ±2,5 pts.
+              Désactivé par défaut (0 %) : sur les présidentielles 1995–2022, la persistance des pentes sur 6 semaines
+              est non significative (r = −0,26). Plafonné à ±2,5 pts si activé.
             </p>
             <Slider
               label="Tendance récente amortie"
@@ -351,6 +351,37 @@ function SecondRoundParamsPanel() {
       </div>
 
       <RepublicanFrontControls compact />
+
+      <div className="rounded-md border border-rule bg-surface px-3 py-2.5 text-xs">
+        <p className="font-medium text-ink">Plage Monte-Carlo : gauche hors LFI → Mélenchon (%)</p>
+        <p className="mt-0.5 text-ink-3">
+          Tirage uniforme dans chaque simulation (défaut provisoire : 35 % à 75 %).
+        </p>
+        <div className="mt-2 flex flex-wrap items-center gap-3">
+          <label className="flex items-center gap-1.5 text-ink-2">
+            <span>Min</span>
+            <NumberInput
+              label="Borne basse du report gauche hors LFI vers Mélenchon"
+              value={s.lfiLeftTransferRange[0]}
+              onChange={(v) => v !== undefined && s.setLfiLeftTransferRange([v, s.lfiLeftTransferRange[1]])}
+              min={5}
+              max={95}
+              step={1}
+            />
+          </label>
+          <label className="flex items-center gap-1.5 text-ink-2">
+            <span>Max</span>
+            <NumberInput
+              label="Borne haute du report gauche hors LFI vers Mélenchon"
+              value={s.lfiLeftTransferRange[1]}
+              onChange={(v) => v !== undefined && s.setLfiLeftTransferRange([s.lfiLeftTransferRange[0], v])}
+              min={5}
+              max={95}
+              step={1}
+            />
+          </label>
+        </div>
+      </div>
 
       {s.transferSource === 'blend' && (
         <div>
@@ -406,12 +437,12 @@ function SecondRoundParamsPanel() {
 
       <div>
         <p className="text-sm font-medium">
-          Orientation de référence des nouveaux votants (adversaire du RN, niveau 2022) :{' '}
+          Orientation des nouveaux votants (adversaire du RN) :{' '}
           <span className="num">{pct(s.abstainerAntiRnShare * 100, 0)}</span>
         </p>
         <p className="mb-2 mt-0.5 text-xs text-ink-3">
-          Ancrée au niveau du front républicain 2022 (75 %), puis modulée selon la force du front républicain du duel
-          (retombe à 50 % si le front républicain est à 0 % ou dans les duels hors RN). Défaut : 55 %.
+          Part des abstentionnistes du 1er tour qui votent pour l’adversaire du RN au 2nd tour (repère Ifop 2022 : 59 % ;
+          50 % dans les duels hors RN). Défaut : 55 %.
         </p>
         <Slider
           label="Orientation des nouveaux votants face au RN"
@@ -562,6 +593,7 @@ function TransfersEditor({ result }: { result: SimulationResult }) {
             const def = effectiveWithoutOverrides[profileId][bloc]
             const current = overrides[bloc] ?? def
             const modified = overrides[bloc] !== undefined
+            const isLfiLeft = profileId === 'lfi_rn' && bloc === 'gauche'
             const provList =
               s.transferSource === 'declared2027' && !row.camp
                 ? (['declare2027'] as const)
@@ -580,8 +612,9 @@ function TransfersEditor({ result }: { result: SimulationResult }) {
                       ))}
                       {!row.camp && s.transferSource !== 'declared2027' && (
                         <span>
-                          {' '}
-                          + front républicain ({pct(frontStrengthForProfile(profileId, s.republicanFront) * 100, 0)})
+                          {isLfiLeft
+                            ? ` · curseur dédié (${s.lfiLeftTransfer} %, MC ${s.lfiLeftTransferRange[0]}–${s.lfiLeftTransferRange[1]} %)`
+                            : ` · 2022 ↔ 2024 (${pct(frontStrengthForProfile(profileId, s.republicanFront) * 100, 0)})`}
                         </span>
                       )}
                     </span>

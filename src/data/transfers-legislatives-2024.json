@@ -17,7 +17,7 @@
     },
     "presidentielles2017_2022": {
       "label": "Présidentielles 2017 et 2022 (Ipsos / Ifop)",
-      "description": "Enquêtes « jour du vote » des seconds tours présidentiels Macron – Le Pen de 2017 et 2022 (Ipsos Sopra Steria, Ifop-Fiducial). Servent de repères historiques (100 % en 2017, 75 % en 2022) pour calibrer l'érosion du front républicain sur les 4 types de duels face au RN.",
+      "description": "Enquêtes « jour du vote » des seconds tours présidentiels Macron – Le Pen de 2017 et 2022 (Ipsos Sopra Steria, Ifop-Fiducial). L'enquête 2022 sert d'ancre basse (0 %) dans l'interpolation directe 2022 ↔ 2024 sur les 4 types de duels face au RN.",
       "url": "https://www.ipsos.com/fr-fr/presidentielle-2022/second-tour-profil-des-abstentionnistes-et-sociologie-des-electorats"
     },
     "presidentielles2007_2012": {
@@ -69,7 +69,7 @@
     "note": "Depuis 2007, 90 à 99 % des électeurs des finalistes revotent pour leur candidat au 2nd tour (1 à 2 % votent pour l'adversaire, le reste s'abstient ou vote blanc/nul). Dans les enquêtes Harris Interactive de l'automne 2026 (notices 10263–10362), la fidélité déclarée est asymétrique : 97–98 % pour Marine Le Pen, 91–93 % pour Jean-Luc Mélenchon. Valeurs ajustables dans les réglages."
   },
   "presidentialCenterRn": {
-    "description": "Reports mesurés par enquête « jour du vote » (Ipsos Sopra Steria / Ifop-Fiducial) lors des deux seconds tours présidentiels Macron – Le Pen (2017 et 2022). Ancres historiques utilisées pour calibrer le modèle homogène du front républicain et le backtest présidentiel.",
+    "description": "Reports mesurés par enquête « jour du vote » (Ipsos Sopra Steria / Ifop-Fiducial) lors des deux seconds tours présidentiels Macron – Le Pen (2017 et 2022). L'enquête 2022 sert d'ancre basse (0 %) de l'interpolation directe 2022 ↔ 2024 et les deux scrutins alimentent le backtest présidentiel.",
     "defaultWeight": 0.5,
     "elections": {
       "2017": {

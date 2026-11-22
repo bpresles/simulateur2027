@@ -470,17 +470,20 @@ export function fromWikipedia(
   }
   const polls = [...byHead.values()].map((p) => ({ ...p, hypotheses: labelHypotheses(p.hypotheses, names) }))
 
-  // Historique agrégé des vagues de 1er tour (toutes les périodes à partir de 2025) : un résumé par
-  // sondage (institut + date de fin), moyennant ses hypothèses sur les candidats simulés.
-  const historyBuckets = new Map<
+  // Historique des vagues de 1er tour (à partir de 2025) : UNE SEULE hypothèse par vague (institut + date de fin),
+  // celle qui est la plus proche de l'offre simulée (exige Le Pen et Mélenchon, exclut les remplacements majeurs
+  // tels que Bardella sans Le Pen, et rejette les lignes où moins de 75 % des voix appartiennent à l'offre simulée).
+  const coreHistoryIds = ['lepen', 'melenchon', 'philippe', 'glucksmann', 'retailleau']
+  const historyBest = new Map<
     string,
-    { institute: string; fieldwork: Fieldwork; sampleSize: number; scoreLists: Record<string, number[]> }
+    { institute: string; fieldwork: Fieldwork; sampleSize: number; scores: Record<string, number>; quality: number }
   >()
   for (const period of periods.values()) {
     if ((period.year ?? 0) < 2025) continue
     for (const row of period.rows) {
       if (row.fieldwork.end < '2025-01-01') continue
       const scores: Record<string, number> = {}
+      let offTargetMass = 0
       let duplicate = false
       for (const { candidate, entries } of row.columns) {
         for (const { value, person: named } of entries) {
@@ -489,42 +492,40 @@ export function fromWikipedia(
           const id = idOf(p)
           if (id in scores) duplicate = true
           if (simulated.has(id)) scores[id] = value
+          else offTargetMass += value
         }
       }
       if (duplicate) continue
+      // Exiger la présence des deux principaux pôles simulés (évite les vagues Bardella-sans-Le-Pen)
+      if (!('lepen' in scores) || !('melenchon' in scores)) continue
       const total = Object.values(scores).reduce((s, v) => s + v, 0)
-      if (total < 50) continue
+      if (total < 75) continue
+      const corePresent = coreHistoryIds.filter((id) => id in scores).length
+      const quality = corePresent * 25 + Object.keys(scores).length * 2 - offTargetMass * 2
       const key = `${row.institute}|${row.fieldwork.end}`
-      const bucket = historyBuckets.get(key) ?? {
-        institute: row.institute,
-        fieldwork: row.fieldwork,
-        sampleSize: row.sampleSize,
-        scoreLists: {},
+      const prev = historyBest.get(key)
+      if (!prev || quality > prev.quality) {
+        const norm = Object.fromEntries(
+          Object.entries(scores).map(([id, v]) => [id, Math.round(((v * 100) / total) * 10) / 10]),
+        )
+        historyBest.set(key, {
+          institute: row.institute,
+          fieldwork: row.fieldwork,
+          sampleSize: Math.max(prev?.sampleSize ?? 0, row.sampleSize),
+          scores: norm,
+          quality,
+        })
       }
-      bucket.sampleSize = Math.max(bucket.sampleSize, row.sampleSize)
-      for (const [id, v] of Object.entries(scores)) {
-        ;(bucket.scoreLists[id] ??= []).push((v * 100) / total)
-      }
-      historyBuckets.set(key, bucket)
     }
   }
-  const history: HistoricalPoll[] = [...historyBuckets.values()]
-    .map((b) => {
-      const avg = Object.fromEntries(
-        Object.entries(b.scoreLists).map(([id, vals]) => [id, vals.reduce((s, v) => s + v, 0) / vals.length]),
-      )
-      const total = Object.values(avg).reduce((s, v) => s + v, 0)
-      const norm = Object.fromEntries(
-        Object.entries(avg).map(([id, v]) => [id, Math.round(((v * 100) / total) * 10) / 10]),
-      )
-      return {
-        id: pollId(b.institute, b.fieldwork.end),
-        institute: b.institute,
-        fieldwork: b.fieldwork,
-        sampleSize: b.sampleSize,
-        scores: norm,
-      }
-    })
+  const history: HistoricalPoll[] = [...historyBest.values()]
+    .map((b) => ({
+      id: pollId(b.institute, b.fieldwork.end),
+      institute: b.institute,
+      fieldwork: b.fieldwork,
+      sampleSize: b.sampleSize,
+      scores: b.scores,
+    }))
     .sort((a, b) => b.fieldwork.end.localeCompare(a.fieldwork.end) || a.institute.localeCompare(b.institute))
 
   // 2nd tour : un duel par ligne, à partir du début de la période.

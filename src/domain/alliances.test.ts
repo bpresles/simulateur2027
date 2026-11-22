@@ -46,7 +46,7 @@ const poll = (id: string, institute: string, hypotheses: Hypothesis[]): Poll => 
   hypotheses,
 })
 
-const main = liveData.polls.candidates.filter((c) => !c.minor)
+const main = liveData.polls.candidates.filter((c) => !c.minor && c.id in FULL)
 const polls: PollsData = {
   ...liveData.polls,
   candidates: main,
@@ -158,11 +158,12 @@ describe('alliances testées par les sondages', () => {
     expect(isOptionChecked(seul, [])).toBe(false)
   })
 
-  it('un petit candidat n’est requis que s’il mène une alliance', () => {
+  it('un petit candidat n’est requis que s’il mène une alliance (et Lisnard est désormais candidat principal)', () => {
     const live = liveData.polls
-    expect(scenarioFilter(live, []).require).not.toContain('lisnard')
-    const filter = scenarioFilter(live, [live.alliances.find((a) => a.id === 'retailleau-lisnard')!])
-    expect(filter.require).toContain('lisnard')
-    expect(filter.exclude).toContain('retailleau')
+    expect(scenarioFilter(live, []).require).toContain('lisnard')
+    expect(scenarioFilter(live, []).require).not.toContain('lagarde')
+    const filter = scenarioFilter(live, [live.alliances.find((a) => a.id === 'philippe-lagarde')!])
+    expect(filter.require).toContain('lagarde')
+    expect(filter.exclude).toContain('philippe')
   })
 })

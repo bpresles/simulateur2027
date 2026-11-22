@@ -1,6 +1,50 @@
 # Journal méthodologique — simulateur2027
 
-## 22 novembre 2026 — Refonte v2 : suppression des biais déterministes, moteur unifié en flux bruts et incertitude Monte-Carlo
+## 22 novembre 2026 (v2.1.1) — Activation par défaut de la projection avril 2027 et de l’incertitude des candidatures
+
+Changement de réglages par défaut décidé par l’utilisateur :
+
+1. **Projection temporelle du 1er tour (`campaignProjection.ts`) — `projection.enabled` : `false → true` par défaut** :
+   - Le simulateur s’ouvre désormais en mode **« Projection avril 2027 »** (vote utile intra-bloc actif sur les 4 blocs ; `meanReversion` et `dampedTrend` restent à `0 %` par défaut), avec bascule directe en un clic vers la photographie actuelle (« Aujourd’hui »).
+2. **Incertitude des candidatures dans Monte-Carlo (`simulate.ts`) — `candidacyUncertaintyEnabled` : `false → true` par défaut** :
+   - Lorsque aucune alliance manuelle n’est cochée, les tirages Monte-Carlo échantillonnent par défaut parmi les 5 configurations de candidatures testées au centre et à droite (Philippe + Lisnard 40 %, Philippe seul 30 %, Philippe + Attal 15 %, Attal seul 10 %, Lagarde seule 5 %), conformément à la revue critique et au tableau 4 de `methode.pdf`.
+3. **Persistance (`settingsStore.ts`)** : passage en version `15` pour appliquer ces deux nouveaux défauts aux navigateurs existants.
+
+---
+
+## 22 novembre 2026 (v2.1) — Corrections suite à la revue critique (`docs/revue-refonte-2026-11-22.md`)
+
+À la suite de la revue critique de la v2, les réglages par défaut, le backtest, l’historique et le modèle de 2nd tour sont corrigés selon les règles suivantes, **arrêtées et consignées avant examen de leur effet sur les scores 2027** :
+
+1. **Écart-type de campagne au 1er tour (`monteCarlo.ts`) — `SIGMA_CAMPAIGN_REF` : `0,40 → 0,595`** :
+   - **Règle écrite :** moyenne arithmétique des deux mesures empiriques disponibles à J−156, soit `0,497` (présidentielles 1995–2022, candidats ≥ 5 %, `methode.pdf` section 5.1) et `0,693` (`empiricalLogitRms` mesuré par notre propre backtest sur 2022 à J−148), donnant `(0,497 + 0,693) / 2 = 0,595` (plancher sondagier inchangé à `0,14`).
+   - **Motivation :** à `0,40`, les intervalles annoncés à 80 % ne couvraient que 50 % des résultats réels de 2017 et 2022. Un test de couverture automatisé est ajouté au backtest.
+2. **Filtre 2017 du backtest (`reference-2017.json`, `backtest.ts`)** :
+   - Le filtre de `campaignPolls` exige désormais `fillon` (avec `melenchon`, `macron`, `lepen`) et exclut `juppe`, `sarkozy`, `hollande`, `valls`, `montebourg`, `bayrou`, `peillon`, mettant fin à la moyenne invalide qui additionnait Juppé, Fillon et Sarkozy.
+   - Si aucun sondage ne correspond à l’offre stabilisée à J−d (cas de 2017 à J−148 avant la fin des primaires), le backtest avance à la première date disposant d’au moins 3 instituts sur l’offre stabilisée et affiche explicitement cet horizon effectif.
+3. **Validation croisée stricte de la projection (`backtest.ts`, `campaignProjection.ts`)** :
+   - Ajout d’une colonne **strictement hors échantillon** évaluant le vote utile avec des cibles de concentration mesurées *uniquement sur l’autre élection* (2017 pour tester 2022, 2022 pour tester 2017), sans moyennes structurelles ni tendance.
+   - **`meanReversion` : `0,5 → 0` par défaut** : les moyennes structurelles (`PRIOR_BLOC_SHARES`) agrègent 2017–2024 (fuite temporelle sur le backtest) et dégradent légèrement la prévision de 2022 (`2,62` avec vs `2,53` sans). Le curseur reste disponible en option.
+   - **`dampedTrend` : `0,5 → 0` par défaut** : non validée en backtest (et corrélation négative non significative $r = -0,26$ sur 1995–2022 dans `methode.pdf`). Le curseur reste disponible en option.
+   - Les mentions « hors échantillon » et « sans recalibrage » sont réservées exclusivement aux tests où aucun paramètre n’a été estimé sur l’élection testée.
+4. **Historique des vagues 2025–2027 (`sync/wikipedia.ts`, `polls-history-2027.json`)** :
+   - Reconstruit en retenant **une seule hypothèse par vague** (la plus proche de l’offre simulée, exigeant Le Pen et Mélenchon et excluant les hypothèses de remplacement comme Bardella sans Le Pen), supprimant le mélange d’hypothèses et les gonflements artificiels de +40 %.
+5. **Front républicain (`transfers.ts`, `RepublicanFrontControls.tsx`) — *défaut provisoire en attente d’arbitrage utilisateur*** :
+   - Suppression des 6 coefficients ad hoc, du seuil de 6 %, du paramètre `_transfers` inutilisé et de l’étiquette inexacte « Niveau 2017 ».
+   - Remplacement par une **interpolation directe sur échelle logit entre deux repères mesurés** : **`100 %` = Législatives 2024** (Ipsos-Talan) et **`0 %` = Présidentielle 2022** (enquêtes « jour du vote » 2022, `presidentialCenterRn.elections['2022']`), sans aucune extrapolation non sourcée sous 2022.
+   - **Défaut provisoire fixé à `100 %` (Législatives 2024)** — seule source mesurant directement les 4 types de duels sans transposition — en attente d’arbitrage explicite de l’utilisateur (préréglages directs : `Présidentielle 2022 (0 %)`, `Mi-chemin (50 %)`, `Législatives 2024 (100 %)`).
+6. **Report gauche hors LFI → Mélenchon (`transfers.ts`, `monteCarlo.ts`, UI) — *plage provisoire en attente d’arbitrage utilisateur*** :
+   - Ce report (environ 13 % des exprimés, emprunté en 2024 au cas NFP → Ensemble `72/3/25` contre `36/11/53` en déclarations 2027 corrigées) n’est plus figé hors incertitude : ajout d’un **curseur dédié** interpolant entre les deux bornes sourcées, d’un **tirage uniforme explicite `[35 % ; 75 %]` dans Monte-Carlo** (plage recommandée par la revue, réglable) et de l’**affichage de son poids sur le score du duel affiché**.
+   - **Défaut provisoire :** `72 %` (repère mesuré 2024) pour le calcul central, plage `[35 % ; 75 %]` dans Monte-Carlo, en attente d’arbitrage utilisateur.
+7. **David Lisnard candidat principal (`polls-2027.json`) et retrait sans fuite arbitraire (`offerProjection.ts`)** :
+   - David Lisnard (~9 %, 4e, testé par 7 instituts sur 8) n’est plus classé comme petit candidat (`minor` retiré) : au 2nd tour, ses électeurs suivent désormais le bloc `droite` comme ceux de Bruno Retailleau au lieu d’un report de 1er tour Cluster17.
+   - Dans `offerProjection.ts`, le retrait d’un candidat redistribue désormais **100 %** de ses voix sur les poids mesurés (retrait de la fuite non mesurée de 10 % au prorata de tous les candidats, RN compris).
+8. **Option « Scénarios de candidatures pondérés » (`monteCarlo.ts`, inspirée de `methode.pdf`)** :
+   - Ajout d’une option activable (désactivée par défaut pour préserver la lecture directe du scénario sélectionné) qui tire à chaque simulation Monte-Carlo l’une des offres testées par les sondeurs selon des probabilités explicites documentées.
+
+---
+
+## 22 novembre 2026 (v2.0) — Refonte v2 : suppression des biais déterministes, moteur unifié en flux bruts et incertitude Monte-Carlo
 
 Cette version remplace la chaîne déterministe précédente (v1) à la suite d'un audit critique complet des données historiques (2017, 2022, 2024) et du code source.
 

@@ -12,6 +12,7 @@ import {
   TARGET_CONCENTRATION,
   TREND_DAMPING_DAYS,
 } from '../../domain/campaignProjection'
+import { CAMPAIGN_REF_DAYS, SIGMA_CAMPAIGN_REF, SIGMA_POLLING_FLOOR } from '../../domain/monteCarlo'
 import { MIN_MINOR_INSTITUTES, POLL_HALF_LIFE_DAYS, SAMPLE_SIZE_CAP, windowDaysOf } from '../../domain/pollAverage'
 import { noIntentionRange, presidentialDropout, secondRoundDropout } from '../../domain/secondRound'
 import {
@@ -46,7 +47,7 @@ const STEPS: [string, string][] = [
   ['sondages', 'Moyenne pondérée et projection d’offre'],
   ['alliances', 'Alliances testées'],
   ['projection', 'Projection temporelle (avril 2027)'],
-  ['reports', 'Reports et front républicain (rejet du RN)'],
+  ['reports', 'Reports et front républicain (2022 ↔ 2024)'],
   ['flux', 'Second tour en flux bruts'],
   ['validation', 'Incertitude Monte-Carlo et validation historique'],
 ]
@@ -68,24 +69,19 @@ const STATUS: Record<PollStatus, string> = {
 
 const RF_PRESET_ROWS = [
   {
-    id: 'none' as const,
-    label: 'Effacé (0 %)',
-    desc: 'Érosion maximale du barrage anti-RN : les électorats éloignés basculent massivement vers l’abstention/blanc.',
+    id: 'pres2022' as const,
+    label: 'Présidentielle 2022 (0 %)',
+    desc: 'Ancre mesurée par les enquêtes « jour du vote » de la présidentielle 2022 (Macron – Le Pen : 58,55 %).',
   },
   {
-    id: 'eroded2027' as const,
-    label: 'Érodé 2027 (défaut)',
-    desc: 'Prolonge modérément l’érosion 2017 → 2022 tout en différenciant le double rejet face à LFI.',
+    id: 'midpoint' as const,
+    label: 'Mi-chemin (50 %)',
+    desc: 'Interpolation médiane en logit entre présidentielle 2022 et législatives 2024.',
   },
   {
-    id: 'level2022' as const,
-    label: 'Niveau 2022 (75 %)',
-    desc: 'Repère présidentiel 2022 (Macron – Le Pen : 58,55 % réel, reproduit à +0,4 pt par le modèle).',
-  },
-  {
-    id: 'level2017' as const,
-    label: 'Niveau 2017 (100 %)',
-    desc: 'Barrage fort de type présidentielle 2017 / législatives 2024 (taux Ipsos-Talan sans double décote sur LFI).',
+    id: 'leg2024' as const,
+    label: 'Législatives 2024 (100 %)',
+    desc: 'Défaut provisoire : taux directs de l’enquête Ipsos-Talan du 7 juillet 2024, seule source mesurant les 4 duels.',
   },
 ]
 
@@ -157,11 +153,10 @@ export function Methodology({ result }: { result: SimulationResult }) {
       <div className="prose-method mt-4">
         <p>
           Le simulateur enchaîne six étapes publiques et auditées. Chaque chiffre reflète le scénario actif sur le{' '}
-          <Link to="simulateur">simulateur</Link>. Les stratégies déterministes non validées hors échantillon (biais de
-          campagne fixe, corrections par candidat 2017–2022, inférence écologique de Goodman non contrainte, redressement
-          spéculatif de participation au 1er tour et alliances non testées) ont été retirées au profit d’un modèle sobre,
-          explicite et accompagné d’intervalles d’incertitude probabilistes. Aucun paramètre par défaut n’est recalibré
-          sur les sondages directs de second tour 2027.
+          <Link to="simulateur">simulateur</Link>. Chaque changement de réglage par défaut est consigné et daté dans le
+          journal méthodologique (<code>docs/changelog-methode.md</code>) avant examen de ses effets sur 2027. Aucun
+          paramètre n’est recalibré sur les sondages directs de second tour 2027, et les mentions « hors échantillon »
+          sont strictement réservées aux tests dont aucun paramètre n’a été estimé sur l’élection évaluée.
         </p>
       </div>
 
@@ -197,9 +192,7 @@ export function Methodology({ result }: { result: SimulationResult }) {
           <div className="prose-method">
             <p>
               Dans la fenêtre retenue ({windowDaysOf(polls)} jours jusqu’au {date(polls.asOf)}), on conserve le dernier
-              sondage de chaque institut. Plutôt qu’une moyenne arithmétique simple (qui donne le même poids à un
-              sondage vieux de 7 semaines et à un sondage de la veille), chaque institut <em>i</em> reçoit un poids
-              combiné fraîcheur × échantillon :
+              sondage de chaque institut. Chaque institut <em>i</em> reçoit un poids combiné fraîcheur × échantillon :
             </p>
             <p className="font-mono text-sm">
               w_i = 2<sup>−âge / {POLL_HALF_LIFE_DAYS}</sup> × √(min(n_i, {integer(SAMPLE_SIZE_CAP)}) / 1 000)
@@ -210,20 +203,20 @@ export function Methodology({ result }: { result: SimulationResult }) {
               enquête ancienne n’écrase pas les mesures récentes.
             </p>
             <p>
-              <strong>Petits candidats et paires propres :</strong> un petit candidat n’entre dans l’offre de base que
-              s’il est testé par au moins {MIN_MINOR_INSTITUTES} instituts distincts ({result.eligibleMinors.length}{' '}
+              <strong>Candidats principaux et petits candidats :</strong> les candidats testés quasi systématiquement
+              (y compris David Lisnard, présent dans 7 instituts sur 8 et qui relève au 2nd tour du bloc droite comme
+              Bruno Retailleau) sont traités comme candidats principaux. Un petit candidat n’entre dans l’offre de base
+              que s’il est testé par au moins {MIN_MINOR_INSTITUTES} instituts distincts ({result.eligibleMinors.length}{' '}
               retenus : {result.eligibleMinors.map((id) => cand(id).shortName).join(', ') || 'aucun'} ;{' '}
               {result.excludedMinors.length} écartés faute de recul suffisant :{' '}
-              {result.excludedMinors.map((id) => cand(id).shortName).join(', ') || 'aucun'}). L’identification de ses
-              donneurs exige des paires strictement <em>ceteris paribus</em> (un seul candidat d’écart entre deux
-              hypothèses d’un même institut), afin qu’aucune variation liée à un autre candidat ne lui soit imputée.
+              {result.excludedMinors.map((id) => cand(id).shortName).join(', ') || 'aucun'}).
             </p>
             <p>
-              <strong>Projection d’offre intra-institut :</strong> lorsqu’un institut récent ne teste pas exactement
-              l’offre cible (par exemple Odoxa ou Cluster17 sans Gabriel Attal sur leur hypothèse principale), le
-              simulateur mesure les transferts sur paires propres mono-candidat des autres instituts et projette
-              l’hypothèse la plus propre à distance ≤ 2 candidats, au lieu d’écarter l’institut ou de retenir une
-              hypothèse encombrée de candidats marginaux.
+              <strong>Projection d’offre intra-institut (paires propres) :</strong> lorsqu’un institut récent ne teste
+              pas exactement l’offre cible (par exemple Odoxa ou Cluster17 sans Gabriel Attal sur leur hypothèse
+              principale), le simulateur mesure les transferts sur paires strictement <em>ceteris paribus</em> (un seul
+              candidat d’écart au sein d’un même institut) et redistribue 100 % des voix selon ces poids mesurés, à
+              distance ≤ 2 candidats.
             </p>
           </div>
 
@@ -269,8 +262,7 @@ export function Methodology({ result }: { result: SimulationResult }) {
         <Step id="alliances" n={2} title="Alliances testées par les sondeurs">
           <div className="prose-method">
             <p>
-              Les alliances ne sont plus estimées par transposition des reports de second tour des législatives 2024 :
-              seules les configurations effectivement testées par au moins un institut de la période sont proposées (
+              Seules les configurations effectivement testées par au moins un institut de la période sont proposées (
               {PROPOSED_ALLIANCES.length} alliances simples et {TESTED_COMBOS.length} combinaisons, accessibles dans la
               section repliable des paramètres). Activer une alliance sélectionne les hypothèses où le candidat rallié
               est absent et où le leader reste seul candidat principal de son camp : ce sont donc les sondés eux-mêmes
@@ -280,56 +272,49 @@ export function Methodology({ result }: { result: SimulationResult }) {
         </Step>
 
         {/* ÉTAPE 3 : PROJECTION TEMPORELLE */}
-        <Step id="projection" n={3} title="Projection temporelle optionnelle vers avril 2027">
+        <Step id="projection" n={3} title="Projection temporelle vers avril 2027">
           <div className="prose-method">
             <p>
-              Par défaut, le simulateur affiche la <strong>photographie actuelle</strong> des sondages (projection
-              désactivée). L’utilisateur peut basculer en un clic vers la <strong>projection avril 2027</strong>{' '}
-              (actuellement <strong>{settings.projection.enabled ? 'activée' : 'désactivée'}</strong>, à J−
+              Par défaut, le simulateur s’ouvre en mode <strong>projection avril 2027</strong> (actuellement{' '}
+              <strong>{settings.projection.enabled ? 'activée' : 'désactivée'}</strong>, à J−
               {result.projection.daysRemaining}, facteur d’horizon{' '}
-              <span className="num">{pct(result.projection.horizonFactor * 100, 0)}</span>). Contrairement aux
-              extrapolations candidat par candidat retirées en v2, la projection repose sur trois mécanismes structurels
-              qui <strong>s’annulent tous exactement le jour du scrutin</strong> (facteur{' '}
-              <span className="font-mono text-xs">h = min(1, joursRestants / {PROJECTION_HORIZON_DAYS})</span>) et dont
-              les réglages fins sont regroupés dans les réglages avancés (onglet « Projection 1er tour ») :
+              <span className="num">{pct(result.projection.horizonFactor * 100, 0)}</span>), avec bascule en un clic
+              vers la <strong>photographie actuelle</strong> des sondages (« Aujourd’hui »). Tous les mécanismes
+              décroissent continûment et <strong>s’annulent exactement le jour du scrutin</strong> (facteur{' '}
+              <span className="font-mono text-xs">h = min(1, joursRestants / {PROJECTION_HORIZON_DAYS})</span>) :
             </p>
             <ul>
               <li>
-                <strong>Pilier 1 — Vote utile intra-bloc séparé par bloc :</strong> en fin de campagne présidentielle,
-                les électeurs d’un camp fragmenté tendent à se regrouper autour de leur candidat le mieux placé pour
-                accéder au 2nd tour. L’intensité (0 à 100 %) et le candidat pivot (<em>Auto</em> ou candidat forcé) sont
-                réglables séparément pour chacun des quatre blocs. Les cibles de concentration calibrées sur 2017–2022
-                sont <strong>{pct(TARGET_CONCENTRATION.gauche * 100, 0)}</strong> à gauche,{' '}
-                <strong>{pct(TARGET_CONCENTRATION.centre * 100, 0)}</strong> au centre,{' '}
-                <strong>{pct(TARGET_CONCENTRATION.droite * 100, 0)}</strong> à droite et{' '}
-                <strong>{pct(TARGET_CONCENTRATION.extreme_droite * 100, 0)}</strong> à l’extrême droite (déjà au-dessus
-                du seuil dans les sondages actuels, donc sans poussée artificielle). Une option activable permet de{' '}
-                <strong>regrouper centre et droite</strong> autour d’un pivot commun (cible{' '}
-                {pct(MERGED_CENTER_RIGHT_TARGET * 100, 0)}, scénario type 2022), mais les 4 blocs séparés restent le
-                défaut car le backtest prouve qu’ils améliorent <em>à la fois</em> 2017 et 2022. Trois garde-fous
-                empêchent toute concentration caricaturale : <strong>{pct(CROSS_BLOC_LEAK * 100, 0)}</strong> des voix
-                cédées fuient vers les blocs voisins, un plancher de <strong>{pct(CANDIDATE_FLOOR, 1)}</strong> protège
-                les petits partis identitaires, et le drainage épargne proportionnellement un co-favori déjà fort.
+                <strong>Vote utile intra-bloc (actif par défaut quand la projection est activée) :</strong> l’intensité
+                (0 à 100 %) et le candidat pivot (<em>Auto</em> ou forcé) sont réglables par bloc dans les réglages
+                avancés. Les cibles de concentration retenues sont les moyennes observées en 2017 et 2022 :{' '}
+                <strong>{pct(TARGET_CONCENTRATION.gauche * 100, 0)}</strong> à gauche (70,8 % en 2017, 68,7 % en 2022),{' '}
+                <strong>{pct(TARGET_CONCENTRATION.droite * 100, 0)}</strong> à droite (94,3 % et 60,4 %),{' '}
+                <strong>{pct(TARGET_CONCENTRATION.extreme_droite * 100, 0)}</strong> à l’extrême droite (79,1 % et
+                71,7 %), et <strong>{pct(TARGET_CONCENTRATION.centre * 100, 0)}</strong> au centre (hypothèse symétrique
+                à la droite, le centre n’ayant eu qu’un seul candidat principal en 2017 et 2022). Une option regroupe
+                centre et droite (cible {pct(MERGED_CENTER_RIGHT_TARGET * 100, 0)}). Garde-fous :{' '}
+                <strong>{pct(CROSS_BLOC_LEAK * 100, 0)}</strong> de fuite vers les blocs voisins, plancher de{' '}
+                <strong>{pct(CANDIDATE_FLOOR, 1)}</strong> par candidat et drainage réduit pour un co-favori proche.
               </li>
               <li>
-                <strong>Pilier 2 — Amortissement léger des écarts précoces (mean reversion) :</strong> à 5 mois du
-                scrutin, les totaux de blocs peuvent s’écarter temporairement des équilibres électoraux de fond. Les
-                totaux de blocs sont rappelés en douceur vers des fondamentaux structurels (50 % présidentielles
-                2017–2022 + 50 % scrutins nationaux 2024), avec un poids maximal de{' '}
-                <strong>{pct(MAX_PRIOR_WEIGHT * 100, 0)}</strong> à J−{PROJECTION_HORIZON_DAYS} (curseur actuel :{' '}
-                <span className="num">{pct(settings.projection.meanReversion * 100, 0)}</span>), qui décroît
-                linéairement jusqu’à 0 le jour du vote.
+                <strong>Amortissement vers les fondamentaux (option, 0 % par défaut) :</strong> le rappel des totaux de
+                blocs vers une moyenne 2017–2024 (poids maximal {pct(MAX_PRIOR_WEIGHT * 100, 0)} à J−
+                {PROJECTION_HORIZON_DAYS}) est désactivé par défaut (curseur actuel :{' '}
+                <span className="num">{pct(settings.projection.meanReversion * 100, 0)}</span>), car ses poids de blocs
+                sont conventionnels et non validés hors échantillon.
               </li>
               <li>
-                <strong>Pilier 3 — Historique 2025–2027 et tendance récente amortie :</strong> la synchronisation archive
-                automatiquement l’historique des vagues de 1er tour depuis Wikipedia ({pollHistory.polls.length} vagues
-                {historyStart && historyEnd ? ` du ${date(historyStart)} au ${date(historyEnd)}` : ''}). Une pente
-                récente est calculée par régression pondérée puis amortie exponentiellement sur{' '}
-                <strong>{TREND_DAMPING_DAYS} jours</strong>, recentrée à somme nulle et plafonnée à{' '}
-                <strong>±{num(MAX_TREND_PTS, 1)} pts</strong> par candidat (curseur actuel :{' '}
-                <span className="num">{pct(settings.projection.dampedTrend * 100, 0)}</span>). Cet historique alimente
-                également le graphique de trajectoire temporelle et son cône d’incertitude à 80 % jusqu’au{' '}
-                {date(polls.electionDate)}.
+                <strong>Tendance récente amortie sur {TREND_DAMPING_DAYS} jours (option, 0 % par défaut) :</strong> la
+                synchronisation archive une seule hypothèse cohérente par vague depuis Wikipedia (
+                {pollHistory.polls.length} vagues
+                {historyStart && historyEnd ? ` du ${date(historyStart)} au ${date(historyEnd)}` : ''}, filtrées sur
+                présence simultanée Le Pen + Mélenchon et masse couverte ≥ 75 %). L’extrapolation de pente (plafonnée à
+                ±{num(MAX_TREND_PTS, 1)} pts) est désactivée par défaut (curseur actuel :{' '}
+                <span className="num">{pct(settings.projection.dampedTrend * 100, 0)}</span>), car sur les
+                présidentielles 1995–2022 la corrélation entre pente sur 6 semaines et évolution jusqu’au scrutin est
+                négative et non significative (r = −0,26). L’historique sert principalement à tracer la trajectoire
+                passée.
               </li>
             </ul>
           </div>
@@ -341,7 +326,7 @@ export function Methodology({ result }: { result: SimulationResult }) {
               <tr className="border-b border-rule">
                 <th className={th}>Bloc / Pôle</th>
                 <th className={`${th} text-right`}>Cible vote utile</th>
-                <th className={`${th} text-right`}>Fondamental de bloc</th>
+                <th className={`${th} text-right`}>Fondamental (option)</th>
                 <th className={th}>Pivot actuel</th>
                 <th className={`${th} text-right`}>Part du pivot (actuel → projeté)</th>
               </tr>
@@ -357,7 +342,7 @@ export function Methodology({ result }: { result: SimulationResult }) {
                   <tr key={pole.pole} className="border-b border-rule/60">
                     <td className={`${td} font-medium`}>{label}</td>
                     <td className={`${td} num text-right`}>{pct(pole.targetShare * 100, 0)}</td>
-                    <td className={`${td} num text-right`}>{pct(prior, 0)}</td>
+                    <td className={`${td} num text-right text-ink-3`}>{pct(prior, 0)}</td>
                     <td className={td}>{pole.beneficiary ? cand(pole.beneficiary).shortName : '—'}</td>
                     <td className={`${td} num text-right`}>
                       {pole.saturated
@@ -372,62 +357,57 @@ export function Methodology({ result }: { result: SimulationResult }) {
         </Step>
 
         {/* ÉTAPE 4 : REPORTS & FRONT RÉPUBLICAIN */}
-        <Step id="reports" n={4} title="Matrices de reports et front républicain (vote de rejet du RN)">
+        <Step id="reports" n={4} title="Matrices de reports et front républicain (2022 ↔ 2024)">
           <div className="prose-method">
             <p>
-              Pour les duels face au RN, la <strong>base historique</strong> part des taux bruts de l’enquête
-              Ipsos-Talan du 7 juillet 2024 (sans régression écologique de Goodman), <strong>modulés de façon
-              homogène sur les 4 types de duels</strong> par la force du <strong>front républicain</strong> (vote de
-              rejet du RN). En 2017 comme en 2022, environ 42 à 43 % des électeurs d’Emmanuel Macron au 2nd tour
-              déclaraient voter avant tout pour faire barrage au RN : ce socle anti-RN concerne donc{' '}
-              <em>tous les duels face au RN</em> (centre, droite, gauche modérée et LFI), et pas seulement le centre.
-            </p>
-            <p>
-              <strong>Pourquoi une modulation homogène plutôt qu’un mélange réservé au centre :</strong> un ajustement
-              limité aux seuls duels <code>ensemble_rn</code> créait une incohérence interne où les électeurs de gauche
-              se reportaient mieux sur un candidat LR (70 % issus des législatives 2024) que sur un candidat du centre
-              (62 %). Désormais, les 4 profils suivent la même logique transparente sur échelle{' '}
-              <em>logit multinomial</em> (par rapport à l’abstention) :
+              Pour les duels face au RN, la <strong>base historique</strong> repose sur une{' '}
+              <strong>interpolation directe sur échelle logit entre deux scrutins réellement mesurés</strong> — sans
+              coefficients ad hoc ni extrapolation en dessous de 2022 :
             </p>
             <ul>
               <li>
-                <strong>Repère barrage fort (100 %, niveau 2017 / 2024) :</strong> les profils{' '}
-                <code>ensemble_rn</code>, <code>ecolo_ps_pcf_rn</code> et <code>lfi_rn</code> partent directement des
-                taux Ipsos-Talan 2024 — qui mesurent <em>déjà</em> la différence de compatibilité selon l’adversaire
-                (72 % gauche → centre, 54 % centre → PS/écolo, 43 % centre → LFI), sans double pénalité cachée sur LFI.
-                Seule la ligne <code>gauche → lr_rn</code> (70 % en 2024, presque égale au centre à cause des
-                désistements locaux) reçoit un léger ajustement de distance politique (δ_finaliste = −0,35, δ_RN =
-                +0,55) afin de rester strictement sous <code>gauche → centre</code>.
+                <strong>Repère 100 % — Législatives 2024 (défaut provisoire) :</strong> taux directs de l’enquête
+                Ipsos-Talan du 7 juillet 2024, seule enquête publique mesurant simultanément les 4 configurations de
+                duels face au RN (<code>lfi_rn</code>, <code>ecolo_ps_pcf_rn</code>, <code>ensemble_rn</code>,{' '}
+                <code>lr_rn</code>).
               </li>
               <li>
-                <strong>Érosion du front républicain (e = 1 − F) :</strong> calibrée sur l’écart réel mesuré entre la
-                présidentielle <strong>2017 (100 %)</strong> et <strong>2022 (75 %)</strong>, l’érosion réduit le report
-                barrage selon la distance politique entre électorat et finaliste (δ_finaliste = −0,45·e sur bloc voisin,
-                −1,35·e sur bloc opposé, −1,50·e sur bloc éloigné). Le recul du front républicain bascule{' '}
-                <strong>très majoritairement vers l’abstention et le vote blanc</strong>, avec un glissement direct
-                modéré vers le RN (δ_RN = +0,10·e sur bloc voisin, +0,15·e sur les électorats déjà à ≥ 6 % de vote RN,
-                et +1,40·e uniquement sur les taux planchers &lt; 6 % hérités des désistements locaux de 2024). Les
-                électeurs du même camp que le finaliste et ceux rattachés au camp RN (Reconquête / DLF) restent
-                inchangés.
+                <strong>Repère 0 % — Présidentielle 2022 :</strong> pour <code>ensemble_rn</code>, le modèle rejoint
+                exactement les taux mesurés « jour du vote » en 2022 (gauche : 47 / 15 / 38 ; droite : 53 / 18 / 29).
+                Pour les autres profils, il applique proportionnellement le même déplacement logit 2024 → 2022 mesuré sur
+                <code>ensemble_rn</code> (bloc opposé ou bloc voisin ; sur les lignes déjà à ≥ 10 % de vote RN en 2024,
+                seul le recul du vote barrage vers l’abstention est appliqué afin de ne pas gonfler artificiellement le
+                vote RN).
               </li>
               <li>
-                <strong>Réglage direct global et séparé par famille de duel :</strong> parce que le front républicain
-                peut s’éroder différemment selon l’affiche du 2nd tour (en particulier face à LFI où le double rejet au
-                centre et à droite contrebalance le rejet du RN), le simulateur expose directement 4 préréglages
-                historiques, un curseur global et 3 curseurs indépendants. Réglage actif :{' '}
+                <strong>Réglage global et par famille de duel :</strong> 3 préréglages sourcés (Présidentielle 2022,
+                Mi-chemin, Législatives 2024), un curseur global et 3 curseurs par famille. Réglage actif :{' '}
                 <strong>Centre / Droite {pct(settings.republicanFront.centerRight * 100, 0)}</strong>,{' '}
                 <strong>Gauche modérée {pct(settings.republicanFront.moderateLeft * 100, 0)}</strong>,{' '}
                 <strong>LFI {pct(settings.republicanFront.lfi * 100, 0)}</strong>.
               </li>
+              <li>
+                <strong>Cas particulier — Report gauche hors LFI → Mélenchon (<code>lfi_rn.gauche</code>) :</strong> le
+                report des électeurs de gauche modérée / écologiste / communiste (Glucksmann, Tondelier, Roussel) vers
+                Jean-Luc Mélenchon face au RN n’a jamais été mesuré à une présidentielle (le taux de 72 % des
+                législatives 2024 portait sur des candidatures uniques NFP, alors que les déclarations 2027 corrigées en
+                logit donnent 36 %). Ce paramètre dispose donc d’un <strong>curseur dédié</strong> (actif :{' '}
+                <strong className="num">{settings.lfiLeftTransfer} %</strong>, défaut provisoire : 72 %), d’une{' '}
+                <strong>analyse de sensibilité affichée</strong> sur les duels LFI – RN, et d’un{' '}
+                <strong>tirage uniforme explicite dans Monte-Carlo</strong> sur la plage{' '}
+                <strong className="num">
+                  [{settings.lfiLeftTransferRange[0]} % ; {settings.lfiLeftTransferRange[1]} %]
+                </strong>{' '}
+                (configurable dans les réglages).
+              </li>
             </ul>
             <p>
-              <strong>Option déclarations 2027 (désactivée par défaut) :</strong> les tableaux de reports publiés à
-              l’automne 2026 (Harris Interactive / Odoxa) mesurent des intentions très précoces mais révèlent des
-              asymétries réelles entre candidats. Lorsqu’elle est activée (seule ou en mélange pondéré), chaque ligne
-              non-camp est redressée sur échelle <em>logit multinomial</em> (δ_finaliste ={' '}
+              <strong>Option déclarations 2027 (désactivée par défaut) :</strong> les reports déclarés à l’automne 2026
+              (Harris Interactive / Odoxa) peuvent être activés seuls ou en mélange pondéré, avec redressement sur
+              échelle <em>logit multinomial</em> (δ_finaliste ={' '}
               {num(declaredTransfers.logitCorrection.deltaFinalist, 2)}, δ_RN ={' '}
               {num(declaredTransfers.logitCorrection.deltaRn, 2)} par rapport à l’abstention) d’après l’écart moyen
-              constaté entre déclarations de campagne et jour du vote en 2017 et 2022.
+              constaté entre campagne et jour du vote en 2017 et 2022.
             </p>
             <p>
               <strong>Duels hors RN :</strong> pour un duel gauche contre centre ou droite, les reports proviennent des
@@ -436,7 +416,7 @@ export function Methodology({ result }: { result: SimulationResult }) {
             </p>
           </div>
 
-          <Table caption="Préréglages du front républicain (vote de rejet du RN) : repères historiques et défaut 2027">
+          <Table caption="Préréglages du front républicain (interpolation directe 2022 ↔ 2024)">
             <thead>
               <tr className="border-b border-rule">
                 <th className={th}>Préréglage</th>
@@ -468,12 +448,12 @@ export function Methodology({ result }: { result: SimulationResult }) {
                 ? 'source : déclarations 2027 corrigées en logit'
                 : settings.transferSource === 'blend'
                   ? `mélange ${pct((1 - settings.declaredWeight) * 100, 0)} base historique / ${pct(settings.declaredWeight * 100, 0)} déclarations 2027`
-                  : 'base historique modulée par le front républicain actif'
+                  : 'base historique 2022 ↔ 2024'
             })`}
           >
             <thead>
               <tr className="border-b border-rule">
-                <th className={th}>Profil (front républicain actif)</th>
+                <th className={th}>Profil (position 2022 ↔ 2024)</th>
                 <th className={th}>Électorat</th>
                 <th className={`${th} text-right`}>Finaliste</th>
                 <th className={`${th} text-right`}>RN</th>
@@ -496,6 +476,9 @@ export function Methodology({ result }: { result: SimulationResult }) {
                       </td>
                       <td className={td}>
                         {BLOC_VOTERS[b]}
+                        {pid === 'lfi_rn' && b === 'gauche' && !overridden && settings.transferSource !== 'declared2027' && (
+                          <span className="ml-1.5 text-xs text-ink-3">(curseur dédié)</span>
+                        )}
                         {overridden && <span className="ml-1.5 text-xs text-ballpoint">(modifié)</span>}
                       </td>
                       <td className={`${td} num text-right font-medium`}>{num(eff.finalist, 1)} %</td>
@@ -512,7 +495,7 @@ export function Methodology({ result }: { result: SimulationResult }) {
 
           <div className="grid gap-6 md:grid-cols-2">
             {transfers.profiles.map((p) => (
-              <Table key={p.id} caption={`${p.label} — source brute Ipsos-Talan 2024 (repère 100 %)`}>
+              <Table key={p.id} caption={`${p.label} — source brute Ipsos-Talan 2024 (ancre 100 %)`}>
                 <thead>
                   <tr className="border-b border-rule">
                     <th className={th}>Électorat</th>
@@ -545,7 +528,7 @@ export function Methodology({ result }: { result: SimulationResult }) {
           </div>
 
           <div className="grid gap-6 md:grid-cols-2">
-            <Table caption="Repères présidentiels Macron – Le Pen : enquêtes « jour du vote » 2017 et 2022">
+            <Table caption="Repères présidentiels Macron – Le Pen : enquêtes « jour du vote » 2017 et 2022 (ancre 0 %)">
               <thead>
                 <tr className="border-b border-rule">
                   <th className={th}>Électorat</th>
@@ -650,23 +633,14 @@ export function Methodology({ result }: { result: SimulationResult }) {
               électorats de référence documentés et ajustables dans les réglages.
             </p>
             <p>
-              <strong>Abstentionnistes du 1er tour et couplage au front républicain :</strong> les abstentionnistes du
-              1er tour ({pct(sr.abstention1, 1)} des inscrits) reviennent voter valablement à hauteur de <em>a</em> ={' '}
+              <strong>Abstentionnistes du 1er tour :</strong> les abstentionnistes du 1er tour (
+              {pct(sr.abstention1, 1)} des inscrits) reviennent voter valablement à hauteur de <em>a</em> ={' '}
               {pct(settings.abstainerMobilization * 100, 0)} (repères : Ifop 2022 {pct(rates.rAbs * 100, 1)}, Insee
               2017–2022 {rates.insee.map((y) => `${y.year} : ${pct(y.share, 1)}`).join(', ')}). Dans un duel face au RN,
-              leur orientation vers l’adversaire du RN n’est plus fixe : elle est ancrée au niveau 2022 (
-              <em>q</em>₂₀₂₂ = {pct(settings.abstainerAntiRnShare * 100, 0)}, contre 59 % mesurés par Ifop en 2022) puis
-              modulée par la force du front républicain du duel :
-            </p>
-            <p className="font-mono text-sm">
-              q_eff = 50 % + (q₂₀₂₂ − 50 %) × (F_duel / 75 %)
-            </p>
-            <p>
-              Elle revient ainsi à 50 / 50 si le front républicain est effacé (<em>F</em> = 0 %) ou dans un duel hors
-              RN. Sur le duel actuellement affiché ({cand(sr.a).shortName} – {cand(sr.b).shortName}), l’orientation
-              effective est de <strong className="num">{pct(sr.effectiveAbstainerAntiRnShare * 100, 1)}</strong> vers
-              l’adversaire du RN{sr.republicanFrontStrength !== null ? ` (F = ${pct(sr.republicanFrontStrength * 100, 0)})` : ''}.
-              L’abandon net équivalent ({pct(sr.netDropout, 1)}) résulte naturellement du bilan comptable.
+              ils s’orientent vers l’adversaire du RN à hauteur de{' '}
+              <strong className="num">{pct(settings.abstainerAntiRnShare * 100, 0)}</strong> (repère Ifop 2022 : 59 % ;
+              50 / 50 dans un duel hors RN). L’abandon net équivalent ({pct(sr.netDropout, 1)}) résulte naturellement du
+              bilan comptable.
             </p>
           </div>
 
@@ -698,41 +672,53 @@ export function Methodology({ result }: { result: SimulationResult }) {
             <p>
               À {distance(result.monteCarlo.daysToElection)} du 1er tour, le premier risque d’erreur n’est pas la marge
               d’échantillonnage d’un sondage (±2 pts), mais l’évolution de la campagne électorale et la variabilité des
-              reports (en particulier la tenue réelle du front républicain entre les deux tours). Le simulateur exécute{' '}
-              {integer(result.monteCarlo.iterations)} tirages déterministes (graine {result.monteCarlo.seed}) propageant
-              :
+              reports entre les deux tours. Le simulateur exécute {integer(result.monteCarlo.iterations)} tirages
+              déterministes (graine {result.monteCarlo.seed}) propageant :
             </p>
             <ul>
               <li>
-                <strong>Chocs de campagne au 1er tour</strong> (distribution Student-t à 8 degrés de liberté en
-                log-ratio, écart-type total σ = {num(result.monteCarlo.sigmaLogit, 2)} à J−
-                {result.monteCarlo.daysToElection}, décroissant vers un plancher de 0,14 la dernière semaine) : choc de
-                bloc (50 % de la variance), transfert de vote utile intra-bloc à somme nulle (30 %) et choc propre par
-                candidat (20 %).
+                <strong>Chocs de campagne au 1er tour (règle écrite) :</strong> distribution Student-t à 8 degrés de
+                liberté en log-ratio. L’écart-type de référence à J−{CAMPAIGN_REF_DAYS} est fixé par règle écrite avant
+                examen de son effet sur 2027 : moyenne arithmétique de l’écart-type logit 1995–2022 mesuré sur les
+                candidats ≥ 5 % (0,497) et du RMS logit 2022 de notre backtest (0,693), soit{' '}
+                <strong>σ_ref = {num(SIGMA_CAMPAIGN_REF, 3)}</strong> (donnant σ ={' '}
+                {num(result.monteCarlo.sigmaLogit, 2)} à J−{result.monteCarlo.daysToElection}, décroissant vers un
+                plancher de {num(SIGMA_POLLING_FLOOR, 2)} la dernière semaine). La variance est répartie en choc de bloc
+                (50 %), vote utile intra-bloc à somme nulle (30 %) et choc propre par candidat (20 %).
               </li>
               <li>
-                <strong>Incertitude du 2nd tour</strong> : tirage Dirichlet (κ = 40, soit ±5 à 7 pts par ligne de
-                report), <strong>choc corrélé national sur la force réelle du front républicain</strong> (σ = 15 pts,
-                borné à ±35 pts, affectant simultanément les 4 profils face au RN et les nouveaux votants), poids
-                historique/2027 en mode mélange, participation (±5 pts), mobilisation (±4 pts) et orientation des
-                abstentionnistes, fidélité (±2,5 pts) et choc commun national (σ = 3,0 pts face au RN, 2,0 pts hors RN).
+                <strong>Incertitude des candidatures (activée par défaut sans alliance forcée) :</strong> chaque tirage
+                échantillonne d’abord une offre parmi 5 configurations testées au centre et à droite (Philippe + Lisnard
+                40 %, Philippe seul 30 %, Philippe + Attal 15 %, Attal seul 10 %, Lagarde seule 5 %). Désactivable dans
+                les paramètres.
               </li>
               <li>
-                <strong>Lisibilité visuelle honnête :</strong> toutes les barres de probabilités de victoire (« Issues
-                simulées ») et de scores du 1er tour (« Premier tour simulé / projeté ») sont affichées sur une{' '}
-                <strong>échelle fixe de 0 % à 100 %</strong> avec un repère discret à 50 %, afin qu’un candidat en tête
-                à 30 % ou à 65 % de probabilité de victoire n’apparaisse jamais artificiellement « plein ».
+                <strong>Incertitude du 2nd tour :</strong> tirage Dirichlet (κ = 40, soit ±5 à 7 pts par ligne de
+                report), choc corrélé sur la position 2022 ↔ 2024 du front républicain (σ = 0,25, borné à ±0,50),{' '}
+                <strong>
+                  tirage uniforme explicite du report gauche hors LFI → Mélenchon sur [{settings.lfiLeftTransferRange[0]}{' '}
+                  % ; {settings.lfiLeftTransferRange[1]} %]
+                </strong>
+                , participation (±5 pts), mobilisation (±4 pts) et orientation (±8 pts) des abstentionnistes, fidélité
+                (±2,5 pts) et choc commun national (σ = 3,0 pts face au RN, 2,0 pts hors RN).
+              </li>
+              <li>
+                <strong>Échelles fixes 0–100 % :</strong> toutes les barres de probabilités de victoire (« Issues
+                simulées ») et de scores du 1er tour sont tracées sur une échelle fixe de 0 % à 100 % avec un repère à
+                50 %.
               </li>
             </ul>
             <p>
-              <strong>Validation hors échantillon (backtest automatisé) :</strong> les quatre tableaux ci-dessous
-              évaluent la méthode sur les présidentielles de 2017 et 2022 et sur les 342 circonscriptions agrégées des
-              législatives 2024, sans aucun recalibrage sur les résultats testés.
+              <strong>Distinction stricte hors échantillon / en échantillon :</strong> les cinq tableaux ci-dessous
+              séparent explicitement les évaluations <em>hors échantillon</em> (aucun paramètre estimé sur l’élection
+              testée : ratio croisé 2017↔2022, vote utile avec cibles de l’autre scrutin, reports 2024 et présidentielle
+              croisée sur 2017 et 2022) des <em>contrôles internes / de calibration</em> (cibles moyennes 2017–2022,
+              ancre 2022 sur 2022, cohérence agrégée des 342 duels 2024, couverture empirique à 80 %).
             </p>
           </div>
 
           <div className="grid gap-6 lg:grid-cols-2">
-            <Table caption="1er tour — Dernière semaine (2017 et 2022) : sondages bruts vs correction croisée par ratio">
+            <Table caption="1er tour — Dernière semaine (hors échantillon sur le ratio croisé 2017 ↔ 2022)">
               <thead>
                 <tr className="border-b border-rule">
                   <th className={th}>Année</th>
@@ -755,25 +741,33 @@ export function Methodology({ result }: { result: SimulationResult }) {
               </tbody>
             </Table>
 
-            <Table caption={`1er tour en campagne à J−${bt.daysBefore} (tous candidats inclus, sans biais d'omission)`}>
+            <Table
+              caption={`1er tour en campagne (filtre strict sans mélange d’offres) : RMSE croisé = hors échantillon (cibles de l’autre élection) ; RMSE moy. 17–22 = en échantillon`}
+            >
               <thead>
                 <tr className="border-b border-rule">
-                  <th className={th}>Année</th>
-                  <th className={th}>Date cible</th>
-                  <th className={`${th} text-right`}>Instituts</th>
+                  <th className={th}>Année (horizon)</th>
+                  <th className={`${th} text-right`}>Inst.</th>
                   <th className={`${th} text-right`}>RMSE brut</th>
-                  <th className={`${th} text-right`}>RMSE projeté</th>
+                  <th className={`${th} text-right`}>RMSE croisé (hors éch.)</th>
+                  <th className={`${th} text-right`}>RMSE 17–22 (en éch.)</th>
                   <th className={`${th} text-right`}>RMS logit</th>
                 </tr>
               </thead>
               <tbody>
                 {bt.firstRoundCampaign.map((r) => (
                   <tr key={r.year} className="border-b border-rule/60">
-                    <td className={`${td} num font-medium`}>{r.year}</td>
-                    <td className={`${td} num`}>{date(r.targetDate)}</td>
+                    <td className={`${td} font-medium`}>
+                      <span className="num">{r.year}</span>{' '}
+                      <span className="block text-xs font-normal text-ink-3">
+                        J−{r.effectiveDaysBefore} ({date(r.targetDate)})
+                        {r.usedStabilizedHorizon ? ' · offre stabilisée' : ''}
+                      </span>
+                    </td>
                     <td className={`${td} num text-right`}>{r.institutesUsed}</td>
                     <td className={`${td} num text-right text-ink-3`}>{num(r.rmse, 2)} pts</td>
-                    <td className={`${td} num text-right font-medium`}>{num(r.projectedRmse, 2)} pts</td>
+                    <td className={`${td} num text-right font-medium`}>{num(r.crossProjectedRmse, 2)} pts</td>
+                    <td className={`${td} num text-right text-ink-3`}>{num(r.projectedRmse, 2)} pts</td>
                     <td className={`${td} num text-right`}>{num(r.empiricalLogitRms, 2)}</td>
                   </tr>
                 ))}
@@ -781,14 +775,53 @@ export function Methodology({ result }: { result: SimulationResult }) {
             </Table>
           </div>
 
-          <Table caption="2nd tour présidentiel (2017 et 2022, en connaissant le 1er tour réel) : score Macron (% exprimés) — modèle front républicain évalué à 100 % en 2017 et 75 % en 2022">
+          <Table caption="Contrôle de calibration — Couverture empirique des intervalles Monte-Carlo à 80 % ([P10 ; P90]) sur 2017 et 2022 (candidats ≥ 2 %, σ_ref intègre 1995–2022)">
+            <thead>
+              <tr className="border-b border-rule">
+                <th className={th}>Scrutin</th>
+                <th className={`${th} text-right`}>σ_logit</th>
+                <th className={`${th} text-right`}>1er tour (brut)</th>
+                <th className={`${th} text-right`}>1er tour (croisé)</th>
+                <th className={`${th} text-right`}>2nd tour (IC 80 % vs réel)</th>
+              </tr>
+            </thead>
+            <tbody>
+              {bt.coverage80.map((r) => (
+                <tr key={r.year} className="border-b border-rule/60">
+                  <td className={`${td} font-medium`}>
+                    <span className="num">{r.year}</span>{' '}
+                    <span className="text-xs font-normal text-ink-3">
+                      (J−{r.effectiveDaysBefore}
+                      {r.usedStabilizedHorizon ? ', offre stabilisée' : ''})
+                    </span>
+                  </td>
+                  <td className={`${td} num text-right`}>{num(r.sigmaLogit, 2)}</td>
+                  <td className={`${td} num text-right`}>
+                    {r.coveredRaw} / {r.evaluatedCount} ({pct((100 * r.coveredRaw) / r.evaluatedCount, 0)})
+                  </td>
+                  <td className={`${td} num text-right font-medium`}>
+                    {r.coveredCrossProjected} / {r.evaluatedCount} (
+                    {pct((100 * r.coveredCrossProjected) / r.evaluatedCount, 0)})
+                  </td>
+                  <td className={`${td} num text-right`}>
+                    [{pct(r.secondRoundP10, 1)} ; {pct(r.secondRoundP90, 1)}] · réel {pct(r.secondRoundActual, 1)}{' '}
+                    <span className={r.secondRoundCovered ? 'font-medium text-ballpoint' : 'text-hypo'}>
+                      ({r.secondRoundCovered ? 'couvert' : 'hors IC'})
+                    </span>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </Table>
+
+          <Table caption="2nd tour présidentiel (en connaissant le 1er tour réel) : score Macron (% exprimés) — Lég. 2024 et Prés. croisée sont hors échantillon ; l’ancre 2022 est un contrôle en échantillon sur 2022">
             <thead>
               <tr className="border-b border-rule">
                 <th className={th}>Année</th>
                 <th className={`${th} text-right`}>Résultat réel</th>
-                <th className={`${th} text-right`}>Modèle 2024 seul</th>
-                <th className={`${th} text-right`}>Présidentielle croisée</th>
-                <th className={`${th} text-right`}>Modèle front républicain</th>
+                <th className={`${th} text-right`}>Ancre Lég. 2024 (100 %, hors éch.)</th>
+                <th className={`${th} text-right`}>Prés. croisée (hors éch.)</th>
+                <th className={`${th} text-right`}>Ancre Prés. 2022 (0 %)</th>
                 <th className={`${th} text-right`}>Sondages T2 à J−{bt.daysBefore}</th>
               </tr>
             </thead>
@@ -804,7 +837,8 @@ export function Methodology({ result }: { result: SimulationResult }) {
                     {pct(r.predCrossPresidential, 2)} ({pts(r.predCrossPresidential - r.actualAntiRn, 1)})
                   </td>
                   <td className={`${td} num text-right font-medium`}>
-                    {pct(r.predRepublicanFront, 2)} ({pts(r.predRepublicanFront - r.actualAntiRn, 1)})
+                    {pct(r.predPres2022, 2)} ({pts(r.predPres2022 - r.actualAntiRn, 1)})
+                    {r.year === 2022 && <span className="block text-xs font-normal text-ink-3">(en échantillon)</span>}
                   </td>
                   <td className={`${td} num text-right text-ink-3`}>
                     {r.directPollsAtDistance !== null ? pct(r.directPollsAtDistance, 1) : '—'}
@@ -814,7 +848,7 @@ export function Methodology({ result }: { result: SimulationResult }) {
             </tbody>
           </Table>
 
-          <Table caption="Contrôle de cohérence agrégé sur les 342 duels des législatives 2024 (enquête Ipsos-Talan brute vs urnes)">
+          <Table caption="Contrôle interne (en échantillon) sur les 342 duels agrégés des législatives 2024 (Ipsos-Talan brute vs urnes)">
             <thead>
               <tr className="border-b border-rule">
                 <th className={th}>Type de duel</th>
@@ -848,11 +882,12 @@ export function Methodology({ result }: { result: SimulationResult }) {
           <div className="prose-method mt-4">
             <p>
               <strong>Principales limites :</strong> l’offre de candidatures 2027 n’est pas arrêtée (des candidats
-              peuvent se retirer, fusionner ou apparaître) ; la projection temporelle reste une projection structurelle
-              conditionnelle qui ne peut pas anticiper un événement exogène de campagne ; l’intensité réelle du front
-              républicain en mai 2027 — en particulier dans un duel inédit comme LFI – RN — n’est pas observable avant
-              l’entre-deux-tours (d’où les curseurs par famille et le choc aléatoire corrélé dans Monte-Carlo) ; enfin,
-              le devenir au 2nd tour des votants blancs et nuls du 1er tour n’est mesuré par aucune enquête publique.
+              peuvent se retirer, fusionner ou apparaître ; l’option « incertitude des candidatures » permet d’en
+              mesurer l’impact) ; la projection temporelle reste conditionnelle et ne peut anticiper un événement
+              exogène de campagne ; le niveau réel du front républicain en mai 2027 et surtout le report de la gauche
+              hors LFI vers Jean-Luc Mélenchon n’ont pas été observés à une présidentielle (d’où les curseurs dédiés,
+              l’analyse de sensibilité et les tirages Monte-Carlo) ; enfin, le devenir au 2nd tour des votants blancs et
+              nuls du 1er tour n’est mesuré par aucune enquête publique.
             </p>
             {NO_INTENTION && (
               <p>

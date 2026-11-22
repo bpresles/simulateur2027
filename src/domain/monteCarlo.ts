@@ -5,6 +5,7 @@ import {
   effectiveProfiles,
   fidelityFor,
   frontStrengthForProfile,
+  lfiLeftTransferRow,
   nonRnSplit,
   resolveDuel,
 } from './transfers'
@@ -27,16 +28,17 @@ import type {
 export const MONTE_CARLO_ITERATIONS = 2000
 export const MONTE_CARLO_SEED = 2027
 
-/** Horizon de référence (jours) pour la volatilité de campagne calibrée sur 2017 et 2022. */
-const CAMPAIGN_REF_DAYS = 156
+/** Horizon de référence (jours) pour la volatilité de campagne. */
+export const CAMPAIGN_REF_DAYS = 156
 /**
- * Écart-type de choc de campagne sur l'échelle log-ratio à J−156 (~5 mois).
- * Un candidat à 20 % a ainsi un écart-type de ~6 pts (intervalle 80 % ≈ ±7,5 pts), en accord avec
- * la RMSE historique de 5,4 à 6,3 pts observée en 2017 et 2022 à même horizon.
+ * Écart-type de choc de campagne sur l'échelle log-ratio à J−156 (~5 mois), fixé par règle écrite
+ * avant examen de son effet sur 2027 : moyenne arithmétique de l'écart-type logit mesuré sur
+ * 1995–2022 dans `methode.pdf` (0,497, candidats ≥ 5 %) et du RMS logit mesuré sur 2022 par le
+ * backtest (0,693, candidats ≥ 3 %) → (0,497 + 0,693) / 2 = 0,595.
  */
-const SIGMA_CAMPAIGN_REF = 0.4
+export const SIGMA_CAMPAIGN_REF = 0.595
 /** Plancher d'erreur de sondage (dernière semaine avant le scrutin, ~1,5–2,5 pts). */
-const SIGMA_POLLING_FLOOR = 0.14
+export const SIGMA_POLLING_FLOOR = 0.14
 /** Concentration Dirichlet des lignes de reports de 2nd tour (κ = 40 → ±5 à 7 pts). */
 const DIRICHLET_CONCENTRATION = 40
 /** Degrés de liberté Student-t (queues modérément épaisses, bornées à ±3,5 σ pour éviter les valeurs extrêmes). */
@@ -146,6 +148,12 @@ export function duelKey(a: CandidateId, b: CandidateId, rankOf: Map<CandidateId,
   return ra <= rb ? [a, b, `${a}|${b}`] : [b, a, `${b}|${a}`]
 }
 
+export interface CandidacyScenario {
+  id: string
+  weight: number
+  scores: Record<CandidateId, number>
+}
+
 export interface MonteCarloInput {
   data: SimulationData
   settings: Settings
@@ -154,33 +162,53 @@ export interface MonteCarloInput {
   minorTransfers: Record<CandidateId, ReferencePart[]>
   blankNullShare: number
   displayedDuel: [CandidateId, CandidateId]
+  /** Scénarios de candidatures pondérés optionnels (quand `candidacyUncertaintyEnabled` est activé). */
+  candidacyScenarios?: CandidacyScenario[]
+  /** Surcharges de dates (utilisées par le backtest de couverture sur 2017 et 2022). */
+  asOfOverride?: string
+  electionDateOverride?: string
   iterations?: number
   seed?: number
 }
 
 /**
  * Simulation Monte-Carlo déterministe (2 000 tirages) propageant :
- * - au 1er tour : chocs de campagne Student-t(8) de moyenne nulle en log-ratio, décomposés en choc de bloc
- *   (50 %), vote utile intra-bloc à somme nulle (30 %) et choc idiosyncrasique (20 %), dont la variance
- *   décroît linéairement jusqu'au scrutin ;
- * - au 2nd tour : incertitude Dirichlet(κ = 40) sur les matrices de reports (tirage paresseux par profil
- *   réellement utilisé dans l'itération), pondérations législatives/présidentielles et 2024/2027,
- *   participation P, mobilisation a et orientation q des abstentionnistes, fidélité des finalistes (±2,5 pts)
- *   et choc commun national η (σ = 3,5 pts face au RN).
+ * - au 1er tour : tirage optionnel du scénario de candidatures, puis chocs de campagne Student-t(8) de moyenne
+ *   nulle en log-ratio (σ_ref = 0,595 à J−156), décomposés en choc de bloc (50 %), vote utile intra-bloc à somme
+ *   nulle (30 %) et choc idiosyncrasique (20 %), dont la variance décroît linéairement jusqu'au scrutin ;
+ * - au 2nd tour : incertitude Dirichlet(κ = 40) sur les matrices de reports, incertitude sur la position
+ *   2022 ↔ 2024 du front républicain, tirage uniforme explicite du report gauche hors LFI → Mélenchon sur sa
+ *   plage dédiée (35–75 % par défaut), participation P, mobilisation a et orientation q des abstentionnistes,
+ *   fidélité des finalistes (±2,5 pts) et choc commun national η (σ = 3,0 pts face au RN, 2,0 pts hors RN).
  */
 export function runMonteCarlo(input: MonteCarloInput): MonteCarloSummary {
-  const { data, settings, baseScores, candidatesById, minorTransfers, blankNullShare, displayedDuel } = input
+  const {
+    data,
+    settings,
+    baseScores,
+    candidatesById,
+    minorTransfers,
+    blankNullShare,
+    displayedDuel,
+    candidacyScenarios,
+  } = input
   const iterations = input.iterations ?? MONTE_CARLO_ITERATIONS
   const seed = input.seed ?? MONTE_CARLO_SEED
   const rng = mulberry32(seed)
   const nextNormal = createNormalSampler(rng)
 
-  const activeIds = Object.keys(baseScores).sort((x, y) => baseScores[y]! - baseScores[x]!)
+  const idSet = new Set(Object.keys(baseScores))
+  if (candidacyScenarios) {
+    for (const sc of candidacyScenarios) for (const id of Object.keys(sc.scores)) idSet.add(id)
+  }
+  const activeIds = [...idSet].sort((x, y) => (baseScores[y] ?? 0) - (baseScores[x] ?? 0))
   const n = activeIds.length
   const indexOf = new Map(activeIds.map((id, i) => [id, i]))
   const rnId = data.polls.candidates.find((c) => c.isRN)?.id ?? 'lepen'
 
-  const daysToElection = Math.max(0, daysBetween(data.polls.asOf, data.polls.electionDate))
+  const refAsOf = input.asOfOverride ?? data.polls.asOf
+  const refElectionDate = input.electionDateOverride ?? data.polls.electionDate
+  const daysToElection = Math.max(0, daysBetween(refAsOf, refElectionDate))
   const sigmaLogit = Math.sqrt(
     SIGMA_CAMPAIGN_REF ** 2 * (daysToElection / CAMPAIGN_REF_DAYS) + SIGMA_POLLING_FLOOR ** 2,
   )
@@ -189,6 +217,7 @@ export function runMonteCarlo(input: MonteCarloInput): MonteCarloSummary {
   const sdIdio = sigmaLogit * Math.sqrt(0.2)
 
   const baseLog = new Float64Array(n)
+  const basePresent = new Uint8Array(n)
   const blocIdx = new Int8Array(n)
   const baseFid: FidelitySplit[] = new Array(n)
   const minorIdx: (readonly { idx: number; weight: number }[] | null)[] = new Array(n)
@@ -197,7 +226,9 @@ export function runMonteCarlo(input: MonteCarloInput): MonteCarloSummary {
   for (let i = 0; i < n; i++) {
     const id = activeIds[i]!
     const c = candidatesById.get(id)
-    baseLog[i] = Math.log(Math.max(1e-5, baseScores[id]! / 100))
+    const sc = baseScores[id]
+    basePresent[i] = sc !== undefined && sc > 0 ? 1 : 0
+    baseLog[i] = Math.log(Math.max(1e-5, (sc ?? 0) / 100))
     const bi = c?.bloc ? BLOC_INDEX[c.bloc] : -1
     blocIdx[i] = bi
     if (bi >= 0) blocMembers[bi]!.push(i)
@@ -205,6 +236,27 @@ export function runMonteCarlo(input: MonteCarloInput): MonteCarloSummary {
     const parts = minorTransfers[id]
     minorIdx[i] = parts ? parts.filter((p) => indexOf.has(p.id)).map((p) => ({ idx: indexOf.get(p.id)!, weight: p.weight })) : null
   }
+
+  // Pré-calcul des scénarios de candidatures pondérés si fournis
+  const compiledScenarios = (() => {
+    if (!candidacyScenarios || candidacyScenarios.length === 0) return null
+    const totalW = candidacyScenarios.reduce((s, x) => s + Math.max(0, x.weight), 0)
+    if (totalW <= 0) return null
+    let cum = 0
+    return candidacyScenarios
+      .filter((x) => x.weight > 0)
+      .map((x) => {
+        cum += x.weight / totalW
+        const logs = new Float64Array(n)
+        const present = new Uint8Array(n)
+        for (let i = 0; i < n; i++) {
+          const v = x.scores[activeIds[i]!]
+          present[i] = v !== undefined && v > 0 ? 1 : 0
+          logs[i] = Math.log(Math.max(1e-5, (v ?? 0) / 100))
+        }
+        return { cum, logs, present }
+      })
+  })()
 
   const baseDeclProfiles = effectiveProfiles(
     data.transfers,
@@ -275,7 +327,7 @@ export function runMonteCarlo(input: MonteCarloInput): MonteCarloSummary {
   let nrSampledAt = -1
   const bnClamped = clamp(blankNullShare, 0, 0.5)
 
-  const ensureProfile = (p: number, iter: number, rfShock: number, wDecl: number) => {
+  const ensureProfile = (p: number, iter: number, rfShock: number, wDecl: number, lfiLeftRate: number) => {
     if (profSampledAt[p] === iter) return
     profSampledAt[p] = iter
     const pid = PROFILE_IDS[p]!
@@ -293,7 +345,10 @@ export function runMonteCarlo(input: MonteCarloInput): MonteCarloSummary {
       } else if (settings.transferSource === 'declared2027') {
         row = baseDeclProfiles[pid][bloc]
       } else {
-        row = applyRepublicanFrontRow(pid, bloc, rawRow, data.transfers, strength)
+        row =
+          pid === 'lfi_rn' && bloc === 'gauche'
+            ? lfiLeftTransferRow(lfiLeftRate, data.transfers, data.declaredTransfers)
+            : applyRepublicanFrontRow(pid, bloc, rawRow, data.transfers, strength)
         if (settings.transferSource === 'blend') {
           const decl = baseDeclProfiles[pid][bloc]
           row = {
@@ -326,6 +381,7 @@ export function runMonteCarlo(input: MonteCarloInput): MonteCarloSummary {
     iter: number,
     rfShock: number,
     wDecl: number,
+    lfiLeftRate: number,
     scale: number,
     abstention1: number,
     mob: number,
@@ -336,7 +392,7 @@ export function runMonteCarlo(input: MonteCarloInput): MonteCarloSummary {
     commonShockNonRn: number,
   ): number => {
     const d = resolveFast(ai, bi)
-    if (d.kind === 0) ensureProfile(d.prof, iter, rfShock, wDecl)
+    if (d.kind === 0) ensureProfile(d.prof, iter, rfShock, wDecl, lfiLeftRate)
     else if (d.kind === 1) ensureNonRn(iter)
 
     const fidA0 = baseFid[ai]!
@@ -434,10 +490,24 @@ export function runMonteCarlo(input: MonteCarloInput): MonteCarloSummary {
     return clamp(rawPctA + shock, 1, 99)
   }
 
+  const [lfiLeftMin, lfiLeftMax] = [
+    clamp(Math.min(settings.lfiLeftTransferRange[0], settings.lfiLeftTransferRange[1]), 5, 95),
+    clamp(Math.max(settings.lfiLeftTransferRange[0], settings.lfiLeftTransferRange[1]), 5, 95),
+  ]
+
   for (let iter = 0; iter < iterations; iter++) {
+    let iterLogs = baseLog
+    let iterPresent = basePresent
+    if (compiledScenarios) {
+      const u = rng()
+      const picked = compiledScenarios.find((s) => u <= s.cum) ?? compiledScenarios.at(-1)!
+      iterLogs = picked.logs
+      iterPresent = picked.present
+    }
+
     for (let b = 0; b < 4; b++) blocShock[b] = sampleUnitStudentT(STUDENT_DF, rng, nextNormal) * sdBloc
     for (let b = 0; b < 4; b++) {
-      const members = blocMembers[b]!
+      const members = blocMembers[b]!.filter((idx) => iterPresent[idx] === 1)
       const k = members.length
       if (k === 1) {
         intraShock[members[0]!] = 0
@@ -456,9 +526,13 @@ export function runMonteCarlo(input: MonteCarloInput): MonteCarloSummary {
 
     let maxLogit = -Infinity
     for (let i = 0; i < n; i++) {
+      if (iterPresent[i] === 0) {
+        logits[i] = -Infinity
+        continue
+      }
       const bi = blocIdx[i]!
       const s =
-        baseLog[i]! +
+        iterLogs[i]! +
         (bi >= 0 ? blocShock[bi]! : 0) +
         (bi >= 0 ? intraShock[i]! : 0) +
         sampleUnitStudentT(STUDENT_DF, rng, nextNormal) * sdIdio
@@ -467,11 +541,11 @@ export function runMonteCarlo(input: MonteCarloInput): MonteCarloSummary {
     }
     let sumExp = 0
     for (let i = 0; i < n; i++) {
-      const e = Math.exp(logits[i]! - maxLogit)
+      const e = iterPresent[i] === 1 ? Math.exp(logits[i]! - maxLogit) : 0
       drawn[i] = e
       sumExp += e
     }
-    const invSum = 100 / sumExp
+    const invSum = sumExp > 0 ? 100 / sumExp : 0
     for (let i = 0; i < n; i++) {
       const sc = drawn[i]! * invSum
       drawn[i] = sc
@@ -496,8 +570,9 @@ export function runMonteCarlo(input: MonteCarloInput): MonteCarloSummary {
     qualifCounts[firstIdx]! += 1
     qualifCounts[secondIdx]! += 1
 
-    const rfShock = clamp(nextNormal() * 0.15, -0.35, 0.35)
+    const rfShock = clamp(nextNormal() * 0.25, -0.5, 0.5)
     const wDecl = clamp(settings.declaredWeight + (rng() - 0.5), 0, 1)
+    const lfiLeftRate = lfiLeftMin + rng() * (lfiLeftMax - lfiLeftMin)
     const turnout = clamp(settings.firstRoundTurnout + (rng() * 10 - 5), 55, 88)
     const abstention1 = 100 - turnout
     const expressed1 = turnout * (1 - bnClamped)
@@ -517,6 +592,7 @@ export function runMonteCarlo(input: MonteCarloInput): MonteCarloSummary {
       iter,
       rfShock,
       wDecl,
+      lfiLeftRate,
       scale,
       abstention1,
       mob,
@@ -548,6 +624,7 @@ export function runMonteCarlo(input: MonteCarloInput): MonteCarloSummary {
               iter,
               rfShock,
               wDecl,
+              lfiLeftRate,
               scale,
               abstention1,
               mob,

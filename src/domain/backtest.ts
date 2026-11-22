@@ -1,7 +1,15 @@
 import { defaultProjectionSettings, projectCampaign } from './campaignProjection'
+import { runMonteCarlo } from './monteCarlo'
 import { addDays, averageHypothesisPolls, daysBetween, normalize, pollWeight, weightedMeanByKey } from './pollAverage'
 import { aggregatedProfileDropout, computeSecondRound, pollBiasGaps } from './secondRound'
-import { applyRepublicanFrontRow, effectiveAbstainerAntiRnShare, fidelityFor } from './transfers'
+import {
+  DEFAULT_LFI_LEFT_TRANSFER,
+  DEFAULT_LFI_LEFT_TRANSFER_RANGE,
+  applyRepublicanFrontRow,
+  defaultRepublicanFront,
+  effectiveAbstainerAntiRnShare,
+  fidelityFor,
+} from './transfers'
 import type { ProfileTable } from './transfers'
 import { BLOCS } from './types'
 import type {
@@ -9,6 +17,7 @@ import type {
   Candidate,
   PastElectionReference,
   ProfileId,
+  Settings,
   SimulationData,
   TransferValues,
 } from './types'
@@ -20,34 +29,60 @@ export interface EveBacktestYear {
   rawRmse: number
   /** Plus grand écart absolu d'un candidat sur la moyenne brute (pts). */
   rawMaxError: number
-  /** RMSE avec correction par ratio issue de l'autre élection (validation croisée sur candidats communs). */
+  /** RMSE hors échantillon avec correction par ratio issue de l'autre élection (candidats communs). */
   crossCorrectedRmse: number
 }
 
 export interface CampaignBacktestYear {
   year: 2017 | 2022
+  /** Horizon cible demandé (distance actuelle J−d de 2027). */
   daysBefore: number
+  /** Horizon effectif retenu (égal à `daysBefore` si ≥ 1 institut correspond, sinon 1re date à offre stabilisée). */
+  effectiveDaysBefore: number
+  /** Indique si la date cible a dû être avancée faute de sondage à offre stabilisée à J−d (ex. primaires 2017). */
+  usedStabilizedHorizon: boolean
   targetDate: string
   institutesUsed: number
-  /** RMSE au 1er tour à J−d (avec tous les candidats testés à l'époque, sans ré-échelonnage biaisé). */
+  /** RMSE au 1er tour à l'horizon effectif (tous candidats testés inclus). */
   rmse: number
-  /** RMSE à J−d après projection temporelle (vote utile 4 blocs + léger amortissement, hors échantillon). */
+  /** RMSE après projection avec les cibles moyennes 2017–2022 (contrôle en échantillon). */
   projectedRmse: number
-  /** Écart-type logit empirique entre J−d et le scrutin (candidats ≥ 3 %). */
+  /** RMSE hors échantillon après projection avec les cibles de concentration mesurées sur l'autre élection uniquement. */
+  crossProjectedRmse: number
+  /** Écart-type logit empirique entre l'horizon effectif et le scrutin (candidats ≥ 3 %). */
   empiricalLogitRms: number
-  /** Variation nette du total gauche entre J−d et le scrutin, tous candidats inclus (pts). */
+  /** Variation nette du total gauche entre l'horizon effectif et le scrutin, tous candidats inclus (pts). */
   leftShiftPts: number
+}
+
+export interface CoverageBacktestYear {
+  year: 2017 | 2022
+  effectiveDaysBefore: number
+  targetDate: string
+  usedStabilizedHorizon: boolean
+  sigmaLogit: number
+  /** Nombre de candidats (résultat officiel ≥ 2 % et présents en campagne) évalués. */
+  evaluatedCount: number
+  /** Candidats dont le résultat officiel tombe dans [P10, P90] (base sondages bruts). */
+  coveredRaw: number
+  /** Candidats dont le résultat officiel tombe dans [P10, P90] (base projection croisée hors échantillon). */
+  coveredCrossProjected: number
+  /** Contrôle sur le 2nd tour (duel Macron – Le Pen) : le résultat officiel tombe-t-il dans [P10, P90] ? */
+  secondRoundCovered: boolean
+  secondRoundP10: number
+  secondRoundP90: number
+  secondRoundActual: number
 }
 
 export interface SecondRoundBacktestYear {
   year: 2017 | 2022
   actualAntiRn: number
-  /** Prédiction en utilisant uniquement les reports des législatives 2024. */
+  /** Prédiction hors échantillon en utilisant uniquement les reports des législatives 2024 (ancre 100 %). */
   predLeg2024: number
-  /** Prédiction hors-échantillon en utilisant les reports présidentiels de l'autre scrutin (2022→2017, 2017→2022). */
+  /** Prédiction hors échantillon en utilisant les reports présidentiels de l'autre scrutin (2022→2017, 2017→2022). */
   predCrossPresidential: number
-  /** Prédiction du modèle front républicain au repère de l'année (100 % en 2017, 75 % en 2022). */
-  predRepublicanFront: number
+  /** Prédiction avec l'ancre présidentielle 2022 (0 %) : hors échantillon sur 2017, contrôle interne sur 2022. */
+  predPres2022: number
   /** Moyenne des sondages directs de 2nd tour à la même distance J−d (null si absent). */
   directPollsAtDistance: number | null
 }
@@ -70,6 +105,7 @@ export interface BacktestReport {
   daysBefore: number
   firstRoundEve: EveBacktestYear[]
   firstRoundCampaign: CampaignBacktestYear[]
+  coverage80: CoverageBacktestYear[]
   secondRoundPresidential: SecondRoundBacktestYear[]
   legislatives2024Coherence: Coherence2024Row[]
 }
@@ -93,6 +129,9 @@ const LEFT_IDS = new Set([
 
 const RIGHT_IDS = new Set(['fillon', 'pecresse', 'lassalle', 'bertrand', 'juppe', 'sarkozy'])
 const ED_IDS = new Set(['lepen', 'zemmour', 'dupont-aignan', 'asselineau', 'philippot'])
+
+const COVERAGE_MC_ITERATIONS = 600
+const COVERAGE_MC_SEED = 2027
 
 function actualScores(ref: PastElectionReference): Record<string, number> {
   return Object.fromEntries(ref.candidates.map((c) => [c.id, (100 * c.votes) / ref.expressed]))
@@ -132,23 +171,57 @@ function historicalBloc(id: string): Bloc {
   return 'centre'
 }
 
-const dummyCandidates = (ref: PastElectionReference): Map<string, Candidate> =>
-  new Map(
-    ref.candidates.map((c) => [
-      c.id,
-      {
-        id: c.id,
-        name: c.name,
-        shortName: c.name,
+/**
+ * Part du candidat de tête de chaque bloc dans les résultats officiels d'une élection de référence.
+ * Permet un test croisé strictement hors échantillon des cibles de concentration du vote utile.
+ */
+function observedBlocTargets(ref: PastElectionReference): Partial<Record<Bloc, number>> {
+  const actual = actualScores(ref)
+  const out: Partial<Record<Bloc, number>> = {}
+  for (const bloc of BLOCS) {
+    const scores = Object.entries(actual)
+      .filter(([id]) => historicalBloc(id) === bloc)
+      .map(([, v]) => v)
+    const total = scores.reduce((s, v) => s + v, 0)
+    if (scores.length > 0 && total > 0) {
+      out[bloc] = Math.max(...scores) / total
+    }
+  }
+  return out
+}
+
+const historicalCandidatesMap = (ref: PastElectionReference, extraIds: Iterable<string> = []): Map<string, Candidate> => {
+  const map = new Map<string, Candidate>()
+  for (const c of ref.candidates) {
+    map.set(c.id, {
+      id: c.id,
+      name: c.name,
+      shortName: c.name,
+      party: '',
+      bloc: historicalBloc(c.id),
+      color: '#000000',
+      colorDark: '#ffffff',
+      duelProfile: c.id === 'macron' ? 'ensemble_rn' : null,
+      isRN: c.id === 'lepen',
+    })
+  }
+  for (const id of extraIds) {
+    if (!map.has(id)) {
+      map.set(id, {
+        id,
+        name: id,
+        shortName: id,
         party: '',
-        bloc: historicalBloc(c.id),
+        bloc: historicalBloc(id),
         color: '#000000',
         colorDark: '#ffffff',
-        duelProfile: c.id === 'macron' ? 'ensemble_rn' : null,
-        isRN: c.id === 'lepen',
-      },
-    ]),
-  )
+        duelProfile: id === 'macron' ? 'ensemble_rn' : null,
+        isRN: id === 'lepen',
+      })
+    }
+  }
+  return map
+}
 
 function buildProfileTable(ensembleRows: Record<Bloc, TransferValues>, rnLoyalty: number): ProfileTable {
   const rnRow: TransferValues = { finalist: 0, rn: rnLoyalty, abstention: 100 - rnLoyalty }
@@ -173,7 +246,7 @@ function evaluatePresidentialT2(
   abstainerAntiRnShare = 0.55,
 ): number {
   const electorate = actualScores(ref)
-  const candidatesById = dummyCandidates(ref)
+  const candidatesById = historicalCandidatesMap(ref)
   const fidMacron = fidelityFor('macron', data.transfers, null)
   const fidLePen = fidelityFor('lepen', data.transfers, null)
   const sr = computeSecondRound({
@@ -200,10 +273,33 @@ function evaluatePresidentialT2(
   return sr.pct.a
 }
 
+function neutralBacktestSettings(): Settings {
+  return {
+    excludedPolls: [],
+    alliances: {},
+    offerProjectionEnabled: true,
+    projection: defaultProjectionSettings(),
+    transferSource: 'legislatives2024',
+    declaredWeight: 0.5,
+    republicanFront: defaultRepublicanFront(),
+    lfiLeftTransfer: DEFAULT_LFI_LEFT_TRANSFER,
+    lfiLeftTransferRange: [...DEFAULT_LFI_LEFT_TRANSFER_RANGE],
+    candidacyUncertaintyEnabled: false,
+    transferOverrides: {},
+    minorTransfers: {},
+    fidelity: null,
+    firstRoundTurnout: 74,
+    abstainerMobilization: 0.2,
+    abstainerAntiRnShare: 0.55,
+    selectedDuel: null,
+  }
+}
+
 /**
- * Validation historique automatisée (out-of-sample) sur 2017, 2022 et les 342 circonscriptions agrégées
- * de 2024. Aucun paramètre du modèle n'est recalibré sur ce backtest : il sert à vérifier honnêtement les
- * marges d'erreur réelles et à documenter les choix méthodologiques.
+ * Validation historique automatisée sur 2017, 2022 et les 342 circonscriptions agrégées de 2024.
+ * Distingue explicitement les évaluations hors échantillon (ratio croisé, cibles de l'autre élection,
+ * présidentielle croisée, reports 2024 sur 2017/2022) des contrôles internes / de calibration historique
+ * (cibles moyennes 2017–2022, ancre 2022 sur 2022, cohérence 2024, couverture 80 %).
  */
 export function computeBacktest(
   data: SimulationData,
@@ -215,7 +311,7 @@ export function computeBacktest(
     { year: 2022 as const, ref: data.reference2022, other: data.reference2017 },
   ]
 
-  // 1. Sondages de la dernière semaine (2017 & 2022) : bruts vs correction par ratio croisée
+  // 1. Sondages de la dernière semaine (2017 & 2022) : bruts vs correction par ratio croisée (hors échantillon)
   const firstRoundEve: EveBacktestYear[] = refs.map(({ year, ref, other }) => {
     const actual = actualScores(ref)
     const poll = evePollAverage(ref)
@@ -239,25 +335,69 @@ export function computeBacktest(
     }
   })
 
-  // 2. Campagne 1er tour à la même distance J−d (tous candidats inclus : pas de biais d'omission)
-  const firstRoundCampaign: CampaignBacktestYear[] = refs.map(({ year, ref }) => {
-    const targetDate = addDays(ref.electionDate, -daysBefore)
+  // 2. Campagne 1er tour à J−d (ou 1re date à offre stabilisée ≥ 3 instituts si aucune vague stricte à J−d)
+  //    + contrôle de couverture empirique des intervalles à 80 % (Monte-Carlo)
+  const mcSettings = neutralBacktestSettings()
+  const firstRoundCampaign: CampaignBacktestYear[] = []
+  const coverage80: CoverageBacktestYear[] = []
+
+  for (const { year, ref, other } of refs) {
+    const requestedDate = addDays(ref.electionDate, -daysBefore)
     const actual = actualScores(ref)
     const allKnown = new Set([
       ...ref.candidates.map((c) => c.id),
       ...ref.campaignPolls.otherCandidates.map((c) => c.id),
     ])
-    const avg = averageHypothesisPolls(
-      ref.campaignPolls.polls,
-      targetDate,
-      ref.campaignPolls.windowDays,
-      { require: ref.campaignPolls.require, exclude: ref.campaignPolls.exclude },
-      allKnown,
-      undefined,
-      [],
-      {},
-      { weighted: true, offerProjection: false },
-    )
+    const runAvgAt = (dt: string) =>
+      averageHypothesisPolls(
+        ref.campaignPolls.polls,
+        dt,
+        ref.campaignPolls.windowDays,
+        { require: ref.campaignPolls.require, exclude: ref.campaignPolls.exclude },
+        allKnown,
+        undefined,
+        [],
+        {},
+        { weighted: true, offerProjection: false },
+      )
+
+    let targetDate = requestedDate
+    let avg = runAvgAt(targetDate)
+    let usedStabilizedHorizon = false
+
+    // Si aucun sondage ne correspond au filtre strict à J−d (ex. primaires 2017 non tranchées en novembre 2016),
+    // on avance à la première date disposant d'au moins 3 instituts distincts à offre stabilisée.
+    if (avg.institutesUsed === 0) {
+      const candidateDates = [
+        ...new Set(
+          ref.campaignPolls.polls
+            .map((p) => p.fieldwork.end)
+            .filter((d) => d >= requestedDate && d < ref.electionDate),
+        ),
+      ].sort()
+      let fallbackDate: string | null = null
+      let fallbackAvg = avg
+      for (const dt of candidateDates) {
+        const probe = runAvgAt(dt)
+        if (probe.institutesUsed >= 3) {
+          targetDate = dt
+          avg = probe
+          usedStabilizedHorizon = true
+          break
+        }
+        if (probe.institutesUsed > fallbackAvg.institutesUsed) {
+          fallbackDate = dt
+          fallbackAvg = probe
+        }
+      }
+      if (!usedStabilizedHorizon && fallbackDate !== null) {
+        targetDate = fallbackDate
+        avg = fallbackAvg
+        usedStabilizedHorizon = true
+      }
+    }
+
+    const effectiveDaysBefore = Math.max(0, daysBetween(targetDate, ref.electionDate))
     const logitDiffs = ref.candidates
       .filter((c) => actual[c.id]! >= 3 && (avg.average[c.id] ?? 0) >= 3)
       .map((c) => logit(actual[c.id]! / 100) - logit((avg.average[c.id] ?? 0) / 100))
@@ -269,41 +409,108 @@ export function computeBacktest(
     const leftAtHorizon = Object.entries(avg.average)
       .filter(([id]) => LEFT_IDS.has(id))
       .reduce((s, [, v]) => s + v, 0)
-    const campaignCands: Candidate[] = [...allKnown].map((id) => ({
-      id,
-      name: id,
-      shortName: id,
-      party: '',
-      bloc: historicalBloc(id),
-      color: '#000000',
-      colorDark: '#ffffff',
-      duelProfile: null,
-    }))
+
+    const candMap = historicalCandidatesMap(ref, allKnown)
+    const campaignCands = [...candMap.values()]
+    const projSettings = { ...defaultProjectionSettings(), enabled: true, meanReversion: 0, dampedTrend: 0 }
+
     const projected =
       avg.institutesUsed > 0
-        ? projectCampaign(
-            avg.average,
-            campaignCands,
-            { ...defaultProjectionSettings(), enabled: true, dampedTrend: 0 },
-            [],
-            targetDate,
-            ref.electionDate,
-          ).projectedScores
+        ? projectCampaign(avg.average, campaignCands, projSettings, [], targetDate, ref.electionDate).projectedScores
         : avg.average
-    return {
+
+    const crossTargets = observedBlocTargets(other)
+    const crossProjected =
+      avg.institutesUsed > 0
+        ? projectCampaign(avg.average, campaignCands, projSettings, [], targetDate, ref.electionDate, 1, crossTargets)
+            .projectedScores
+        : avg.average
+
+    firstRoundCampaign.push({
       year,
       daysBefore,
+      effectiveDaysBefore,
+      usedStabilizedHorizon,
       targetDate,
       institutesUsed: avg.institutesUsed,
       rmse: avg.institutesUsed > 0 ? rmse(actual, avg.average) : 0,
       projectedRmse: avg.institutesUsed > 0 ? rmse(actual, projected) : 0,
+      crossProjectedRmse: avg.institutesUsed > 0 ? rmse(actual, crossProjected) : 0,
       empiricalLogitRms,
       leftShiftPts: avg.institutesUsed > 0 ? leftActual - leftAtHorizon : 0,
+    })
+
+    // Couverture empirique des intervalles Monte-Carlo à 80 % ([P10, P90])
+    const biasEntry = data.secondRoundPollBias.elections.find((e) => e.year === year)
+    const actualAntiRn =
+      year === 2022
+        ? (100 * data.reference2022.secondRound.candidates.find((c) => c.id === 'macron')!.votes) /
+          data.reference2022.secondRound.expressed
+        : (biasEntry?.result.antiRn ?? 66.1)
+
+    if (avg.institutesUsed > 0) {
+      const bnShare = (ref.voters - ref.expressed) / ref.voters
+      const mcRaw = runMonteCarlo({
+        data,
+        settings: mcSettings,
+        baseScores: avg.average,
+        candidatesById: candMap,
+        minorTransfers: {},
+        blankNullShare: bnShare,
+        displayedDuel: ['macron', 'lepen'],
+        asOfOverride: targetDate,
+        electionDateOverride: ref.electionDate,
+        iterations: COVERAGE_MC_ITERATIONS,
+        seed: COVERAGE_MC_SEED,
+      })
+      const mcCross = runMonteCarlo({
+        data,
+        settings: mcSettings,
+        baseScores: crossProjected,
+        candidatesById: candMap,
+        minorTransfers: {},
+        blankNullShare: bnShare,
+        displayedDuel: ['macron', 'lepen'],
+        asOfOverride: targetDate,
+        electionDateOverride: ref.electionDate,
+        iterations: COVERAGE_MC_ITERATIONS,
+        seed: COVERAGE_MC_SEED,
+      })
+      const evaluated = ref.candidates.filter((c) => actual[c.id]! >= 2 && avg.average[c.id] !== undefined)
+      const coveredRaw = evaluated.filter((c) => {
+        const u = mcRaw.candidates[c.id]
+        const act = actual[c.id]!
+        return u !== undefined && act >= u.p10 && act <= u.p90
+      }).length
+      const coveredCrossProjected = evaluated.filter((c) => {
+        const u = mcCross.candidates[c.id]
+        const act = actual[c.id]!
+        return u !== undefined && act >= u.p10 && act <= u.p90
+      }).length
+      const srP10 = mcRaw.displayedDuel.aScoreP10
+      const srP90 = mcRaw.displayedDuel.aScoreP90
+      coverage80.push({
+        year,
+        effectiveDaysBefore,
+        targetDate,
+        usedStabilizedHorizon,
+        sigmaLogit: mcRaw.sigmaLogit,
+        evaluatedCount: evaluated.length,
+        coveredRaw,
+        coveredCrossProjected,
+        secondRoundCovered: actualAntiRn >= srP10 && actualAntiRn <= srP90,
+        secondRoundP10: srP10,
+        secondRoundP90: srP90,
+        secondRoundActual: actualAntiRn,
+      })
     }
-  })
+  }
 
   // 3. Second tour présidentiel 2017 & 2022 (en connaissant le 1er tour réel)
   const leg2024Ensemble = data.transfers.profiles.find((p) => p.id === 'ensemble_rn')!.rows
+  const pres2022Rows = Object.fromEntries(
+    BLOCS.map((b) => [b, applyRepublicanFrontRow('ensemble_rn', b, leg2024Ensemble[b], data.transfers, 0)]),
+  ) as Record<Bloc, TransferValues>
   const gaps = pollBiasGaps(data.secondRoundPollBias, pollsRef)
   const secondRoundPresidential: SecondRoundBacktestYear[] = refs.map(({ year, ref }) => {
     const biasEntry = data.secondRoundPollBias.elections.find((e) => e.year === year)
@@ -313,29 +520,18 @@ export function computeBacktest(
           data.reference2022.secondRound.expressed
         : (biasEntry?.result.antiRn ?? 66.1)
     const otherPres = data.transfers.presidentialCenterRn.elections[year === 2017 ? '2022' : '2017']
-    const yearFrontStrength = year === 2017 ? 1 : 0.75
-    const rfRows = Object.fromEntries(
-      BLOCS.map((b) => [
-        b,
-        applyRepublicanFrontRow('ensemble_rn', b, leg2024Ensemble[b], data.transfers, yearFrontStrength),
-      ]),
-    ) as Record<Bloc, TransferValues>
+    const antiRnQ = effectiveAbstainerAntiRnShare(0.55, 0)
     return {
       year,
       actualAntiRn,
-      predLeg2024: evaluatePresidentialT2(ref, data, leg2024Ensemble),
-      predCrossPresidential: evaluatePresidentialT2(ref, data, otherPres),
-      predRepublicanFront: evaluatePresidentialT2(
-        ref,
-        data,
-        rfRows,
-        effectiveAbstainerAntiRnShare(0.55, yearFrontStrength),
-      ),
+      predLeg2024: evaluatePresidentialT2(ref, data, leg2024Ensemble, antiRnQ),
+      predCrossPresidential: evaluatePresidentialT2(ref, data, otherPres, antiRnQ),
+      predPres2022: evaluatePresidentialT2(ref, data, pres2022Rows, antiRnQ),
       directPollsAtDistance: gaps.find((g) => g.year === year)?.estimate ?? null,
     }
   })
 
-  // 4. Contrôle de cohérence agrégé sur les 342 duels des législatives 2024
+  // 4. Contrôle de cohérence agrégé sur les 342 duels des législatives 2024 (en échantillon)
   const fidDefault = data.transfers.fidelity.default
   const fidRn = fidelityFor('lepen', data.transfers, null)
   const legTurnout2024 = 66.7
@@ -410,6 +606,7 @@ export function computeBacktest(
     daysBefore,
     firstRoundEve,
     firstRoundCampaign,
+    coverage80,
     secondRoundPresidential,
     legislatives2024Coherence,
   }

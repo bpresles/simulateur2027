@@ -184,4 +184,38 @@ L’ensemble de la chaîne de validation passe sans erreur :
 - `bun run typecheck` (`tsc -b --noEmit`) : **OK (0 erreur)**
 - `bun run lint` (`eslint .`) : **OK (0 erreur)**
 - `bun run test` (`vitest run`) : **20 / 20 fichiers de tests, 173 / 173 tests passés**
-- `bun run build` (`tsc -b && vite build`) : **OK (`dist/` généré)**
+---
+
+## 8. Mise à jour v2.1 (22 novembre 2026) — Corrections issues de la revue critique (`docs/revue-refonte-2026-11-22.md`)
+
+À la suite de la revue critique de la v2, une passe d’assainissement méthodologique et technique complète a été appliquée, en consignant chaque changement par défaut dans `docs/changelog-methode.md` **avant** examen de son effet sur 2027 :
+
+### 8.1 Corrections techniques et méthodologiques réalisées
+1. **Écart-type de campagne (`monteCarlo.ts`)** : `SIGMA_CAMPAIGN_REF` passé de `0,40` à **`0,595`** par règle écrite (`(0,497 + 0,693) / 2`, moyenne de l’écart-type logit 1995–2022 de `methode.pdf` et du RMS logit 2022 de notre backtest ; plancher sondagier `0,14`). Commentaire obsolète (`3,5 pts` → `3,0 pts`) corrigé.
+2. **Filtre strict 2017 (`reference-2017.json`, `backtest.ts`)** : exige désormais `fillon` (avec `melenchon`, `macron`, `lepen`) et exclut `juppe`, `sarkozy`, `hollande`, `valls`, `montebourg`, `bayrou`, `peillon`. Faute de sondage strict à J−148 avant la fin des primaires, le backtest avance à la première date à offre stabilisée (≥ 3 instituts) : **`2017-01-31` (J−82)**, affiché explicitement.
+3. **Validation croisée stricte & couverture 80 % (`backtest.ts`, `Methodology.tsx`)** :
+   - Ajout de `crossProjectedRmse` (**strictement hors échantillon** : cibles de concentration mesurées uniquement sur l’autre scrutin, sans moyennes structurelles ni tendance).
+   - Ajout de `coverage80` mesurant la couverture empirique des intervalles Monte-Carlo `[P10 ; P90]` sur 2017 (`3/6` T1 brut, T2 couvert) et 2022 (`7/9` = `78 %` T1 brut, `6/9` croisé, T2 couvert).
+   - Désactivation par défaut de `meanReversion` (`0,5 → 0`) et `dampedTrend` (`0,5 → 0`, corrélation de pente 1995–2022 non significative `r = −0,26`).
+   - Distinction stricte sur `/methodologie` entre évaluations **hors échantillon** et **contrôles internes / de calibration**.
+4. **Historique 2025–2027 nettoyé (`sync/wikipedia.ts`, `polls-history-2027.json`)** : sélection d’**une seule hypothèse cohérente par vague** exigeant `lepen` et `melenchon` et ≥ 75 % de masse simulée (`58` vagues propres, `0` vague Bardella sans Le Pen).
+5. **Front républicain sans coefficients ad hoc (`transfers.ts`, `RepublicanFrontControls.tsx`)** : remplacement des 6 coefficients inventés et du seuil à 6 % par une **interpolation logit directe entre deux repères mesurés** — **Présidentielle 2022 (`0 %`)** et **Législatives 2024 (`100 %`)**, 3 préréglages (`Présidentielle 2022`, `Mi-chemin`, `Législatives 2024`), sans extrapolation sous 2022 ni couplage non mesuré sur les nouveaux votants. **Défaut provisoire : `100 %` (Législatives 2024), en attente d’arbitrage utilisateur.**
+6. **Report gauche hors LFI → Mélenchon (`transfers.ts`, `monteCarlo.ts`, `SecondRoundDuel.tsx`, `RepublicanFrontControls.tsx`, `SettingsSheet.tsx`)** : curseur dédié (`lfiLeftTransfer`, défaut provisoire `72 %`), plage d’incertitude Monte-Carlo uniforme configurable (`lfiLeftTransferRange`, défaut provisoire `[35 % ; 75 %]`) et encadré de sensibilité affiché sur les duels LFI–RN. **Valeur centrale et plage en attente d’arbitrage utilisateur.**
+7. **David Lisnard candidat principal & `offerProjection.ts` à 100 %** : suppression du bloc `minor` sur `lisnard` dans `polls-2027.json` (7 instituts sur 8 ; il relève désormais du bloc `droite` au 2nd tour) et suppression de la fuite arbitraire de 10 % lors du retrait d’un candidat dans `offerProjection.ts`.
+8. **Incertitude des candidatures et projection avril 2027 activées par défaut (`simulate.ts`, `campaignProjection.ts`, `ScenarioBar.tsx`, v2.1.1)** : la projection avril 2027 (vote utile par bloc, sans amortissement ni tendance) et l’échantillonnage Monte-Carlo sur 5 offres testées pondérées (`Philippe + Lisnard` 40 %, `Philippe seul` 30 %, `Philippe + Attal` 15 %, `Attal seul` 10 %, `Lagarde seule` 5 %, hors alliance forcée) sont activés par défaut (désactivables en un clic).
+9. **Persistance (`settingsStore.ts`)** : montée en version `15` avec migration ascendante propre.
+
+### 8.2 Chiffres vérifiés v2.1 (base au 21 novembre 2026, J−148)
+- **Backtest 1er tour en campagne** :
+  - **2017 (J−82, offre stabilisée, 3 instituts)** : RMSE brut `4,08 pts` · RMSE croisé hors échantillon `5,05 pts` (Hamon encore devant Mélenchon fin janvier 2017) · RMS logit `0,53`.
+  - **2022 (J−148, 4 instituts)** : RMSE brut `5,35 pts` · **RMSE croisé hors échantillon `2,63 pts`** (−51 %) · RMS logit `0,69`.
+- **Couverture empirique des IC 80 % (contrôle de calibration)** :
+  - **2017 (J−82, `σ = 0,45`)** : `3/6` T1 (`50 %`), T2 `[47,4 ; 72,3 %]` couvre `66,1 %`.
+  - **2022 (J−148, `σ = 0,60`)** : `7/9` T1 brut (`78 %`), `6/9` croisé (`67 %`), T2 `[39,4 ; 72,6 %]` couvre `58,5 %`.
+- **Backtest 2nd tour présidentiel** (score Macron, 1er tour réel connu) :
+  - **2017 (`66,10 %` réel)** : ancre Lég. 2024 `62,55 %` (−3,5 pts, hors éch.) · ancre Prés. 2022 / croisée `57,90 %` (−8,2 pts, hors éch.).
+  - **2022 (`58,55 %` réel)** : ancre Lég. 2024 `60,73 %` (+2,2 pts, hors éch.) · Prés. croisée `57,38 %` (−1,2 pt, hors éch.) · ancre Prés. 2022 `54,95 %` (−3,6 pts, en éch. : Zemmour/NDA traités au taux RN 96 %).
+- **Scénario 2027 (8 instituts dont 4 projetés, photographie actuelle)** :
+  - **Ancre 100 % (Lég. 2024, défaut provisoire)** : Le Pen – Mélenchon `52,6 – 47,4 %` (sensibilité `[35 ; 75 %]` : RN de `52,3 %` à `56,6 %`), Le Pen – Philippe `45,5 – 54,5 %` · Probabilités de victoire : Le Pen `44,5 %`, Mélenchon `26,5 %`, Philippe `13,4 %`, Lisnard `9,6 %`, Glucksmann `4,8 %`.
+  - **Ancre 0 % (Prés. 2022)** : Le Pen – Mélenchon `56,7 – 43,3 %` (sensibilité `[35 ; 75 %]` : RN de `56,4 %` à `61,1 %`), Le Pen – Philippe `51,7 – 48,3 %` · Probabilités de victoire : Le Pen `53,5 %`, Mélenchon `20,9 %`, Philippe `12,0 %`, Lisnard `8,4 %`, Glucksmann `3,8 %`.
+- **Vérification technique v2.1** : `typecheck` OK, `lint` OK, **`20 / 20` fichiers de tests (`178 / 178` tests passés)**, `vite build` OK.

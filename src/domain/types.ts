@@ -477,14 +477,14 @@ export type RepublicanFrontFamily = 'centerRight' | 'moderateLeft' | 'lfi'
 
 export const REPUBLICAN_FRONT_FAMILIES: readonly RepublicanFrontFamily[] = ['centerRight', 'moderateLeft', 'lfi']
 
-export type RepublicanFrontPreset = 'none' | 'eroded2027' | 'level2022' | 'level2017'
+export type RepublicanFrontPreset = 'pres2022' | 'midpoint' | 'leg2024'
 
 export interface RepublicanFrontSettings {
-  /** Force du front républicain (0 = effacé, 0,75 = niveau 2022, 1 = niveau 2017) pour les duels Centre / Droite – RN. */
+  /** Position entre Présidentielle 2022 (0) et Législatives 2024 (1) pour les duels Centre / Droite – RN. */
   centerRight: number
-  /** Force du front républicain pour les duels Gauche modérée (PS, écologistes, PCF) – RN. */
+  /** Position entre Présidentielle 2022 (0) et Législatives 2024 (1) pour les duels Gauche modérée – RN. */
   moderateLeft: number
-  /** Force du front républicain pour les duels LFI – RN. */
+  /** Position entre Présidentielle 2022 (0) et Législatives 2024 (1) pour les duels LFI – RN. */
   lfi: number
 }
 
@@ -499,15 +499,24 @@ export interface Settings {
   projection: CampaignProjectionSettings
   /**
    * Source des reports au 2nd tour pour les duels face au RN :
-   * - `legislatives2024` (défaut) : base historique (législatives 2024 transposées en présidentielle via 2017–2022 et modulées par le front républicain) ;
+   * - `legislatives2024` (défaut) : base historique interpolée entre Présidentielle 2022 (0 %) et Législatives 2024 (100 %) ;
    * - `blend` : mélange pondéré entre base historique et déclarations 2027 corrigées en logit ;
    * - `declared2027` : déclarations 2027 corrigées en logit seules.
    */
   transferSource: TransferSource
   /** Poids des déclarations 2027 dans le mode `blend` (0 à 1, défaut : 0,5). */
   declaredWeight: number
-  /** Force du front républicain (vote de rejet du RN) par famille de duel (0 = effacé, 0,75 = 2022, 1 = 2017). */
+  /** Position du front républicain entre Présidentielle 2022 (0) et Législatives 2024 (1) par famille de duel. */
   republicanFront: RepublicanFrontSettings
+  /**
+   * Report central (%) des électeurs de gauche hors LFI vers Mélenchon en duel LFI – RN (35 à 75 %,
+   * défaut : 72 % = repère NFP 2024 ; 36 % = déclarations 2027 corrigées).
+   */
+  lfiLeftTransfer: number
+  /** Plage d'incertitude [min, max] (%) tirée uniformément dans Monte-Carlo pour le report gauche hors LFI → Mélenchon. */
+  lfiLeftTransferRange: [number, number]
+  /** Intégrer l'incertitude des scénarios de candidatures testés (Attal, Lisnard, Retailleau, Philippe) dans Monte-Carlo. */
+  candidacyUncertaintyEnabled: boolean
   /** Surcharges manuelles des lignes de reports. */
   transferOverrides: Partial<Record<ProfileId, Partial<Record<Bloc, TransferValues>>>>
   /** Répartition choisie pour les électeurs de chaque petit candidat. */
@@ -518,7 +527,7 @@ export interface Settings {
   firstRoundTurnout: number
   /** Part des abstentionnistes du 1er tour qui votent valablement au 2nd (0 à 1, défaut : 0,20). */
   abstainerMobilization: number
-  /** Part de référence des nouveaux votants allant à l'adversaire du RN au niveau 2022 (0 à 1, défaut : 0,55 ; modulée par le front républicain, 0,50 hors RN). */
+  /** Part de référence des nouveaux votants allant à l'adversaire du RN (0 à 1, défaut : 0,55 ; 0,50 hors RN). */
   abstainerAntiRnShare: number
   /** Duel affiché parmi les duels plausibles (identifiant `idA|idB`), null = duel du top 2 déterministe. */
   selectedDuel: string | null
@@ -664,10 +673,18 @@ export interface SecondRoundResult {
   totals: { a: number; b: number; nonExpressed: number }
   /** Fidélité effectivement appliquée à chaque finaliste. */
   fidelity: { a: FidelitySplit; b: FidelitySplit }
-  /** Part effective des nouveaux votants attribuée à l'adversaire du RN (modulée par le front républicain, 0,50 hors RN). */
+  /** Part effective des nouveaux votants attribuée à l'adversaire du RN (0,50 hors RN). */
   effectiveAbstainerAntiRnShare: number
-  /** Force du front républicain appliquée à ce duel (0 à 1), ou null pour un duel sans RN. */
+  /** Position du front républicain (0 = Prés. 2022, 1 = Lég. 2024) appliquée à ce duel, ou null hors duel RN. */
   republicanFrontStrength: number | null
+  /** Sensibilité du score RN au report gauche hors LFI → Mélenchon (uniquement pour un duel `lfi_rn`). */
+  lfiLeftSensitivity?: {
+    lowRate: number
+    highRate: number
+    rnAtLow: number
+    rnAtHigh: number
+    currentRate: number
+  } | null
   /** Abandon net équivalent (1 − E2 / E1, en %) à titre de comparaison historique. */
   netDropout: number
   directPolls: SecondRoundPoll[]
