@@ -1,5 +1,5 @@
 {
-  "asOf": "2026-11-22",
+  "asOf": "2026-11-23",
   "electionDate": "2027-04-18",
   "windowDays": 21,
   "collection": {
@@ -1937,7 +1937,7 @@
         "end": "2026-11-17"
       },
       "sampleSize": 952,
-      "url": "https://www.huffingtonpost.fr/politique/article/dans-notre-sondage-sur-la-presidentielle-2027-edouard-philippe-atteint-la-cote-d-alerte_360406.html",
+      "url": "http://www.commission-des-sondages.fr/notices/files/notices/2026/novembre/10382-pres-iv-yougov-le-huffpost-19-novembre.pdf",
       "scores": {
         "attal": 45,
         "lepen": 55
@@ -1952,7 +1952,7 @@
         "end": "2026-11-17"
       },
       "sampleSize": 952,
-      "url": "https://www.huffingtonpost.fr/politique/article/dans-notre-sondage-sur-la-presidentielle-2027-edouard-philippe-atteint-la-cote-d-alerte_360406.html",
+      "url": "http://www.commission-des-sondages.fr/notices/files/notices/2026/novembre/10382-pres-iv-yougov-le-huffpost-19-novembre.pdf",
       "scores": {
         "glucksmann": 42,
         "lepen": 58
@@ -1967,7 +1967,7 @@
         "end": "2026-11-17"
       },
       "sampleSize": 952,
-      "url": "https://www.huffingtonpost.fr/politique/article/dans-notre-sondage-sur-la-presidentielle-2027-edouard-philippe-atteint-la-cote-d-alerte_360406.html",
+      "url": "http://www.commission-des-sondages.fr/notices/files/notices/2026/novembre/10382-pres-iv-yougov-le-huffpost-19-novembre.pdf",
       "scores": {
         "melenchon": 37,
         "lepen": 63
@@ -1982,7 +1982,7 @@
         "end": "2026-11-17"
       },
       "sampleSize": 952,
-      "url": "https://www.huffingtonpost.fr/politique/article/dans-notre-sondage-sur-la-presidentielle-2027-edouard-philippe-atteint-la-cote-d-alerte_360406.html",
+      "url": "http://www.commission-des-sondages.fr/notices/files/notices/2026/novembre/10382-pres-iv-yougov-le-huffpost-19-novembre.pdf",
       "scores": {
         "philippe": 46,
         "lepen": 54
@@ -1997,7 +1997,7 @@
         "end": "2026-11-17"
       },
       "sampleSize": 952,
-      "url": "https://www.huffingtonpost.fr/politique/article/dans-notre-sondage-sur-la-presidentielle-2027-edouard-philippe-atteint-la-cote-d-alerte_360406.html",
+      "url": "http://www.commission-des-sondages.fr/notices/files/notices/2026/novembre/10382-pres-iv-yougov-le-huffpost-19-novembre.pdf",
       "scores": {
         "melenchon": 39,
         "philippe": 61
@@ -2243,7 +2243,7 @@
         "end": "2026-10-07"
       },
       "sampleSize": 12005,
-      "url": "https://www.odoxa.fr/sondage/melenchon-est-passe-devant-philippe-au-premier-tour-marine-le-pen-est-plus-que-jamais-la-grande-favorite-pour-2027-a-la-fois-au-premier-et-au-second-tour/",
+      "url": "https://www.commission-des-sondages.fr/notices/medias/fichiers/add/2325",
       "scores": {
         "melenchon": 32,
         "lepen": 68
@@ -2267,7 +2267,7 @@
         "end": "2026-10-07"
       },
       "sampleSize": 12005,
-      "url": "https://www.odoxa.fr/sondage/melenchon-est-passe-devant-philippe-au-premier-tour-marine-le-pen-est-plus-que-jamais-la-grande-favorite-pour-2027-a-la-fois-au-premier-et-au-second-tour/",
+      "url": "https://www.commission-des-sondages.fr/notices/medias/fichiers/add/2325",
       "scores": {
         "philippe": 47,
         "lepen": 53
@@ -2285,6 +2285,6 @@
   ],
   "period": {
     "label": "Octobre-décembre 2026",
-    "start": "2026-09-29"
+    "start": "2026-09-24"
   }
 }
