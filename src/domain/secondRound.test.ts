@@ -2,6 +2,9 @@ import { frozenData as simulationData } from '../test/frozenData'
 import {
   aggregatedProfileDropout,
   computeSecondRound,
+  directPollGapAlert,
+  directPollRmse,
+  implicitNoIntention,
   noIntentionRange,
   pollBiasGaps,
   presidentialDropout,
@@ -289,5 +292,49 @@ describe('indicateurs historiques (abandon, noIntention, pollBiasGaps)', () => {
     expect(g2022.estimate).toBeCloseTo(56.08, 2)
     const g2017 = pollBiasGaps(simulationData.secondRoundPollBias, live).find((x) => x.year === 2017)!
     expect(g2017.nearest).toEqual({ institute: 'Ifop', end: '2016-12-03', distance: 141 })
+  })
+})
+
+describe('alerte d’écart aux sondages directs et sans-intention implicite', () => {
+  const live = { asOf: '2026-11-23', electionDate: '2027-04-11' }
+
+  it('calcule le RMSE historique depuis les données (pas de constante)', () => {
+    const r = directPollRmse(simulationData.secondRoundPollBias, live)!
+    expect(r.count).toBeGreaterThan(0)
+    expect(r.rmse).toBeGreaterThan(0)
+    expect(r.rmse).toBeLessThan(10)
+    expect(directPollRmse({ description: '', elections: [] }, live)).toBeUndefined()
+  })
+
+  it('déclenche l’alerte au-delà de 2 × RMSE seulement', () => {
+    const polls = [{ scores: { a: 50 } }, { scores: { a: 54 } }]
+    expect(directPollGapAlert(52, polls, 'a', 2)).toMatchObject({ pollMean: 52, gap: 0, threshold: 4, exceeded: false })
+    expect(directPollGapAlert(57, polls, 'a', 2)!.exceeded).toBe(true)
+    expect(directPollGapAlert(56, polls, 'a', 2)!.exceeded).toBe(false)
+  })
+
+  it('ne renvoie rien sans sondage ou sans RMSE', () => {
+    expect(directPollGapAlert(50, [], 'a', 2)).toBeNull()
+    expect(directPollGapAlert(50, [{ scores: { a: 50 } }], 'a', undefined)).toBeNull()
+  })
+
+  it('applique (m·E − p·I)/(E − I) sur base votants', () => {
+    // s = 20 % sans intention, E = 100, I = 80 : q = (m·100 − p·80)/20 ; m = 55, p = 52 -> 67
+    const r = implicitNoIntention(55, 52, { share: 20, base: 'votants' }, 70)
+    expect(r).toEqual({ kind: 'ok', share: expect.closeTo(67, 6) })
+  })
+
+  it('gère les cas impossibles et la base absente', () => {
+    expect(implicitNoIntention(55, 52, undefined, 70)).toBeUndefined()
+    // inscrits : E = 70 < I = 80 -> aucune place
+    expect(implicitNoIntention(55, 52, { share: 20, base: 'inscrits' }, 70)).toEqual({
+      kind: 'impossible',
+      reason: 'no-room',
+      share: null,
+    })
+    // q hors [0 ; 100]
+    const r = implicitNoIntention(70, 52, { share: 20, base: 'votants' }, 70)
+    expect(r).toMatchObject({ kind: 'impossible', reason: 'out-of-range' })
+    expect(implicitNoIntention(Number.NaN, 52, { share: 20, base: 'votants' }, 70)).toBeUndefined()
   })
 })

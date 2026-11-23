@@ -1,6 +1,9 @@
 import { defaultProjectionSettings, projectCampaign } from './campaignProjection'
 import { runMonteCarlo } from './monteCarlo'
+import type { MonteCarloInput } from './monteCarlo'
 import { addDays, averageHypothesisPolls, daysBetween, normalize, pollWeight, weightedMeanByKey } from './pollAverage'
+import { calibrationDates } from './sigmaCalibration'
+import type { CalibrationYear } from './sigmaCalibration'
 import { aggregatedProfileDropout, computeSecondRound, pollBiasGaps } from './secondRound'
 import {
   DEFAULT_LFI_LEFT_TRANSFER_RANGE,
@@ -21,8 +24,11 @@ import type {
   TransferValues,
 } from './types'
 
+/** Élections du backtest : validation croisée « leave-one-out » sur ces trois scrutins. */
+export type BacktestYear = 2012 | 2017 | 2022
+
 export interface EveBacktestYear {
-  year: 2017 | 2022
+  year: BacktestYear
   pollCount: number
   /** RMSE des sondages bruts de la dernière semaine (pondérés fraîcheur/échantillon), en pts. */
   rawRmse: number
@@ -33,7 +39,7 @@ export interface EveBacktestYear {
 }
 
 export interface CampaignBacktestYear {
-  year: 2017 | 2022
+  year: BacktestYear
   /** Horizon cible demandé (distance actuelle J−d de 2027). */
   daysBefore: number
   /** Horizon effectif retenu (égal à `daysBefore` si ≥ 1 institut correspond, sinon 1re date à offre stabilisée). */
@@ -55,7 +61,7 @@ export interface CampaignBacktestYear {
 }
 
 export interface CoverageBacktestYear {
-  year: 2017 | 2022
+  year: BacktestYear
   effectiveDaysBefore: number
   targetDate: string
   usedStabilizedHorizon: boolean
@@ -66,11 +72,11 @@ export interface CoverageBacktestYear {
   coveredRaw: number
   /** Candidats dont le résultat officiel tombe dans [P10, P90] (base projection croisée hors échantillon). */
   coveredCrossProjected: number
-  /** Contrôle sur le 2nd tour (duel Macron – Le Pen) : le résultat officiel tombe-t-il dans [P10, P90] ? */
-  secondRoundCovered: boolean
-  secondRoundP10: number
-  secondRoundP90: number
-  secondRoundActual: number
+  /** Contrôle sur le 2nd tour (duel Macron – Le Pen) : le résultat officiel tombe-t-il dans [P10, P90] ? `null` en 2012 (2nd tour sans RN, exclu). */
+  secondRoundCovered: boolean | null
+  secondRoundP10: number | null
+  secondRoundP90: number | null
+  secondRoundActual: number | null
 }
 
 export interface SecondRoundBacktestYear {
@@ -124,6 +130,7 @@ const LEFT_IDS = new Set([
   'hollande',
   'peillon',
   'pinel',
+  'joly',
 ])
 
 const RIGHT_IDS = new Set(['fillon', 'pecresse', 'lassalle', 'bertrand', 'juppe', 'sarkozy'])
@@ -185,6 +192,17 @@ function observedBlocTargets(ref: PastElectionReference): Partial<Record<Bloc, n
     if (scores.length > 0 && total > 0) {
       out[bloc] = Math.max(...scores) / total
     }
+  }
+  return out
+}
+
+/** Cibles de concentration moyennes mesurées sur les autres élections (leave-one-out). */
+function pooledBlocTargets(others: PastElectionReference[]): Partial<Record<Bloc, number>> {
+  const all = others.map(observedBlocTargets)
+  const out: Partial<Record<Bloc, number>> = {}
+  for (const bloc of BLOCS) {
+    const vals = all.map((t) => t[bloc]).filter((v): v is number => v !== undefined)
+    if (vals.length > 0) out[bloc] = vals.reduce((a, v) => a + v, 0) / vals.length
   }
   return out
 }
@@ -302,24 +320,35 @@ function neutralBacktestSettings(): Settings {
 export function computeBacktest(
   data: SimulationData,
   pollsRef: { asOf: string; electionDate: string } = data.polls,
+  options: { sigmaCampaignRef?: number } = {},
 ): BacktestReport {
   const daysBefore = Math.max(0, daysBetween(pollsRef.asOf, pollsRef.electionDate))
-  const refs = [
-    { year: 2017 as const, ref: data.reference2017, other: data.reference2022 },
-    { year: 2022 as const, ref: data.reference2022, other: data.reference2017 },
+  const all = [
+    { year: 2012 as const, ref: data.reference2012 as PastElectionReference },
+    { year: 2017 as const, ref: data.reference2017 as PastElectionReference },
+    { year: 2022 as const, ref: data.reference2022 as PastElectionReference },
   ]
+  // Leave-one-out : chaque élection est évaluée avec les paramètres mesurés sur les deux autres.
+  const refs = all.map(({ year, ref }) => ({ year, ref, others: all.filter((x) => x.year !== year).map((x) => x.ref) }))
+  // Le 2nd tour 2012 (Hollande–Sarkozy, sans RN) est exclu du backtest du front républicain.
+  const presidentialRefs = refs.filter((r) => r.year !== 2012) as {
+    year: 2017 | 2022
+    ref: PastElectionReference
+    others: PastElectionReference[]
+  }[]
 
   // 1. Sondages de la dernière semaine (2017 & 2022) : bruts vs correction par ratio croisée (hors échantillon)
-  const firstRoundEve: EveBacktestYear[] = refs.map(({ year, ref, other }) => {
+  const firstRoundEve: EveBacktestYear[] = refs.map(({ year, ref, others }) => {
     const actual = actualScores(ref)
     const poll = evePollAverage(ref)
-    const otherActual = actualScores(other)
-    const otherPoll = evePollAverage(other)
+    const otherStats = others.map((o) => ({ actual: actualScores(o), poll: evePollAverage(o) }))
     const crossAdjusted = normalize(
       Object.fromEntries(
         Object.entries(poll).map(([id, score]) => {
-          const factor =
-            otherActual[id] !== undefined && (otherPoll[id] ?? 0) > 0 ? otherActual[id]! / otherPoll[id]! : 1
+          const factors = otherStats
+            .filter((o) => o.actual[id] !== undefined && (o.poll[id] ?? 0) > 0)
+            .map((o) => o.actual[id]! / o.poll[id]!)
+          const factor = factors.length > 0 ? factors.reduce((a, v) => a + v, 0) / factors.length : 1
           return [id, score * factor]
         }),
       ),
@@ -339,7 +368,7 @@ export function computeBacktest(
   const firstRoundCampaign: CampaignBacktestYear[] = []
   const coverage80: CoverageBacktestYear[] = []
 
-  for (const { year, ref, other } of refs) {
+  for (const { year, ref, others } of refs) {
     const requestedDate = addDays(ref.electionDate, -daysBefore)
     const actual = actualScores(ref)
     const allKnown = new Set([
@@ -417,7 +446,7 @@ export function computeBacktest(
         ? projectCampaign(avg.average, campaignCands, projSettings, [], targetDate, ref.electionDate).projectedScores
         : avg.average
 
-    const crossTargets = observedBlocTargets(other)
+    const crossTargets = pooledBlocTargets(others)
     const crossProjected =
       avg.institutesUsed > 0
         ? projectCampaign(avg.average, campaignCands, projSettings, [], targetDate, ref.electionDate, 1, crossTargets)
@@ -441,10 +470,13 @@ export function computeBacktest(
     // Couverture empirique des intervalles Monte-Carlo à 80 % ([P10, P90])
     const biasEntry = data.secondRoundPollBias.elections.find((e) => e.year === year)
     const actualAntiRn =
-      year === 2022
-        ? (100 * data.reference2022.secondRound.candidates.find((c) => c.id === 'macron')!.votes) /
-          data.reference2022.secondRound.expressed
-        : (biasEntry?.result.antiRn ?? 66.1)
+      year === 2012
+        ? null
+        : year === 2022
+          ? (100 * data.reference2022.secondRound.candidates.find((c) => c.id === 'macron')!.votes) /
+            data.reference2022.secondRound.expressed
+          : (biasEntry?.result.antiRn ?? 66.1)
+    const duel: [string, string] = year === 2012 ? ['hollande', 'sarkozy'] : ['macron', 'lepen']
 
     if (avg.institutesUsed > 0) {
       const bnShare = (ref.voters - ref.expressed) / ref.voters
@@ -455,7 +487,8 @@ export function computeBacktest(
         candidatesById: candMap,
         minorTransfers: {},
         blankNullShare: bnShare,
-        displayedDuel: ['macron', 'lepen'],
+        displayedDuel: duel,
+        sigmaCampaignRefOverride: options.sigmaCampaignRef,
         asOfOverride: targetDate,
         electionDateOverride: ref.electionDate,
         iterations: COVERAGE_MC_ITERATIONS,
@@ -468,7 +501,8 @@ export function computeBacktest(
         candidatesById: candMap,
         minorTransfers: {},
         blankNullShare: bnShare,
-        displayedDuel: ['macron', 'lepen'],
+        displayedDuel: duel,
+        sigmaCampaignRefOverride: options.sigmaCampaignRef,
         asOfOverride: targetDate,
         electionDateOverride: ref.electionDate,
         iterations: COVERAGE_MC_ITERATIONS,
@@ -496,9 +530,9 @@ export function computeBacktest(
         evaluatedCount: evaluated.length,
         coveredRaw,
         coveredCrossProjected,
-        secondRoundCovered: actualAntiRn >= srP10 && actualAntiRn <= srP90,
-        secondRoundP10: srP10,
-        secondRoundP90: srP90,
+        secondRoundCovered: actualAntiRn === null ? null : actualAntiRn >= srP10 && actualAntiRn <= srP90,
+        secondRoundP10: actualAntiRn === null ? null : srP10,
+        secondRoundP90: actualAntiRn === null ? null : srP90,
         secondRoundActual: actualAntiRn,
       })
     }
@@ -510,7 +544,7 @@ export function computeBacktest(
     BLOCS.map((b) => [b, applyRepublicanFrontRow('ensemble_rn', b, leg2024Ensemble[b], data.transfers, 0)]),
   ) as Record<Bloc, TransferValues>
   const gaps = pollBiasGaps(data.secondRoundPollBias, pollsRef)
-  const secondRoundPresidential: SecondRoundBacktestYear[] = refs.map(({ year, ref }) => {
+  const secondRoundPresidential: SecondRoundBacktestYear[] = presidentialRefs.map(({ year, ref }) => {
     const biasEntry = data.secondRoundPollBias.elections.find((e) => e.year === year)
     const actualAntiRn =
       year === 2022
@@ -608,4 +642,220 @@ export function computeBacktest(
     secondRoundPresidential,
     legislatives2024Coherence,
   }
+}
+
+/** Une date d'évaluation du calage de σ : entrées du Monte-Carlo et candidats à scorer. */
+export interface SigmaCalibrationCase {
+  year: CalibrationYear
+  daysBefore: number
+  date: string
+  electionDate: string
+  institutesUsed: number
+  /** Prévision par défaut : projection de campagne activée, cibles recalculées hors échantillon (leave-one-out). */
+  crossProjectedScores: Record<string, number>
+  /** Contrôle : moyenne brute des sondages, sans projection. */
+  rawScores: Record<string, number>
+  candidatesById: Map<string, Candidate>
+  blankNullShare: number
+  /** Résultat officiel (% des exprimés) des candidats évalués : ≥ 2 % et présents dans la moyenne. */
+  evaluated: Record<string, number>
+}
+
+/**
+ * Dates d'évaluation du calage de σ (amendement du 23/11/2026 à la règle 3) : pour chaque élection, J−150 à J−24
+ * tous les 14 jours, en ne gardant que les dates où la moyenne stricte (fenêtre, offre `require`/`exclude`,
+ * sans projection d'offre) compte au moins un institut. Aucun repli sur une « offre stabilisée » : une date sans
+ * moyenne calculable est écartée et listée dans `skipped`.
+ */
+export function buildSigmaCalibrationCases(data: SimulationData): {
+  cases: SigmaCalibrationCase[]
+  skipped: { year: CalibrationYear; daysBefore: number; date: string }[]
+} {
+  const all = [
+    { year: 2012 as const, ref: data.reference2012 as PastElectionReference },
+    { year: 2017 as const, ref: data.reference2017 as PastElectionReference },
+    { year: 2022 as const, ref: data.reference2022 as PastElectionReference },
+  ]
+  const cases: SigmaCalibrationCase[] = []
+  const skipped: { year: CalibrationYear; daysBefore: number; date: string }[] = []
+  for (const { year, ref } of all) {
+    const others = all.filter((x) => x.year !== year).map((x) => x.ref)
+    const actual = actualScores(ref)
+    const allKnown = new Set([
+      ...ref.candidates.map((c) => c.id),
+      ...ref.campaignPolls.otherCandidates.map((c) => c.id),
+    ])
+    const candMap = historicalCandidatesMap(ref, allKnown)
+    const campaignCands = [...candMap.values()]
+    const crossTargets = pooledBlocTargets(others)
+    const projSettings = { ...defaultProjectionSettings(), enabled: true, meanReversion: 0, dampedTrend: 0 }
+    for (const { daysBefore, date } of calibrationDates(ref.electionDate)) {
+      const avg = averageHypothesisPolls(
+        ref.campaignPolls.polls,
+        date,
+        ref.campaignPolls.windowDays,
+        { require: ref.campaignPolls.require, exclude: ref.campaignPolls.exclude },
+        allKnown,
+        undefined,
+        [],
+        {},
+        { weighted: true, offerProjection: false },
+      )
+      if (avg.institutesUsed === 0) {
+        skipped.push({ year, daysBefore, date })
+        continue
+      }
+      const crossProjected = projectCampaign(
+        avg.average,
+        campaignCands,
+        projSettings,
+        [],
+        date,
+        ref.electionDate,
+        1,
+        crossTargets,
+      ).projectedScores
+      const evaluated = Object.fromEntries(
+        ref.candidates.filter((c) => actual[c.id]! >= 2 && avg.average[c.id] !== undefined).map((c) => [c.id, actual[c.id]!]),
+      )
+      cases.push({
+        year,
+        daysBefore,
+        date,
+        electionDate: ref.electionDate,
+        institutesUsed: avg.institutesUsed,
+        crossProjectedScores: crossProjected,
+        rawScores: avg.average,
+        candidatesById: candMap,
+        blankNullShare: (ref.voters - ref.expressed) / ref.voters,
+        evaluated,
+      })
+    }
+  }
+  return { cases, skipped }
+}
+
+/** Entrées Monte-Carlo d'une date de calage (mêmes réglages neutres que le contrôle de couverture existant). */
+export function sigmaCalibrationMcInput(
+  data: SimulationData,
+  c: SigmaCalibrationCase,
+  baseScores: Record<string, number>,
+  sigma: number,
+  iterations: number,
+  seed: number,
+): MonteCarloInput {
+  return {
+    data,
+    settings: neutralBacktestSettings(),
+    baseScores,
+    candidatesById: c.candidatesById,
+    minorTransfers: {},
+    blankNullShare: c.blankNullShare,
+    displayedDuel: c.year === 2012 ? ['hollande', 'sarkozy'] : ['macron', 'lepen'],
+    sigmaCampaignRefOverride: sigma,
+    asOfOverride: c.date,
+    electionDateOverride: c.electionDate,
+    iterations,
+    seed,
+    returnSamples: true,
+    firstRoundOnly: true,
+  }
+}
+
+export type UsefulVoteVariant = 'A' | 'B' | 'C'
+
+export interface UsefulVoteVariantYear {
+  year: BacktestYear
+  targetDate: string
+  /** Candidat de tête de chaque bloc à la date (variante A) et dans les résultats officiels. */
+  leadersAtDate: Partial<Record<Bloc, string>>
+  leadersActual: Partial<Record<Bloc, string>>
+  /** Part des tirages (variante B) où le leader du bloc diffère du leader à la date. */
+  leaderChangeRate: Partial<Record<Bloc, number>>
+  /** RMSE (cibles croisées leave-one-out) par variante ; `raw` = moyenne brute sans projection. */
+  rmse: Record<UsefulVoteVariant | 'raw', number>
+}
+
+const VARIANT_DRAWS = 400
+
+function leadersOf(scores: Record<string, number>, byId: Map<string, Candidate>): Partial<Record<Bloc, string>> {
+  const out: Partial<Record<Bloc, string>> = {}
+  for (const [id, v] of Object.entries(scores)) {
+    const b = byId.get(id)?.bloc
+    if (!b) continue
+    const cur = out[b]
+    if (cur === undefined || v > (scores[cur] ?? 0)) out[b] = id
+  }
+  return out
+}
+
+/**
+ * Compare trois façons de désigner le bénéficiaire du vote utile (T3b v2.2) sur 2012, 2017 et 2022 :
+ * A = leader de la moyenne à la date ; B = leader recalculé à chaque tirage logit (σ du backtest) puis
+ * projections moyennées ; C = leader de la dernière vague (fenêtre de 7 jours). Cibles croisées leave-one-out.
+ */
+export function computeUsefulVoteVariants(
+  data: SimulationData,
+  pollsRef: { asOf: string; electionDate: string } = data.polls,
+): UsefulVoteVariantYear[] {
+  const report = computeBacktest(data, pollsRef)
+  const all = [data.reference2012, data.reference2017, data.reference2022] as PastElectionReference[]
+  const years = [2012, 2017, 2022] as const
+  return years.map((year, i) => {
+    const ref = all[i]!
+    const others = all.filter((_, j) => j !== i)
+    const camp = report.firstRoundCampaign.find((c) => c.year === year)!
+    const cov = report.coverage80.find((c) => c.year === year)!
+    const actual = actualScores(ref)
+    const allKnown = new Set([...ref.candidates.map((c) => c.id), ...ref.campaignPolls.otherCandidates.map((c) => c.id)])
+    const avgAt = (dt: string, win: number) =>
+      averageHypothesisPolls(ref.campaignPolls.polls, dt, win, { require: ref.campaignPolls.require, exclude: ref.campaignPolls.exclude }, allKnown, undefined, [], {}, { weighted: true, offerProjection: false })
+    const avg = avgAt(camp.targetDate, ref.campaignPolls.windowDays)
+    const last = avgAt(camp.targetDate, 7)
+    const byId = historicalCandidatesMap(ref, allKnown)
+    const cands = [...byId.values()]
+    const targets = pooledBlocTargets(others)
+    const base = { ...defaultProjectionSettings(), enabled: true, meanReversion: 0, dampedTrend: 0 }
+    const project = (scores: Record<string, number>, lead?: Partial<Record<Bloc, string>>) => {
+      const s = { ...base, usefulVote: { ...base.usefulVote } }
+      if (lead) for (const b of BLOCS) if (lead[b]) s.usefulVote[b] = { intensity: 1, beneficiary: lead[b]! }
+      return projectCampaign(scores, cands, s, [], camp.targetDate, ref.electionDate, 1, targets).projectedScores
+    }
+    const leadersAtDate = leadersOf(avg.average, byId)
+    const A = project(avg.average)
+    const C = last.institutesUsed > 0 ? project(avg.average, leadersOf(last.average, byId)) : A
+    // B : tirages logit gaussiens déterministes (graine fixe) autour de la moyenne
+    let seed = 2027 + year
+    const rnd = () => {
+      seed = (seed * 1664525 + 1013904223) % 4294967296
+      return (seed + 0.5) / 4294967296
+    }
+    const gauss = () => Math.sqrt(-2 * Math.log(rnd())) * Math.cos(2 * Math.PI * rnd())
+    const sd = cov.sigmaLogit
+    const sum: Record<string, number> = {}
+    const changes: Partial<Record<Bloc, number>> = {}
+    for (let d = 0; d < VARIANT_DRAWS; d++) {
+      const shocked = normalize(
+        Object.fromEntries(
+          Object.entries(avg.average).map(([id, v]) => {
+            const l = logit(v / 100) + sd * gauss()
+            return [id, (100 * 1) / (1 + Math.exp(-l))]
+          }),
+        ),
+      )
+      const lead = leadersOf(shocked, byId)
+      for (const b of BLOCS) if (lead[b] !== leadersAtDate[b]) changes[b] = (changes[b] ?? 0) + 1 / VARIANT_DRAWS
+      const p = project(shocked, lead)
+      for (const [id, v] of Object.entries(p)) sum[id] = (sum[id] ?? 0) + v / VARIANT_DRAWS
+    }
+    const B = normalize(sum)
+    return {
+      year,
+      targetDate: camp.targetDate,
+      leadersAtDate,
+      leadersActual: leadersOf(actual, byId),
+      leaderChangeRate: changes,
+      rmse: { raw: rmse(actual, avg.average), A: rmse(actual, A), B: rmse(actual, B), C: rmse(actual, C) },
+    }
+  })
 }

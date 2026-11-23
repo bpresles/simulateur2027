@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react'
+import sigmaCalibrationJson from '../../data/sigma-calibration.json'
 import { simulationData } from '../../data/schema'
 import { availableAlliances, testedOptions } from '../../domain/alliances'
 import {
@@ -13,6 +14,8 @@ import {
   TREND_DAMPING_DAYS,
 } from '../../domain/campaignProjection'
 import { CAMPAIGN_REF_DAYS, SIGMA_CAMPAIGN_REF, SIGMA_POLLING_FLOOR } from '../../domain/monteCarlo'
+import { parseSigmaCalibration } from '../../domain/sigmaCalibration'
+import type { CoverageStat } from '../../domain/sigmaCalibration'
 import {
   MIN_MINOR_INSTITUTES,
   POLL_HALF_LIFE_DAYS,
@@ -135,6 +138,102 @@ function Table({ children, caption }: { children: ReactNode; caption?: string })
         {children}
       </table>
     </div>
+  )
+}
+
+const sigmaCalibration = parseSigmaCalibration(sigmaCalibrationJson)
+
+const coverageLabel = (c: CoverageStat) =>
+  `${c.covered} / ${c.total} (${pct(100 * c.rate, 0)}) · IC 95 % [${pct(100 * c.ci95[0], 0)} ; ${pct(100 * c.ci95[1], 0)}]`
+
+/** Calage de σ_ref par couverture : lecture du JSON produit hors application par `scripts/calibrate-sigma.ts`. */
+function SigmaCalibrationBlock() {
+  const c = sigmaCalibration
+  const shown = c.curve.filter(
+    (p) =>
+      Math.abs(p.sigma * 10 - Math.round(p.sigma * 10)) < 1e-6 ||
+      p.sigma === c.sigmaRef ||
+      p.sigma === c.crpsArgmin.sigma,
+  )
+  const target = pct(100 * c.coverageTarget, 0)
+  return (
+    <>
+      <Table
+        caption={`Calage de σ_ref : couverture [P10 ; P90] des scores de 1er tour (cible ${target}) et CRPS en diagnostic, 2012, 2017 et 2022 (${integer(c.iterations)} tirages, graine ${c.seed}, relevé du ${date(c.generatedOn)}) : σ_ref retenu = ${num(c.sigmaRef, 3)}`}
+      >
+        <thead>
+          <tr className="border-b border-rule">
+            <th className={th}>σ_ref</th>
+            <th className={`${th} text-right`}>Couverture, moyenne par élection</th>
+            <th className={`${th} text-right`}>Couverture, tous points</th>
+            <th className={`${th} text-right`}>CRPS</th>
+          </tr>
+        </thead>
+        <tbody>
+          {shown.map((p) => (
+            <tr key={p.sigma} className="border-b border-rule/60">
+              <td className={`${td} num ${p.sigma === c.sigmaRef ? 'font-medium' : ''}`}>{num(p.sigma, 3)}</td>
+              <td className={`${td} num text-right ${p.sigma === c.sigmaRef ? 'font-medium' : ''}`}>
+                {pct(100 * p.coverageMean, 1)}
+              </td>
+              <td className={`${td} num text-right text-ink-3`}>{pct(100 * p.coveragePooled, 1)}</td>
+              <td className={`${td} num text-right text-ink-3`}>{num(p.pooled, 3)}</td>
+            </tr>
+          ))}
+        </tbody>
+      </Table>
+      <div className="prose-method">
+        <ul>
+          <li>
+            <strong>Règle :</strong> σ_ref est la valeur de la grille {num(c.grid.min, 2)}–{num(c.grid.max, 2)} (pas{' '}
+            {num(c.grid.step, 3)}) dont la couverture [P10 ; P90], moyenne simple des trois élections (points
+            candidat-date regroupés au sein de chaque élection), est la plus proche de {target} ; à égalité, la plus
+            petite. Couverture au σ retenu : {pct(100 * c.coverageAtSigmaRef, 1)} en moyenne par élection, mais
+            seulement {coverageLabel(c.coverage.pooled)} tous points confondus ;{' '}
+            {c.coverage.byYear.map((r) => `${r.year} : ${coverageLabel(r.stat)}`).join(' ; ')}. Les dates d’une même
+            élection sont corrélées : ces intervalles de confiance sont optimistes.
+          </li>
+          <li>
+            <strong>Dates retenues :</strong>{' '}
+            {c.datesByElection
+              .map(
+                (d) =>
+                  `${d.year} : ${d.daysBefore.length}${d.daysBefore.length > 0 ? ` (J−${d.daysBefore[0]} à J−${d.daysBefore.at(-1)})` : ''}`,
+              )
+              .join(' ; ')}
+            . Une date n’est retenue que si la moyenne des sondages y est calculable ; en 2012, les sondages
+            antérieurs à mi-mars testaient tous au moins une personnalité finalement non candidate, exclue de
+            l’offre. 2012 ne compte donc que quelques points, tous couverts, ce qui tire la moyenne par élection
+            vers le haut.
+          </li>
+          <li>
+            <strong>Stabilité hors échantillon</strong> (σ choisi par la même règle sur les deux autres élections,
+            couverture mesurée sur l’élection exclue) :{' '}
+            {c.leaveOneOut
+              .map((r) => `${r.heldOut} exclue : σ = ${num(r.sigma, 3)}, couverture ${pct(100 * r.coverage, 1)}`)
+              .join(' ; ')}
+            . Le σ choisi varie fortement selon l’élection exclue : la règle est mal identifiée.
+          </li>
+          <li>
+            <strong>Par tranche d’horizon</strong> (au σ retenu) :{' '}
+            {c.coverage.byHorizonBand.map((r) => `${r.band} : ${coverageLabel(r.stat)}`).join(' ; ')}.
+          </li>
+          <li>
+            <strong>Lecture :</strong> le CRPS est minimal à σ = {num(c.crpsArgmin.sigma, 3)} (couverture moyenne{' '}
+            {pct(100 * c.crpsArgmin.coverageMean, 1)}) : il récompense la netteté, et quelques erreurs de centrage
+            durables (candidat sur- ou sous-estimé par les moyennes pendant toute la campagne) pèsent plus que le
+            bruit de campagne. Un σ unique ne peut pas être à la fois net et calibré ; une incertitude propre à
+            chaque candidat est à l’étude. Contrôle sans projection de campagne au σ retenu : CRPS{' '}
+            {num(c.rawControl.crps, 3)}, couverture {coverageLabel(c.rawControl.coverage)}. Valeurs antérieures (même
+            prévision) :{' '}
+            {c.previous
+              .map((p) => `σ = ${num(p.sigma, 3)} (${p.label}) → couverture ${pct(100 * p.coverageMean, 1)}, CRPS ${num(p.crps, 3)}`)
+              .join(' ; ')}
+            .
+          </li>
+        </ul>
+      </div>
+    </>
   )
 }
 
@@ -287,11 +386,16 @@ export function Methodology({ result }: { result: SimulationResult }) {
         <Step id="projection" n={3} title="Projection temporelle vers avril 2027">
           <div className="prose-method">
             <p>
-              Par défaut, le simulateur s’ouvre en mode <strong>projection avril 2027</strong> (actuellement{' '}
+              La projection avril 2027 est <strong>activée par défaut</strong> (actuellement{' '}
               <strong>{settings.projection.enabled ? 'activée' : 'désactivée'}</strong>, à J−
               {result.projection.daysRemaining}, facteur d’horizon{' '}
               <span className="num">{pct(result.projection.horizonFactor * 100, 0)}</span>), avec bascule en
-              un clic vers la <strong>photographie actuelle</strong> des sondages (« Aujourd’hui »). Tous les
+              un clic vers la <strong>photographie actuelle</strong> des sondages (« Aujourd’hui »). Limite
+              connue : en validation croisée leave-one-out, la projection ne bat pas la moyenne brute sur les
+              trois élections (au 23/11/2026 : égalité en 2012, moins bien en 2017, mieux en 2022) ; elle reste
+              activée par défaut par choix éditorial, et la photographie actuelle reste disponible. Le bénéficiaire du vote
+              utile « Auto » est le candidat le plus haut de son bloc à la date, sans tirage aléatoire
+              (variante retenue après comparaison A/B/C, voir le journal des changements). Tous les
               mécanismes décroissent continûment et <strong>s’annulent exactement le jour du scrutin</strong>{' '}
               (facteur{' '}
               <span className="font-mono text-xs">h = min(1, joursRestants / {PROJECTION_HORIZON_DAYS})</span>
@@ -307,10 +411,11 @@ export function Methodology({ result }: { result: SimulationResult }) {
                 droite (94,3 % et 60,4 %),{' '}
                 <strong>{pct(TARGET_CONCENTRATION.extreme_droite * 100, 0)}</strong> à l’extrême droite (79,1
                 % et 71,7 %), et <strong>{pct(TARGET_CONCENTRATION.centre * 100, 0)}</strong> au centre
-                (hypothèse symétrique à la droite, le centre n’ayant eu qu’un seul candidat principal en 2017
-                et 2022). Une option regroupe centre et droite (cible{' '}
+                (<strong>hypothèse non sourcée</strong>, plage de sensibilité 65–85 % : le centre n’ayant eu qu’un
+                seul candidat principal en 2012, 2017 et 2022, aucune mesure). Une option regroupe centre et droite (cible{' '}
                 {pct(MERGED_CENTER_RIGHT_TARGET * 100, 0)}). Garde-fous :{' '}
-                <strong>{pct(CROSS_BLOC_LEAK * 100, 0)}</strong> de fuite vers les blocs voisins, plancher de{' '}
+                <strong>{pct(CROSS_BLOC_LEAK * 100, 0)}</strong> de fuite vers les blocs voisins (hypothèse non
+                sourcée, plage de sensibilité 6–18 %), plancher de{' '}
                 <strong>{pct(CANDIDATE_FLOOR, 1)}</strong> par candidat et drainage réduit pour un co-favori
                 proche.
               </li>
@@ -707,10 +812,11 @@ export function Methodology({ result }: { result: SimulationResult }) {
             <ul>
               <li>
                 <strong>Chocs de campagne au 1er tour (règle écrite) :</strong> distribution Student-t à 8
-                degrés de liberté en log-ratio. L’écart-type de référence à J−{CAMPAIGN_REF_DAYS} est fixé par
-                règle écrite avant examen de son effet sur 2027 : moyenne arithmétique de l’écart-type logit
-                1995–2022 mesuré sur les candidats ≥ 5 % (0,497) et du RMS logit 2022 de notre backtest
-                (0,693), soit <strong>σ_ref = {num(SIGMA_CAMPAIGN_REF, 3)}</strong> (donnant σ ={' '}
+                degrés de liberté en log-ratio. L’écart-type de référence à J−{CAMPAIGN_REF_DAYS} est la valeur
+                dont les intervalles [P10 ; P90] des scores de 1er tour de la prévision par défaut couvrent le
+                résultat réel dans 80 % des cas, en moyenne simple des trois présidentielles du backtest (2012,
+                2017, 2022 ; dates J−150 à J−24 tous les 14 jours ; candidats ≥ 2 %), soit{' '}
+                <strong>σ_ref = {num(SIGMA_CAMPAIGN_REF, 3)}</strong> (donnant σ ={' '}
                 {num(result.monteCarlo.sigmaLogit, 2)} à J−{result.monteCarlo.daysToElection}, décroissant
                 vers un plancher de {num(SIGMA_POLLING_FLOOR, 2)} la dernière semaine). La variance est
                 répartie en choc de bloc (50 %), vote utile intra-bloc à somme nulle (30 %) et choc propre par
@@ -745,7 +851,20 @@ export function Methodology({ result }: { result: SimulationResult }) {
               estimé sur l’élection testée : ratio croisé 2017↔2022, vote utile avec cibles de l’autre
               scrutin, reports 2024 et présidentielle croisée sur 2017 et 2022) des{' '}
               <em>contrôles internes / de calibration</em> (cibles moyennes 2017–2022, ancre 2022 sur 2022,
-              cohérence agrégée des 342 duels 2024, couverture empirique à 80 %).
+              cohérence agrégée des 342 duels 2024, couverture empirique à 80 %). Les élections évaluées sont les
+              présidentielles 2012, 2017 et 2022 (aucune autre élection), en validation croisée
+              « leave-one-out » ; le 2nd tour 2012 (Hollande – Sarkozy, sans RN) est exclu du backtest du front
+              républicain. Poids des scénarios de candidatures (40/30/15/10/5 %) : hypothèse non sourcée.
+            </p>
+            <p>
+              <strong>Aides à la lecture (v2.2) :</strong> le préréglage « Incertain » du front républicain tire
+              à chaque itération Monte-Carlo une position commune uniforme entre 2022 et 2024 pour les trois
+              électorats (0,5 en affichage déterministe ; défaut inchangé : législatives 2024). Le bloc
+              « Repère » du 2nd tour signale tout écart au sondage moyen supérieur à 2 × le RMSE historique des
+              sondages directs et indique le comportement implicite des sans-intention. Un tableau de
+              sensibilité repliable donne, sans Monte-Carlo, l’effet des réglages non mesurés (front républicain,
+              projection de campagne, fuite inter-blocs, concentration du centre, nouveaux votants,
+              mobilisation des abstentionnistes, fidélité des finalistes, report gauche hors LFI).
             </p>
           </div>
 
@@ -807,7 +926,7 @@ export function Methodology({ result }: { result: SimulationResult }) {
             </Table>
           </div>
 
-          <Table caption="Contrôle de calibration — Couverture empirique des intervalles Monte-Carlo à 80 % ([P10 ; P90]) sur 2017 et 2022 (candidats ≥ 2 %, σ_ref intègre 1995–2022)">
+          <Table caption="Contrôle de calibration — Couverture empirique des intervalles Monte-Carlo à 80 % ([P10 ; P90]) sur 2012, 2017 et 2022 (candidats ≥ 2 %, une date par élection, σ_ref actuel)">
             <thead>
               <tr className="border-b border-rule">
                 <th className={th}>Scrutin</th>
@@ -836,16 +955,24 @@ export function Methodology({ result }: { result: SimulationResult }) {
                     {pct((100 * r.coveredCrossProjected) / r.evaluatedCount, 0)})
                   </td>
                   <td className={`${td} num text-right`}>
-                    [{pct(r.secondRoundP10, 1)} ; {pct(r.secondRoundP90, 1)}] · réel{' '}
-                    {pct(r.secondRoundActual, 1)}{' '}
-                    <span className={r.secondRoundCovered ? 'font-medium text-ballpoint' : 'text-hypo'}>
-                      ({r.secondRoundCovered ? 'couvert' : 'hors IC'})
-                    </span>
+                    {r.secondRoundP10 === null || r.secondRoundP90 === null || r.secondRoundActual === null ? (
+                      <span className="text-ink-3">exclu (2nd tour sans RN)</span>
+                    ) : (
+                      <>
+                        [{pct(r.secondRoundP10, 1)} ; {pct(r.secondRoundP90, 1)}] · réel{' '}
+                        {pct(r.secondRoundActual, 1)}{' '}
+                        <span className={r.secondRoundCovered ? 'font-medium text-ballpoint' : 'text-hypo'}>
+                          ({r.secondRoundCovered ? 'couvert' : 'hors IC'})
+                        </span>
+                      </>
+                    )}
                   </td>
                 </tr>
               ))}
             </tbody>
           </Table>
+
+          <SigmaCalibrationBlock />
 
           <Table caption="2nd tour présidentiel (en connaissant le 1er tour réel) : score Macron (% exprimés) — Lég. 2024 et Prés. croisée sont hors échantillon ; l’ancre 2022 est un contrôle en échantillon sur 2022">
             <thead>

@@ -35,6 +35,11 @@ const PRESET_OPTIONS: { id: RepublicanFrontPreset; label: string; hint: string }
     label: 'Législatives 2024',
     hint: '100 % : enquête Ipsos-Talan des législatives 2024 par paire exacte de finalistes (défaut)',
   },
+  {
+    id: 'uncertain',
+    label: 'Incertain',
+    hint: '50 % à l’affichage ; dans Monte-Carlo, position tirée uniformément entre 0 % et 100 %, commune aux 3 électorats',
+  },
 ]
 
 const BLOC_VOTERS_DEFAULT: Record<RepublicanFrontBloc, string> = {
@@ -61,7 +66,10 @@ function blocLabel(
 
 function matchesPreset(rf: RepublicanFrontSettings, preset: RepublicanFrontPreset): boolean {
   const target = REPUBLICAN_FRONT_PRESETS[preset]
-  return REPUBLICAN_FRONT_BLOCS.every((k) => Math.abs(rf[k] - target[k]) < 0.005)
+  return (
+    Boolean(rf.uncertain) === Boolean(target.uncertain) &&
+    REPUBLICAN_FRONT_BLOCS.every((k) => Math.abs(rf[k] - target[k]) < 0.005)
+  )
 }
 
 /**

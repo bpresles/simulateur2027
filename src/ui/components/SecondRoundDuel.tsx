@@ -1,6 +1,14 @@
 import { motion } from 'motion/react'
+import { useMemo, useState } from 'react'
 import { simulationData } from '../../data/schema'
-import { noIntentionRange, secondRoundDropout } from '../../domain/secondRound'
+import {
+  directPollGapAlert,
+  directPollRmse,
+  implicitNoIntention,
+  noIntentionRange,
+  secondRoundDropout,
+} from '../../domain/secondRound'
+import { computeSensitivity } from '../../domain/sensitivity'
 import type { Entrant, SimulationResult } from '../../domain/types'
 import { useSettings } from '../../state/settingsStore'
 import { cand, colorVars, entrantLabel, profileLabel } from '../candidates'
@@ -12,6 +20,7 @@ const spring = { type: 'spring', stiffness: 120, damping: 22 } as const
 const MAX_DIRECT_POLLS = 4
 const pct1 = (v: number) => pct(v)
 const NO_INTENTION = noIntentionRange(simulationData.polls.secondRoundPolls)
+const POLL_RMSE = directPollRmse(simulationData.secondRoundPollBias, simulationData.polls)?.rmse
 
 export function SecondRoundDuel({ result }: { result: SimulationResult }) {
   const sr = result.secondRound
@@ -70,8 +79,44 @@ export function SecondRoundDuel({ result }: { result: SimulationResult }) {
         </p>
         <MethodLine result={result} />
         <PollBiasLine result={result} />
+        <SensitivityTable result={result} />
       </div>
     </section>
+  )
+}
+
+function GapAlert({ result }: { result: SimulationResult }) {
+  const sr = result.secondRound
+  const alert = directPollGapAlert(sr.pct.a, sr.directPolls, sr.a, POLL_RMSE)
+  if (!alert) return null
+  const names = `${cand(sr.a).shortName}`
+  const withBase = sr.directPolls.find((p) => p.noIntention)
+  const implicit = withBase
+    ? implicitNoIntention(sr.pct.a, withBase.scores[sr.a] ?? NaN, withBase.noIntention, sr.expressed2)
+    : undefined
+  return (
+    <div className="mt-2 space-y-1 text-sm text-ink-3">
+      {alert.exceeded && (
+        <p role="note" className="font-medium text-hypo">
+          Écart notable avec les sondages directs : le modèle donne {names} à {pct(sr.pct.a)} contre{' '}
+          {pct(alert.pollMean)} en moyenne dans les sondages publiés ({pts(alert.gap)}), au-delà de 2 × RMSE
+          historique ({num(alert.threshold, 1)} pts).
+        </p>
+      )}
+      {!alert.exceeded && (
+        <p>
+          Écart au sondage moyen : {pts(alert.gap)} (seuil d’alerte : 2 × RMSE historique ={' '}
+          {num(alert.threshold, 1)} pts).
+        </p>
+      )}
+      {implicit && (
+        <p>
+          {implicit.kind === 'ok'
+            ? `Pour coïncider avec ces sondages, le modèle suppose que ${pct(implicit.share, 0)} des votants sans intention déclarée choisissent ${names}.`
+            : `Le comportement des sans-intention n’est pas calculable pour ce sondage (${implicit.reason === 'no-room' ? 'aucun électeur supplémentaire ne s’exprime au-delà des intentions déclarées' : `valeur impossible : ${num(implicit.share ?? 0, 0)} %`}).`}
+        </p>
+      )}
+    </div>
   )
 }
 
@@ -266,6 +311,7 @@ function MethodLine({ result }: { result: SimulationResult }) {
               </li>
             ))}
           </ul>
+          <GapAlert result={result} />
           {directPolls.length > MAX_DIRECT_POLLS && (
             <p className="mt-1 text-xs text-ink-3">
               Les {MAX_DIRECT_POLLS} plus récents sur {directPolls.length} sondages publiés pour ce duel.
@@ -281,5 +327,54 @@ function MethodLine({ result }: { result: SimulationResult }) {
         </div>
       )}
     </div>
+  )
+}
+
+function SensitivityTable({ result }: { result: SimulationResult }) {
+  const settings = useSettings()
+  const [open, setOpen] = useState(false)
+  const rows = useMemo(() => (open ? computeSensitivity(simulationData, settings) : []), [open, settings])
+  return (
+    <details
+      className="mt-4 rounded-lg border border-rule px-3.5 py-2.5 text-sm text-ink-2"
+      onToggle={(e) => setOpen((e.currentTarget as HTMLDetailsElement).open)}
+    >
+      <summary className="cursor-pointer font-medium text-ink">Sensibilité aux réglages non mesurés</summary>
+      {open && (
+        <div className="mt-2 overflow-x-auto">
+          <p className="text-xs text-ink-3">
+            Score central déterministe de {cand(result.secondRound.a).shortName} au 2nd tour (% des exprimés), un seul réglage modifié à la fois, valeurs alternatives déjà documentées. Aucun Monte-Carlo.
+          </p>
+          <table className="mt-2 w-full text-left text-xs">
+            <thead>
+              <tr className="text-ink-3">
+                <th className="py-1 pr-3 font-medium">Réglage</th>
+                <th className="py-1 pr-3 font-medium">Actif</th>
+                <th className="py-1 font-medium">Alternatives</th>
+              </tr>
+            </thead>
+            <tbody>
+              {rows.map((r) => (
+                <tr key={r.id} className="border-t border-rule align-top">
+                  <td className="py-1.5 pr-3">{r.label}</td>
+                  <td className="num py-1.5 pr-3">{r.active}</td>
+                  <td className="py-1.5">
+                    {r.inactive && r.variants.length === 0
+                      ? r.inactive
+                      : r.variants.length === 0
+                        ? 'aucune'
+                        : r.variants.map((v) => (
+                            <span key={v.label} className="num mr-3 inline-block">
+                              {v.label} : {pct(v.scoreA)} ({pts(v.delta)})
+                            </span>
+                          ))}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </details>
   )
 }

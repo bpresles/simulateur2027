@@ -5,6 +5,7 @@ import type {
   PastElectionReference,
   PollHistoryData,
   PollsData,
+  Reference2012,
   Reference2017,
   Reference2022,
   SecondRoundDropoutData,
@@ -14,6 +15,7 @@ import type {
 } from '../domain/types'
 import pollsJson from './polls-2027.json'
 import pollsHistoryJson from './polls-history-2027.json'
+import reference2012Json from './reference-2012.json'
 import reference2017Json from './reference-2017.json'
 import referenceJson from './reference-2022.json'
 import secondRoundDropoutJson from './second-round-dropout.json'
@@ -196,6 +198,18 @@ const referenceSchema: z.ZodType<Reference2022> = z.object({
   ...pastElectionShape,
   secondRound: secondRoundShape.extend({
     candidates: z.array(z.object({ id: z.string(), votes: z.number().int().nonnegative() })).min(2),
+  }),
+})
+
+const reference2012Schema: z.ZodType<Reference2012> = z.object({
+  ...pastElectionShape,
+  secondRound: z.object({
+    registered: z.number().int().positive(),
+    voters: z.number().int().positive(),
+    blankOrInvalid: z.number().int().nonnegative(),
+    expressed: z.number().int().positive(),
+    candidates: z.array(z.object({ id: z.string(), votes: z.number().int().nonnegative() })).min(2),
+    source: sourceLink,
   }),
 })
 
@@ -388,7 +402,7 @@ function validatePastElection(label: string, ref: PastElectionReference): string
 /** Contrôles de cohérence entre fichiers, que Zod ne peut pas exprimer seul. */
 export function validateData(data: SimulationData): string[] {
   const errors: string[] = []
-  const { polls, reference2022, reference2017, transfers, declaredTransfers } = data
+  const { polls, reference2022, reference2017, reference2012, transfers, declaredTransfers } = data
   const simulated = new Set(polls.candidates.map((c) => c.id))
   const main = new Set(polls.candidates.filter((c) => !c.minor).map((c) => c.id))
   const known = new Set([...simulated, ...polls.otherCandidates.map((c) => c.id)])
@@ -465,7 +479,19 @@ export function validateData(data: SimulationData): string[] {
     if (Math.abs(y.bothRounds + y.firstOnly + y.secondOnly + y.neither - 100) > 0.5)
       errors.push(`Nouveaux votants : parts Insee ${y.year} de total éloigné de 100 %`)
   }
-  errors.push(...validatePastElection('2022', reference2022), ...validatePastElection('2017', reference2017))
+  errors.push(
+    ...validatePastElection('2022', reference2022),
+    ...validatePastElection('2017', reference2017),
+    ...validatePastElection('2012', reference2012),
+  )
+  {
+    const t2 = reference2012.secondRound
+    if (t2.voters - t2.blankOrInvalid !== t2.expressed)
+      errors.push('2012 : 2nd tour incohérent (votants − blancs et nuls ≠ exprimés)')
+    if (t2.candidates.reduce((t, c) => t + c.votes, 0) !== t2.expressed)
+      errors.push('2012 : total des voix des finalistes ≠ exprimés du 2nd tour')
+    if (t2.voters > t2.registered) errors.push('2012 : 2nd tour incohérent (votants > inscrits)')
+  }
   for (const [label, ref] of [
     ['2022', reference2022],
     ['2017', reference2017],
@@ -562,6 +588,7 @@ export function parseData(raw: {
   pollHistory: unknown
   reference2022: unknown
   reference2017: unknown
+  reference2012: unknown
   transfers: unknown
   declaredTransfers: unknown
   secondRoundDropout: unknown
@@ -572,6 +599,7 @@ export function parseData(raw: {
     pollHistory: pollHistorySchema.parse(raw.pollHistory),
     reference2022: referenceSchema.parse(raw.reference2022),
     reference2017: reference2017Schema.parse(raw.reference2017),
+    reference2012: reference2012Schema.parse(raw.reference2012),
     transfers: transfersSchema.parse(raw.transfers),
     declaredTransfers: declaredTransfersSchema.parse(raw.declaredTransfers),
     secondRoundDropout: secondRoundDropoutSchema.parse(raw.secondRoundDropout),
@@ -587,6 +615,7 @@ export const simulationData: SimulationData = parseData({
   pollHistory: pollsHistoryJson,
   reference2022: referenceJson,
   reference2017: reference2017Json,
+  reference2012: reference2012Json,
   transfers: transfersJson,
   declaredTransfers: declaredTransfersJson,
   secondRoundDropout: secondRoundDropoutJson,

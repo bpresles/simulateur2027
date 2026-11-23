@@ -28,8 +28,9 @@ describe('simulate (données figées)', () => {
     // En photographie actuelle (projection désactivée) sur les données figées du 18/10/2026, Philippe devance Mélenchon.
     const now = run({ projection: { ...defaultProjectionSettings(), enabled: false } })
     expect([now.secondRound.a, now.secondRound.b]).toEqual(['lepen', 'philippe'])
-    // Ici deux duels dépassent 30 % (Le Pen – Philippe et Le Pen – Mélenchon) et aucun duel ≤ 30 % n'apparaît
-    expect(now.selectableDuels.length).toBeGreaterThanOrEqual(2)
+    // σ_ref recalé en v2.2 (0,825 contre 0,595 auparavant) : sur les données figées, les duels alternatifs restent
+    // sous 30 % (≈ 25 % chacun), seul le duel déterministe est proposé ; aucun duel ≤ 30 % n'apparaît
+    expect(now.selectableDuels.length).toBeGreaterThanOrEqual(1)
     for (const d of now.selectableDuels.slice(1)) {
       expect(d.frequency).toBeGreaterThan(PLAUSIBLE_DUEL_MIN_FREQUENCY)
     }

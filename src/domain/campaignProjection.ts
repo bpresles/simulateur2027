@@ -24,7 +24,7 @@ export const PROJECTION_HORIZON_DAYS = 150
  * - gauche : 0,70 (moyenne observée : 70,8 % en 2017, 68,7 % en 2022) ;
  * - droite : 0,77 (moyenne observée : 94,3 % en 2017, 60,4 % en 2022) ;
  * - extrême droite : 0,75 (moyenne observée : 79,1 % en 2017, 71,7 % en 2022) ;
- * - centre : 0,75 (hypothèse symétrique avec la droite ; en 2017 et 2022, le centre n'avait qu'un seul candidat principal).
+ * - centre : 0,75 (hypothèse non sourcée, plage de sensibilité 0,65–0,85 ; le centre n'avait qu'un seul candidat principal en 2012, 2017 et 2022, donc aucune mesure).
  * Dans le backtest croisé (`backtest.ts`), les cibles sont recalculées strictement sur l'autre élection.
  */
 export const TARGET_CONCENTRATION: Record<Bloc, number> = {
@@ -35,7 +35,10 @@ export const TARGET_CONCENTRATION: Record<Bloc, number> = {
 }
 export const MERGED_CENTER_RIGHT_TARGET = 0.65
 
-/** Part des voix cédées lors du vote utile qui fuient vers les blocs voisins (réalisme non étanche). */
+/**
+ * Part des voix cédées lors du vote utile qui fuient vers les blocs voisins (réalisme non étanche).
+ * Hypothèse non sourcée (aucune étude ni mesure du backtest), plage de sensibilité 0,06–0,18.
+ */
 export const CROSS_BLOC_LEAK = 0.12
 
 /** Plancher minimal protégé pour les petits partis identitaires (évite d'effacer un candidat à 0 %). */
@@ -71,6 +74,8 @@ const clamp = (v: number, min: number, max: number) => Math.max(min, Math.min(ma
 
 export function defaultProjectionSettings(): CampaignProjectionSettings {
   return {
+    // Activée par défaut (décision du 23/11/2026, v2.2) bien que le critère de validation croisée 2012/2017/2022
+    // ne soit pas atteint (2017 dégradé) : voir `docs/changelog-methode.md`.
     enabled: true,
     usefulVote: {
       gauche: { intensity: 1, beneficiary: 'auto' },
@@ -164,12 +169,15 @@ export function projectCampaign(
   progress = 1,
   /** Surcharge des cibles de concentration (utilisée par le backtest croisé strictement hors échantillon). */
   targetOverrides?: Partial<Record<Bloc, number>>,
+  /** Surcharge de `CROSS_BLOC_LEAK` (tableau de sensibilité uniquement). */
+  leakOverride?: number,
 ): CampaignProjectionResult {
   const daysRemaining = Math.max(0, daysBetween(asOf, electionDate))
   const horizonFactor = clamp(daysRemaining / PROJECTION_HORIZON_DAYS, 0, 1)
   const t = clamp(progress, 0, 1)
   const activeIds = Object.keys(baseScores)
   const byId = new Map(candidates.map((c) => [c.id, c]))
+  const crossBlocLeak = leakOverride ?? CROSS_BLOC_LEAK
   const targetFor = (b: Bloc) => targetOverrides?.[b] ?? TARGET_CONCENTRATION[b]
 
   // Courbe d'accélération du vote utile en fin de campagne (l'essentiel se joue dans les 2 derniers mois)
@@ -256,15 +264,15 @@ export function projectCampaign(
     const totalWeight = donors.reduce((s, d) => s + d.weight, 0)
     if (totalWeight <= 0) continue
 
-    // Masse brute cédée = desiredGain / (1 - CROSS_BLOC_LEAK) afin que le gain net approche la cible
-    const grossNeeded = desiredGain / (1 - CROSS_BLOC_LEAK)
+    // Masse brute cédée = desiredGain / (1 - crossBlocLeak) afin que le gain net approche la cible
+    const grossNeeded = desiredGain / (1 - crossBlocLeak)
     let totalGiven = 0
     for (const d of donors) {
       const give = Math.min(d.avail, (grossNeeded * d.weight) / totalWeight)
       afterUseful[d.id] = (afterUseful[d.id] ?? 0) - give
       totalGiven += give
       // Fuite réaliste (12 %) vers les blocs voisins
-      const leak = give * CROSS_BLOC_LEAK
+      const leak = give * crossBlocLeak
       const leakMap = LEAK_TARGETS[d.bloc]
       for (const targetBloc of BLOCS) {
         if (!spec.blocs.includes(targetBloc)) {
@@ -272,7 +280,7 @@ export function projectCampaign(
         }
       }
     }
-    afterUseful[chosen] = (afterUseful[chosen] ?? 0) + totalGiven * (1 - CROSS_BLOC_LEAK)
+    afterUseful[chosen] = (afterUseful[chosen] ?? 0) + totalGiven * (1 - crossBlocLeak)
   }
 
   // Distribution des fuites inter-blocs au prorata des candidats actifs de chaque bloc destinataire

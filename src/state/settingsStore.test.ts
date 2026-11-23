@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-// Migration des réglages persistés (v1–v15 → v16) : front républicain par électorat qui se reporte.
+// Migration des réglages persistés (v1–v15 → v17) : front républicain par électorat qui se reporte.
 import { defaultSettings } from '../domain/simulate'
 import { useSettings } from './settingsStore'
 
@@ -16,8 +16,8 @@ afterEach(() => {
   useSettings.setState(defaultSettings())
 })
 
-describe('migration des réglages (→ v16), front républicain par électorat et report gauche hors LFI', () => {
-  it('v10 → v16 : conserve les sondages exclus, alliances, surcharges de reports et fidélité, abandonne les anciens champs', async () => {
+describe('migration des réglages (→ v17), front républicain par électorat et report gauche hors LFI', () => {
+  it('v10 → v17 : conserve les sondages exclus, alliances, surcharges de reports et fidélité, abandonne les anciens champs', async () => {
     const s = await rehydrate(10, {
       excludedPolls: ['elabe-20261016'],
       alliances: { 'attal-philippe': true },
@@ -48,7 +48,7 @@ describe('migration des réglages (→ v16), front républicain par électorat e
     expect(s).not.toHaveProperty('centerRnPresidentialWeight')
   })
 
-  it('v1 → v16 : abandonne les surcharges de reports v1 (format incompatible) et l’ancienne alliance philippe-glucksmann', async () => {
+  it('v1 → v17 : abandonne les surcharges de reports v1 (format incompatible) et l’ancienne alliance philippe-glucksmann', async () => {
     const s = await rehydrate(1, {
       alliances: { 'philippe-glucksmann': true, 'attal-philippe': true },
       transferOverrides: { lfi_rn: { centre: { finalist: 50, rn: 20, abstention: 30 } } },
@@ -57,12 +57,12 @@ describe('migration des réglages (→ v16), front républicain par électorat e
     expect(s.transferOverrides).toEqual({})
   })
 
-  it('v4 → v16 : migre hypothesisSetId "philippe-seul" vers l’alliance attal-philippe', async () => {
+  it('v4 → v17 : migre hypothesisSetId "philippe-seul" vers l’alliance attal-philippe', async () => {
     const s = await rehydrate(4, { hypothesisSetId: 'philippe-seul', alliances: {} })
     expect(s.alliances).toEqual({ 'attal-philippe': true })
   })
 
-  it('v13 → v16 : active la projection et l’incertitude des candidatures, remet meanReversion/dampedTrend à 0 et migre vers { gauche, centre, droite }', async () => {
+  it('v13 → v17 : active la projection et l’incertitude des candidatures, remet meanReversion/dampedTrend à 0 et migre vers { gauche, centre, droite }', async () => {
     const s = await rehydrate(13, {
       excludedPolls: ['elabe-20261016'],
       transferSource: 'blend',
@@ -85,7 +85,7 @@ describe('migration des réglages (→ v16), front républicain par électorat e
     expect(s.projection.dampedTrend).toBe(0)
   })
 
-  it('v15 → v16 : conserve les réglages v15, retire l’ancien lfiLeftTransfer et migre republicanFront vers { gauche, centre, droite }', async () => {
+  it('v15 → v17 : conserve les réglages v15, retire l’ancien lfiLeftTransfer et migre republicanFront vers { gauche, centre, droite }', async () => {
     const s = await rehydrate(15, {
       excludedPolls: ['elabe-20261016'],
       lfiLeftTransfer: 54,
@@ -102,6 +102,27 @@ describe('migration des réglages (→ v16), front républicain par électorat e
     })
     expect(s).not.toHaveProperty('lfiLeftTransfer')
     expect(s.projection.enabled).toBe(false)
+  })
+
+  it('v16 → v17 : conserve le choix de projection de l’utilisateur et les autres réglages', async () => {
+    const s = await rehydrate(16, {
+      excludedPolls: ['elabe-20261016'],
+      republicanFront: { gauche: 0.5, centre: 0.5, droite: 0.5 },
+      projection: { ...defaultSettings().projection, enabled: false },
+    })
+    expect(s.projection.enabled).toBe(false)
+    const on = await rehydrate(16, { projection: { ...defaultSettings().projection, enabled: true } })
+    expect(on.projection.enabled).toBe(true)
+    expect(s.excludedPolls).toEqual(['elabe-20261016'])
+    expect(s.republicanFront).toMatchObject({ gauche: 0.5, centre: 0.5, droite: 0.5 })
+  })
+
+  it('préréglage « incertain » : activé par le préréglage, retiré dès qu’un curseur est réglé', () => {
+    const st = useSettings.getState()
+    st.applyRepublicanFrontPreset('uncertain')
+    expect(useSettings.getState().republicanFront.uncertain).toBe(true)
+    st.setRepublicanFront('centre', 0.25)
+    expect(useSettings.getState().republicanFront.uncertain).toBeFalsy()
   })
 
   it('actions du front républicain par électorat, de la plage MC gauche hors LFI et de l’incertitude des candidatures', () => {

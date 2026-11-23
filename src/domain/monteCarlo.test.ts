@@ -88,4 +88,30 @@ describe('monteCarlo', () => {
     const widthNear = near.candidates.lepen!.p90 - near.candidates.lepen!.p10
     expect(widthNear).toBeLessThan(widthFar)
   })
+
+  it('front « incertain » : flux inchangé hors mode, tirage uniforme commun sinon, 0,5 en déterministe', () => {
+    const run = (front: typeof settings.republicanFront) =>
+      runMonteCarlo({
+        data: simulationData,
+        settings: { ...settings, republicanFront: front },
+        baseScores,
+        candidatesById,
+        minorTransfers,
+        blankNullShare: bnShare,
+        displayedDuel: [baseSim.secondRound.a, baseSim.secondRound.b],
+        iterations: 300,
+        seed: 2027,
+      })
+    const plain = run({ gauche: 1, centre: 1, droite: 1 })
+    const plainFalse = run({ gauche: 1, centre: 1, droite: 1, uncertain: false })
+    expect(plainFalse).toEqual(plain)
+    const unc = run({ gauche: 0.5, centre: 0.5, droite: 0.5, uncertain: true })
+    expect(unc.displayedDuel.aScoreP90 - unc.displayedDuel.aScoreP10).toBeGreaterThan(0)
+    const det = simulate(simulationData, {
+      ...settings,
+      republicanFront: { gauche: 0.5, centre: 0.5, droite: 0.5, uncertain: true },
+    })
+    const mid = simulate(simulationData, { ...settings, republicanFront: { gauche: 0.5, centre: 0.5, droite: 0.5 } })
+    expect(det.secondRound.pct.a).toBeCloseTo(mid.secondRound.pct.a, 10)
+  })
 })

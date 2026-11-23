@@ -230,6 +230,18 @@ export interface Reference2017 extends PastElectionReference {
   secondRound: SecondRoundOfficial
 }
 
+/** 2012 : 2nd tour Hollande–Sarkozy (sans RN), blancs et nuls publiés en un seul total. */
+export interface Reference2012 extends PastElectionReference {
+  secondRound: {
+    registered: number
+    voters: number
+    blankOrInvalid: number
+    expressed: number
+    candidates: SecondRoundCandidateVotes[]
+    source: SourceLink
+  }
+}
+
 // ——— Reports de voix du 2nd tour ———
 
 export type ProvenanceId =
@@ -445,6 +457,7 @@ export interface SimulationData {
   pollHistory: PollHistoryData
   reference2022: Reference2022
   reference2017: Reference2017
+  reference2012: Reference2012
   transfers: TransfersData
   declaredTransfers: DeclaredTransfersData
   secondRoundDropout: SecondRoundDropoutData
@@ -481,7 +494,7 @@ export type RepublicanFrontBloc = 'gauche' | 'centre' | 'droite'
 
 export const REPUBLICAN_FRONT_BLOCS: readonly RepublicanFrontBloc[] = ['gauche', 'centre', 'droite']
 
-export type RepublicanFrontPreset = 'pres2022' | 'midpoint' | 'leg2024'
+export type RepublicanFrontPreset = 'pres2022' | 'midpoint' | 'leg2024' | 'uncertain'
 
 export interface RepublicanFrontSettings {
   /** Position entre Présidentielle 2022 (0) et Législatives 2024 (1) pour les électeurs de gauche éliminés (y compris gauche hors LFI en duel LFI – RN). */
@@ -490,6 +503,12 @@ export interface RepublicanFrontSettings {
   centre: number
   /** Position entre Présidentielle 2022 (0) et Législatives 2024 (1) pour les électeurs de droite éliminés. */
   droite: number
+  /**
+   * Préréglage « incertain » (v2.2) : à chaque itération Monte-Carlo, un tirage uniforme commun U[0 ; 1] fixe la
+   * position du front pour les 3 électorats à la fois ; l'affichage déterministe utilise 0,5. Absent ou `false` :
+   * comportement inchangé.
+   */
+  uncertain?: boolean
 }
 
 export interface Settings {
@@ -720,6 +739,8 @@ export interface MonteCarloSummary {
   /** Écart-type logit total au 1er tour à cet horizon. */
   sigmaLogit: number
   candidates: Record<CandidateId, CandidateUncertainty>
+  /** Tirages bruts du score de 1er tour par candidat (uniquement si `returnSamples` est demandé ; non triés). */
+  firstRoundSamples?: Record<CandidateId, Float64Array>
   /** Duels triés par fréquence décroissante (au moins 2 % des simulations). */
   topDuels: DuelUncertainty[]
   /** Distribution conditionnelle du duel actuellement affiché (calculée sur toutes les itérations). */
