@@ -78,6 +78,7 @@ describe('ScenarioBar : projection d’offre, front républicain 2022↔2024 et 
   })
 
   it('expose directement le Front républicain par électorat (gauche hors LFI sur LFI–RN, centre, droite) sans 4e curseur redondant', () => {
+    act(() => useSettings.getState().setSelectedDuel('lepen|melenchon'))
     render(<Harness />)
     expect(screen.getByRole('slider', { name: 'Intensité globale du front républicain' })).toBeTruthy()
     expect(screen.getByRole('slider', { name: 'Front républicain : Électeurs de gauche (hors LFI)' })).toBeTruthy()
