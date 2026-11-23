@@ -16,6 +16,7 @@ import {
   resolveDuel,
 } from './transfers'
 import type {
+  Bloc,
   CandidateId,
   Entrant,
   FirstRoundRow,
@@ -50,8 +51,9 @@ export function defaultSettings(): Settings {
 export const PLAUSIBLE_DUEL_MIN_FREQUENCY = 30
 
 /**
- * Pondérations explicites de scénarios de candidatures testés (inspirées du tableau 4 de `methode.pdf`),
- * activées uniquement lorsque l'utilisateur coche l'option `candidacyUncertaintyEnabled` sans alliance forcée.
+ * Pondérations explicites de scénarios de candidatures testés : hypothèse non sourcée (jugement),
+ * sensibilité : poids uniformes. Déclarations datées et liens : `docs/changelog-methode.md` (v2.2).
+ * Activées uniquement lorsque l'utilisateur coche l'option `candidacyUncertaintyEnabled` sans alliance forcée.
  */
 const CANDIDACY_SCENARIO_WEIGHTS: { id: string; weight: number }[] = [
   { id: 'philippe-lisnard', weight: 0.4 },
@@ -61,8 +63,16 @@ const CANDIDACY_SCENARIO_WEIGHTS: { id: string; weight: number }[] = [
   { id: 'lagarde-seule', weight: 0.05 },
 ]
 
+export interface SimulateOptions {
+  /** Nombre de tirages Monte-Carlo (défaut : 2 000). Le tableau de sensibilité utilise 1 : seul le score central déterministe est lu. */
+  monteCarloIterations?: number
+  /** Surcharges de la projection de campagne (tableau de sensibilité uniquement). */
+  projectionTargets?: Partial<Record<Bloc, number>>
+  crossBlocLeak?: number
+}
+
 /** Pipeline complet : sondages pondérés + projection d'offre → projection temporelle (option) → 2nd tour en flux bruts → Monte-Carlo. */
-export function simulate(data: SimulationData, settings: Settings): SimulationResult {
+export function simulate(data: SimulationData, settings: Settings, options: SimulateOptions = {}): SimulationResult {
   const { polls, pollHistory, transfers, declaredTransfers } = data
   const candidatesById = new Map(polls.candidates.map((c) => [c.id, c]))
   const name = (id: string) => candidatesById.get(id)?.name ?? id
@@ -111,6 +121,9 @@ export function simulate(data: SimulationData, settings: Settings): SimulationRe
     pollHistory.polls,
     polls.asOf,
     polls.electionDate,
+    1,
+    options.projectionTargets,
+    options.crossBlocLeak,
   )
   const activeScores = settings.projection.enabled ? projection.projectedScores : currentAverage
 
@@ -209,6 +222,9 @@ export function simulate(data: SimulationData, settings: Settings): SimulationRe
             pollHistory.polls,
             polls.asOf,
             polls.electionDate,
+            1,
+            options.projectionTargets,
+            options.crossBlocLeak,
           ).projectedScores
         : sel.average
       built.push({ id: spec.id, weight: spec.weight, scores: scScores })
@@ -225,6 +241,7 @@ export function simulate(data: SimulationData, settings: Settings): SimulationRe
     blankNullShare: bnShare,
     displayedDuel: displayedPair,
     candidacyScenarios,
+    iterations: options.monteCarloIterations,
   })
 
   const trajectory = buildTrajectory(

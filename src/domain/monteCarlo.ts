@@ -31,12 +31,17 @@ export const MONTE_CARLO_SEED = 2027
 /** Horizon de référence (jours) pour la volatilité de campagne. */
 export const CAMPAIGN_REF_DAYS = 156
 /**
- * Écart-type de choc de campagne sur l'échelle log-ratio à J−156 (~5 mois), fixé par règle écrite
- * avant examen de son effet sur 2027 : moyenne arithmétique de l'écart-type logit mesuré sur
- * 1995–2022 dans `methode.pdf` (0,497, candidats ≥ 5 %) et du RMS logit mesuré sur 2022 par le
- * backtest (0,693, candidats ≥ 3 %) → (0,497 + 0,693) / 2 = 0,595.
+ * Écart-type de choc de campagne sur l'échelle log-ratio à J−156 (~5 mois), fixé par règle écrite (voir
+ * `docs/changelog-methode.md`, v2.2, second amendement du 23/11/2026 à la règle 3) : valeur de la grille 0,30–1,20
+ * (pas 0,005) dont la couverture [P10 ; P90] des scores de 1er tour, moyenne simple des élections 2012, 2017 et 2022
+ * (dates J−150 à J−24 tous les 14 jours, prévision par défaut), est la plus proche de 80 % ; à égalité, la plus
+ * petite. Valeur et diagnostics (CRPS, couverture poolée, leave-one-out) : `src/data/sigma-calibration.json`, produit
+ * par `scripts/calibrate-sigma.ts` (à relancer si les données historiques ou le moteur changent). Limites : la
+ * couverture tous points confondus n'est que de ≈ 69 % (2012 ne compte qu'une date, toujours couverte) et le
+ * leave-one-out est instable ; l'erreur de centrage par candidat n'est pas modélisée (voir
+ * `docs/plan-incertitude-par-candidat.md`).
  */
-export const SIGMA_CAMPAIGN_REF = 0.595
+export const SIGMA_CAMPAIGN_REF = 0.825
 /** Plancher d'erreur de sondage (dernière semaine avant le scrutin, ~1,5–2,5 pts). */
 export const SIGMA_POLLING_FLOOR = 0.14
 /** Concentration Dirichlet des lignes de reports de 2nd tour (κ = 40 → ±5 à 7 pts). */
@@ -177,12 +182,22 @@ export interface MonteCarloInput {
   electionDateOverride?: string
   iterations?: number
   seed?: number
+  /** Surcharge de `SIGMA_CAMPAIGN_REF` (calibration de la couverture dans le backtest). */
+  sigmaCampaignRefOverride?: number
+  /** Renvoie aussi les tirages de score de 1er tour par candidat (`firstRoundSamples`), pour le calcul du CRPS. */
+  returnSamples?: boolean
+  /**
+   * N'évalue pas le 2nd tour (calage de σ sur le 1er tour uniquement) : les tirages de 1er tour ne dépendent
+   * alors que de la graine et de σ, donc sont strictement communs à toutes les valeurs de σ.
+   * Les champs `topDuels` et `displayedDuel` du résultat ne sont pas significatifs dans ce mode.
+   */
+  firstRoundOnly?: boolean
 }
 
 /**
  * Simulation Monte-Carlo déterministe (2 000 tirages) propageant :
  * - au 1er tour : tirage optionnel du scénario de candidatures, puis chocs de campagne Student-t(8) de moyenne
- *   nulle en log-ratio (σ_ref = 0,595 à J−156), décomposés en choc de bloc (50 %), vote utile intra-bloc à somme
+ *   nulle en log-ratio (σ_ref = 0,825 à J−156, voir `SIGMA_CAMPAIGN_REF`), décomposés en choc de bloc (50 %), vote utile intra-bloc à somme
  *   nulle (30 %) et choc idiosyncrasique (20 %), dont la variance décroît linéairement jusqu'au scrutin ;
  * - au 2nd tour : incertitude Dirichlet(κ = 40) sur les matrices de reports, incertitude sur la position
  *   2022 ↔ 2024 du front républicain par électorat, tirage triangulaire du report gauche hors LFI → Mélenchon
@@ -219,7 +234,7 @@ export function runMonteCarlo(input: MonteCarloInput): MonteCarloSummary {
   const refElectionDate = input.electionDateOverride ?? data.polls.electionDate
   const daysToElection = Math.max(0, daysBetween(refAsOf, refElectionDate))
   const sigmaLogit = Math.sqrt(
-    SIGMA_CAMPAIGN_REF ** 2 * (daysToElection / CAMPAIGN_REF_DAYS) + SIGMA_POLLING_FLOOR ** 2,
+    (input.sigmaCampaignRefOverride ?? SIGMA_CAMPAIGN_REF) ** 2 * (daysToElection / CAMPAIGN_REF_DAYS) + SIGMA_POLLING_FLOOR ** 2,
   )
   const sdBloc = sigmaLogit * Math.sqrt(0.5)
   const sdIntra = sigmaLogit * Math.sqrt(0.3)
@@ -575,8 +590,12 @@ export function runMonteCarlo(input: MonteCarloInput): MonteCarloSummary {
     }
     qualifCounts[firstIdx]! += 1
     qualifCounts[secondIdx]! += 1
+    if (input.firstRoundOnly) continue
 
-    const rfShock = clamp(nextNormal() * 0.25, -0.5, 0.5)
+    const normalRfShock = clamp(nextNormal() * 0.25, -0.5, 0.5)
+    // Préréglage « incertain » : tirage uniforme commun U[0 ; 1] (le curseur vaut 0,5, donc position = U).
+    // Le tirage supplémentaire n'a lieu que dans ce mode : les autres préréglages gardent leur flux aléatoire.
+    const rfShock = settings.republicanFront.uncertain ? rng() - 0.5 : normalRfShock
     const wDecl = clamp(settings.declaredWeight + (rng() - 0.5), 0, 1)
     const lfiLeftU = rng()
     const turnout = clamp(settings.firstRoundTurnout + (rng() * 10 - 5), 55, 88)
@@ -678,6 +697,10 @@ export function runMonteCarlo(input: MonteCarloInput): MonteCarloSummary {
     .filter((d) => d.frequency >= 2)
     .sort((x, y) => y.frequency - x.frequency)
 
+  const firstRoundSamples = input.returnSamples
+    ? (Object.fromEntries(activeIds.map((id, i) => [id, scoreSamples[i]!])) as Record<CandidateId, Float64Array>)
+    : undefined
+
   const sortedDisp = Array.from(displayedScores).sort((x, y) => x - y)
 
   return {
@@ -686,6 +709,7 @@ export function runMonteCarlo(input: MonteCarloInput): MonteCarloSummary {
     daysToElection,
     sigmaLogit,
     candidates,
+    ...(firstRoundSamples ? { firstRoundSamples } : {}),
     topDuels,
     displayedDuel: {
       a: displayedDuel[0],

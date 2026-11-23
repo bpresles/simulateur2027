@@ -60,7 +60,7 @@ interface SettingsActions {
 export type SettingsStore = Settings & SettingsActions
 
 const STORAGE_KEY = 'simulateur2027:settings'
-const STORAGE_VERSION = 16
+const STORAGE_VERSION = 17
 
 export const useSettings = create<SettingsStore>()(
   persist(
@@ -88,10 +88,8 @@ export const useSettings = create<SettingsStore>()(
         })),
       setMergeCenterRight: (mergeCenterRight) =>
         set((s) => ({ projection: { ...s.projection, mergeCenterRight } })),
-      setMeanReversion: (meanReversion) =>
-        set((s) => ({ projection: { ...s.projection, meanReversion } })),
-      setDampedTrend: (dampedTrend) =>
-        set((s) => ({ projection: { ...s.projection, dampedTrend } })),
+      setMeanReversion: (meanReversion) => set((s) => ({ projection: { ...s.projection, meanReversion } })),
+      setDampedTrend: (dampedTrend) => set((s) => ({ projection: { ...s.projection, dampedTrend } })),
       resetProjection: () =>
         set((s) => ({
           projection: { ...defaultProjectionSettings(), enabled: s.projection.enabled },
@@ -100,7 +98,12 @@ export const useSettings = create<SettingsStore>()(
       setDeclaredWeight: (declaredWeight) => set({ declaredWeight }),
       setRepublicanFront: (bloc, value) =>
         set((s) => ({
-          republicanFront: { ...s.republicanFront, [bloc]: roundPct(value) },
+          republicanFront: {
+            gauche: s.republicanFront.gauche,
+            centre: s.republicanFront.centre,
+            droite: s.republicanFront.droite,
+            [bloc]: roundPct(value),
+          },
         })),
       setRepublicanFrontGlobal: (value) =>
         set((s) => {
@@ -191,11 +194,22 @@ export const useSettings = create<SettingsStore>()(
         selectedDuel: s.selectedDuel,
       }),
       migrate: (persisted, version) => {
-        if (version < 1 || version > 15 || !persisted || typeof persisted !== 'object') return defaultSettings()
+        if (version < 1 || version > 16 || !persisted || typeof persisted !== 'object')
+          return defaultSettings()
         const old = persisted as Partial<Settings> & {
           hypothesisSetId?: string | null
           centerRnPresidentialWeight?: number
           lfiLeftTransfer?: number
+        }
+        if (version === 16) {
+          // v2.2 : préréglage « incertain » ajouté ; le choix de l'utilisateur pour la projection est conservé.
+          const { lfiLeftTransfer: _legacyLfi, ...rest } = old
+          const defProj = defaultProjectionSettings()
+          return {
+            ...defaultSettings(),
+            ...rest,
+            projection: old.projection ? { ...defProj, ...old.projection } : defProj,
+          }
         }
         if (version === 15) {
           const { lfiLeftTransfer: _legacyLfi, ...rest } = old
@@ -240,7 +254,9 @@ export const useSettings = create<SettingsStore>()(
         const { 'philippe-glucksmann': _dynamic, ...keptAlliances } = old.alliances ?? {}
         const baseAlliances = version <= 2 ? keptAlliances : (old.alliances ?? {})
         const alliances =
-          old.hypothesisSetId === 'philippe-seul' ? { ...baseAlliances, 'attal-philippe': true } : baseAlliances
+          old.hypothesisSetId === 'philippe-seul'
+            ? { ...baseAlliances, 'attal-philippe': true }
+            : baseAlliances
         return {
           ...defaultSettings(),
           excludedPolls: Array.isArray(old.excludedPolls) ? old.excludedPolls : [],

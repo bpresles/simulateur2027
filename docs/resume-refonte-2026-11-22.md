@@ -191,7 +191,7 @@ L’ensemble de la chaîne de validation passe sans erreur :
 À la suite de la revue critique de la v2, une passe d’assainissement méthodologique et technique complète a été appliquée, en consignant chaque changement par défaut dans `docs/changelog-methode.md` **avant** examen de son effet sur 2027 :
 
 ### 8.1 Corrections techniques et méthodologiques réalisées
-1. **Écart-type de campagne (`monteCarlo.ts`)** : `SIGMA_CAMPAIGN_REF` passé de `0,40` à **`0,595`** par règle écrite (`(0,497 + 0,693) / 2`, moyenne de l’écart-type logit 1995–2022 de `methode.pdf` et du RMS logit 2022 de notre backtest ; plancher sondagier `0,14`). Commentaire obsolète (`3,5 pts` → `3,0 pts`) corrigé.
+1. **Écart-type de campagne (`monteCarlo.ts`)** : `SIGMA_CAMPAIGN_REF` passé de `0,40` à **`0,595`** par règle écrite (`(0,497 + 0,693) / 2`, moyenne de l’écart-type logit 1995–2022 (source retirée, voir changelog v2.2) et du RMS logit 2022 de notre backtest ; plancher sondagier `0,14`). Commentaire obsolète (`3,5 pts` → `3,0 pts`) corrigé.
 2. **Filtre strict 2017 (`reference-2017.json`, `backtest.ts`)** : exige désormais `fillon` (avec `melenchon`, `macron`, `lepen`) et exclut `juppe`, `sarkozy`, `hollande`, `valls`, `montebourg`, `bayrou`, `peillon`. Faute de sondage strict à J−148 avant la fin des primaires, le backtest avance à la première date à offre stabilisée (≥ 3 instituts) : **`2017-01-31` (J−82)**, affiché explicitement.
 3. **Validation croisée stricte & couverture 80 % (`backtest.ts`, `Methodology.tsx`)** :
    - Ajout de `crossProjectedRmse` (**strictement hors échantillon** : cibles de concentration mesurées uniquement sur l’autre scrutin, sans moyennes structurelles ni tendance).

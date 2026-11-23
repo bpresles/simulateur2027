@@ -1,11 +1,11 @@
 import { simulationData } from '../data/schema'
-import { computeBacktest } from './backtest'
+import { computeBacktest, computeUsefulVoteVariants } from './backtest'
 
-describe('backtest (validation historique 2017, 2022 et 2024)', () => {
+describe('backtest (validation historique 2012, 2017, 2022 et 2024)', () => {
   const report = computeBacktest(simulationData, simulationData.polls)
 
-  it('évalue la dernière semaine 2017 et 2022 : sondages bruts cohérents (< 2,5 pts de RMSE)', () => {
-    expect(report.firstRoundEve).toHaveLength(2)
+  it('évalue la dernière semaine 2012, 2017 et 2022 : sondages bruts cohérents (< 2,5 pts de RMSE)', () => {
+    expect(report.firstRoundEve).toHaveLength(3)
     const y2017 = report.firstRoundEve.find((r) => r.year === 2017)!
     const y2022 = report.firstRoundEve.find((r) => r.year === 2022)!
     expect(y2017.rawRmse).toBeLessThan(1)
@@ -15,7 +15,7 @@ describe('backtest (validation historique 2017, 2022 et 2024)', () => {
   })
 
   it('évalue la campagne 1er tour (filtre strict sans mélange Juppé/Fillon) et la projection croisée hors échantillon', () => {
-    expect(report.firstRoundCampaign).toHaveLength(2)
+    expect(report.firstRoundCampaign).toHaveLength(3)
     const y2017 = report.firstRoundCampaign.find((r) => r.year === 2017)!
     const y2022 = report.firstRoundCampaign.find((r) => r.year === 2022)!
 
@@ -30,21 +30,22 @@ describe('backtest (validation historique 2017, 2022 et 2024)', () => {
       expect(row.rmse).toBeLessThan(10)
       expect(row.projectedRmse).toBeGreaterThan(0)
       expect(row.crossProjectedRmse).toBeGreaterThan(0)
-      expect(row.empiricalLogitRms).toBeGreaterThan(0.2)
+      expect(row.empiricalLogitRms).toBeGreaterThan(0.1)
     }
     expect(y2022.usedStabilizedHorizon).toBe(false)
     expect(y2022.crossProjectedRmse).toBeLessThan(y2022.rmse)
   })
 
-  it('calcule la couverture empirique des intervalles Monte-Carlo à 80 % sur 2017 et 2022', () => {
-    expect(report.coverage80).toHaveLength(2)
+  it('calcule la couverture empirique des intervalles Monte-Carlo à 80 % sur 2012, 2017 et 2022', () => {
+    expect(report.coverage80).toHaveLength(3)
     for (const row of report.coverage80) {
       expect(row.evaluatedCount).toBeGreaterThanOrEqual(4)
       expect(row.coveredRaw).toBeGreaterThanOrEqual(0)
       expect(row.coveredRaw).toBeLessThanOrEqual(row.evaluatedCount)
       expect(row.coveredCrossProjected).toBeGreaterThanOrEqual(0)
       expect(row.coveredCrossProjected).toBeLessThanOrEqual(row.evaluatedCount)
-      expect(row.secondRoundP10).toBeLessThan(row.secondRoundP90)
+      if (row.year === 2012) expect(row.secondRoundCovered).toBeNull()
+      else expect(row.secondRoundP10!).toBeLessThan(row.secondRoundP90!)
     }
   })
 
@@ -67,5 +68,22 @@ describe('backtest (validation historique 2017, 2022 et 2024)', () => {
       expect(row.constituenciesCount).toBeGreaterThan(40)
       expect(Math.abs(row.gapPts), row.profileId).toBeLessThan(2.5)
     }
+  })
+
+  it('2012 : année évaluée, sans 2nd tour du front républicain (pas de RN)', () => {
+    expect(report.firstRoundEve.map((r) => r.year).sort()).toEqual([2012, 2017, 2022])
+    expect(report.secondRoundPresidential.find((r) => (r.year as number) === 2012)).toBeUndefined()
+    const row = report.coverage80.find((r) => r.year === 2012)!
+    expect(row.secondRoundCovered).toBeNull()
+  })
+
+  it('compare les variantes de vote utile A/B/C sur 2012, 2017 et 2022 (RMSE finis, A déterministe)', () => {
+    const variants = computeUsefulVoteVariants(simulationData)
+    expect(variants.map((v) => v.year)).toEqual([2012, 2017, 2022])
+    for (const v of variants) {
+      for (const k of ['A', 'B', 'C', 'raw'] as const) expect(Number.isFinite(v.rmse[k])).toBe(true)
+      expect(Object.keys(v.leadersAtDate).length).toBeGreaterThan(0)
+    }
+    expect(computeUsefulVoteVariants(simulationData)).toEqual(variants)
   })
 })

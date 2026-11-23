@@ -9,6 +9,7 @@ import type { PollHistoryData, PollsData } from '../src/domain/types'
 import { FEEDS, SYNTHESES } from '../src/sync/feeds'
 import { parseFeed, parseNoticeIndex } from '../src/sync/links'
 import { mergePollHistory, syncPolls } from '../src/sync/sync'
+import reference2012 from '../src/data/reference-2012.json'
 import reference2017 from '../src/data/reference-2017.json'
 import reference2022 from '../src/data/reference-2022.json'
 import transfers from '../src/data/transfers-legislatives-2024.json'
@@ -68,6 +69,7 @@ parseData({
   pollHistory: currentHistory,
   reference2022,
   reference2017,
+  reference2012,
   transfers,
   declaredTransfers,
   secondRoundDropout,
@@ -84,6 +86,7 @@ parseData({
   pollHistory: historyData,
   reference2022,
   reference2017,
+  reference2012,
   transfers,
   declaredTransfers,
   secondRoundDropout,

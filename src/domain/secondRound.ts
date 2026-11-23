@@ -7,6 +7,7 @@ import type {
   Candidate,
   CandidateId,
   FidelitySplit,
+  NoIntention,
   PollBiasGap,
   PresidentialDuel,
   Reference2017,
@@ -76,6 +77,83 @@ export function pollBiasGaps(
       },
     ]
   })
+}
+
+/**
+ * RMSE historique (en points) des sondages directs de 2nd tour : écart quadratique moyen entre le score
+ * publié du candidat opposé au RN et le résultat, sur tous les sondages des élections de
+ * `second-round-poll-bias.json` dont la fin de terrain est à la même distance du 1er tour que la base 2027
+ * (± `POLL_BIAS_WINDOW_DAYS`) ; faute de sondage dans la fenêtre pour une élection, le plus proche.
+ * Calculé depuis les données, sans constante. Undefined si aucune donnée.
+ */
+export function directPollRmse(
+  data: SecondRoundPollBiasData,
+  polls: { asOf: string; electionDate: string },
+): { rmse: number; count: number } | undefined {
+  const distance = daysBetween(polls.asOf, polls.electionDate)
+  const errors: number[] = []
+  for (const e of data.elections) {
+    const dated = e.polls.map((p) => ({ p, gap: Math.abs(daysBetween(p.end, e.electionDate) - distance) }))
+    if (dated.length === 0) continue
+    const inWindow = dated.filter((d) => d.gap <= POLL_BIAS_WINDOW_DAYS)
+    const used = inWindow.length > 0 ? inWindow : [dated.reduce((best, d) => (d.gap < best.gap ? d : best))]
+    for (const d of used) errors.push(d.p.antiRn - e.result.antiRn)
+  }
+  if (errors.length === 0) return undefined
+  return { rmse: Math.sqrt(errors.reduce((t, x) => t + x * x, 0) / errors.length), count: errors.length }
+}
+
+export interface DirectPollGapAlert {
+  /** Moyenne des sondages directs pour le candidat A (points). */
+  pollMean: number
+  /** Écart modèle − sondages pour A (points). */
+  gap: number
+  /** Seuil = 2 × RMSE historique (points). */
+  threshold: number
+  exceeded: boolean
+}
+
+/** Alerte si le score modèle de A s'écarte de la moyenne des sondages directs de plus de 2 × RMSE historique. */
+export function directPollGapAlert(
+  modelA: number,
+  polls: { scores: Record<CandidateId, number> }[],
+  a: CandidateId,
+  rmse: number | undefined,
+): DirectPollGapAlert | null {
+  const values = polls.map((p) => p.scores[a]).filter((v): v is number => typeof v === 'number')
+  if (values.length === 0 || rmse === undefined || !Number.isFinite(rmse)) return null
+  const pollMean = values.reduce((t, v) => t + v, 0) / values.length
+  const gap = modelA - pollMean
+  const threshold = 2 * rmse
+  return { pollMean, gap, threshold, exceeded: Math.abs(gap) > threshold }
+}
+
+export type ImplicitNoIntention =
+  | { kind: 'ok'; share: number }
+  | { kind: 'impossible'; reason: 'no-room' | 'out-of-range'; share: number | null }
+
+/**
+ * Comportement implicite des personnes sans intention de vote : score q (0–100) que le modèle suppose
+ * pour A parmi ceux qui votent sans avoir déclaré d'intention. Formule (m·E − p·I)/(E − I), avec m le score
+ * modèle de A, p son score publié, E la part de la base qui s'exprime au 2nd tour et I la part de la base
+ * ayant une intention (100 − sans-intention). Base « inscrits » : E = exprimés du 2nd tour (% des inscrits) ;
+ * base « votants » : E = 100 (approximation : blancs et nuls négligés). Undefined si la base est absente.
+ */
+export function implicitNoIntention(
+  modelA: number,
+  pollA: number,
+  noIntention: Pick<NoIntention, 'share' | 'base'> | undefined,
+  expressed2: number,
+): ImplicitNoIntention | undefined {
+  if (!noIntention || !(noIntention.base === 'inscrits' || noIntention.base === 'votants')) return undefined
+  const s = noIntention.share
+  if (![modelA, pollA, s, expressed2].every(Number.isFinite) || s < 0 || s > 100) return undefined
+  const I = 100 - s
+  const E = noIntention.base === 'inscrits' ? expressed2 : 100
+  if (E - I <= 1e-9) return { kind: 'impossible', reason: 'no-room', share: null }
+  const q = (modelA * E - pollA * I) / (E - I)
+  if (q < 0 || q > 100) return { kind: 'impossible', reason: 'out-of-range', share: q }
+  return { kind: 'ok', share: q }
 }
 
 /**

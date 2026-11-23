@@ -192,4 +192,14 @@ describe('données', () => {
     broken.secondRoundDropout.legislatives2024.profiles.lfi_rn.firstRoundVotesByBloc.gauche += 5000
     expect(validateData(broken)).toEqual([expect.stringMatching(/voix par bloc/)])
   })
+
+  it('le 2nd tour de 2012 est cohérent et chaque erreur est détectée', () => {
+    expect(validateData(simulationData)).toEqual([])
+    const broken = structuredClone(simulationData)
+    broken.reference2012.secondRound.blankOrInvalid += 1
+    expect(validateData(broken)).toEqual([expect.stringMatching(/2012 : 2nd tour incohérent/)])
+    const broken2 = structuredClone(simulationData)
+    broken2.reference2012.secondRound.candidates[0]!.votes += 1
+    expect(validateData(broken2).join(' ')).toMatch(/2012 : total des voix/)
+  })
 })

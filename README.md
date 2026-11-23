@@ -1,12 +1,12 @@
 # simulateur2027 : simulateur probabiliste de la présidentielle 2027
 
-Ce simulateur reconstruit les scénarios de 1er et 2nd tour de l'élection présidentielle de 2027 selon une méthode sobre, sourcée et auditée sur les présidentielles 2017 et 2022 et les agrégats des législatives 2024 :
+Ce simulateur reconstruit les scénarios de 1er et 2nd tour de l'élection présidentielle de 2027 selon une méthode sobre, sourcée et auditée sur les présidentielles 2012, 2017 et 2022 et les agrégats des législatives 2024 :
 
 1. **Premier tour pondéré et projection d'offre.** On conserve le dernier sondage de chaque institut sur la période la plus récente, pondéré par sa fraîcheur (demi-vie de **14 jours**) et sa taille d'échantillon (plafonnée à **2 000** répondants). Les candidats testés quasi systématiquement (y compris David Lisnard, présent dans 7 instituts sur 8) sont traités comme candidats principaux ; un petit candidat n'entre dans l'offre de base que s'il est testé par au moins **3 instituts distincts**, avec donneurs mesurés uniquement sur des paires strictement *ceteris paribus* (un seul candidat d'écart au sein d'un même sondage). Lorsqu'un institut récent ne teste pas exactement l'offre cible (distance ≤ 2 candidats), son hypothèse la plus propre est projetée en redistribuant 100 % des transferts mesurés sur paires propres intra-institut (option activée par défaut).
 2. **Alliances testées uniquement.** Seules les alliances (et combinaisons) effectivement testées par au moins un sondage de la période sont proposées : activer une alliance sélectionne les hypothèses où le candidat rallié est absent et où son leader reste seul candidat principal de son camp.
-3. **Projection temporelle vers avril 2027 (activée par défaut).** Projette le vote utile intra-bloc par bloc (réglable dans les réglages avancés), avec bascule directe en un clic vers la photographie actuelle (« Aujourd'hui »). L'amortissement vers les fondamentaux (`meanReversion`) et la tendance récente amortie (`dampedTrend`) restent désactivés par défaut à `0 %` et disponibles en option.
+3. **Projection temporelle vers avril 2027 (activée par défaut).** Limite connue : en validation croisée, elle ne bat pas la moyenne brute sur les trois élections (au 23/11/2026 : égalité en 2012, moins bien en 2017, mieux en 2022) ; elle reste activée par défaut par choix éditorial (décision du 23/11/2026). Projette le vote utile intra-bloc par bloc (réglable dans les réglages avancés), avec bascule directe en un clic vers la photographie actuelle (« Aujourd'hui »). L'amortissement vers les fondamentaux (`meanReversion`) et la tendance récente amortie (`dampedTrend`) restent désactivés par défaut à `0 %` et disponibles en option.
 4. **Second tour unifié en flux bruts (% des inscrits) et front républicain (2022 ↔ 2024).** Chaque électorat exprimé du 1er tour applique directement ses taux de report (fidélité différenciée pour les finalistes : 96 % Le Pen, 92 % Mélenchon, 95 % par défaut). Pour les duels face au RN, la base historique interpole directement sur échelle logit entre **deux repères mesurés** — **Présidentielle 2022 (`0 %`)** et **Législatives 2024 (`100 %`, défaut provisoire)** — sans extrapolation sous 2022. Le report non mesuré **gauche hors LFI → Mélenchon** (`lfi_rn.gauche`) dispose d'un curseur dédié (défaut provisoire `72 %`), d'une analyse de sensibilité affichée sur les duels LFI–RN et d'un tirage uniforme explicite `[35 % ; 75 %]` dans Monte-Carlo. Les duels gauche vs centre/droite hors RN utilisent les présidentielles 2007–2012 ; les déclarations 2027 corrigées en logit restent activables en option. Les abstentionnistes du 1er tour mobilisés au 2nd sont modélisés explicitement (`P = 74 %`, mobilisation `a = 20 %`, orientation anti-RN `55 %` face au RN et `50 %` hors RN).
-5. **Incertitude Monte-Carlo et validation historique.** À chaque calcul, 2 000 tirages déterministes (graine `2027`) propagent la volatilité de campagne (distribution Student-t(8) en log-ratio, règle écrite `σ_ref = 0,595` à J−156, plancher `0,14`), l'incertitude des reports (Dirichlet `κ = 40`, choc front républicain 2022↔2024, tirage uniforme `[35 % ; 75 %]` sur gauche hors LFI → Mélenchon, choc commun national) et, activée par défaut hors alliance forcée, l'incertitude sur les candidatures au centre et à droite (5 offres pondérées). La page `/methodologie` distingue explicitement les validations **hors échantillon** des contrôles internes / de calibration (dont la couverture empirique des intervalles à 80 % sur 2017 et 2022).
+5. **Incertitude Monte-Carlo et validation historique.** À chaque calcul, 2 000 tirages déterministes (graine `2027`) propagent la volatilité de campagne (distribution Student-t(8) en log-ratio, `σ_ref = 0,825` à J−156, plancher `0,14`, retenu comme la valeur dont la couverture [P10 ; P90] des scores de 1er tour, en moyenne par élection sur 2012, 2017 et 2022 (J−150 à J−24), est la plus proche de 80 % (79,8 %) ; limites : couverture tous points confondus de 68,8 % seulement (IC 95 % [60,4 ; 76,4] %), choix instable en leave-one-out (σ de 0,30 à 1,115 selon l'élection exclue), CRPS publié en diagnostic, voir `scripts/calibrate-sigma.ts` et `src/data/sigma-calibration.json`), l'incertitude des reports (Dirichlet `κ = 40`, choc front républicain 2022↔2024, tirage uniforme `[35 % ; 75 %]` sur gauche hors LFI → Mélenchon, choc commun national) et, activée par défaut hors alliance forcée, l'incertitude sur les candidatures au centre et à droite (5 offres pondérées). La page `/methodologie` distingue explicitement les validations **hors échantillon** des contrôles internes / de calibration (dont la couverture empirique des intervalles à 80 % sur 2012, 2017 et 2022, en validation croisée leave-one-out ; le 2nd tour 2012, sans RN, est exclu du backtest du front républicain). Hypothèses non sourcées, avec plage de sensibilité : fuite inter-blocs `0,12` (`0,06–0,18`), concentration du centre `0,75` (`0,65–0,85`), poids des scénarios de candidatures (poids uniformes en alternative). Préréglage « Incertain » du front républicain (tirage uniforme commun par itération ; défaut inchangé), alerte d'écart aux sondages directs (> 2 × RMSE historique), comportement implicite des sans-intention et tableau de sensibilité repliable (front républicain, projection de campagne, fuite inter-blocs, concentration du centre, nouveaux votants, mobilisation des abstentionnistes, fidélité des finalistes, report gauche hors LFI ; sans Monte-Carlo).
 
 > Ceci est une simulation fondée sur des sondages publiés et des hypothèses explicites. Ce n'est ni un sondage ni une prévision.
 
@@ -14,7 +14,7 @@ Ce simulateur reconstruit les scénarios de 1er et 2nd tour de l'élection prés
 
 - **Vite, React 19, TypeScript** (strict) et **Tailwind CSS v4** : SPA statique.
 - **Radix UI** (composants accessibles) et **Motion** (animations).
-- **Zustand** (`persist`) pour les réglages locaux (`localStorage`, version 16).
+- **Zustand** (`persist`) pour les réglages locaux (`localStorage`, version 17).
 - **Zod** pour la validation des données JSON au chargement.
 - **Vitest** pour les tests et **bun** comme gestionnaire de paquets.
 
@@ -37,10 +37,10 @@ bun run check-notices # outil local : liste les notices de 2nd tour sans noInten
 ```text
 src/
   domain/   Calcul pur en TypeScript (sans React) : pollAverage, offerProjection, alliances,
-            campaignProjection, transfers, newVoters, secondRound, backtest, monteCarlo, simulate.
+            campaignProjection, transfers, newVoters, secondRound, backtest, sensitivity, monteCarlo, simulate.
   data/     Fichiers JSON sourcés + validation Zod et contrôles croisés (schema.ts).
   sync/     Synchronisation Wikipedia, flux RSS d'instituts et notices (scripts/sync-polls.ts).
-  state/    Réglages utilisateur persistés (settingsStore.ts, v16).
+  state/    Réglages utilisateur persistés (settingsStore.ts, v17).
   hooks/    useSimulation(), backtestReport, newVoterReferenceRates.
   ui/       Composants React, graphiques (Sankey, trajectoire, barres 0–100 % + IC 80 %), page /methodologie.
 docs/
@@ -57,6 +57,7 @@ docs/
 | `src/data/reference-2017.json`, `src/data/reference-2022.json` | Résultats officiels des deux tours et sondages de 2017 et 2022 (utilisés uniquement pour le backtest et la règle d'écart-type de campagne). |
 | `src/data/transfers-legislatives-2024.json` | Fidélité différenciée, profils Ipsos-Talan 2024 (ancre 100 %), enquêtes « jour du vote » présidentielles 2017–2022 (ancre 0 % = 2022) et 2007–2012 (hors RN). |
 | `src/data/transfers-2027-declared.json` | Option activable : reports déclarés 2026 (Harris Interactive / Odoxa) et paramètres de correction logit multinomial. |
+| `src/data/reference-2012.json` | Présidentielle 2012 (deux tours, Conseil constitutionnel) pour le backtest. |
 | `src/data/second-round-dropout.json` | Totaux agrégés des 342 duels des législatives 2024 (contrôle interne), repères présidentiels 2002–2012 et statistiques nouveaux votants (Ifop 2022, Insee). |
 | `src/data/second-round-poll-bias.json` | Écart historique des sondages directs de 2nd tour (2017 et 2022), affiché à titre informatif uniquement. |
 

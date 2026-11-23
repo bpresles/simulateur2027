@@ -28,12 +28,15 @@ const mean = (values: number[]) => values.reduce((s, v) => s + v, 0) / values.le
  * Préréglages du front républicain : interpolation directe entre deux repères mesurés :
  * - `pres2022` (0 %) : niveau des enquêtes « jour du vote » de la présidentielle 2022 ;
  * - `midpoint` (50 %) : mi-chemin entre 2022 et 2024 ;
- * - `leg2024` (100 %) : niveau direct de l'enquête Ipsos-Talan des législatives 2024.
+ * - `leg2024` (100 %) : niveau direct de l'enquête Ipsos-Talan des législatives 2024 ;
+ * - `uncertain` : position 50 % à l'affichage, tirée uniformément dans [0 ; 1] (commune aux 3 électorats) à chaque
+ *   itération Monte-Carlo (aucune ancre ne permet de trancher entre 2022 et 2024).
  */
 export const REPUBLICAN_FRONT_PRESETS: Record<RepublicanFrontPreset, RepublicanFrontSettings> = {
   pres2022: { gauche: 0, centre: 0, droite: 0 },
   midpoint: { gauche: 0.5, centre: 0.5, droite: 0.5 },
   leg2024: { gauche: 1, centre: 1, droite: 1 },
+  uncertain: { gauche: 0.5, centre: 0.5, droite: 0.5, uncertain: true },
 }
 
 /** Défaut provisoire : législatives 2024 (100 %), seule enquête mesurant directement les 4 paires de finalistes. */

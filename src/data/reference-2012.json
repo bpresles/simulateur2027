@@ -1,0 +1,5165 @@
+{
+  "electionDate": "2012-04-22",
+  "windowDays": 7,
+  "description": "Dernier sondage publié par chaque institut avant le 1er tour du 22/04/2012 (terrain achevé dans les 7 jours précédant le scrutin), comparé au résultat officiel.",
+  "resultsSource": {
+    "label": "Conseil constitutionnel – Décision n° 2012-152 PDR du 25/04/2012 (résultats du 1er tour)",
+    "url": "https://www.conseil-constitutionnel.fr/decision/2012/2012152PDR.htm"
+  },
+  "pollsSource": {
+    "label": "Wikipedia – Opinion polling for the 2012 French presidential election",
+    "url": "https://en.wikipedia.org/wiki/Opinion_polling_for_the_2012_French_presidential_election"
+  },
+  "expressed": 35883209,
+  "registered": 46028542,
+  "voters": 36584399,
+  "candidates": [
+    {
+      "id": "arthaud",
+      "name": "Nathalie Arthaud",
+      "votes": 202548
+    },
+    {
+      "id": "poutou",
+      "name": "Philippe Poutou",
+      "votes": 411160
+    },
+    {
+      "id": "melenchon",
+      "name": "Jean-Luc Mélenchon",
+      "votes": 3984822
+    },
+    {
+      "id": "hollande",
+      "name": "François Hollande",
+      "votes": 10272705
+    },
+    {
+      "id": "joly",
+      "name": "Eva Joly",
+      "votes": 828345
+    },
+    {
+      "id": "bayrou",
+      "name": "François Bayrou",
+      "votes": 3275122
+    },
+    {
+      "id": "sarkozy",
+      "name": "Nicolas Sarkozy",
+      "votes": 9753629
+    },
+    {
+      "id": "dupont-aignan",
+      "name": "Nicolas Dupont-Aignan",
+      "votes": 643907
+    },
+    {
+      "id": "lepen",
+      "name": "Marine Le Pen",
+      "votes": 6421426
+    },
+    {
+      "id": "cheminade",
+      "name": "Jacques Cheminade",
+      "votes": 89545
+    }
+  ],
+  "polls": [
+    {
+      "institute": "Ifop-Fiducial",
+      "fieldwork": {
+        "start": "2012-04-17",
+        "end": "2012-04-20"
+      },
+      "sampleSize": 2592,
+      "url": "https://web.archive.org/web/20120514081754/http://www.parismatch.com/Actu-Match/Presidentielle-2012/import/pdf/rapport-20-04-2012.pdf",
+      "scores": {
+        "arthaud": 0.5,
+        "poutou": 1.0,
+        "melenchon": 13.5,
+        "hollande": 27.0,
+        "joly": 3.0,
+        "bayrou": 10.5,
+        "sarkozy": 27.0,
+        "dupont-aignan": 1.5,
+        "lepen": 16.0,
+        "cheminade": 0.25
+      }
+    },
+    {
+      "institute": "BVA",
+      "fieldwork": {
+        "start": "2012-04-18",
+        "end": "2012-04-19"
+      },
+      "sampleSize": 2161,
+      "url": "https://staticswww.bva-group.com/wp-content/uploads/2017/02/fichier_intention_de_vote_-_le_parisien21a91.pdf",
+      "scores": {
+        "arthaud": 0.25,
+        "poutou": 1.5,
+        "melenchon": 14.0,
+        "hollande": 30.0,
+        "joly": 2.0,
+        "bayrou": 10.0,
+        "sarkozy": 26.5,
+        "dupont-aignan": 2.0,
+        "lepen": 14.0,
+        "cheminade": 0.25
+      }
+    },
+    {
+      "institute": "CSA",
+      "fieldwork": {
+        "start": "2012-04-18",
+        "end": "2012-04-19"
+      },
+      "sampleSize": 1005,
+      "url": "https://web.archive.org/web/20120617031959/http://www.csa.eu/multimedia/data/sondages/data2012/opi20120419-la-course-2012-vague-24-avril-2012.pdf",
+      "scores": {
+        "arthaud": 1.0,
+        "poutou": 1.5,
+        "melenchon": 14.5,
+        "hollande": 28.0,
+        "joly": 2.0,
+        "bayrou": 10.5,
+        "sarkozy": 25.0,
+        "dupont-aignan": 1.5,
+        "lepen": 16.0,
+        "cheminade": 0.25
+      }
+    },
+    {
+      "institute": "Harris Interactive",
+      "fieldwork": {
+        "start": "2012-04-18",
+        "end": "2012-04-19"
+      },
+      "sampleSize": 1068,
+      "url": "https://harris-interactive.fr/wp-content/uploads/sites/6/2015/09/Results_HIFR_VSD_20042012.pdf",
+      "scores": {
+        "arthaud": 0.5,
+        "poutou": 1.5,
+        "melenchon": 12.0,
+        "hollande": 27.5,
+        "joly": 3.0,
+        "bayrou": 11.0,
+        "sarkozy": 26.5,
+        "dupont-aignan": 2.0,
+        "lepen": 16.0,
+        "cheminade": 0.25
+      }
+    },
+    {
+      "institute": "Ipsos",
+      "fieldwork": {
+        "start": "2012-04-18",
+        "end": "2012-04-19"
+      },
+      "sampleSize": 1021,
+      "url": "https://web.archive.org/web/20120601194938/http://www.ipsos.fr/sites/default/files/attachments/rapport_barometre_iv_vague_18.pdf",
+      "scores": {
+        "arthaud": 0.25,
+        "poutou": 1.5,
+        "melenchon": 14.0,
+        "hollande": 29.0,
+        "joly": 2.0,
+        "bayrou": 10.0,
+        "sarkozy": 25.5,
+        "dupont-aignan": 1.5,
+        "lepen": 16.0,
+        "cheminade": 0.5
+      }
+    },
+    {
+      "institute": "TNS Sofres",
+      "fieldwork": {
+        "start": "2012-04-18",
+        "end": "2012-04-19"
+      },
+      "sampleSize": 1000,
+      "url": "https://www.tns-sofres.com/sites/default/files/2012.04.20-intentionsvote.pdf",
+      "scores": {
+        "arthaud": 0.25,
+        "poutou": 1.0,
+        "melenchon": 13.0,
+        "hollande": 27.0,
+        "joly": 3.0,
+        "bayrou": 10.0,
+        "sarkozy": 27.0,
+        "dupont-aignan": 2.0,
+        "lepen": 17.0,
+        "cheminade": 0.25
+      }
+    },
+    {
+      "institute": "LH2",
+      "fieldwork": {
+        "start": "2012-04-17",
+        "end": "2012-04-18"
+      },
+      "sampleSize": 956,
+      "url": "https://web.archive.org/web/20120503225731/http://www.lh2.fr/_upload/ressources/sondages/politique_nationale/lh2yahoointentionsvotepresidentielle201219avril2012.pdf",
+      "scores": {
+        "arthaud": 1.0,
+        "poutou": 1.0,
+        "melenchon": 15.0,
+        "hollande": 27.0,
+        "joly": 2.5,
+        "bayrou": 10.0,
+        "sarkozy": 26.5,
+        "dupont-aignan": 1.5,
+        "lepen": 15.5,
+        "cheminade": 0.0
+      }
+    },
+    {
+      "institute": "OpinionWay",
+      "fieldwork": {
+        "start": "2012-04-16",
+        "end": "2012-04-17"
+      },
+      "sampleSize": 1002,
+      "url": "https://www.opinion-way.com/fr/sondage-d-opinion/sondages-publies/le-barometre-de-la-presidentielle-2012-vague-8-fiducial-pour-le-figaro-et-lci/viewdocument.html",
+      "scores": {
+        "arthaud": 0.5,
+        "poutou": 2.0,
+        "melenchon": 13.0,
+        "hollande": 27.5,
+        "joly": 2.0,
+        "bayrou": 10.0,
+        "sarkozy": 27.5,
+        "dupont-aignan": 1.5,
+        "lepen": 16.0,
+        "cheminade": 0.0
+      }
+    }
+  ],
+  "campaignPolls": {
+    "description": "Sondages de 1er tour de la campagne 2012 (octobre 2011 à avril 2012) retenus sur l'offre stabilisée des candidats effectifs : exige Mélenchon, Hollande, Bayrou, Sarkozy et Le Pen, et exclut les personnalités testées mais non candidates (Chevènement, Lepage, Villepin, Morin, Nihous, Boutin) afin d'éviter toute double comptabilisation de blocs. Les « <0,5 % » sont convertis en 0,25 pt, comme pour 2017 et 2022.",
+    "windowDays": 21,
+    "require": [
+      "melenchon",
+      "hollande",
+      "bayrou",
+      "sarkozy",
+      "lepen"
+    ],
+    "exclude": [
+      "chevenement",
+      "lepage",
+      "villepin",
+      "morin",
+      "nihous",
+      "boutin"
+    ],
+    "otherCandidates": [
+      {
+        "id": "boutin",
+        "name": "Christine Boutin"
+      },
+      {
+        "id": "chevenement",
+        "name": "Jean-Pierre Chevènement"
+      },
+      {
+        "id": "lepage",
+        "name": "Corinne Lepage"
+      },
+      {
+        "id": "morin",
+        "name": "Hervé Morin"
+      },
+      {
+        "id": "nihous",
+        "name": "Frédéric Nihous"
+      },
+      {
+        "id": "villepin",
+        "name": "Dominique de Villepin"
+      }
+    ],
+    "source": {
+      "label": "Wikipedia – Opinion polling for the 2012 French presidential election (octobre 2011 à avril 2012)",
+      "url": "https://en.wikipedia.org/wiki/Opinion_polling_for_the_2012_French_presidential_election"
+    },
+    "polls": [
+      {
+        "institute": "Ifop-Fiducial",
+        "fieldwork": {
+          "start": "2012-04-18",
+          "end": "2012-04-20"
+        },
+        "sampleSize": 1723,
+        "url": "https://www.ifop.com/wp-content/uploads/2018/03/1849-1-study_file.pdf",
+        "hypotheses": [
+          {
+            "id": "H1",
+            "scores": {
+              "arthaud": 0.5,
+              "poutou": 1.0,
+              "melenchon": 13.5,
+              "hollande": 27.5,
+              "joly": 2.5,
+              "bayrou": 10.0,
+              "sarkozy": 27.0,
+              "dupont-aignan": 1.5,
+              "lepen": 16.5,
+              "cheminade": 0.25
+            }
+          }
+        ]
+      },
+      {
+        "institute": "Ifop-Fiducial",
+        "fieldwork": {
+          "start": "2012-04-17",
+          "end": "2012-04-20"
+        },
+        "sampleSize": 2592,
+        "url": "https://web.archive.org/web/20120514081754/http://www.parismatch.com/Actu-Match/Presidentielle-2012/import/pdf/rapport-20-04-2012.pdf",
+        "hypotheses": [
+          {
+            "id": "H1",
+            "scores": {
+              "arthaud": 0.5,
+              "poutou": 1.0,
+              "melenchon": 13.5,
+              "hollande": 27.0,
+              "joly": 3.0,
+              "bayrou": 10.5,
+              "sarkozy": 27.0,
+              "dupont-aignan": 1.5,
+              "lepen": 16.0,
+              "cheminade": 0.25
+            }
+          }
+        ]
+      },
+      {
+        "institute": "TNS Sofres",
+        "fieldwork": {
+          "start": "2012-04-18",
+          "end": "2012-04-19"
+        },
+        "sampleSize": 1000,
+        "url": "https://www.tns-sofres.com/sites/default/files/2012.04.20-intentionsvote.pdf",
+        "hypotheses": [
+          {
+            "id": "H1",
+            "scores": {
+              "arthaud": 0.25,
+              "poutou": 1.0,
+              "melenchon": 13.0,
+              "hollande": 27.0,
+              "joly": 3.0,
+              "bayrou": 10.0,
+              "sarkozy": 27.0,
+              "dupont-aignan": 2.0,
+              "lepen": 17.0,
+              "cheminade": 0.25
+            }
+          }
+        ]
+      },
+      {
+        "institute": "Ipsos",
+        "fieldwork": {
+          "start": "2012-04-18",
+          "end": "2012-04-19"
+        },
+        "sampleSize": 1021,
+        "url": "https://web.archive.org/web/20120601194938/http://www.ipsos.fr/sites/default/files/attachments/rapport_barometre_iv_vague_18.pdf",
+        "hypotheses": [
+          {
+            "id": "H1",
+            "scores": {
+              "arthaud": 0.25,
+              "poutou": 1.5,
+              "melenchon": 14.0,
+              "hollande": 29.0,
+              "joly": 2.0,
+              "bayrou": 10.0,
+              "sarkozy": 25.5,
+              "dupont-aignan": 1.5,
+              "lepen": 16.0,
+              "cheminade": 0.5
+            }
+          }
+        ]
+      },
+      {
+        "institute": "Ifop-Fiducial",
+        "fieldwork": {
+          "start": "2012-04-16",
+          "end": "2012-04-19"
+        },
+        "sampleSize": 2588,
+        "url": "https://web.archive.org/web/20120516193906/http://www.parismatch.com/Actu-Match/Presidentielle-2012/import/pdf/rapport-19-04-2012.pdf",
+        "hypotheses": [
+          {
+            "id": "H1",
+            "scores": {
+              "arthaud": 0.5,
+              "poutou": 1.0,
+              "melenchon": 13.5,
+              "hollande": 26.0,
+              "joly": 2.5,
+              "bayrou": 11.0,
+              "sarkozy": 28.0,
+              "dupont-aignan": 1.5,
+              "lepen": 16.0,
+              "cheminade": 0.25
+            }
+          }
+        ]
+      },
+      {
+        "institute": "Harris Interactive",
+        "fieldwork": {
+          "start": "2012-04-18",
+          "end": "2012-04-19"
+        },
+        "sampleSize": 1068,
+        "url": "https://harris-interactive.fr/wp-content/uploads/sites/6/2015/09/Results_HIFR_VSD_20042012.pdf",
+        "hypotheses": [
+          {
+            "id": "H1",
+            "scores": {
+              "arthaud": 0.5,
+              "poutou": 1.5,
+              "melenchon": 12.0,
+              "hollande": 27.5,
+              "joly": 3.0,
+              "bayrou": 11.0,
+              "sarkozy": 26.5,
+              "dupont-aignan": 2.0,
+              "lepen": 16.0,
+              "cheminade": 0.25
+            }
+          }
+        ]
+      },
+      {
+        "institute": "CSA",
+        "fieldwork": {
+          "start": "2012-04-18",
+          "end": "2012-04-19"
+        },
+        "sampleSize": 1005,
+        "url": "https://web.archive.org/web/20120617031959/http://www.csa.eu/multimedia/data/sondages/data2012/opi20120419-la-course-2012-vague-24-avril-2012.pdf",
+        "hypotheses": [
+          {
+            "id": "H1",
+            "scores": {
+              "arthaud": 1.0,
+              "poutou": 1.5,
+              "melenchon": 14.5,
+              "hollande": 28.0,
+              "joly": 2.0,
+              "bayrou": 10.5,
+              "sarkozy": 25.0,
+              "dupont-aignan": 1.5,
+              "lepen": 16.0,
+              "cheminade": 0.25
+            }
+          }
+        ]
+      },
+      {
+        "institute": "BVA",
+        "fieldwork": {
+          "start": "2012-04-18",
+          "end": "2012-04-19"
+        },
+        "sampleSize": 2161,
+        "url": "https://staticswww.bva-group.com/wp-content/uploads/2017/02/fichier_intention_de_vote_-_le_parisien21a91.pdf",
+        "hypotheses": [
+          {
+            "id": "H1",
+            "scores": {
+              "arthaud": 0.25,
+              "poutou": 1.5,
+              "melenchon": 14.0,
+              "hollande": 30.0,
+              "joly": 2.0,
+              "bayrou": 10.0,
+              "sarkozy": 26.5,
+              "dupont-aignan": 2.0,
+              "lepen": 14.0,
+              "cheminade": 0.25
+            }
+          }
+        ]
+      },
+      {
+        "institute": "LH2",
+        "fieldwork": {
+          "start": "2012-04-17",
+          "end": "2012-04-18"
+        },
+        "sampleSize": 956,
+        "url": "https://web.archive.org/web/20120503225731/http://www.lh2.fr/_upload/ressources/sondages/politique_nationale/lh2yahoointentionsvotepresidentielle201219avril2012.pdf",
+        "hypotheses": [
+          {
+            "id": "H1",
+            "scores": {
+              "arthaud": 1.0,
+              "poutou": 1.0,
+              "melenchon": 15.0,
+              "hollande": 27.0,
+              "joly": 2.5,
+              "bayrou": 10.0,
+              "sarkozy": 26.5,
+              "dupont-aignan": 1.5,
+              "lepen": 15.5,
+              "cheminade": 0.0
+            }
+          }
+        ]
+      },
+      {
+        "institute": "Ifop-Fiducial",
+        "fieldwork": {
+          "start": "2012-04-14",
+          "end": "2012-04-18"
+        },
+        "sampleSize": 2552,
+        "url": "https://web.archive.org/web/20120516194150/http://www.parismatch.com/Actu-Match/Presidentielle-2012/import/pdf/rapport-18-04-2012.pdf",
+        "hypotheses": [
+          {
+            "id": "H1",
+            "scores": {
+              "arthaud": 0.5,
+              "poutou": 1.0,
+              "melenchon": 13.5,
+              "hollande": 26.0,
+              "joly": 3.0,
+              "bayrou": 11.0,
+              "sarkozy": 27.5,
+              "dupont-aignan": 1.5,
+              "lepen": 16.0,
+              "cheminade": 0.25
+            }
+          }
+        ]
+      },
+      {
+        "institute": "OpinionWay",
+        "fieldwork": {
+          "start": "2012-04-16",
+          "end": "2012-04-17"
+        },
+        "sampleSize": 1002,
+        "url": "https://www.opinion-way.com/fr/sondage-d-opinion/sondages-publies/le-barometre-de-la-presidentielle-2012-vague-8-fiducial-pour-le-figaro-et-lci/viewdocument.html",
+        "hypotheses": [
+          {
+            "id": "H1",
+            "scores": {
+              "arthaud": 0.5,
+              "poutou": 2.0,
+              "melenchon": 13.0,
+              "hollande": 27.5,
+              "joly": 2.0,
+              "bayrou": 10.0,
+              "sarkozy": 27.5,
+              "dupont-aignan": 1.5,
+              "lepen": 16.0,
+              "cheminade": 0.0
+            }
+          }
+        ]
+      },
+      {
+        "institute": "Ifop-Fiducial",
+        "fieldwork": {
+          "start": "2012-04-14",
+          "end": "2012-04-17"
+        },
+        "sampleSize": 1709,
+        "url": "https://web.archive.org/web/20120516192524/http://www.parismatch.com/Actu-Match/Presidentielle-2012/import/pdf/rapport-17-04-2012.pdf",
+        "hypotheses": [
+          {
+            "id": "H1",
+            "scores": {
+              "arthaud": 0.5,
+              "poutou": 1.0,
+              "melenchon": 13.5,
+              "hollande": 26.5,
+              "joly": 3.0,
+              "bayrou": 10.5,
+              "sarkozy": 27.5,
+              "dupont-aignan": 1.5,
+              "lepen": 16.0,
+              "cheminade": 0.25
+            }
+          }
+        ]
+      },
+      {
+        "institute": "CSA",
+        "fieldwork": {
+          "start": "2012-04-16",
+          "end": "2012-04-17"
+        },
+        "sampleSize": 886,
+        "url": "https://web.archive.org/web/20120418195754/http://www.csa.eu/multimedia/data/sondages/data2012/opi20120417-la-course-2012-vague-23-avril-2012.pdf",
+        "hypotheses": [
+          {
+            "id": "H1",
+            "scores": {
+              "arthaud": 0.5,
+              "poutou": 1.0,
+              "melenchon": 15.0,
+              "hollande": 29.0,
+              "joly": 2.0,
+              "bayrou": 10.0,
+              "sarkozy": 24.0,
+              "dupont-aignan": 1.5,
+              "lepen": 17.0,
+              "cheminade": 0.25
+            }
+          }
+        ]
+      },
+      {
+        "institute": "BVA",
+        "fieldwork": {
+          "start": "2012-04-16",
+          "end": "2012-04-17"
+        },
+        "sampleSize": 1161,
+        "url": "https://staticswww.bva-group.com/wp-content/uploads/2017/02/fichier_intention_de_vote_bva-orange-spqr-rtl4060b.pdf",
+        "hypotheses": [
+          {
+            "id": "H1",
+            "scores": {
+              "arthaud": 0.25,
+              "poutou": 1.0,
+              "melenchon": 13.0,
+              "hollande": 29.5,
+              "joly": 2.0,
+              "bayrou": 12.0,
+              "sarkozy": 27.5,
+              "dupont-aignan": 1.0,
+              "lepen": 14.0,
+              "cheminade": 0.25
+            }
+          }
+        ]
+      },
+      {
+        "institute": "Harris Interactive",
+        "fieldwork": {
+          "start": "2012-04-12",
+          "end": "2012-04-16"
+        },
+        "sampleSize": 991,
+        "url": "https://harris-interactive.fr/wp-content/uploads/sites/6/2015/09/Results_HIFR_VSD_17042012.pdf",
+        "hypotheses": [
+          {
+            "id": "H1",
+            "scores": {
+              "arthaud": 0.5,
+              "poutou": 1.0,
+              "melenchon": 12.0,
+              "hollande": 27.0,
+              "joly": 2.0,
+              "bayrou": 11.0,
+              "sarkozy": 28.0,
+              "dupont-aignan": 1.5,
+              "lepen": 17.0,
+              "cheminade": 0.25
+            }
+          }
+        ]
+      },
+      {
+        "institute": "Ifop-Fiducial",
+        "fieldwork": {
+          "start": "2012-04-12",
+          "end": "2012-04-15"
+        },
+        "sampleSize": 1808,
+        "url": "https://www.ifop.com/wp-content/uploads/2018/03/1841-1-study_file.pdf",
+        "hypotheses": [
+          {
+            "id": "H1",
+            "scores": {
+              "arthaud": 0.5,
+              "poutou": 1.0,
+              "melenchon": 14.5,
+              "hollande": 28.0,
+              "joly": 3.0,
+              "bayrou": 9.5,
+              "sarkozy": 27.0,
+              "dupont-aignan": 1.0,
+              "lepen": 15.5,
+              "cheminade": 0.25
+            }
+          }
+        ]
+      },
+      {
+        "institute": "Ifop-Fiducial",
+        "fieldwork": {
+          "start": "2012-04-12",
+          "end": "2012-04-15"
+        },
+        "sampleSize": 1711,
+        "url": "https://web.archive.org/web/20120516183404/http://www.parismatch.com/Actu-Match/Presidentielle-2012/import/pdf/rapport-16-04-2012.pdf",
+        "hypotheses": [
+          {
+            "id": "H1",
+            "scores": {
+              "arthaud": 1.0,
+              "poutou": 1.0,
+              "melenchon": 14.0,
+              "hollande": 27.5,
+              "joly": 2.5,
+              "bayrou": 10.0,
+              "sarkozy": 27.0,
+              "dupont-aignan": 1.0,
+              "lepen": 16.0,
+              "cheminade": 0.25
+            }
+          }
+        ]
+      },
+      {
+        "institute": "Ipsos",
+        "fieldwork": {
+          "start": "2012-04-13",
+          "end": "2012-04-14"
+        },
+        "sampleSize": 894,
+        "url": "https://web.archive.org/web/20120601194920/http://www.ipsos.fr/sites/default/files/attachments/rapport_barometre_iv_vague_17.pdf",
+        "hypotheses": [
+          {
+            "id": "H1",
+            "scores": {
+              "arthaud": 1.0,
+              "poutou": 1.0,
+              "melenchon": 14.5,
+              "hollande": 27.0,
+              "joly": 2.5,
+              "bayrou": 10.0,
+              "sarkozy": 27.0,
+              "dupont-aignan": 1.0,
+              "lepen": 15.5,
+              "cheminade": 0.5
+            }
+          }
+        ]
+      },
+      {
+        "institute": "Ifop-Fiducial",
+        "fieldwork": {
+          "start": "2012-04-10",
+          "end": "2012-04-13"
+        },
+        "sampleSize": 2562,
+        "url": "https://web.archive.org/web/20120416224534/http://www.parismatch.com/Actu-Match/Presidentielle-2012/import/pdf/rapport-13-04-2012.pdf",
+        "hypotheses": [
+          {
+            "id": "H1",
+            "scores": {
+              "arthaud": 0.5,
+              "poutou": 0.5,
+              "melenchon": 13.0,
+              "hollande": 27.0,
+              "joly": 3.0,
+              "bayrou": 10.5,
+              "sarkozy": 28.0,
+              "dupont-aignan": 1.0,
+              "lepen": 16.0,
+              "cheminade": 0.5
+            }
+          }
+        ]
+      },
+      {
+        "institute": "TNS Sofres",
+        "fieldwork": {
+          "start": "2012-04-11",
+          "end": "2012-04-12"
+        },
+        "sampleSize": 1000,
+        "url": "https://www.tns-sofres.com/sites/default/files/2012.04.13-iv.pdf",
+        "hypotheses": [
+          {
+            "id": "H1",
+            "scores": {
+              "arthaud": 1.0,
+              "poutou": 0.5,
+              "melenchon": 16.0,
+              "hollande": 28.0,
+              "joly": 2.5,
+              "bayrou": 9.0,
+              "sarkozy": 26.0,
+              "dupont-aignan": 1.0,
+              "lepen": 16.0,
+              "cheminade": 0.25
+            }
+          }
+        ]
+      },
+      {
+        "institute": "Ifop-Fiducial",
+        "fieldwork": {
+          "start": "2012-04-09",
+          "end": "2012-04-12"
+        },
+        "sampleSize": 2562,
+        "url": "https://web.archive.org/web/20120416224526/http://www.parismatch.com/Actu-Match/Presidentielle-2012/import/pdf/rapport-12-04-2012.pdf",
+        "hypotheses": [
+          {
+            "id": "H1",
+            "scores": {
+              "arthaud": 0.5,
+              "poutou": 0.25,
+              "melenchon": 13.5,
+              "hollande": 27.0,
+              "joly": 3.0,
+              "bayrou": 10.0,
+              "sarkozy": 28.5,
+              "dupont-aignan": 1.5,
+              "lepen": 16.0,
+              "cheminade": 0.25
+            }
+          }
+        ]
+      },
+      {
+        "institute": "BVA",
+        "fieldwork": {
+          "start": "2012-04-11",
+          "end": "2012-04-12"
+        },
+        "sampleSize": 885,
+        "url": "https://staticswww.bva-group.com/wp-content/uploads/2017/02/fichier_intention_de_vote_bva-orange-spqr-rtl61753.pdf",
+        "hypotheses": [
+          {
+            "id": "H1",
+            "scores": {
+              "arthaud": 0.5,
+              "poutou": 0.5,
+              "melenchon": 13.0,
+              "hollande": 30.0,
+              "joly": 2.0,
+              "bayrou": 11.0,
+              "sarkozy": 27.0,
+              "dupont-aignan": 0.5,
+              "lepen": 15.0,
+              "cheminade": 0.5
+            }
+          }
+        ]
+      },
+      {
+        "institute": "OpinionWay",
+        "fieldwork": {
+          "start": "2012-04-10",
+          "end": "2012-04-11"
+        },
+        "sampleSize": 1007,
+        "url": "https://www.opinion-way.com/fr/sondage-d-opinion/sondages-publies/l-indicateur-2012-l-observatoire-de-la-presidentielle-vague-5-fiducial-pour-radio-classique-et-les-echos/viewdocument.html",
+        "hypotheses": [
+          {
+            "id": "H1",
+            "scores": {
+              "arthaud": 1.0,
+              "poutou": 0.5,
+              "melenchon": 13.0,
+              "hollande": 27.0,
+              "joly": 2.5,
+              "bayrou": 10.0,
+              "sarkozy": 28.0,
+              "dupont-aignan": 2.0,
+              "lepen": 16.0,
+              "cheminade": 0.0
+            }
+          }
+        ]
+      },
+      {
+        "institute": "LH2",
+        "fieldwork": {
+          "start": "2012-04-10",
+          "end": "2012-04-11"
+        },
+        "sampleSize": 977,
+        "url": "https://web.archive.org/web/20120419134434/http://oise.pcf.fr/sites/default/files/20120412-lh2-yahoo.pdf",
+        "hypotheses": [
+          {
+            "id": "H1",
+            "scores": {
+              "arthaud": 1.0,
+              "poutou": 1.0,
+              "melenchon": 13.0,
+              "hollande": 29.5,
+              "joly": 2.5,
+              "bayrou": 10.5,
+              "sarkozy": 27.0,
+              "dupont-aignan": 1.5,
+              "lepen": 14.0,
+              "cheminade": 0.25
+            }
+          }
+        ]
+      },
+      {
+        "institute": "Ifop-Fiducial",
+        "fieldwork": {
+          "start": "2012-04-06",
+          "end": "2012-04-11"
+        },
+        "sampleSize": 2285,
+        "url": "https://web.archive.org/web/20120416224504/http://www.parismatch.com/Actu-Match/Presidentielle-2012/import/pdf/rapport-11-04-2012.pdf",
+        "hypotheses": [
+          {
+            "id": "H1",
+            "scores": {
+              "arthaud": 0.5,
+              "poutou": 0.25,
+              "melenchon": 14.0,
+              "hollande": 27.0,
+              "joly": 3.0,
+              "bayrou": 10.0,
+              "sarkozy": 28.0,
+              "dupont-aignan": 1.5,
+              "lepen": 16.0,
+              "cheminade": 0.25
+            }
+          }
+        ]
+      },
+      {
+        "institute": "CSA",
+        "fieldwork": {
+          "start": "2012-04-10",
+          "end": "2012-04-11"
+        },
+        "sampleSize": 1013,
+        "url": "https://web.archive.org/web/20120417070525/http://www.csa.eu/multimedia/data/sondages/data2012/opi20120411-la-course-2012-vague-22-avril-2012.pdf",
+        "hypotheses": [
+          {
+            "id": "H1",
+            "scores": {
+              "arthaud": 0.5,
+              "poutou": 0.5,
+              "melenchon": 17.0,
+              "hollande": 27.0,
+              "joly": 1.5,
+              "bayrou": 11.0,
+              "sarkozy": 26.0,
+              "dupont-aignan": 1.0,
+              "lepen": 15.0,
+              "cheminade": 0.5
+            }
+          }
+        ]
+      },
+      {
+        "institute": "Ifop-Fiducial",
+        "fieldwork": {
+          "start": "2012-04-06",
+          "end": "2012-04-10"
+        },
+        "sampleSize": 1425,
+        "url": "https://web.archive.org/web/20120416224521/http://www.parismatch.com/Actu-Match/Presidentielle-2012/import/pdf/rapport-10-04-2012.pdf",
+        "hypotheses": [
+          {
+            "id": "H1",
+            "scores": {
+              "arthaud": 0.5,
+              "poutou": 0.25,
+              "melenchon": 14.0,
+              "hollande": 27.5,
+              "joly": 2.5,
+              "bayrou": 9.5,
+              "sarkozy": 28.0,
+              "dupont-aignan": 1.5,
+              "lepen": 16.5,
+              "cheminade": 0.25
+            }
+          }
+        ]
+      },
+      {
+        "institute": "Ipsos",
+        "fieldwork": {
+          "start": "2012-04-06",
+          "end": "2012-04-07"
+        },
+        "sampleSize": 955,
+        "url": "https://web.archive.org/web/20120417000036/http://www.ipsos.fr/sites/default/files/attachments/rapport_barometre_iv_vague_16.pdf",
+        "hypotheses": [
+          {
+            "id": "H1",
+            "scores": {
+              "arthaud": 0.5,
+              "poutou": 0.5,
+              "melenchon": 14.5,
+              "hollande": 28.5,
+              "joly": 1.5,
+              "bayrou": 9.5,
+              "sarkozy": 29.0,
+              "dupont-aignan": 1.0,
+              "lepen": 15.0,
+              "cheminade": 0.25
+            }
+          }
+        ]
+      },
+      {
+        "institute": "Ifop-Fiducial",
+        "fieldwork": {
+          "start": "2012-04-05",
+          "end": "2012-04-07"
+        },
+        "sampleSize": 1869,
+        "url": "https://www.ifop.com/wp-content/uploads/2018/03/1842-1-study_file.pdf",
+        "hypotheses": [
+          {
+            "id": "H1",
+            "scores": {
+              "arthaud": 0.5,
+              "poutou": 0.5,
+              "melenchon": 14.0,
+              "hollande": 27.0,
+              "joly": 2.5,
+              "bayrou": 9.5,
+              "sarkozy": 28.5,
+              "dupont-aignan": 1.0,
+              "lepen": 16.5,
+              "cheminade": 0.25
+            }
+          }
+        ]
+      },
+      {
+        "institute": "Ifop-Fiducial",
+        "fieldwork": {
+          "start": "2012-04-05",
+          "end": "2012-04-07"
+        },
+        "sampleSize": 1002,
+        "url": "https://web.archive.org/web/20120416224456/http://www.parismatch.com/Actu-Match/Presidentielle-2012/import/pdf/rapport-09-04-2012.pdf",
+        "hypotheses": [
+          {
+            "id": "H1",
+            "scores": {
+              "arthaud": 0.5,
+              "poutou": 0.5,
+              "melenchon": 13.5,
+              "hollande": 27.0,
+              "joly": 2.5,
+              "bayrou": 10.0,
+              "sarkozy": 28.0,
+              "dupont-aignan": 1.0,
+              "lepen": 17.0,
+              "cheminade": 0.25
+            }
+          }
+        ]
+      },
+      {
+        "institute": "Ifop-Fiducial",
+        "fieldwork": {
+          "start": "2012-04-03",
+          "end": "2012-04-06"
+        },
+        "sampleSize": 1284,
+        "url": "https://web.archive.org/web/20120416224452/http://www.parismatch.com/Actu-Match/Presidentielle-2012/import/pdf/rapport-06-04-2012.pdf",
+        "hypotheses": [
+          {
+            "id": "H1",
+            "scores": {
+              "arthaud": 0.5,
+              "poutou": 0.5,
+              "melenchon": 12.5,
+              "hollande": 26.5,
+              "joly": 3.0,
+              "bayrou": 10.0,
+              "sarkozy": 29.0,
+              "dupont-aignan": 1.5,
+              "lepen": 16.5,
+              "cheminade": 0.25
+            }
+          }
+        ]
+      },
+      {
+        "institute": "Harris Interactive",
+        "fieldwork": {
+          "start": "2012-04-03",
+          "end": "2012-04-06"
+        },
+        "sampleSize": 1033,
+        "url": "https://harris-interactive.fr/wp-content/uploads/sites/6/2015/09/Results_HIFR_VSD_10042012.pdf",
+        "hypotheses": [
+          {
+            "id": "H1",
+            "scores": {
+              "arthaud": 1.0,
+              "poutou": 1.0,
+              "melenchon": 13.0,
+              "hollande": 27.0,
+              "joly": 3.0,
+              "bayrou": 10.0,
+              "sarkozy": 28.0,
+              "dupont-aignan": 1.0,
+              "lepen": 16.0,
+              "cheminade": 0.25
+            }
+          }
+        ]
+      },
+      {
+        "institute": "Ifop-Fiducial",
+        "fieldwork": {
+          "start": "2012-04-02",
+          "end": "2012-04-05"
+        },
+        "sampleSize": 1060,
+        "url": "https://web.archive.org/web/20120416225800/http://www.parismatch.com/Actu-Match/Presidentielle-2012/import/pdf/rapport-05-04-2012.pdf",
+        "hypotheses": [
+          {
+            "id": "H1",
+            "scores": {
+              "arthaud": 0.5,
+              "poutou": 1.0,
+              "melenchon": 13.0,
+              "hollande": 26.5,
+              "joly": 3.0,
+              "bayrou": 10.0,
+              "sarkozy": 28.5,
+              "dupont-aignan": 1.5,
+              "lepen": 16.0,
+              "cheminade": 0.25
+            }
+          }
+        ]
+      },
+      {
+        "institute": "OpinionWay",
+        "fieldwork": {
+          "start": "2012-04-03",
+          "end": "2012-04-04"
+        },
+        "sampleSize": 969,
+        "url": "https://www.opinion-way.com/fr/sondage-d-opinion/sondages-publies/le-barometre-de-la-presidentielle-2012-vague-7-fiducial-pour-le-figaro-et-lci/viewdocument.html",
+        "hypotheses": [
+          {
+            "id": "H1",
+            "scores": {
+              "arthaud": 0.5,
+              "poutou": 1.0,
+              "melenchon": 14.0,
+              "hollande": 26.0,
+              "joly": 2.0,
+              "bayrou": 11.0,
+              "sarkozy": 28.5,
+              "dupont-aignan": 1.0,
+              "lepen": 16.0,
+              "cheminade": 0.0
+            }
+          }
+        ]
+      },
+      {
+        "institute": "Ifop-Fiducial",
+        "fieldwork": {
+          "start": "2012-03-31",
+          "end": "2012-04-04"
+        },
+        "sampleSize": 1432,
+        "url": "https://web.archive.org/web/20120416225742/http://www.parismatch.com/Actu-Match/Presidentielle-2012/import/pdf/rapport-04-04-2012.pdf",
+        "hypotheses": [
+          {
+            "id": "H1",
+            "scores": {
+              "arthaud": 0.5,
+              "poutou": 1.0,
+              "melenchon": 12.5,
+              "hollande": 27.0,
+              "joly": 3.0,
+              "bayrou": 10.5,
+              "sarkozy": 28.5,
+              "dupont-aignan": 1.0,
+              "lepen": 16.0,
+              "cheminade": 0.25
+            }
+          }
+        ]
+      },
+      {
+        "institute": "Ifop-Fiducial",
+        "fieldwork": {
+          "start": "2012-03-31",
+          "end": "2012-04-03"
+        },
+        "sampleSize": 999,
+        "url": "https://web.archive.org/web/20120417092420/http://www.parismatch.com/Actu-Match/Presidentielle-2012/import/pdf/rapport-03-04-2012.pdf",
+        "hypotheses": [
+          {
+            "id": "H1",
+            "scores": {
+              "arthaud": 0.5,
+              "poutou": 0.5,
+              "melenchon": 12.5,
+              "hollande": 27.5,
+              "joly": 3.0,
+              "bayrou": 11.0,
+              "sarkozy": 28.5,
+              "dupont-aignan": 1.0,
+              "lepen": 15.5,
+              "cheminade": 0.25
+            }
+          }
+        ]
+      },
+      {
+        "institute": "CSA",
+        "fieldwork": {
+          "start": "2012-04-02",
+          "end": "2012-04-03"
+        },
+        "sampleSize": 884,
+        "url": "https://web.archive.org/web/20120416221759/http://www.csa.eu/multimedia/data/sondages/data2012/opi20120403-la-course-2012-vague-21-avril-2012.pdf",
+        "hypotheses": [
+          {
+            "id": "H1",
+            "scores": {
+              "arthaud": 0.5,
+              "poutou": 0.5,
+              "melenchon": 15.0,
+              "hollande": 29.0,
+              "joly": 1.5,
+              "bayrou": 10.0,
+              "sarkozy": 30.0,
+              "dupont-aignan": 0.5,
+              "lepen": 13.0,
+              "cheminade": 0.25
+            }
+          }
+        ]
+      },
+      {
+        "institute": "Ifop-Fiducial",
+        "fieldwork": {
+          "start": "2012-03-29",
+          "end": "2012-04-02"
+        },
+        "sampleSize": 893,
+        "url": "https://web.archive.org/web/20120416225737/http://www.parismatch.com/Actu-Match/Presidentielle-2012/import/pdf/rapport-02-04-2012.pdf",
+        "hypotheses": [
+          {
+            "id": "H1",
+            "scores": {
+              "arthaud": 0.5,
+              "poutou": 0.5,
+              "melenchon": 12.5,
+              "hollande": 27.5,
+              "joly": 2.5,
+              "bayrou": 11.0,
+              "sarkozy": 29.0,
+              "dupont-aignan": 1.0,
+              "lepen": 15.5,
+              "cheminade": 0.25
+            }
+          }
+        ]
+      },
+      {
+        "institute": "Harris Interactive",
+        "fieldwork": {
+          "start": "2012-03-29",
+          "end": "2012-04-02"
+        },
+        "sampleSize": 1059,
+        "url": "https://harris-interactive.fr/wp-content/uploads/sites/6/2015/09/Results_HIFR_VSD_03042012.pdf",
+        "hypotheses": [
+          {
+            "id": "H1",
+            "scores": {
+              "arthaud": 0.5,
+              "poutou": 0.5,
+              "melenchon": 14.0,
+              "hollande": 26.0,
+              "joly": 3.0,
+              "bayrou": 10.0,
+              "sarkozy": 29.0,
+              "dupont-aignan": 1.0,
+              "lepen": 16.0,
+              "cheminade": 0.25
+            }
+          }
+        ]
+      },
+      {
+        "institute": "LH2",
+        "fieldwork": {
+          "start": "2012-03-30",
+          "end": "2012-03-31"
+        },
+        "sampleSize": 973,
+        "url": "https://web.archive.org/web/20120417022216/http://www.lh2.fr/_upload/ressources/sondages/politique_nationale/lh2yahoointentionsvotepresidentielle20121avril_2012.pdf",
+        "hypotheses": [
+          {
+            "id": "H1",
+            "scores": {
+              "arthaud": 0.5,
+              "poutou": 0.5,
+              "melenchon": 15.0,
+              "hollande": 28.5,
+              "joly": 2.0,
+              "bayrou": 12.0,
+              "sarkozy": 27.5,
+              "dupont-aignan": 0.5,
+              "lepen": 13.5,
+              "cheminade": 0.0
+            }
+          }
+        ]
+      },
+      {
+        "institute": "Ipsos",
+        "fieldwork": {
+          "start": "2012-03-30",
+          "end": "2012-03-31"
+        },
+        "sampleSize": 881,
+        "url": "https://web.archive.org/web/20120417112540/http://www.ipsos.fr/sites/default/files/attachments/rapport__barometre_intention_de_vote_vague15.pdf",
+        "hypotheses": [
+          {
+            "id": "H1",
+            "scores": {
+              "arthaud": 1.0,
+              "poutou": 0.5,
+              "melenchon": 14.5,
+              "hollande": 27.5,
+              "joly": 2.0,
+              "bayrou": 10.0,
+              "sarkozy": 29.5,
+              "dupont-aignan": 1.0,
+              "lepen": 14.0,
+              "cheminade": 0.25
+            }
+          }
+        ]
+      },
+      {
+        "institute": "BVA",
+        "fieldwork": {
+          "start": "2012-03-29",
+          "end": "2012-03-31"
+        },
+        "sampleSize": 2555,
+        "url": "https://staticswww.bva-group.com/wp-content/uploads/2017/02/fichier_intention_de_vote_bva-le_parisien_-_avril_2012dd0f0.pdf",
+        "hypotheses": [
+          {
+            "id": "H1",
+            "scores": {
+              "arthaud": 1.0,
+              "poutou": 1.0,
+              "melenchon": 14.0,
+              "hollande": 28.0,
+              "joly": 2.0,
+              "bayrou": 11.0,
+              "sarkozy": 27.0,
+              "dupont-aignan": 1.0,
+              "lepen": 15.0,
+              "cheminade": 0.25
+            }
+          }
+        ]
+      },
+      {
+        "institute": "Ifop-Fiducial",
+        "fieldwork": {
+          "start": "2012-03-27",
+          "end": "2012-03-30"
+        },
+        "sampleSize": 957,
+        "url": "https://web.archive.org/web/20120417021928/http://www.parismatch.com/Actu-Match/Presidentielle-2012/import/pdf/rapport-30-03-2012.pdf",
+        "hypotheses": [
+          {
+            "id": "H1",
+            "scores": {
+              "arthaud": 0.5,
+              "poutou": 0.5,
+              "melenchon": 13.5,
+              "hollande": 27.0,
+              "joly": 2.5,
+              "bayrou": 10.5,
+              "sarkozy": 28.5,
+              "dupont-aignan": 1.0,
+              "lepen": 16.0,
+              "cheminade": 0.25
+            }
+          }
+        ]
+      },
+      {
+        "institute": "Ifop-Fiducial",
+        "fieldwork": {
+          "start": "2012-03-26",
+          "end": "2012-03-29"
+        },
+        "sampleSize": 950,
+        "url": "https://web.archive.org/web/20120417071952/http://www.parismatch.com/Actu-Match/Presidentielle-2012/import/pdf/rapport-29-03-2012.pdf",
+        "hypotheses": [
+          {
+            "id": "H1",
+            "scores": {
+              "arthaud": 0.5,
+              "poutou": 0.25,
+              "melenchon": 14.0,
+              "hollande": 26.5,
+              "joly": 2.5,
+              "bayrou": 11.0,
+              "sarkozy": 28.0,
+              "dupont-aignan": 1.0,
+              "lepen": 16.5,
+              "cheminade": 0.25
+            }
+          }
+        ]
+      },
+      {
+        "institute": "Ifop-Fiducial",
+        "fieldwork": {
+          "start": "2012-03-24",
+          "end": "2012-03-28"
+        },
+        "sampleSize": 1211,
+        "url": "https://web.archive.org/web/20120416232958/http://www.parismatch.com/Actu-Match/Presidentielle-2012/import/pdf/rapport-28-03-2012.pdf",
+        "hypotheses": [
+          {
+            "id": "H1",
+            "scores": {
+              "arthaud": 0.5,
+              "poutou": 0.5,
+              "melenchon": 14.0,
+              "hollande": 26.5,
+              "joly": 2.5,
+              "bayrou": 11.0,
+              "sarkozy": 27.5,
+              "dupont-aignan": 1.0,
+              "lepen": 16.0,
+              "cheminade": 0.5
+            }
+          }
+        ]
+      },
+      {
+        "institute": "TNS Sofres",
+        "fieldwork": {
+          "start": "2012-03-26",
+          "end": "2012-03-27"
+        },
+        "sampleSize": 1000,
+        "url": "https://www.tns-sofres.com/sites/default/files/2012.03.28-intentionsvote9.pdf",
+        "hypotheses": [
+          {
+            "id": "H1",
+            "scores": {
+              "arthaud": 0.5,
+              "poutou": 0.5,
+              "melenchon": 13.5,
+              "hollande": 28.0,
+              "joly": 2.0,
+              "bayrou": 10.0,
+              "sarkozy": 29.0,
+              "dupont-aignan": 1.0,
+              "lepen": 15.0,
+              "cheminade": 0.5
+            }
+          }
+        ]
+      },
+      {
+        "institute": "OpinionWay",
+        "fieldwork": {
+          "start": "2012-03-26",
+          "end": "2012-03-27"
+        },
+        "sampleSize": 1148,
+        "url": "https://www.opinion-way.com/fr/sondage-d-opinion/sondages-publies/le-barometre-de-la-presidentielle-2012-vague-6-fiducial-pour-le-figaro-et-lci/viewdocument.html",
+        "hypotheses": [
+          {
+            "id": "H1",
+            "scores": {
+              "arthaud": 1.0,
+              "poutou": 0.5,
+              "melenchon": 11.0,
+              "hollande": 27.0,
+              "joly": 2.0,
+              "bayrou": 12.0,
+              "sarkozy": 28.0,
+              "dupont-aignan": 1.0,
+              "lepen": 17.0,
+              "cheminade": 0.5
+            }
+          }
+        ]
+      },
+      {
+        "institute": "Ifop-Fiducial",
+        "fieldwork": {
+          "start": "2012-03-24",
+          "end": "2012-03-27"
+        },
+        "sampleSize": 902,
+        "url": "https://web.archive.org/web/20120516192726/http://www.parismatch.com/Actu-Match/Presidentielle-2012/import/pdf/rapport-27-03-2012.pdf",
+        "hypotheses": [
+          {
+            "id": "H1",
+            "scores": {
+              "arthaud": 0.25,
+              "poutou": 0.5,
+              "melenchon": 13.5,
+              "hollande": 26.5,
+              "joly": 2.5,
+              "bayrou": 11.5,
+              "sarkozy": 28.0,
+              "dupont-aignan": 1.0,
+              "lepen": 16.0,
+              "cheminade": 0.5
+            }
+          }
+        ]
+      },
+      {
+        "institute": "CSA",
+        "fieldwork": {
+          "start": "2012-03-26",
+          "end": "2012-03-27"
+        },
+        "sampleSize": 876,
+        "url": "https://web.archive.org/web/20120416221734/http://www.csa.eu/multimedia/data/sondages/data2012/opi20120327-la-course-2012-vague-20-mars-2012.pdf",
+        "hypotheses": [
+          {
+            "id": "H1",
+            "scores": {
+              "arthaud": 0.5,
+              "poutou": 0.5,
+              "melenchon": 12.5,
+              "hollande": 26.0,
+              "joly": 2.5,
+              "bayrou": 12.5,
+              "sarkozy": 30.0,
+              "dupont-aignan": 0.5,
+              "lepen": 15.0,
+              "cheminade": 0.25
+            }
+          }
+        ]
+      },
+      {
+        "institute": "Harris Interactive",
+        "fieldwork": {
+          "start": "2012-03-22",
+          "end": "2012-03-26"
+        },
+        "sampleSize": 1231,
+        "url": "https://harris-interactive.fr/wp-content/uploads/sites/6/2015/09/Results_HIFR_VSD_27032012.pdf",
+        "hypotheses": [
+          {
+            "id": "H1",
+            "scores": {
+              "arthaud": 0.5,
+              "poutou": 0.5,
+              "melenchon": 13.0,
+              "hollande": 27.0,
+              "joly": 3.0,
+              "bayrou": 11.0,
+              "sarkozy": 28.0,
+              "dupont-aignan": 1.0,
+              "lepen": 16.0,
+              "cheminade": 0.25
+            }
+          }
+        ]
+      },
+      {
+        "institute": "Ifop-Fiducial",
+        "fieldwork": {
+          "start": "2012-03-22",
+          "end": "2012-03-25"
+        },
+        "sampleSize": 1769,
+        "url": "https://www.ifop.com/wp-content/uploads/2018/03/1817-1-study_file.pdf",
+        "hypotheses": [
+          {
+            "id": "H1",
+            "scores": {
+              "arthaud": 0.5,
+              "poutou": 0.5,
+              "melenchon": 13.0,
+              "hollande": 27.0,
+              "joly": 2.0,
+              "bayrou": 11.5,
+              "sarkozy": 28.5,
+              "dupont-aignan": 1.0,
+              "lepen": 15.5,
+              "cheminade": 0.5
+            }
+          }
+        ]
+      },
+      {
+        "institute": "Ifop-Fiducial",
+        "fieldwork": {
+          "start": "2012-03-22",
+          "end": "2012-03-25"
+        },
+        "sampleSize": 887,
+        "url": "https://web.archive.org/web/20120416232951/http://www.parismatch.com/Actu-Match/Presidentielle-2012/import/pdf/rapport-26-03-2012.pdf",
+        "hypotheses": [
+          {
+            "id": "H1",
+            "scores": {
+              "arthaud": 0.5,
+              "poutou": 0.5,
+              "melenchon": 13.0,
+              "hollande": 26.5,
+              "joly": 2.5,
+              "bayrou": 12.0,
+              "sarkozy": 28.5,
+              "dupont-aignan": 0.5,
+              "lepen": 15.5,
+              "cheminade": 0.5
+            }
+          }
+        ]
+      },
+      {
+        "institute": "Ipsos",
+        "fieldwork": {
+          "start": "2012-03-23",
+          "end": "2012-03-24"
+        },
+        "sampleSize": 978,
+        "url": "https://web.archive.org/web/20120417113059/http://www.ipsos.fr/sites/default/files/attachments/rapport_barometre_intention_de_vote_vague14.pdf",
+        "hypotheses": [
+          {
+            "id": "H1",
+            "scores": {
+              "arthaud": 0.5,
+              "poutou": 0.5,
+              "melenchon": 13.0,
+              "hollande": 28.0,
+              "joly": 2.0,
+              "bayrou": 11.5,
+              "sarkozy": 27.5,
+              "dupont-aignan": 1.0,
+              "lepen": 16.0,
+              "cheminade": 0.25
+            }
+          }
+        ]
+      },
+      {
+        "institute": "Ifop-Fiducial",
+        "fieldwork": {
+          "start": "2012-03-20",
+          "end": "2012-03-23"
+        },
+        "sampleSize": 942,
+        "url": "https://web.archive.org/web/20120417021923/http://www.parismatch.com/Actu-Match/Presidentielle-2012/import/pdf/rapport-23-03-2012.pdf",
+        "hypotheses": [
+          {
+            "id": "H1",
+            "scores": {
+              "arthaud": 0.5,
+              "poutou": 0.5,
+              "melenchon": 12.0,
+              "hollande": 27.0,
+              "joly": 3.0,
+              "bayrou": 12.0,
+              "sarkozy": 28.5,
+              "dupont-aignan": 0.5,
+              "lepen": 16.0,
+              "cheminade": 0.25
+            }
+          }
+        ]
+      },
+      {
+        "institute": "Ifop-Fiducial",
+        "fieldwork": {
+          "start": "2012-03-19",
+          "end": "2012-03-22"
+        },
+        "sampleSize": 945,
+        "url": "https://web.archive.org/web/20120416232946/http://www.parismatch.com/Actu-Match/Presidentielle-2012/import/pdf/rapport-22-03-2012.pdf",
+        "hypotheses": [
+          {
+            "id": "H1",
+            "scores": {
+              "arthaud": 0.5,
+              "poutou": 0.5,
+              "melenchon": 11.0,
+              "hollande": 27.5,
+              "joly": 3.0,
+              "bayrou": 12.0,
+              "sarkozy": 28.0,
+              "dupont-aignan": 0.5,
+              "lepen": 17.0,
+              "cheminade": 0.25
+            }
+          }
+        ]
+      },
+      {
+        "institute": "BVA",
+        "fieldwork": {
+          "start": "2012-03-21",
+          "end": "2012-03-22"
+        },
+        "sampleSize": 926,
+        "url": "https://staticswww.bva-group.com/wp-content/uploads/2017/02/fichier_intention_de_vote_bva-orange-spqr-rtl84932.pdf",
+        "hypotheses": [
+          {
+            "id": "H1",
+            "scores": {
+              "arthaud": 0.25,
+              "poutou": 0.25,
+              "melenchon": 14.0,
+              "hollande": 29.5,
+              "joly": 2.0,
+              "bayrou": 12.0,
+              "sarkozy": 28.0,
+              "dupont-aignan": 1.5,
+              "lepen": 13.0,
+              "cheminade": 0.25
+            }
+          }
+        ]
+      },
+      {
+        "institute": "Ifop-Fiducial",
+        "fieldwork": {
+          "start": "2012-03-17",
+          "end": "2012-03-21"
+        },
+        "sampleSize": 1195,
+        "url": "https://web.archive.org/web/20120323222328/http://www.parismatch.com/Actu-Match/Presidentielle-2012/import/pdf/rapport-21-03-2012.pdf",
+        "hypotheses": [
+          {
+            "id": "H1",
+            "scores": {
+              "arthaud": 0.5,
+              "poutou": 0.5,
+              "melenchon": 10.5,
+              "hollande": 28.0,
+              "joly": 2.5,
+              "bayrou": 12.0,
+              "sarkozy": 28.0,
+              "dupont-aignan": 1.0,
+              "lepen": 17.0,
+              "cheminade": 0.25
+            }
+          }
+        ]
+      },
+      {
+        "institute": "Ifop-Fiducial",
+        "fieldwork": {
+          "start": "2012-03-17",
+          "end": "2012-03-20"
+        },
+        "sampleSize": 876,
+        "url": "https://web.archive.org/web/20120323200557/http://www.parismatch.com/Actu-Match/Presidentielle-2012/import/pdf/rapport-20-03-2012.pdf",
+        "hypotheses": [
+          {
+            "id": "H1",
+            "scores": {
+              "arthaud": 0.5,
+              "poutou": 0.5,
+              "melenchon": 10.5,
+              "hollande": 28.0,
+              "joly": 2.5,
+              "bayrou": 12.0,
+              "sarkozy": 27.5,
+              "dupont-aignan": 1.0,
+              "lepen": 17.5,
+              "cheminade": 0.25
+            }
+          }
+        ]
+      },
+      {
+        "institute": "CSA",
+        "fieldwork": {
+          "start": "2012-03-19",
+          "end": "2012-03-20"
+        },
+        "sampleSize": 888,
+        "url": "https://web.archive.org/web/20120324102825/http://www.csa.eu/multimedia/data/sondages/data2012/opi20120320-la-course-2012-vague-19-mars-2012.pdf",
+        "hypotheses": [
+          {
+            "id": "H1",
+            "scores": {
+              "arthaud": 0.25,
+              "poutou": 0.25,
+              "melenchon": 13.0,
+              "hollande": 28.0,
+              "joly": 2.0,
+              "bayrou": 13.0,
+              "sarkozy": 30.0,
+              "dupont-aignan": 0.5,
+              "lepen": 13.5,
+              "cheminade": 0.25
+            }
+          }
+        ]
+      },
+      {
+        "institute": "Ifop-Fiducial",
+        "fieldwork": {
+          "start": "2012-03-15",
+          "end": "2012-03-19"
+        },
+        "sampleSize": 881,
+        "url": "https://web.archive.org/web/20120323222317/http://www.parismatch.com/Actu-Match/Presidentielle-2012/import/pdf/rapport-19-03-2012.pdf",
+        "hypotheses": [
+          {
+            "id": "H1",
+            "scores": {
+              "arthaud": 0.5,
+              "poutou": 0.5,
+              "melenchon": 10.5,
+              "hollande": 27.5,
+              "joly": 3.0,
+              "bayrou": 12.5,
+              "lepage": 0.25,
+              "villepin": 0.5,
+              "sarkozy": 27.5,
+              "dupont-aignan": 0.5,
+              "lepen": 17.0,
+              "cheminade": 0.25
+            }
+          }
+        ]
+      },
+      {
+        "institute": "Harris Interactive",
+        "fieldwork": {
+          "start": "2012-03-15",
+          "end": "2012-03-19"
+        },
+        "sampleSize": 1097,
+        "url": "https://harris-interactive.fr/wp-content/uploads/sites/6/2015/09/Results_HIFR_VSD_20032012.pdf",
+        "hypotheses": [
+          {
+            "id": "H1",
+            "scores": {
+              "arthaud": 0.5,
+              "poutou": 1.0,
+              "melenchon": 11.0,
+              "hollande": 28.0,
+              "joly": 3.0,
+              "bayrou": 12.0,
+              "lepage": 0.5,
+              "sarkozy": 27.0,
+              "dupont-aignan": 1.0,
+              "lepen": 16.0,
+              "cheminade": 0.25
+            }
+          }
+        ]
+      },
+      {
+        "institute": "LH2",
+        "fieldwork": {
+          "start": "2012-03-16",
+          "end": "2012-03-17"
+        },
+        "sampleSize": 962,
+        "url": "https://web.archive.org/web/20120323224238/http://www.lh2.fr/_upload/ressources/sondages/politique_nationale/lh2yahoointentionsvotepresidensielle201218mars2012.pdf",
+        "hypotheses": [
+          {
+            "id": "H1",
+            "scores": {
+              "arthaud": 0.0,
+              "poutou": 1.0,
+              "melenchon": 11.0,
+              "hollande": 30.5,
+              "joly": 2.5,
+              "bayrou": 12.5,
+              "sarkozy": 27.5,
+              "dupont-aignan": 0.5,
+              "lepen": 14.5,
+              "cheminade": 0.0
+            }
+          }
+        ]
+      },
+      {
+        "institute": "Ipsos",
+        "fieldwork": {
+          "start": "2012-03-16",
+          "end": "2012-03-17"
+        },
+        "sampleSize": 950,
+        "url": "https://web.archive.org/web/20120328195034/http://www.ipsos.fr/sites/default/files/attachments/rapport_barometre_intention_de_vote_vague13.pdf",
+        "hypotheses": [
+          {
+            "id": "H1",
+            "scores": {
+              "arthaud": 0.5,
+              "poutou": 0.5,
+              "melenchon": 11.5,
+              "hollande": 28.5,
+              "joly": 2.0,
+              "bayrou": 13.0,
+              "lepage": 0.25,
+              "sarkozy": 27.5,
+              "dupont-aignan": 1.5,
+              "lepen": 15.0,
+              "cheminade": 0.25
+            }
+          }
+        ]
+      },
+      {
+        "institute": "Ifop",
+        "fieldwork": {
+          "start": "2012-03-16",
+          "end": "2012-03-17"
+        },
+        "sampleSize": 961,
+        "url": "https://www.ifop.com/wp-content/uploads/2018/03/1806-1-study_file.pdf",
+        "hypotheses": [
+          {
+            "id": "H1",
+            "scores": {
+              "arthaud": 0.5,
+              "poutou": 0.5,
+              "melenchon": 11.0,
+              "hollande": 27.0,
+              "joly": 2.5,
+              "bayrou": 13.0,
+              "sarkozy": 27.5,
+              "dupont-aignan": 0.5,
+              "lepen": 17.5,
+              "cheminade": 0.25
+            }
+          }
+        ]
+      },
+      {
+        "institute": "Ifop-Fiducial",
+        "fieldwork": {
+          "start": "2012-03-13",
+          "end": "2012-03-16"
+        },
+        "sampleSize": 928,
+        "url": "https://web.archive.org/web/20120323204137/http://www.parismatch.com/Actu-Match/Presidentielle-2012/import/pdf/rapport-16-03-2012.pdf",
+        "hypotheses": [
+          {
+            "id": "H1",
+            "scores": {
+              "arthaud": 0.5,
+              "poutou": 0.5,
+              "melenchon": 10.5,
+              "hollande": 26.5,
+              "joly": 3.0,
+              "bayrou": 13.0,
+              "lepage": 0.25,
+              "villepin": 1.0,
+              "sarkozy": 27.5,
+              "dupont-aignan": 0.5,
+              "lepen": 17.0,
+              "cheminade": 0.25
+            }
+          }
+        ]
+      },
+      {
+        "institute": "OpinionWay",
+        "fieldwork": {
+          "start": "2012-03-14",
+          "end": "2012-03-15"
+        },
+        "sampleSize": 1183,
+        "url": "https://www.opinion-way.com/fr/sondage-d-opinion/sondages-publies/le-barometre-de-la-presidentielle-2012-vague-5-fiducial-pour-le-figaro-et-lci/viewdocument.html",
+        "hypotheses": [
+          {
+            "id": "H1",
+            "scores": {
+              "arthaud": 0.5,
+              "poutou": 1.0,
+              "melenchon": 10.0,
+              "hollande": 27.5,
+              "joly": 2.0,
+              "bayrou": 13.0,
+              "lepage": 0.5,
+              "villepin": 1.0,
+              "sarkozy": 27.5,
+              "dupont-aignan": 1.0,
+              "lepen": 16.0
+            }
+          }
+        ]
+      },
+      {
+        "institute": "Ifop-Fiducial",
+        "fieldwork": {
+          "start": "2012-03-12",
+          "end": "2012-03-15"
+        },
+        "sampleSize": 928,
+        "url": "https://web.archive.org/web/20120323191954/http://www.parismatch.com/Actu-Match/Presidentielle-2012/import/pdf/rapport-15-03-2012.pdf",
+        "hypotheses": [
+          {
+            "id": "H1",
+            "scores": {
+              "arthaud": 0.5,
+              "poutou": 0.5,
+              "melenchon": 10.0,
+              "hollande": 26.5,
+              "joly": 2.5,
+              "bayrou": 13.5,
+              "lepage": 0.25,
+              "villepin": 1.0,
+              "sarkozy": 28.0,
+              "dupont-aignan": 0.5,
+              "lepen": 17.0,
+              "cheminade": 0.25
+            }
+          }
+        ]
+      },
+      {
+        "institute": "Ifop-Fiducial",
+        "fieldwork": {
+          "start": "2012-03-11",
+          "end": "2012-03-14"
+        },
+        "sampleSize": 1187,
+        "url": "https://web.archive.org/web/20120316113904/http://www.parismatch.com/Actu-Match/Presidentielle-2012/import/pdf/rapport-14-03-2012.pdf",
+        "hypotheses": [
+          {
+            "id": "H1",
+            "scores": {
+              "arthaud": 0.5,
+              "poutou": 0.5,
+              "melenchon": 10.5,
+              "hollande": 27.0,
+              "joly": 2.0,
+              "bayrou": 13.0,
+              "lepage": 0.5,
+              "villepin": 1.0,
+              "sarkozy": 28.0,
+              "dupont-aignan": 0.5,
+              "lepen": 16.5,
+              "cheminade": 0.25
+            }
+          }
+        ]
+      },
+      {
+        "institute": "Ifop-Fiducial",
+        "fieldwork": {
+          "start": "2012-03-11",
+          "end": "2012-03-13"
+        },
+        "sampleSize": 875,
+        "url": "https://web.archive.org/web/20120323222305/http://www.parismatch.com/Actu-Match/Presidentielle-2012/import/pdf/rapport-13-03-2012.pdf",
+        "hypotheses": [
+          {
+            "id": "H1",
+            "scores": {
+              "arthaud": 0.5,
+              "poutou": 0.5,
+              "melenchon": 10.0,
+              "hollande": 27.5,
+              "joly": 2.0,
+              "bayrou": 12.5,
+              "lepage": 0.5,
+              "villepin": 1.0,
+              "sarkozy": 28.5,
+              "dupont-aignan": 0.5,
+              "lepen": 16.5,
+              "cheminade": 0.25
+            }
+          }
+        ]
+      },
+      {
+        "institute": "CSA",
+        "fieldwork": {
+          "start": "2012-03-12",
+          "end": "2012-03-13"
+        },
+        "sampleSize": 861,
+        "url": "https://web.archive.org/web/20120316093944/http://www.csa.eu/multimedia/data/sondages/data2012/opi20120313-la-course-2012-vague-18-mars-2012.pdf",
+        "hypotheses": [
+          {
+            "id": "H1",
+            "scores": {
+              "arthaud": 0.5,
+              "poutou": 0.25,
+              "melenchon": 11.0,
+              "hollande": 28.0,
+              "joly": 1.0,
+              "bayrou": 13.0,
+              "lepage": 0.5,
+              "villepin": 1.0,
+              "sarkozy": 28.0,
+              "dupont-aignan": 1.0,
+              "lepen": 16.0,
+              "cheminade": 0.25
+            }
+          }
+        ]
+      },
+      {
+        "institute": "TNS Sofres",
+        "fieldwork": {
+          "start": "2012-03-12",
+          "end": "2012-03-12"
+        },
+        "sampleSize": 1000,
+        "url": "https://www.tns-sofres.com/sites/default/files/2012.03.13-iv8.pdf",
+        "hypotheses": [
+          {
+            "id": "H1",
+            "scores": {
+              "arthaud": 0.5,
+              "poutou": 0.5,
+              "melenchon": 10.0,
+              "hollande": 30.0,
+              "joly": 3.0,
+              "bayrou": 11.5,
+              "lepage": 0.25,
+              "villepin": 1.5,
+              "sarkozy": 26.0,
+              "dupont-aignan": 1.0,
+              "lepen": 16.0,
+              "cheminade": 0.25
+            }
+          }
+        ]
+      },
+      {
+        "institute": "Ifop-Fiducial",
+        "fieldwork": {
+          "start": "2012-03-11",
+          "end": "2012-03-12"
+        },
+        "sampleSize": 1638,
+        "url": "https://www.ifop.com/wp-content/uploads/2018/03/1793-1-study_file.pdf",
+        "hypotheses": [
+          {
+            "id": "H1",
+            "scores": {
+              "arthaud": 0.5,
+              "poutou": 0.25,
+              "melenchon": 10.0,
+              "hollande": 27.0,
+              "joly": 2.5,
+              "bayrou": 13.0,
+              "lepage": 0.5,
+              "villepin": 1.0,
+              "sarkozy": 28.5,
+              "dupont-aignan": 1.0,
+              "lepen": 16.0,
+              "cheminade": 0.25
+            }
+          }
+        ]
+      },
+      {
+        "institute": "Ifop-Fiducial",
+        "fieldwork": {
+          "start": "2012-03-08",
+          "end": "2012-03-12"
+        },
+        "sampleSize": 874,
+        "url": "https://web.archive.org/web/20120323191948/http://www.parismatch.com/Actu-Match/Presidentielle-2012/import/pdf/rapport-12-03-2012.pdf",
+        "hypotheses": [
+          {
+            "id": "H1",
+            "scores": {
+              "arthaud": 0.5,
+              "poutou": 0.25,
+              "melenchon": 9.5,
+              "hollande": 28.5,
+              "joly": 2.5,
+              "bayrou": 12.0,
+              "lepage": 0.5,
+              "villepin": 1.0,
+              "sarkozy": 28.0,
+              "dupont-aignan": 1.0,
+              "lepen": 16.5,
+              "cheminade": 0.25
+            }
+          }
+        ]
+      },
+      {
+        "institute": "Ifop-Fiducial",
+        "fieldwork": {
+          "start": "2012-03-06",
+          "end": "2012-03-09"
+        },
+        "sampleSize": 922,
+        "url": "https://web.archive.org/web/20120323200549/http://www.parismatch.com/Actu-Match/Presidentielle-2012/import/pdf/rapport-09-03-2012.pdf",
+        "hypotheses": [
+          {
+            "id": "H1",
+            "scores": {
+              "arthaud": 0.5,
+              "poutou": 0.5,
+              "melenchon": 9.5,
+              "hollande": 29.0,
+              "joly": 2.5,
+              "bayrou": 11.5,
+              "lepage": 1.0,
+              "villepin": 1.0,
+              "sarkozy": 27.0,
+              "dupont-aignan": 0.5,
+              "lepen": 17.0
+            }
+          }
+        ]
+      },
+      {
+        "institute": "Ifop-Fiducial",
+        "fieldwork": {
+          "start": "2012-03-05",
+          "end": "2012-03-08"
+        },
+        "sampleSize": 924,
+        "url": "https://web.archive.org/web/20120323194243/http://www.parismatch.com/Actu-Match/Presidentielle-2012/import/pdf/rapport-08-03-2012.pdf",
+        "hypotheses": [
+          {
+            "id": "H1",
+            "scores": {
+              "arthaud": 0.25,
+              "poutou": 0.5,
+              "melenchon": 9.5,
+              "hollande": 29.0,
+              "joly": 2.5,
+              "bayrou": 12.0,
+              "lepage": 1.0,
+              "villepin": 1.0,
+              "sarkozy": 26.5,
+              "dupont-aignan": 0.5,
+              "lepen": 17.5
+            }
+          }
+        ]
+      },
+      {
+        "institute": "OpinionWay",
+        "fieldwork": {
+          "start": "2012-03-05",
+          "end": "2012-03-07"
+        },
+        "sampleSize": 1098,
+        "url": "https://www.opinion-way.com/fr/sondage-d-opinion/sondages-publies/l-indicateur-2012-l-observatoire-de-la-presidentielle-vague-4-fiducial-pour-radio-classique-et-les-echos/viewdocument.html",
+        "hypotheses": [
+          {
+            "id": "H1",
+            "scores": {
+              "arthaud": 0.5,
+              "poutou": 0.5,
+              "melenchon": 8.0,
+              "hollande": 29.0,
+              "joly": 3.0,
+              "bayrou": 13.0,
+              "lepage": 0.5,
+              "villepin": 1.5,
+              "sarkozy": 26.0,
+              "dupont-aignan": 1.0,
+              "lepen": 17.0
+            }
+          }
+        ]
+      },
+      {
+        "institute": "Ifop-Fiducial",
+        "fieldwork": {
+          "start": "2012-03-03",
+          "end": "2012-03-07"
+        },
+        "sampleSize": 1182,
+        "url": "https://web.archive.org/web/20120323222252/http://www.parismatch.com/Actu-Match/Presidentielle-2012/import/pdf/rapport-07-03-2012.pdf",
+        "hypotheses": [
+          {
+            "id": "H1",
+            "scores": {
+              "arthaud": 0.25,
+              "poutou": 0.25,
+              "melenchon": 8.5,
+              "hollande": 29.5,
+              "joly": 3.0,
+              "bayrou": 12.5,
+              "lepage": 1.0,
+              "villepin": 1.0,
+              "sarkozy": 26.0,
+              "dupont-aignan": 0.5,
+              "lepen": 18.0
+            }
+          }
+        ]
+      },
+      {
+        "institute": "Ifop-Fiducial",
+        "fieldwork": {
+          "start": "2012-03-03",
+          "end": "2012-03-06"
+        },
+        "sampleSize": 877,
+        "url": "https://web.archive.org/web/20120323204132/http://www.parismatch.com/Actu-Match/Presidentielle-2012/import/pdf/rapport-06-03-2012.pdf",
+        "hypotheses": [
+          {
+            "id": "H1",
+            "scores": {
+              "arthaud": 0.25,
+              "poutou": 0.25,
+              "melenchon": 8.0,
+              "hollande": 29.5,
+              "joly": 3.0,
+              "bayrou": 12.5,
+              "lepage": 1.0,
+              "villepin": 1.0,
+              "sarkozy": 26.0,
+              "dupont-aignan": 0.5,
+              "lepen": 18.5
+            }
+          }
+        ]
+      },
+      {
+        "institute": "Ifop-Fiducial",
+        "fieldwork": {
+          "start": "2012-03-01",
+          "end": "2012-03-05"
+        },
+        "sampleSize": 867,
+        "url": "https://web.archive.org/web/20120323200540/http://www.parismatch.com/Actu-Match/Presidentielle-2012/import/pdf/rapport-05-03-2012.pdf",
+        "hypotheses": [
+          {
+            "id": "H1",
+            "scores": {
+              "arthaud": 0.5,
+              "poutou": 0.25,
+              "melenchon": 7.5,
+              "hollande": 29.0,
+              "joly": 3.0,
+              "bayrou": 12.0,
+              "lepage": 1.0,
+              "villepin": 1.0,
+              "sarkozy": 26.0,
+              "dupont-aignan": 1.0,
+              "lepen": 19.0
+            }
+          }
+        ]
+      },
+      {
+        "institute": "Harris Interactive",
+        "fieldwork": {
+          "start": "2012-03-01",
+          "end": "2012-03-05"
+        },
+        "sampleSize": 975,
+        "url": "https://harris-interactive.fr/wp-content/uploads/sites/6/2015/09/Results_HIFR_VSD_06032012.pdf",
+        "hypotheses": [
+          {
+            "id": "H1",
+            "scores": {
+              "arthaud": 1.0,
+              "poutou": 1.0,
+              "melenchon": 9.0,
+              "hollande": 27.0,
+              "joly": 3.0,
+              "bayrou": 13.0,
+              "lepage": 1.0,
+              "villepin": 1.0,
+              "sarkozy": 25.0,
+              "dupont-aignan": 1.0,
+              "lepen": 18.0
+            }
+          }
+        ]
+      },
+      {
+        "institute": "CSA",
+        "fieldwork": {
+          "start": "2012-03-05",
+          "end": "2012-03-05"
+        },
+        "sampleSize": 888,
+        "url": "https://web.archive.org/web/20120416232058/http://www.csa.eu/multimedia/data/sondages/data2012/opi20120305-la-course-2012-vague-17-mars-2012.pdf",
+        "hypotheses": [
+          {
+            "id": "H1",
+            "scores": {
+              "arthaud": 0.25,
+              "poutou": 0.25,
+              "melenchon": 10.0,
+              "hollande": 30.0,
+              "joly": 2.0,
+              "bayrou": 13.0,
+              "lepage": 0.5,
+              "villepin": 1.5,
+              "sarkozy": 28.0,
+              "dupont-aignan": 0.25,
+              "lepen": 15.0
+            }
+          }
+        ]
+      },
+      {
+        "institute": "LH2",
+        "fieldwork": {
+          "start": "2012-03-02",
+          "end": "2012-03-03"
+        },
+        "sampleSize": 971,
+        "url": "https://web.archive.org/web/20120311205614/http://www.lh2.fr/_upload/ressources/sondages/politique_nationale/lh2yahoointentionsvotepresidentielle20124mars2012.pdf",
+        "hypotheses": [
+          {
+            "id": "H1",
+            "scores": {
+              "arthaud": 1.0,
+              "poutou": 1.0,
+              "melenchon": 8.5,
+              "hollande": 30.5,
+              "joly": 4.5,
+              "bayrou": 15.0,
+              "lepage": 0.25,
+              "villepin": 1.0,
+              "sarkozy": 23.0,
+              "dupont-aignan": 0.5,
+              "lepen": 15.0
+            }
+          }
+        ]
+      },
+      {
+        "institute": "Ipsos",
+        "fieldwork": {
+          "start": "2012-03-02",
+          "end": "2012-03-03"
+        },
+        "sampleSize": 966,
+        "url": "https://web.archive.org/web/20120324033905/http://www.ipsos.fr/sites/default/files/attachments/rapport_barometre_intention_de_vote_vague12.pdf",
+        "hypotheses": [
+          {
+            "id": "H1",
+            "scores": {
+              "arthaud": 0.5,
+              "poutou": 0.5,
+              "melenchon": 9.5,
+              "hollande": 29.5,
+              "joly": 2.0,
+              "bayrou": 12.5,
+              "lepage": 0.5,
+              "villepin": 1.5,
+              "sarkozy": 25.0,
+              "dupont-aignan": 1.0,
+              "lepen": 17.5
+            }
+          }
+        ]
+      },
+      {
+        "institute": "BVA",
+        "fieldwork": {
+          "start": "2012-03-02",
+          "end": "2012-03-03"
+        },
+        "sampleSize": 761,
+        "url": "https://staticswww.bva-group.com/wp-content/uploads/2017/02/fichier_intention_de_vote_bva-le_parisien_-_mars_2012a3c86.pdf",
+        "hypotheses": [
+          {
+            "id": "H1",
+            "scores": {
+              "arthaud": 1.0,
+              "poutou": 1.0,
+              "melenchon": 8.0,
+              "hollande": 33.0,
+              "joly": 2.0,
+              "bayrou": 13.0,
+              "lepage": 0.25,
+              "villepin": 2.0,
+              "sarkozy": 25.0,
+              "dupont-aignan": 1.0,
+              "lepen": 14.0,
+              "cheminade": 0.25
+            }
+          }
+        ]
+      },
+      {
+        "institute": "Ifop-Fiducial",
+        "fieldwork": {
+          "start": "2012-02-28",
+          "end": "2012-03-02"
+        },
+        "sampleSize": 912,
+        "url": "https://web.archive.org/web/20120323193650/http://www.parismatch.com/Actu-Match/Presidentielle-2012/import/pdf/rapport-02-03-2012.pdf",
+        "hypotheses": [
+          {
+            "id": "H1",
+            "scores": {
+              "arthaud": 0.5,
+              "poutou": 0.5,
+              "melenchon": 8.0,
+              "hollande": 29.0,
+              "joly": 3.0,
+              "bayrou": 12.0,
+              "lepage": 0.5,
+              "villepin": 1.5,
+              "sarkozy": 25.5,
+              "dupont-aignan": 1.0,
+              "lepen": 18.5
+            }
+          }
+        ]
+      },
+      {
+        "institute": "Ifop-Fiducial",
+        "fieldwork": {
+          "start": "2012-02-27",
+          "end": "2012-03-01"
+        },
+        "sampleSize": 929,
+        "url": "https://web.archive.org/web/20120321085337/http://www.parismatch.com/Actu-Match/Presidentielle-2012/import/pdf/rapport-01-03-2012.pdf",
+        "hypotheses": [
+          {
+            "id": "H1",
+            "scores": {
+              "arthaud": 0.5,
+              "poutou": 0.5,
+              "melenchon": 8.0,
+              "hollande": 29.0,
+              "joly": 3.0,
+              "bayrou": 12.5,
+              "lepage": 0.5,
+              "villepin": 1.5,
+              "sarkozy": 25.5,
+              "dupont-aignan": 1.0,
+              "lepen": 18.0
+            }
+          }
+        ]
+      },
+      {
+        "institute": "Ifop-Fiducial",
+        "fieldwork": {
+          "start": "2012-02-24",
+          "end": "2012-02-29"
+        },
+        "sampleSize": 1187,
+        "url": "https://web.archive.org/web/20120323222337/http://www.parismatch.com/Actu-Match/Presidentielle-2012/import/pdf/rapport-29-02-2012.pdf",
+        "hypotheses": [
+          {
+            "id": "H1",
+            "scores": {
+              "arthaud": 0.5,
+              "poutou": 0.5,
+              "melenchon": 8.5,
+              "hollande": 28.0,
+              "joly": 3.0,
+              "bayrou": 12.0,
+              "lepage": 0.5,
+              "villepin": 1.0,
+              "sarkozy": 26.5,
+              "dupont-aignan": 1.5,
+              "lepen": 18.0
+            }
+          }
+        ]
+      },
+      {
+        "institute": "Ifop-Fiducial",
+        "fieldwork": {
+          "start": "2012-02-24",
+          "end": "2012-02-28"
+        },
+        "sampleSize": 888,
+        "url": "https://web.archive.org/web/20120323204143/http://www.parismatch.com/Actu-Match/Presidentielle-2012/import/pdf/rapport-28-02-2012.pdf",
+        "hypotheses": [
+          {
+            "id": "H1",
+            "scores": {
+              "arthaud": 0.5,
+              "poutou": 0.5,
+              "melenchon": 9.0,
+              "hollande": 28.0,
+              "joly": 2.5,
+              "bayrou": 12.0,
+              "lepage": 0.5,
+              "villepin": 1.0,
+              "sarkozy": 27.0,
+              "dupont-aignan": 1.0,
+              "lepen": 18.0
+            }
+          }
+        ]
+      },
+      {
+        "institute": "TNS Sofres",
+        "fieldwork": {
+          "start": "2012-02-27",
+          "end": "2012-02-27"
+        },
+        "sampleSize": 1000,
+        "url": "https://www.tns-sofres.com/sites/default/files/2012.02.28-iv7.pdf",
+        "hypotheses": [
+          {
+            "id": "H1",
+            "scores": {
+              "arthaud": 0.25,
+              "poutou": 0.25,
+              "melenchon": 9.5,
+              "hollande": 30.0,
+              "joly": 2.5,
+              "bayrou": 10.5,
+              "lepage": 1.0,
+              "villepin": 1.0,
+              "sarkozy": 28.0,
+              "dupont-aignan": 0.25,
+              "lepen": 17.0,
+              "cheminade": 0.5
+            }
+          }
+        ]
+      },
+      {
+        "institute": "Ifop-Fiducial",
+        "fieldwork": {
+          "start": "2012-02-23",
+          "end": "2012-02-26"
+        },
+        "sampleSize": 1723,
+        "url": "https://www.ifop.com/wp-content/uploads/2018/03/1843-1-study_file.pdf",
+        "hypotheses": [
+          {
+            "id": "H1",
+            "scores": {
+              "arthaud": 0.5,
+              "poutou": 0.5,
+              "melenchon": 8.5,
+              "hollande": 28.5,
+              "joly": 3.0,
+              "bayrou": 12.5,
+              "lepage": 0.5,
+              "villepin": 1.0,
+              "sarkozy": 27.0,
+              "dupont-aignan": 1.0,
+              "lepen": 17.0
+            }
+          }
+        ]
+      },
+      {
+        "institute": "Ifop-Fiducial",
+        "fieldwork": {
+          "start": "2012-02-23",
+          "end": "2012-02-26"
+        },
+        "sampleSize": 882,
+        "url": "https://web.archive.org/web/20120323222330/http://www.parismatch.com/Actu-Match/Presidentielle-2012/import/pdf/rapport-27-02-2012.pdf",
+        "hypotheses": [
+          {
+            "id": "H1",
+            "scores": {
+              "arthaud": 0.5,
+              "poutou": 0.5,
+              "melenchon": 9.0,
+              "hollande": 28.0,
+              "joly": 3.0,
+              "bayrou": 12.0,
+              "lepage": 0.5,
+              "villepin": 1.0,
+              "sarkozy": 27.0,
+              "dupont-aignan": 1.0,
+              "lepen": 17.5
+            }
+          }
+        ]
+      },
+      {
+        "institute": "Ipsos",
+        "fieldwork": {
+          "start": "2012-02-24",
+          "end": "2012-02-25"
+        },
+        "sampleSize": 959,
+        "url": "https://web.archive.org/web/20120601222427/http://www.ipsos.fr/sites/default/files/attachments/rapport_barometre_intention_de_vote_vague11.pdf",
+        "hypotheses": [
+          {
+            "id": "H1",
+            "scores": {
+              "arthaud": 0.5,
+              "poutou": 0.5,
+              "melenchon": 8.0,
+              "hollande": 31.5,
+              "joly": 2.5,
+              "bayrou": 11.5,
+              "lepage": 0.5,
+              "villepin": 1.0,
+              "sarkozy": 27.0,
+              "dupont-aignan": 1.0,
+              "lepen": 16.0
+            }
+          }
+        ]
+      },
+      {
+        "institute": "Ifop-Fiducial",
+        "fieldwork": {
+          "start": "2012-02-21",
+          "end": "2012-02-24"
+        },
+        "sampleSize": 931,
+        "url": "https://web.archive.org/web/20120227042050/http://www.parismatch.com/Actu-Match/Presidentielle-2012/import/pdf/rapport-24-02-2012.pdf",
+        "hypotheses": [
+          {
+            "id": "H1",
+            "scores": {
+              "arthaud": 0.5,
+              "poutou": 1.0,
+              "melenchon": 8.0,
+              "hollande": 27.5,
+              "joly": 3.0,
+              "bayrou": 12.5,
+              "lepage": 0.5,
+              "villepin": 1.5,
+              "nihous": 0.25,
+              "sarkozy": 26.5,
+              "dupont-aignan": 1.0,
+              "lepen": 18.0
+            }
+          }
+        ]
+      },
+      {
+        "institute": "Ifop-Fiducial",
+        "fieldwork": {
+          "start": "2012-02-20",
+          "end": "2012-02-23"
+        },
+        "sampleSize": 931,
+        "url": "https://web.archive.org/web/20120227125320/http://www.parismatch.com/Actu-Match/Presidentielle-2012/import/pdf/rapport-23-02-2012.pdf",
+        "hypotheses": [
+          {
+            "id": "H1",
+            "scores": {
+              "arthaud": 0.5,
+              "poutou": 1.0,
+              "melenchon": 8.0,
+              "hollande": 28.5,
+              "joly": 2.5,
+              "bayrou": 11.5,
+              "lepage": 0.5,
+              "villepin": 1.5,
+              "nihous": 0.25,
+              "sarkozy": 26.5,
+              "dupont-aignan": 1.0,
+              "lepen": 18.5
+            }
+          }
+        ]
+      },
+      {
+        "institute": "Ifop-Fiducial",
+        "fieldwork": {
+          "start": "2012-02-18",
+          "end": "2012-02-22"
+        },
+        "sampleSize": 1180,
+        "url": "https://web.archive.org/web/20120227040844/http://www.parismatch.com/Actu-Match/Presidentielle-2012/import/pdf/rapport-22-02-2012.pdf",
+        "hypotheses": [
+          {
+            "id": "H1",
+            "scores": {
+              "arthaud": 0.5,
+              "poutou": 0.5,
+              "melenchon": 8.5,
+              "hollande": 29.0,
+              "joly": 2.5,
+              "bayrou": 11.0,
+              "lepage": 1.0,
+              "villepin": 1.5,
+              "nihous": 0.25,
+              "sarkozy": 27.0,
+              "dupont-aignan": 0.5,
+              "lepen": 18.0
+            }
+          }
+        ]
+      },
+      {
+        "institute": "Ifop-Fiducial",
+        "fieldwork": {
+          "start": "2012-02-18",
+          "end": "2012-02-21"
+        },
+        "sampleSize": 874,
+        "url": "https://web.archive.org/web/20120227040557/http://www.parismatch.com/Actu-Match/Presidentielle-2012/import/pdf/rapport-21-02-2012.pdf",
+        "hypotheses": [
+          {
+            "id": "H1",
+            "scores": {
+              "arthaud": 0.5,
+              "poutou": 0.5,
+              "melenchon": 8.5,
+              "hollande": 29.0,
+              "joly": 2.5,
+              "bayrou": 11.0,
+              "lepage": 1.0,
+              "villepin": 2.0,
+              "nihous": 0.25,
+              "sarkozy": 27.0,
+              "dupont-aignan": 0.5,
+              "lepen": 17.5
+            }
+          }
+        ]
+      },
+      {
+        "institute": "Ifop-Fiducial",
+        "fieldwork": {
+          "start": "2012-02-16",
+          "end": "2012-02-20"
+        },
+        "sampleSize": 872,
+        "url": "https://web.archive.org/web/20120323222320/http://www.parismatch.com/Actu-Match/Presidentielle-2012/import/pdf/rapport-20-02-2012.pdf",
+        "hypotheses": [
+          {
+            "id": "H1",
+            "scores": {
+              "arthaud": 0.5,
+              "poutou": 0.25,
+              "melenchon": 9.0,
+              "hollande": 29.0,
+              "joly": 2.5,
+              "bayrou": 11.0,
+              "lepage": 1.0,
+              "villepin": 2.0,
+              "nihous": 0.25,
+              "sarkozy": 27.0,
+              "dupont-aignan": 0.5,
+              "lepen": 17.5
+            }
+          }
+        ]
+      },
+      {
+        "institute": "CSA",
+        "fieldwork": {
+          "start": "2012-02-20",
+          "end": "2012-02-20"
+        },
+        "sampleSize": 891,
+        "url": "https://web.archive.org/web/20120417080130/http://www.csa.eu/multimedia/data/sondages/data2012/opi20120220-l-entree-en-campagne-de-nicolas-sarkozy-et-l-election-presidentielle.pdf",
+        "hypotheses": [
+          {
+            "id": "H1",
+            "scores": {
+              "arthaud": 0.5,
+              "poutou": 0.25,
+              "melenchon": 9.0,
+              "hollande": 28.0,
+              "joly": 3.0,
+              "bayrou": 11.0,
+              "lepage": 0.5,
+              "villepin": 2.0,
+              "nihous": 0.5,
+              "sarkozy": 27.0,
+              "dupont-aignan": 1.5,
+              "lepen": 17.0
+            }
+          }
+        ]
+      },
+      {
+        "institute": "OpinionWay",
+        "fieldwork": {
+          "start": "2012-02-17",
+          "end": "2012-02-18"
+        },
+        "sampleSize": 975,
+        "url": "https://www.opinion-way.com/fr/sondage-d-opinion/sondages-publies/le-barometre-de-la-presidentielle-2012-vague-4-fiducial-pour-le-figaro-et-lci/viewdocument.html",
+        "hypotheses": [
+          {
+            "id": "H1",
+            "scores": {
+              "arthaud": 0.5,
+              "poutou": 0.5,
+              "melenchon": 8.0,
+              "hollande": 29.0,
+              "joly": 2.0,
+              "bayrou": 13.0,
+              "lepage": 0.5,
+              "villepin": 2.0,
+              "nihous": 0.5,
+              "sarkozy": 27.0,
+              "dupont-aignan": 0.5,
+              "lepen": 16.5
+            }
+          }
+        ]
+      },
+      {
+        "institute": "LH2",
+        "fieldwork": {
+          "start": "2012-02-17",
+          "end": "2012-02-18"
+        },
+        "sampleSize": 967,
+        "url": "https://web.archive.org/web/20120226224729/http://www.lh2.fr/_upload/ressources/sondages/politique_nationale/lh2yahoointentionsvotepresidentielle201218fev2012.pdf",
+        "hypotheses": [
+          {
+            "id": "H1",
+            "scores": {
+              "arthaud": 1.0,
+              "poutou": 0.25,
+              "melenchon": 8.0,
+              "hollande": 32.0,
+              "joly": 3.0,
+              "bayrou": 13.0,
+              "lepage": 0.5,
+              "villepin": 1.5,
+              "nihous": 0.5,
+              "sarkozy": 26.0,
+              "dupont-aignan": 0.5,
+              "lepen": 14.0
+            }
+          }
+        ]
+      },
+      {
+        "institute": "Ipsos",
+        "fieldwork": {
+          "start": "2012-02-17",
+          "end": "2012-02-18"
+        },
+        "sampleSize": 969,
+        "url": "https://web.archive.org/web/20120227040316/http://www.ipsos.fr/sites/default/files/attachments/rapport_barometre_intention_de_vote_vague10.pdf",
+        "hypotheses": [
+          {
+            "id": "H1",
+            "scores": {
+              "arthaud": 0.5,
+              "poutou": 0.5,
+              "melenchon": 9.0,
+              "hollande": 32.0,
+              "joly": 3.0,
+              "bayrou": 11.0,
+              "lepage": 1.0,
+              "villepin": 1.5,
+              "nihous": 0.25,
+              "sarkozy": 25.0,
+              "dupont-aignan": 0.5,
+              "lepen": 16.0
+            }
+          }
+        ]
+      },
+      {
+        "institute": "Ifop-Fiducial",
+        "fieldwork": {
+          "start": "2012-02-14",
+          "end": "2012-02-17"
+        },
+        "sampleSize": 938,
+        "url": "https://web.archive.org/web/20120227040825/http://www.parismatch.com/Actu-Match/Presidentielle-2012/import/pdf/rapport-17-02-2012.pdf",
+        "hypotheses": [
+          {
+            "id": "H1",
+            "scores": {
+              "arthaud": 0.5,
+              "poutou": 0.25,
+              "melenchon": 8.5,
+              "hollande": 29.5,
+              "joly": 2.5,
+              "bayrou": 12.0,
+              "lepage": 0.5,
+              "villepin": 2.5,
+              "morin": 0.25,
+              "nihous": 0.25,
+              "sarkozy": 26.0,
+              "dupont-aignan": 1.0,
+              "lepen": 17.0
+            }
+          }
+        ]
+      },
+      {
+        "institute": "Ifop-Fiducial",
+        "fieldwork": {
+          "start": "2012-02-13",
+          "end": "2012-02-16"
+        },
+        "sampleSize": 939,
+        "url": "https://web.archive.org/web/20120323222309/http://www.parismatch.com/Actu-Match/Presidentielle-2012/import/pdf/rapport-16-02-2012.pdf",
+        "hypotheses": [
+          {
+            "id": "H1",
+            "scores": {
+              "arthaud": 1.0,
+              "poutou": 0.25,
+              "melenchon": 7.5,
+              "hollande": 29.5,
+              "joly": 2.5,
+              "bayrou": 11.5,
+              "lepage": 0.5,
+              "villepin": 2.5,
+              "morin": 0.25,
+              "nihous": 0.5,
+              "sarkozy": 26.5,
+              "dupont-aignan": 1.0,
+              "lepen": 17.0
+            }
+          }
+        ]
+      },
+      {
+        "institute": "BVA",
+        "fieldwork": {
+          "start": "2012-02-15",
+          "end": "2012-02-16"
+        },
+        "sampleSize": 930,
+        "url": "https://staticswww.bva-group.com/wp-content/uploads/2017/02/fichier_intention_de_vote_bva-orange-spqr-rtl872a6.pdf",
+        "hypotheses": [
+          {
+            "id": "H1",
+            "scores": {
+              "arthaud": 0.25,
+              "poutou": 0.25,
+              "melenchon": 9.0,
+              "hollande": 31.0,
+              "joly": 3.0,
+              "bayrou": 13.0,
+              "lepage": 0.25,
+              "villepin": 2.0,
+              "morin": 0.25,
+              "nihous": 0.25,
+              "sarkozy": 26.0,
+              "dupont-aignan": 1.0,
+              "lepen": 15.0,
+              "cheminade": 0.25
+            }
+          }
+        ]
+      },
+      {
+        "institute": "Ifop-Fiducial",
+        "fieldwork": {
+          "start": "2012-02-11",
+          "end": "2012-02-15"
+        },
+        "sampleSize": 1174,
+        "url": "https://web.archive.org/web/20120227055435/http://www.parismatch.com/Actu-Match/Presidentielle-2012/import/pdf/rapport-15-02-2012.pdf",
+        "hypotheses": [
+          {
+            "id": "H1",
+            "scores": {
+              "arthaud": 0.5,
+              "poutou": 0.25,
+              "melenchon": 8.0,
+              "hollande": 30.0,
+              "joly": 3.0,
+              "bayrou": 11.5,
+              "lepage": 1.0,
+              "villepin": 2.0,
+              "morin": 0.25,
+              "nihous": 0.5,
+              "sarkozy": 25.5,
+              "boutin": 0.25,
+              "dupont-aignan": 0.5,
+              "lepen": 17.5
+            }
+          }
+        ]
+      },
+      {
+        "institute": "Ifop-Fiducial",
+        "fieldwork": {
+          "start": "2012-02-11",
+          "end": "2012-02-14"
+        },
+        "sampleSize": 867,
+        "url": "https://web.archive.org/web/20120324013515/http://www.parismatch.com/Actu-Match/Presidentielle-2012/import/pdf/rapport-14-02-2012.pdf",
+        "hypotheses": [
+          {
+            "id": "H1",
+            "scores": {
+              "arthaud": 0.5,
+              "poutou": 0.25,
+              "melenchon": 7.5,
+              "hollande": 30.0,
+              "joly": 3.5,
+              "bayrou": 11.5,
+              "lepage": 1.0,
+              "villepin": 2.0,
+              "morin": 0.25,
+              "nihous": 0.5,
+              "sarkozy": 25.5,
+              "boutin": 0.25,
+              "dupont-aignan": 0.5,
+              "lepen": 17.5
+            }
+          }
+        ]
+      },
+      {
+        "institute": "Ifop-Fiducial",
+        "fieldwork": {
+          "start": "2012-02-09",
+          "end": "2012-02-13"
+        },
+        "sampleSize": 870,
+        "url": "https://web.archive.org/web/20120227040820/http://www.parismatch.com/Actu-Match/Presidentielle-2012/import/pdf/rapport-13-02-2012.pdf",
+        "hypotheses": [
+          {
+            "id": "H1",
+            "scores": {
+              "arthaud": 0.25,
+              "poutou": 0.5,
+              "melenchon": 8.0,
+              "hollande": 30.0,
+              "joly": 3.0,
+              "bayrou": 12.0,
+              "lepage": 0.5,
+              "villepin": 2.0,
+              "morin": 0.25,
+              "nihous": 0.5,
+              "sarkozy": 24.5,
+              "boutin": 0.5,
+              "dupont-aignan": 0.5,
+              "lepen": 18.0
+            }
+          }
+        ]
+      },
+      {
+        "institute": "Harris Interactive",
+        "fieldwork": {
+          "start": "2012-02-09",
+          "end": "2012-02-13"
+        },
+        "sampleSize": 954,
+        "url": "https://harris-interactive.fr/wp-content/uploads/sites/6/2015/09/Results_HIFR_VSD_14022012.pdf",
+        "hypotheses": [
+          {
+            "id": "H1",
+            "scores": {
+              "arthaud": 0.25,
+              "poutou": 0.25,
+              "melenchon": 8.0,
+              "hollande": 28.0,
+              "joly": 4.0,
+              "bayrou": 13.0,
+              "lepage": 1.0,
+              "villepin": 1.0,
+              "morin": 0.25,
+              "nihous": 0.25,
+              "sarkozy": 24.0,
+              "dupont-aignan": 1.0,
+              "lepen": 20.0
+            }
+          }
+        ]
+      },
+      {
+        "institute": "Ifop-Fiducial",
+        "fieldwork": {
+          "start": "2012-02-09",
+          "end": "2012-02-12"
+        },
+        "sampleSize": 1723,
+        "url": "https://www.ifop.com/wp-content/uploads/2018/03/1844-1-study_file.pdf",
+        "hypotheses": [
+          {
+            "id": "H1",
+            "scores": {
+              "arthaud": 0.25,
+              "poutou": 0.5,
+              "melenchon": 8.5,
+              "hollande": 30.0,
+              "joly": 3.0,
+              "bayrou": 12.5,
+              "lepage": 0.5,
+              "villepin": 2.0,
+              "morin": 0.25,
+              "nihous": 0.25,
+              "sarkozy": 25.0,
+              "boutin": 0.25,
+              "dupont-aignan": 0.5,
+              "lepen": 17.5
+            }
+          }
+        ]
+      },
+      {
+        "institute": "Ifop-Fiducial",
+        "fieldwork": {
+          "start": "2012-02-07",
+          "end": "2012-02-10"
+        },
+        "sampleSize": 923,
+        "url": "https://web.archive.org/web/20120323222258/http://www.parismatch.com/Actu-Match/Presidentielle-2012/import/pdf/rapport-10-02-2012.pdf",
+        "hypotheses": [
+          {
+            "id": "H1",
+            "scores": {
+              "arthaud": 0.5,
+              "poutou": 0.5,
+              "melenchon": 8.0,
+              "hollande": 31.0,
+              "joly": 3.0,
+              "bayrou": 10.5,
+              "lepage": 0.25,
+              "villepin": 2.0,
+              "morin": 0.5,
+              "nihous": 0.25,
+              "sarkozy": 24.5,
+              "boutin": 0.25,
+              "dupont-aignan": 0.5,
+              "lepen": 19.0
+            }
+          }
+        ]
+      },
+      {
+        "institute": "Ifop-Fiducial",
+        "fieldwork": {
+          "start": "2012-02-06",
+          "end": "2012-02-09"
+        },
+        "sampleSize": 913,
+        "url": "https://web.archive.org/web/20120227055430/http://www.parismatch.com/Actu-Match/Presidentielle-2012/import/pdf/rapport-09-02-2012.pdf",
+        "hypotheses": [
+          {
+            "id": "H1",
+            "scores": {
+              "arthaud": 1.0,
+              "poutou": 0.25,
+              "melenchon": 8.0,
+              "hollande": 31.0,
+              "joly": 3.0,
+              "bayrou": 10.0,
+              "lepage": 0.5,
+              "villepin": 1.5,
+              "morin": 0.5,
+              "nihous": 0.25,
+              "sarkozy": 24.5,
+              "boutin": 0.25,
+              "dupont-aignan": 0.5,
+              "lepen": 19.5
+            }
+          }
+        ]
+      },
+      {
+        "institute": "OpinionWay",
+        "fieldwork": {
+          "start": "2012-02-06",
+          "end": "2012-02-08"
+        },
+        "sampleSize": 1215,
+        "url": "https://www.opinion-way.com/fr/sondage-d-opinion/sondages-publies/l-indicateur-2012-l-observatoire-de-la-presidentielle-vague-3-fiducial-pour-radio-classique-et-les-echos/viewdocument.html",
+        "hypotheses": [
+          {
+            "id": "H1",
+            "scores": {
+              "arthaud": 0.5,
+              "poutou": 0.5,
+              "melenchon": 7.0,
+              "hollande": 29.0,
+              "joly": 3.0,
+              "bayrou": 13.0,
+              "lepage": 0.5,
+              "villepin": 1.0,
+              "morin": 0.5,
+              "nihous": 0.5,
+              "sarkozy": 25.5,
+              "boutin": 0.5,
+              "dupont-aignan": 0.5,
+              "lepen": 18.0
+            }
+          }
+        ]
+      },
+      {
+        "institute": "Ifop-Fiducial",
+        "fieldwork": {
+          "start": "2012-02-04",
+          "end": "2012-02-08"
+        },
+        "sampleSize": 1179,
+        "url": "https://web.archive.org/web/20120227082603/http://www.parismatch.com/Actu-Match/Presidentielle-2012/import/pdf/rapport-08-02-2012.pdf",
+        "hypotheses": [
+          {
+            "id": "H1",
+            "scores": {
+              "arthaud": 1.0,
+              "poutou": 0.25,
+              "melenchon": 8.0,
+              "hollande": 30.5,
+              "joly": 3.0,
+              "bayrou": 10.5,
+              "lepage": 0.5,
+              "villepin": 1.0,
+              "morin": 0.5,
+              "nihous": 0.5,
+              "sarkozy": 24.0,
+              "boutin": 0.25,
+              "dupont-aignan": 0.5,
+              "lepen": 20.0
+            }
+          }
+        ]
+      },
+      {
+        "institute": "Ifop-Fiducial",
+        "fieldwork": {
+          "start": "2012-02-04",
+          "end": "2012-02-07"
+        },
+        "sampleSize": 871,
+        "url": "https://web.archive.org/web/20120227055424/http://www.parismatch.com/Actu-Match/Presidentielle-2012/import/pdf/rapport-07-02-2012.pdf",
+        "hypotheses": [
+          {
+            "id": "H1",
+            "scores": {
+              "arthaud": 1.0,
+              "poutou": 0.25,
+              "melenchon": 8.0,
+              "hollande": 30.0,
+              "joly": 2.5,
+              "bayrou": 11.0,
+              "lepage": 0.5,
+              "villepin": 1.0,
+              "morin": 0.5,
+              "nihous": 0.5,
+              "sarkozy": 24.0,
+              "boutin": 0.25,
+              "dupont-aignan": 0.5,
+              "lepen": 20.5
+            }
+          }
+        ]
+      },
+      {
+        "institute": "CSA",
+        "fieldwork": {
+          "start": "2012-02-06",
+          "end": "2012-02-07"
+        },
+        "sampleSize": 869,
+        "url": "https://web.archive.org/web/20120324032258/http://www.csa.eu/multimedia/data/sondages/data2012/opi20120207-la-credibilite-des-principaux-candidats-et-l-election-presidentielle.pdf",
+        "hypotheses": [
+          {
+            "id": "H1",
+            "scores": {
+              "arthaud": 0.5,
+              "poutou": 0.5,
+              "melenchon": 8.0,
+              "hollande": 30.0,
+              "joly": 2.0,
+              "bayrou": 13.0,
+              "lepage": 0.25,
+              "villepin": 1.0,
+              "morin": 0.25,
+              "nihous": 0.25,
+              "sarkozy": 26.0,
+              "boutin": 0.5,
+              "dupont-aignan": 1.0,
+              "lepen": 17.5
+            }
+          }
+        ]
+      },
+      {
+        "institute": "Ifop-Fiducial",
+        "fieldwork": {
+          "start": "2012-02-02",
+          "end": "2012-02-06"
+        },
+        "sampleSize": 876,
+        "url": "https://web.archive.org/web/20120227130520/http://www.parismatch.com/Actu-Match/Presidentielle-2012/import/pdf/rapport-06-02-2012.pdf",
+        "hypotheses": [
+          {
+            "id": "H1",
+            "scores": {
+              "arthaud": 1.0,
+              "poutou": 0.5,
+              "melenchon": 8.5,
+              "hollande": 30.0,
+              "joly": 2.5,
+              "bayrou": 11.5,
+              "lepage": 0.25,
+              "villepin": 1.0,
+              "morin": 0.5,
+              "nihous": 0.5,
+              "sarkozy": 23.5,
+              "boutin": 0.25,
+              "dupont-aignan": 1.0,
+              "lepen": 19.5
+            }
+          }
+        ]
+      },
+      {
+        "institute": "LH2",
+        "fieldwork": {
+          "start": "2012-02-03",
+          "end": "2012-02-04"
+        },
+        "sampleSize": 955,
+        "url": "https://web.archive.org/web/20120226224626/http://www.lh2.fr/_upload/ressources/sondages/politique_nationale/lh2yahoointentionsvotepresidentielle2012fevrier2012.pdf",
+        "hypotheses": [
+          {
+            "id": "H1",
+            "scores": {
+              "arthaud": 1.0,
+              "melenchon": 7.5,
+              "hollande": 34.0,
+              "joly": 3.0,
+              "bayrou": 12.0,
+              "lepage": 0.3,
+              "villepin": 1.5,
+              "morin": 0.0,
+              "sarkozy": 25.5,
+              "boutin": 0.2,
+              "lepen": 15.0
+            }
+          }
+        ]
+      },
+      {
+        "institute": "Ipsos",
+        "fieldwork": {
+          "start": "2012-02-03",
+          "end": "2012-02-04"
+        },
+        "sampleSize": 953,
+        "url": "https://web.archive.org/web/20120227092754/http://www.ipsos.fr/sites/default/files/attachments/rapport_barometre_intention_de_vote_vague9.pdf",
+        "hypotheses": [
+          {
+            "id": "H1",
+            "scores": {
+              "arthaud": 1.0,
+              "poutou": 0.5,
+              "melenchon": 8.5,
+              "hollande": 32.0,
+              "joly": 2.0,
+              "bayrou": 12.5,
+              "lepage": 0.25,
+              "villepin": 2.0,
+              "morin": 0.25,
+              "nihous": 0.25,
+              "sarkozy": 25.0,
+              "boutin": 0.25,
+              "dupont-aignan": 0.25,
+              "lepen": 16.0
+            }
+          }
+        ]
+      },
+      {
+        "institute": "BVA",
+        "fieldwork": {
+          "start": "2012-02-03",
+          "end": "2012-02-04"
+        },
+        "sampleSize": 779,
+        "url": "https://staticswww.bva-group.com/wp-content/uploads/2017/02/fichier_intention_de_vote_bva-le_parisien_-_fevrier_20127b9f9.pdf",
+        "hypotheses": [
+          {
+            "id": "H1",
+            "scores": {
+              "arthaud": 0.25,
+              "poutou": 0.25,
+              "melenchon": 7.0,
+              "hollande": 34.0,
+              "joly": 2.0,
+              "bayrou": 14.0,
+              "lepage": 0.25,
+              "villepin": 1.0,
+              "morin": 0.25,
+              "nihous": 0.25,
+              "sarkozy": 26.0,
+              "boutin": 0.25,
+              "dupont-aignan": 0.25,
+              "lepen": 16.0,
+              "cheminade": 0.25
+            }
+          }
+        ]
+      },
+      {
+        "institute": "Ifop",
+        "fieldwork": {
+          "start": "2012-01-31",
+          "end": "2012-02-03"
+        },
+        "sampleSize": 922,
+        "url": "https://www.ifop.com/wp-content/uploads/2018/03/1752-1-study_file.pdf",
+        "hypotheses": [
+          {
+            "id": "H1",
+            "scores": {
+              "arthaud": 1.0,
+              "poutou": 1.0,
+              "melenchon": 9.0,
+              "hollande": 33.0,
+              "joly": 3.0,
+              "bayrou": 17.0,
+              "sarkozy": 33.0,
+              "dupont-aignan": 3.0
+            }
+          }
+        ]
+      },
+      {
+        "institute": "Ifop-Fiducial",
+        "fieldwork": {
+          "start": "2012-01-30",
+          "end": "2012-02-02"
+        },
+        "sampleSize": 917,
+        "url": "https://web.archive.org/web/20120227082508/http://www.parismatch.com/Actu-Match/Presidentielle-2012/import/pdf/rapport-02-02-2012.pdf",
+        "hypotheses": [
+          {
+            "id": "H1",
+            "scores": {
+              "arthaud": 0.5,
+              "poutou": 0.5,
+              "melenchon": 7.5,
+              "chevenement": 0.25,
+              "hollande": 30.5,
+              "joly": 2.5,
+              "bayrou": 12.5,
+              "lepage": 0.25,
+              "villepin": 1.0,
+              "morin": 0.5,
+              "nihous": 0.5,
+              "sarkozy": 24.5,
+              "boutin": 0.5,
+              "dupont-aignan": 0.5,
+              "lepen": 18.5
+            }
+          }
+        ]
+      },
+      {
+        "institute": "Ifop-Fiducial",
+        "fieldwork": {
+          "start": "2012-01-29",
+          "end": "2012-02-01"
+        },
+        "sampleSize": 1166,
+        "url": "https://web.archive.org/web/20120516193820/http://www.parismatch.com/Actu-Match/Presidentielle-2012/import/pdf/rapport-01-02-2012.pdf",
+        "hypotheses": [
+          {
+            "id": "H1",
+            "scores": {
+              "arthaud": 0.5,
+              "poutou": 0.5,
+              "melenchon": 8.0,
+              "chevenement": 0.5,
+              "hollande": 30.5,
+              "joly": 2.5,
+              "bayrou": 12.0,
+              "lepage": 0.25,
+              "villepin": 1.0,
+              "morin": 0.25,
+              "nihous": 0.25,
+              "sarkozy": 24.5,
+              "boutin": 0.5,
+              "dupont-aignan": 0.25,
+              "lepen": 19.5
+            }
+          }
+        ]
+      },
+      {
+        "institute": "Ifop-Fiducial",
+        "fieldwork": {
+          "start": "2012-01-29",
+          "end": "2012-01-31"
+        },
+        "sampleSize": 866,
+        "url": "https://web.archive.org/web/20120516192629/http://www.parismatch.com/Actu-Match/Presidentielle-2012/import/pdf/rapport-31-01-2012.pdf",
+        "hypotheses": [
+          {
+            "id": "H1",
+            "scores": {
+              "arthaud": 0.5,
+              "poutou": 0.5,
+              "melenchon": 7.5,
+              "chevenement": 0.5,
+              "hollande": 31.0,
+              "joly": 2.5,
+              "bayrou": 12.0,
+              "lepage": 0.25,
+              "villepin": 1.0,
+              "morin": 0.25,
+              "nihous": 0.25,
+              "sarkozy": 23.5,
+              "boutin": 0.5,
+              "dupont-aignan": 0.5,
+              "lepen": 20.0
+            }
+          }
+        ]
+      },
+      {
+        "institute": "BVA",
+        "fieldwork": {
+          "start": "2012-01-30",
+          "end": "2012-01-31"
+        },
+        "sampleSize": 1407,
+        "url": "https://staticswww.bva-group.com/wp-content/uploads/2017/02/fichier_intention_de_vote_bva-orange-spqr-rtl_-_avec_synthese964f4.pdf",
+        "hypotheses": [
+          {
+            "id": "H1",
+            "scores": {
+              "arthaud": 0.25,
+              "poutou": 0.25,
+              "melenchon": 8.0,
+              "chevenement": 0.25,
+              "hollande": 34.0,
+              "joly": 3.0,
+              "bayrou": 12.0,
+              "lepage": 0.25,
+              "villepin": 2.0,
+              "morin": 0.25,
+              "nihous": 0.25,
+              "sarkozy": 25.0,
+              "boutin": 0.25,
+              "dupont-aignan": 1.0,
+              "lepen": 15.0
+            }
+          }
+        ]
+      },
+      {
+        "institute": "TNS Sofres",
+        "fieldwork": {
+          "start": "2012-01-30",
+          "end": "2012-01-30"
+        },
+        "sampleSize": 1000,
+        "url": "https://www.tns-sofres.com/sites/default/files/2012.02.01-iv6.pdf",
+        "hypotheses": [
+          {
+            "id": "H1",
+            "scores": {
+              "arthaud": 0.25,
+              "poutou": 0.25,
+              "melenchon": 9.0,
+              "chevenement": 0.25,
+              "hollande": 31.5,
+              "joly": 3.0,
+              "bayrou": 12.0,
+              "lepage": 0.5,
+              "villepin": 1.5,
+              "morin": 0.25,
+              "nihous": 0.25,
+              "sarkozy": 26.0,
+              "boutin": 0.25,
+              "dupont-aignan": 0.5,
+              "lepen": 16.0
+            }
+          }
+        ]
+      },
+      {
+        "institute": "Ifop-Fiducial",
+        "fieldwork": {
+          "start": "2012-01-29",
+          "end": "2012-01-30"
+        },
+        "sampleSize": 1387,
+        "url": "https://www.ifop.com/wp-content/uploads/2018/03/1845-1-study_file.pdf",
+        "hypotheses": [
+          {
+            "id": "H1",
+            "scores": {
+              "arthaud": 0.5,
+              "poutou": 0.25,
+              "melenchon": 7.5,
+              "chevenement": 0.5,
+              "hollande": 31.0,
+              "joly": 3.0,
+              "bayrou": 11.5,
+              "lepage": 0.5,
+              "villepin": 1.0,
+              "morin": 0.5,
+              "nihous": 0.25,
+              "sarkozy": 24.5,
+              "boutin": 0.25,
+              "dupont-aignan": 0.5,
+              "lepen": 19.0
+            }
+          }
+        ]
+      },
+      {
+        "institute": "Ifop-Fiducial",
+        "fieldwork": {
+          "start": "2012-01-27",
+          "end": "2012-01-30"
+        },
+        "sampleSize": 871,
+        "url": "https://web.archive.org/web/20120516192422/http://www.parismatch.com/Actu-Match/Presidentielle-2012/import/pdf/rapport-30-01-2012.pdf",
+        "hypotheses": [
+          {
+            "id": "H1",
+            "scores": {
+              "arthaud": 0.5,
+              "poutou": 0.5,
+              "melenchon": 8.0,
+              "chevenement": 0.5,
+              "hollande": 29.5,
+              "joly": 2.5,
+              "bayrou": 12.5,
+              "lepage": 0.5,
+              "villepin": 1.0,
+              "morin": 0.5,
+              "nihous": 0.25,
+              "sarkozy": 23.0,
+              "boutin": 0.25,
+              "dupont-aignan": 0.5,
+              "lepen": 20.5
+            }
+          }
+        ]
+      },
+      {
+        "institute": "Ifop-Fiducial",
+        "fieldwork": {
+          "start": "2012-01-24",
+          "end": "2012-01-27"
+        },
+        "sampleSize": 935,
+        "url": "https://web.archive.org/web/20120131143555/http://www.parismatch.com/Actu-Match/Presidentielle-2012/import/pdf/rapport-27-01-2012.pdf",
+        "hypotheses": [
+          {
+            "id": "H1",
+            "scores": {
+              "arthaud": 0.5,
+              "poutou": 0.5,
+              "melenchon": 8.0,
+              "chevenement": 0.5,
+              "hollande": 28.0,
+              "joly": 3.0,
+              "bayrou": 13.5,
+              "lepage": 0.5,
+              "villepin": 1.5,
+              "morin": 1.0,
+              "nihous": 0.25,
+              "sarkozy": 22.0,
+              "boutin": 0.25,
+              "dupont-aignan": 0.5,
+              "lepen": 20.5
+            }
+          }
+        ]
+      },
+      {
+        "institute": "Ifop-Fiducial",
+        "fieldwork": {
+          "start": "2012-01-23",
+          "end": "2012-01-26"
+        },
+        "sampleSize": 926,
+        "url": "https://web.archive.org/web/20120216082431/http://www.parismatch.com/Actu-Match/Presidentielle-2012/import/pdf/rapport-26-01-2012.pdf",
+        "hypotheses": [
+          {
+            "id": "H1",
+            "scores": {
+              "arthaud": 0.25,
+              "poutou": 0.5,
+              "melenchon": 8.0,
+              "chevenement": 0.5,
+              "hollande": 27.0,
+              "joly": 3.5,
+              "bayrou": 13.5,
+              "lepage": 0.5,
+              "villepin": 2.0,
+              "morin": 0.5,
+              "nihous": 0.25,
+              "sarkozy": 23.0,
+              "boutin": 0.5,
+              "dupont-aignan": 0.5,
+              "lepen": 20.0
+            }
+          }
+        ]
+      },
+      {
+        "institute": "OpinionWay",
+        "fieldwork": {
+          "start": "2012-01-23",
+          "end": "2012-01-25"
+        },
+        "sampleSize": 1087,
+        "url": "https://www.opinion-way.com/fr/sondage-d-opinion/sondages-publies/le-barometre-de-la-presidentielle-2012-vague-3-fiducial-pour-le-figaro-et-lci/viewdocument.html",
+        "hypotheses": [
+          {
+            "id": "H1",
+            "scores": {
+              "arthaud": 0.5,
+              "poutou": 0.5,
+              "melenchon": 8.0,
+              "chevenement": 0.5,
+              "hollande": 27.5,
+              "joly": 3.0,
+              "bayrou": 14.0,
+              "lepage": 1.0,
+              "villepin": 1.0,
+              "morin": 1.0,
+              "sarkozy": 24.0,
+              "boutin": 1.0,
+              "dupont-aignan": 1.0,
+              "lepen": 17.0
+            }
+          }
+        ]
+      },
+      {
+        "institute": "Ifop-Fiducial",
+        "fieldwork": {
+          "start": "2012-01-21",
+          "end": "2012-01-25"
+        },
+        "sampleSize": 1178,
+        "url": "https://web.archive.org/web/20120131075412/http://www.parismatch.com/Actu-Match/Presidentielle-2012/import/pdf/rapport-25-01-2012.pdf",
+        "hypotheses": [
+          {
+            "id": "H1",
+            "scores": {
+              "arthaud": 0.5,
+              "poutou": 0.5,
+              "melenchon": 7.5,
+              "chevenement": 0.5,
+              "hollande": 27.5,
+              "joly": 3.0,
+              "bayrou": 13.0,
+              "lepage": 0.5,
+              "villepin": 2.0,
+              "morin": 0.5,
+              "nihous": 0.5,
+              "sarkozy": 23.0,
+              "boutin": 0.5,
+              "dupont-aignan": 0.5,
+              "lepen": 20.0
+            }
+          }
+        ]
+      },
+      {
+        "institute": "Ifop-Fiducial",
+        "fieldwork": {
+          "start": "2012-01-21",
+          "end": "2012-01-24"
+        },
+        "sampleSize": 864,
+        "url": "https://web.archive.org/web/20120131144810/http://www.parismatch.com/Actu-Match/Presidentielle-2012/import/pdf/rapport-24-01-2012.pdf",
+        "hypotheses": [
+          {
+            "id": "H1",
+            "scores": {
+              "arthaud": 0.5,
+              "poutou": 0.5,
+              "melenchon": 7.5,
+              "chevenement": 0.5,
+              "hollande": 27.5,
+              "joly": 3.0,
+              "bayrou": 13.0,
+              "lepage": 0.5,
+              "villepin": 2.5,
+              "morin": 0.5,
+              "nihous": 0.5,
+              "sarkozy": 23.5,
+              "boutin": 0.5,
+              "dupont-aignan": 0.5,
+              "lepen": 19.0
+            }
+          }
+        ]
+      },
+      {
+        "institute": "CSA",
+        "fieldwork": {
+          "start": "2012-01-23",
+          "end": "2012-01-24"
+        },
+        "sampleSize": 898,
+        "url": "https://web.archive.org/web/20120130232757/http://www.csa.eu/multimedia/data/sondages/data2012/opi20120124-la-campagne-de-francois-hollande-et-l-election-presidentielle.pdf",
+        "hypotheses": [
+          {
+            "id": "H1",
+            "scores": {
+              "arthaud": 0.25,
+              "poutou": 0.25,
+              "melenchon": 9.0,
+              "chevenement": 0.25,
+              "hollande": 31.0,
+              "joly": 2.0,
+              "bayrou": 15.0,
+              "lepage": 0.25,
+              "villepin": 1.0,
+              "morin": 0.25,
+              "sarkozy": 25.0,
+              "boutin": 0.25,
+              "dupont-aignan": 0.25,
+              "lepen": 17.0
+            }
+          }
+        ]
+      },
+      {
+        "institute": "Ifop-Fiducial",
+        "fieldwork": {
+          "start": "2012-01-20",
+          "end": "2012-01-23"
+        },
+        "sampleSize": 877,
+        "url": "https://web.archive.org/web/20120516193717/http://www.parismatch.com/Actu-Match/Presidentielle-2012/import/pdf/rapport-23-01-2012.pdf",
+        "hypotheses": [
+          {
+            "id": "H1",
+            "scores": {
+              "arthaud": 0.5,
+              "poutou": 0.5,
+              "melenchon": 7.0,
+              "chevenement": 0.5,
+              "hollande": 27.0,
+              "joly": 2.5,
+              "bayrou": 13.5,
+              "lepage": 0.5,
+              "villepin": 2.5,
+              "morin": 0.5,
+              "nihous": 0.5,
+              "sarkozy": 23.5,
+              "boutin": 0.5,
+              "dupont-aignan": 0.5,
+              "lepen": 20.0
+            }
+          }
+        ]
+      },
+      {
+        "institute": "Harris Interactive",
+        "fieldwork": {
+          "start": "2012-01-19",
+          "end": "2012-01-22"
+        },
+        "sampleSize": 1029,
+        "url": "https://harris-interactive.fr/wp-content/uploads/sites/6/2015/09/Results_HIFR_VSD_25012012.pdf",
+        "hypotheses": [
+          {
+            "id": "H1",
+            "scores": {
+              "arthaud": 0.5,
+              "poutou": 0.25,
+              "melenchon": 8.0,
+              "chevenement": 0.25,
+              "hollande": 27.0,
+              "joly": 4.0,
+              "bayrou": 14.0,
+              "lepage": 0.25,
+              "villepin": 1.0,
+              "morin": 0.5,
+              "nihous": 0.5,
+              "sarkozy": 23.0,
+              "boutin": 0.5,
+              "dupont-aignan": 1.0,
+              "lepen": 20.0
+            }
+          }
+        ]
+      },
+      {
+        "institute": "Ifop-Fiducial",
+        "fieldwork": {
+          "start": "2012-01-17",
+          "end": "2012-01-20"
+        },
+        "sampleSize": 937,
+        "url": "https://web.archive.org/web/20120131144604/http://www.parismatch.com/Actu-Match/Presidentielle-2012/import/pdf/rapport-20-01-2012.pdf",
+        "hypotheses": [
+          {
+            "id": "H1",
+            "scores": {
+              "arthaud": 0.5,
+              "poutou": 0.5,
+              "melenchon": 8.0,
+              "chevenement": 0.5,
+              "hollande": 26.5,
+              "joly": 3.5,
+              "bayrou": 13.0,
+              "lepage": 0.25,
+              "villepin": 3.0,
+              "morin": 0.5,
+              "nihous": 0.25,
+              "sarkozy": 23.0,
+              "boutin": 0.25,
+              "dupont-aignan": 0.25,
+              "lepen": 21.0
+            }
+          }
+        ]
+      },
+      {
+        "institute": "Ifop-Fiducial",
+        "fieldwork": {
+          "start": "2012-01-16",
+          "end": "2012-01-19"
+        },
+        "sampleSize": 923,
+        "url": "https://web.archive.org/web/20120516192943/http://www.parismatch.com/Actu-Match/Presidentielle-2012/import/pdf/rapport-19-01-2012.pdf",
+        "hypotheses": [
+          {
+            "id": "H1",
+            "scores": {
+              "arthaud": 0.5,
+              "poutou": 0.5,
+              "melenchon": 8.5,
+              "chevenement": 0.25,
+              "hollande": 27.0,
+              "joly": 3.5,
+              "bayrou": 12.0,
+              "lepage": 0.5,
+              "villepin": 2.5,
+              "morin": 1.0,
+              "nihous": 0.25,
+              "sarkozy": 23.0,
+              "boutin": 0.25,
+              "dupont-aignan": 0.25,
+              "lepen": 21.0
+            }
+          }
+        ]
+      },
+      {
+        "institute": "BVA",
+        "fieldwork": {
+          "start": "2012-01-18",
+          "end": "2012-01-19"
+        },
+        "sampleSize": 959,
+        "url": "https://staticswww.bva-group.com/wp-content/uploads/2017/02/fichier_intention_de_vote_bva-orange-spqr-rtl2a9fb.pdf",
+        "hypotheses": [
+          {
+            "id": "H1",
+            "scores": {
+              "arthaud": 0.5,
+              "poutou": 0.25,
+              "melenchon": 7.0,
+              "chevenement": 0.25,
+              "hollande": 30.0,
+              "joly": 4.0,
+              "bayrou": 13.0,
+              "lepage": 0.25,
+              "villepin": 1.5,
+              "morin": 1.0,
+              "nihous": 0.25,
+              "sarkozy": 23.0,
+              "boutin": 0.5,
+              "dupont-aignan": 1.5,
+              "lepen": 18.0
+            }
+          }
+        ]
+      },
+      {
+        "institute": "Ifop-Fiducial",
+        "fieldwork": {
+          "start": "2012-01-14",
+          "end": "2012-01-18"
+        },
+        "sampleSize": 1168,
+        "url": "https://web.archive.org/web/20120131075408/http://www.parismatch.com/Actu-Match/Presidentielle-2012/import/pdf/rapport-18-01-2012.pdf",
+        "hypotheses": [
+          {
+            "id": "H1",
+            "scores": {
+              "arthaud": 0.5,
+              "poutou": 0.5,
+              "melenchon": 8.0,
+              "chevenement": 0.5,
+              "hollande": 28.0,
+              "joly": 3.0,
+              "bayrou": 12.5,
+              "lepage": 0.5,
+              "villepin": 1.5,
+              "morin": 1.0,
+              "nihous": 0.25,
+              "sarkozy": 24.0,
+              "boutin": 0.25,
+              "dupont-aignan": 0.25,
+              "lepen": 20.0
+            }
+          }
+        ]
+      },
+      {
+        "institute": "Ifop-Fiducial",
+        "fieldwork": {
+          "start": "2012-01-14",
+          "end": "2012-01-17"
+        },
+        "sampleSize": 864,
+        "url": "https://web.archive.org/web/20120516193604/http://www.parismatch.com/Actu-Match/Presidentielle-2012/import/pdf/rapport-17-01-2012.pdf",
+        "hypotheses": [
+          {
+            "id": "H1",
+            "scores": {
+              "arthaud": 0.25,
+              "poutou": 0.5,
+              "melenchon": 7.5,
+              "chevenement": 0.5,
+              "hollande": 28.5,
+              "joly": 2.5,
+              "bayrou": 12.5,
+              "lepage": 1.0,
+              "villepin": 1.5,
+              "morin": 1.0,
+              "nihous": 0.25,
+              "sarkozy": 24.5,
+              "boutin": 0.25,
+              "dupont-aignan": 0.5,
+              "lepen": 19.5
+            }
+          }
+        ]
+      },
+      {
+        "institute": "Ifop-Fiducial",
+        "fieldwork": {
+          "start": "2012-01-13",
+          "end": "2012-01-16"
+        },
+        "sampleSize": 872,
+        "url": "https://web.archive.org/web/20120216082427/http://www.parismatch.com/Actu-Match/Presidentielle-2012/import/pdf/rapport-16-01-2012.pdf",
+        "hypotheses": [
+          {
+            "id": "H1",
+            "scores": {
+              "arthaud": 0.25,
+              "poutou": 0.25,
+              "melenchon": 7.0,
+              "chevenement": 0.5,
+              "hollande": 28.5,
+              "joly": 3.0,
+              "bayrou": 12.5,
+              "lepage": 0.5,
+              "villepin": 1.5,
+              "morin": 0.5,
+              "nihous": 0.25,
+              "sarkozy": 25.0,
+              "boutin": 0.25,
+              "dupont-aignan": 1.0,
+              "lepen": 20.0
+            }
+          }
+        ]
+      },
+      {
+        "institute": "LH2",
+        "fieldwork": {
+          "start": "2012-01-13",
+          "end": "2012-01-14"
+        },
+        "sampleSize": 966,
+        "url": "https://web.archive.org/web/20120123201308/http://www.lh2.fr/_upload/ressources/sondages/politique_nationale/lh2yahoointentionsvotepresidentiellejanv2012.pdf",
+        "hypotheses": [
+          {
+            "id": "H1",
+            "scores": {
+              "arthaud": 0.5,
+              "poutou": 0.0,
+              "melenchon": 8.5,
+              "chevenement": 0.5,
+              "hollande": 30.0,
+              "joly": 3.0,
+              "bayrou": 14.0,
+              "lepage": 0.5,
+              "villepin": 2.0,
+              "morin": 0.0,
+              "sarkozy": 23.5,
+              "boutin": 0.5,
+              "dupont-aignan": 0.0,
+              "lepen": 17.0
+            }
+          }
+        ]
+      },
+      {
+        "institute": "Ipsos",
+        "fieldwork": {
+          "start": "2012-01-13",
+          "end": "2012-01-14"
+        },
+        "sampleSize": 948,
+        "url": "https://web.archive.org/web/20120127100305/http://www.ipsos.fr/sites/default/files/attachments/rapport_barometre_intention_de_vote_vague8_0.pdf",
+        "hypotheses": [
+          {
+            "id": "H1",
+            "scores": {
+              "arthaud": 1.0,
+              "poutou": 0.25,
+              "melenchon": 7.5,
+              "chevenement": 0.25,
+              "hollande": 29.0,
+              "joly": 3.0,
+              "bayrou": 14.0,
+              "lepage": 0.5,
+              "villepin": 3.0,
+              "morin": 0.25,
+              "nihous": 0.25,
+              "sarkozy": 23.0,
+              "boutin": 0.25,
+              "dupont-aignan": 0.5,
+              "lepen": 18.0
+            }
+          }
+        ]
+      },
+      {
+        "institute": "Ifop-Fiducial",
+        "fieldwork": {
+          "start": "2012-01-11",
+          "end": "2012-01-13"
+        },
+        "sampleSize": 1550,
+        "url": "https://www.ifop.com/wp-content/uploads/2018/03/1846-1-study_file.pdf",
+        "hypotheses": [
+          {
+            "id": "H1",
+            "scores": {
+              "arthaud": 0.5,
+              "poutou": 0.5,
+              "melenchon": 7.5,
+              "chevenement": 0.5,
+              "hollande": 28.0,
+              "joly": 3.0,
+              "bayrou": 12.5,
+              "lepage": 0.25,
+              "villepin": 2.0,
+              "morin": 0.5,
+              "nihous": 0.25,
+              "sarkozy": 24.0,
+              "boutin": 0.25,
+              "dupont-aignan": 1.0,
+              "lepen": 20.0
+            }
+          }
+        ]
+      },
+      {
+        "institute": "Ifop-Fiducial",
+        "fieldwork": {
+          "start": "2012-01-10",
+          "end": "2012-01-13"
+        },
+        "sampleSize": 942,
+        "url": "https://web.archive.org/web/20120216082421/http://www.parismatch.com/Actu-Match/Presidentielle-2012/import/pdf/rapport-13-01-2012.pdf",
+        "hypotheses": [
+          {
+            "id": "H1",
+            "scores": {
+              "arthaud": 0.5,
+              "poutou": 0.5,
+              "melenchon": 6.5,
+              "chevenement": 0.5,
+              "hollande": 27.0,
+              "joly": 3.5,
+              "bayrou": 12.5,
+              "lepage": 0.25,
+              "villepin": 1.5,
+              "morin": 0.5,
+              "nihous": 0.5,
+              "sarkozy": 24.0,
+              "boutin": 0.25,
+              "dupont-aignan": 1.0,
+              "lepen": 21.5
+            }
+          }
+        ]
+      },
+      {
+        "institute": "Ifop-Fiducial",
+        "fieldwork": {
+          "start": "2012-01-09",
+          "end": "2012-01-12"
+        },
+        "sampleSize": 943,
+        "url": "https://web.archive.org/web/20120131075403/http://www.parismatch.com/Actu-Match/Presidentielle-2012/import/pdf/rapport-12-01-2012.pdf",
+        "hypotheses": [
+          {
+            "id": "H1",
+            "scores": {
+              "arthaud": 0.5,
+              "poutou": 0.5,
+              "melenchon": 6.5,
+              "chevenement": 0.5,
+              "hollande": 27.0,
+              "joly": 3.5,
+              "bayrou": 13.0,
+              "lepage": 0.25,
+              "villepin": 2.0,
+              "morin": 1.0,
+              "nihous": 0.25,
+              "sarkozy": 23.5,
+              "boutin": 0.25,
+              "dupont-aignan": 0.5,
+              "lepen": 21.5
+            }
+          }
+        ]
+      },
+      {
+        "institute": "OpinionWay",
+        "fieldwork": {
+          "start": "2012-01-10",
+          "end": "2012-01-11"
+        },
+        "sampleSize": 967,
+        "url": "https://www.opinion-way.com/fr/sondage-d-opinion/sondages-publies/l-indicateur-2012-l-observatoire-de-la-presidentielle-janvier-2012-vague-2-fiducial-pour-radio-classique-et-les-echos/viewdocument.html",
+        "hypotheses": [
+          {
+            "id": "H1",
+            "scores": {
+              "arthaud": 0.5,
+              "poutou": 1.0,
+              "melenchon": 6.0,
+              "chevenement": 0.5,
+              "hollande": 27.0,
+              "joly": 3.0,
+              "bayrou": 15.0,
+              "lepage": 0.5,
+              "villepin": 2.0,
+              "morin": 1.0,
+              "sarkozy": 25.0,
+              "boutin": 0.5,
+              "dupont-aignan": 1.0,
+              "lepen": 17.0
+            }
+          }
+        ]
+      },
+      {
+        "institute": "CSA",
+        "fieldwork": {
+          "start": "2012-01-09",
+          "end": "2012-01-10"
+        },
+        "sampleSize": 875,
+        "url": "https://web.archive.org/web/20120216084034/http://www.csa.eu/multimedia/data/sondages/data2012/opi20120110-la-lutte-contre-le-chomage-et-l-election-presidentielle.pdf",
+        "hypotheses": [
+          {
+            "id": "H1",
+            "scores": {
+              "arthaud": 0.25,
+              "poutou": 0.5,
+              "melenchon": 7.0,
+              "chevenement": 0.25,
+              "hollande": 29.0,
+              "joly": 2.0,
+              "bayrou": 13.0,
+              "lepage": 0.25,
+              "villepin": 3.0,
+              "morin": 0.25,
+              "sarkozy": 26.0,
+              "boutin": 0.5,
+              "dupont-aignan": 0.25,
+              "lepen": 19.0
+            }
+          }
+        ]
+      },
+      {
+        "institute": "TNS Sofres",
+        "fieldwork": {
+          "start": "2012-01-06",
+          "end": "2012-01-09"
+        },
+        "sampleSize": 2007,
+        "url": "https://www.tns-sofres.com/sites/default/files/2012.01.18-catholiques.pdf",
+        "hypotheses": [
+          {
+            "id": "H1",
+            "scores": {
+              "arthaud": 0.5,
+              "poutou": 0.25,
+              "melenchon": 7.0,
+              "chevenement": 1.0,
+              "hollande": 30.0,
+              "joly": 4.0,
+              "bayrou": 11.0,
+              "lepage": 0.5,
+              "villepin": 2.5,
+              "morin": 0.25,
+              "nihous": 0.25,
+              "sarkozy": 25.0,
+              "boutin": 0.25,
+              "dupont-aignan": 0.5,
+              "lepen": 18.0
+            }
+          }
+        ]
+      },
+      {
+        "institute": "BVA",
+        "fieldwork": {
+          "start": "2012-01-06",
+          "end": "2012-01-07"
+        },
+        "sampleSize": 815,
+        "url": "https://staticswww.bva-group.com/wp-content/uploads/2017/02/fichier_intention_de_vote_bva-le_parisien_-_9_janvier_2012d007c.pdf",
+        "hypotheses": [
+          {
+            "id": "H1",
+            "scores": {
+              "arthaud": 1.0,
+              "poutou": 0.25,
+              "melenchon": 8.0,
+              "chevenement": 1.0,
+              "hollande": 28.0,
+              "joly": 4.0,
+              "bayrou": 11.0,
+              "lepage": 1.0,
+              "villepin": 4.0,
+              "morin": 0.25,
+              "nihous": 0.25,
+              "sarkozy": 24.0,
+              "boutin": 1.0,
+              "dupont-aignan": 0.25,
+              "lepen": 17.0
+            }
+          }
+        ]
+      },
+      {
+        "institute": "Ifop",
+        "fieldwork": {
+          "start": "2012-01-04",
+          "end": "2012-01-06"
+        },
+        "sampleSize": 1163,
+        "url": "https://www.ifop.com/wp-content/uploads/2018/03/1723-1-study_file.pdf",
+        "hypotheses": [
+          {
+            "id": "H1",
+            "scores": {
+              "arthaud": 0.5,
+              "poutou": 0.5,
+              "melenchon": 6.0,
+              "chevenement": 0.25,
+              "hollande": 28.0,
+              "joly": 3.0,
+              "bayrou": 12.0,
+              "lepage": 0.5,
+              "villepin": 2.5,
+              "morin": 1.0,
+              "nihous": 0.25,
+              "sarkozy": 26.0,
+              "boutin": 0.5,
+              "dupont-aignan": 0.5,
+              "lepen": 19.0
+            }
+          }
+        ]
+      },
+      {
+        "institute": "OpinionWay",
+        "fieldwork": {
+          "start": "2011-12-16",
+          "end": "2011-12-19"
+        },
+        "sampleSize": 913,
+        "url": "https://www.opinion-way.com/fr/sondage-d-opinion/sondages-publies/l-indicateur-2012-l-observatoire-de-la-presidentielle-decembre-2011-fiducial-pour-radio-classique-et-les-echos/viewdocument.html",
+        "hypotheses": [
+          {
+            "id": "H1",
+            "scores": {
+              "arthaud": 0.5,
+              "poutou": 1.0,
+              "melenchon": 7.5,
+              "chevenement": 0.5,
+              "hollande": 27.0,
+              "joly": 4.0,
+              "bayrou": 14.0,
+              "lepage": 0.5,
+              "villepin": 2.0,
+              "morin": 1.0,
+              "sarkozy": 24.0,
+              "boutin": 1.0,
+              "dupont-aignan": 1.0,
+              "lepen": 16.0
+            }
+          }
+        ]
+      },
+      {
+        "institute": "OpinionWay",
+        "fieldwork": {
+          "start": "2011-12-13",
+          "end": "2011-12-15"
+        },
+        "sampleSize": 912,
+        "url": "https://www.opinion-way.com/fr/sondage-d-opinion/sondages-publies/le-barometre-de-la-presidentielle-2012-vague-2-fiducial-pour-le-figaro-et-lci/viewdocument.html",
+        "hypotheses": [
+          {
+            "id": "H1",
+            "scores": {
+              "arthaud": 0.5,
+              "poutou": 1.0,
+              "melenchon": 6.0,
+              "chevenement": 0.5,
+              "hollande": 29.0,
+              "joly": 3.0,
+              "bayrou": 11.0,
+              "lepage": 0.5,
+              "villepin": 3.0,
+              "morin": 1.0,
+              "sarkozy": 25.0,
+              "boutin": 1.0,
+              "dupont-aignan": 1.5,
+              "lepen": 17.0
+            }
+          }
+        ]
+      },
+      {
+        "institute": "Ifop",
+        "fieldwork": {
+          "start": "2011-12-13",
+          "end": "2011-12-15"
+        },
+        "sampleSize": 937,
+        "url": "https://www.ifop.com/wp-content/uploads/2018/03/1711-1-study_file.pdf",
+        "hypotheses": [
+          {
+            "id": "H1",
+            "scores": {
+              "arthaud": 0.25,
+              "poutou": 0.25,
+              "melenchon": 6.5,
+              "chevenement": 0.5,
+              "hollande": 27.5,
+              "joly": 5.0,
+              "bayrou": 11.0,
+              "lepage": 1.0,
+              "villepin": 3.5,
+              "morin": 0.5,
+              "nihous": 0.25,
+              "sarkozy": 24.0,
+              "boutin": 0.25,
+              "dupont-aignan": 0.5,
+              "lepen": 20.0
+            }
+          }
+        ]
+      },
+      {
+        "institute": "Harris Interactive",
+        "fieldwork": {
+          "start": "2011-12-13",
+          "end": "2011-12-15"
+        },
+        "sampleSize": 1031,
+        "url": "https://web.archive.org/web/20120717175424/http://www.harrisinteractive.fr/news/2011/results_HIFR_elecpres2012_16122011.pdf",
+        "hypotheses": [
+          {
+            "id": "H1",
+            "scores": {
+              "arthaud": 0.5,
+              "poutou": 0.25,
+              "melenchon": 6.0,
+              "chevenement": 1.0,
+              "hollande": 28.0,
+              "joly": 4.0,
+              "bayrou": 11.0,
+              "lepage": 0.5,
+              "villepin": 3.0,
+              "morin": 0.5,
+              "nihous": 0.25,
+              "sarkozy": 25.0,
+              "boutin": 0.5,
+              "dupont-aignan": 1.0,
+              "lepen": 19.0
+            }
+          }
+        ]
+      },
+      {
+        "institute": "CSA",
+        "fieldwork": {
+          "start": "2011-12-12",
+          "end": "2011-12-13"
+        },
+        "sampleSize": 859,
+        "url": "https://web.archive.org/web/20120131123207/http://www.csa.eu/multimedia/data/sondages/data2011/opi20111213-la-crise-de-la-dette-et-l-election-presidentielle-de-2012.pdf",
+        "hypotheses": [
+          {
+            "id": "H1",
+            "scores": {
+              "arthaud": 1.0,
+              "poutou": 0.5,
+              "melenchon": 6.0,
+              "chevenement": 1.0,
+              "hollande": 32.0,
+              "joly": 3.0,
+              "bayrou": 11.0,
+              "lepage": 0.5,
+              "villepin": 2.0,
+              "morin": 0.25,
+              "sarkozy": 26.0,
+              "boutin": 0.5,
+              "dupont-aignan": 0.5,
+              "lepen": 16.0
+            }
+          }
+        ]
+      },
+      {
+        "institute": "LH2",
+        "fieldwork": {
+          "start": "2011-12-09",
+          "end": "2011-12-10"
+        },
+        "sampleSize": 953,
+        "url": "https://web.archive.org/web/20120114042059/http://www.lh2.fr/_upload/ressources/sondages/politique_nationale/lh2yahoointentionvotepresidentielle2012_11dec2011.pdf",
+        "hypotheses": [
+          {
+            "id": "H1",
+            "scores": {
+              "arthaud": 0.25,
+              "poutou": 0.25,
+              "melenchon": 6.5,
+              "chevenement": 0.5,
+              "hollande": 31.5,
+              "joly": 4.5,
+              "bayrou": 13.0,
+              "lepage": 0.25,
+              "villepin": 1.0,
+              "morin": 1.0,
+              "sarkozy": 26.0,
+              "boutin": 1.0,
+              "dupont-aignan": 1.0,
+              "lepen": 13.5
+            }
+          }
+        ]
+      },
+      {
+        "institute": "Ipsos",
+        "fieldwork": {
+          "start": "2011-12-02",
+          "end": "2011-12-03"
+        },
+        "sampleSize": 955,
+        "url": "https://web.archive.org/web/20120131091757/http://www.ipsos.fr/sites/default/files/attachments/2011-12-06-barometre-intentions-de-vote-vague-7.pdf",
+        "hypotheses": [
+          {
+            "id": "H1",
+            "scores": {
+              "arthaud": 1.0,
+              "poutou": 0.25,
+              "melenchon": 7.5,
+              "chevenement": 0.5,
+              "hollande": 32.0,
+              "joly": 6.0,
+              "bayrou": 7.0,
+              "lepage": 0.5,
+              "villepin": 2.0,
+              "morin": 0.25,
+              "nihous": 0.25,
+              "sarkozy": 25.5,
+              "boutin": 0.25,
+              "dupont-aignan": 0.5,
+              "lepen": 17.0
+            }
+          }
+        ]
+      },
+      {
+        "institute": "BVA",
+        "fieldwork": {
+          "start": "2011-12-02",
+          "end": "2011-12-03"
+        },
+        "sampleSize": 798,
+        "url": "https://staticswww.bva-group.com/wp-content/uploads/2017/02/fichier_intention_de_vote_bva-le_parisien_-_dec_2011c97f0.pdf",
+        "hypotheses": [
+          {
+            "id": "H1",
+            "scores": {
+              "arthaud": 0.25,
+              "poutou": 0.25,
+              "melenchon": 7.0,
+              "chevenement": 1.0,
+              "hollande": 35.0,
+              "joly": 3.0,
+              "bayrou": 9.0,
+              "lepage": 1.0,
+              "villepin": 1.0,
+              "morin": 0.25,
+              "nihous": 0.25,
+              "sarkozy": 24.5,
+              "boutin": 1.0,
+              "dupont-aignan": 0.5,
+              "lepen": 17.0
+            }
+          }
+        ]
+      },
+      {
+        "institute": "Ifop",
+        "fieldwork": {
+          "start": "2011-11-29",
+          "end": "2011-11-30"
+        },
+        "sampleSize": 934,
+        "url": "https://www.ifop.com/wp-content/uploads/2018/03/1694-1-study_file.pdf",
+        "hypotheses": [
+          {
+            "id": "H1",
+            "scores": {
+              "arthaud": 0.25,
+              "poutou": 0.25,
+              "melenchon": 7.5,
+              "chevenement": 0.5,
+              "hollande": 29.5,
+              "joly": 4.0,
+              "bayrou": 8.5,
+              "lepage": 0.5,
+              "villepin": 1.5,
+              "morin": 1.0,
+              "nihous": 0.25,
+              "sarkozy": 26.0,
+              "boutin": 0.5,
+              "dupont-aignan": 1.0,
+              "lepen": 19.5
+            }
+          }
+        ]
+      },
+      {
+        "institute": "TNS Sofres",
+        "fieldwork": {
+          "start": "2011-11-25",
+          "end": "2011-11-26"
+        },
+        "sampleSize": 1003,
+        "url": "https://www.tns-sofres.com/sites/default/files/2011.11.30-ivp.pdf",
+        "hypotheses": [
+          {
+            "id": "H1",
+            "scores": {
+              "arthaud": 0.5,
+              "poutou": 0.5,
+              "melenchon": 8.0,
+              "chevenement": 0.5,
+              "hollande": 31.0,
+              "joly": 5.0,
+              "bayrou": 7.0,
+              "lepage": 0.5,
+              "villepin": 1.0,
+              "morin": 0.5,
+              "sarkozy": 28.0,
+              "boutin": 0.25,
+              "dupont-aignan": 1.0,
+              "lepen": 16.5
+            }
+          }
+        ]
+      },
+      {
+        "institute": "OpinionWay",
+        "fieldwork": {
+          "start": "2011-11-23",
+          "end": "2011-11-24"
+        },
+        "sampleSize": 952,
+        "url": "https://www.opinion-way.com/fr/sondage-d-opinion/sondages-publies/le-barometre-de-la-presidentielle-2012-vague-1-fiducial-pour-le-figaro-et-lci/viewdocument.html",
+        "hypotheses": [
+          {
+            "id": "H1",
+            "scores": {
+              "arthaud": 1.0,
+              "poutou": 1.0,
+              "melenchon": 7.0,
+              "chevenement": 1.0,
+              "hollande": 30.0,
+              "joly": 5.0,
+              "bayrou": 7.0,
+              "villepin": 1.0,
+              "morin": 1.0,
+              "sarkozy": 26.0,
+              "boutin": 1.0,
+              "dupont-aignan": 1.0,
+              "lepen": 18.0
+            }
+          }
+        ]
+      },
+      {
+        "institute": "LH2",
+        "fieldwork": {
+          "start": "2011-11-18",
+          "end": "2011-11-19"
+        },
+        "sampleSize": 830,
+        "url": "https://web.archive.org/web/20111125053926/http://www.lh2.fr/_upload/ressources/sondages/politique_nationale/lh2yahoointentionsvotepresidentielle201220nov_2011.pdf",
+        "hypotheses": [
+          {
+            "id": "H1",
+            "scores": {
+              "arthaud": 0.5,
+              "poutou": 0.0,
+              "melenchon": 7.0,
+              "chevenement": 1.5,
+              "hollande": 30.0,
+              "joly": 6.0,
+              "bayrou": 7.0,
+              "lepage": 0.5,
+              "villepin": 2.0,
+              "morin": 0.5,
+              "sarkozy": 29.0,
+              "boutin": 0.5,
+              "dupont-aignan": 0.5,
+              "lepen": 15.0
+            }
+          }
+        ]
+      },
+      {
+        "institute": "BVA",
+        "fieldwork": {
+          "start": "2011-11-18",
+          "end": "2011-11-19"
+        },
+        "sampleSize": 784,
+        "url": "https://staticswww.bva-group.com/wp-content/uploads/2017/02/fichier_intention_de_vote_bva-orange-spqr-rtl1cd1c.pdf",
+        "hypotheses": [
+          {
+            "id": "H1",
+            "scores": {
+              "arthaud": 0.25,
+              "poutou": 0.25,
+              "melenchon": 5.0,
+              "chevenement": 3.0,
+              "hollande": 32.0,
+              "joly": 4.0,
+              "bayrou": 7.0,
+              "villepin": 2.0,
+              "morin": 1.0,
+              "nihous": 0.25,
+              "sarkozy": 27.0,
+              "boutin": 0.25,
+              "dupont-aignan": 1.0,
+              "lepen": 18.0
+            }
+          }
+        ]
+      },
+      {
+        "institute": "Ifop",
+        "fieldwork": {
+          "start": "2011-11-14",
+          "end": "2011-11-16"
+        },
+        "sampleSize": 1146,
+        "url": "https://www.ifop.com/wp-content/uploads/2018/03/1677-1-study_file.pdf",
+        "hypotheses": [
+          {
+            "id": "H1",
+            "scores": {
+              "arthaud": 0.5,
+              "poutou": 0.5,
+              "melenchon": 7.0,
+              "chevenement": 0.25,
+              "hollande": 32.5,
+              "joly": 4.0,
+              "bayrou": 6.0,
+              "lepage": 0.5,
+              "villepin": 1.5,
+              "morin": 0.5,
+              "nihous": 0.5,
+              "sarkozy": 26.0,
+              "boutin": 0.5,
+              "dupont-aignan": 1.0,
+              "lepen": 19.0
+            }
+          }
+        ]
+      },
+      {
+        "institute": "CSA",
+        "fieldwork": {
+          "start": "2011-11-14",
+          "end": "2011-11-15"
+        },
+        "sampleSize": 822,
+        "url": "https://web.archive.org/web/20111125130841/http://www.csa.eu/multimedia/data/sondages/data2011/opi20111115-les-preoccupations-des-francais-le-contexte-economique-et-financier-et-les-intentions-de-vote-pour-2012.pdf",
+        "hypotheses": [
+          {
+            "id": "H1",
+            "scores": {
+              "arthaud": 1.0,
+              "poutou": 0.5,
+              "melenchon": 5.0,
+              "chevenement": 1.0,
+              "hollande": 34.0,
+              "joly": 4.0,
+              "bayrou": 7.0,
+              "lepage": 0.5,
+              "villepin": 1.5,
+              "morin": 1.0,
+              "sarkozy": 27.0,
+              "boutin": 0.5,
+              "dupont-aignan": 1.0,
+              "lepen": 16.0
+            }
+          }
+        ]
+      },
+      {
+        "institute": "BVA",
+        "fieldwork": {
+          "start": "2011-11-04",
+          "end": "2011-11-05"
+        },
+        "sampleSize": 796,
+        "url": "https://staticswww.bva-group.com/wp-content/uploads/2017/02/fichier_intention_de_vote_bva-le_parisien317d4.pdf",
+        "hypotheses": [
+          {
+            "id": "H1",
+            "scores": {
+              "arthaud": 0.25,
+              "poutou": 0.25,
+              "melenchon": 5.0,
+              "chevenement": 1.0,
+              "hollande": 36.0,
+              "joly": 5.0,
+              "bayrou": 6.0,
+              "villepin": 3.0,
+              "morin": 0.25,
+              "nihous": 0.25,
+              "sarkozy": 25.0,
+              "boutin": 0.5,
+              "dupont-aignan": 0.5,
+              "lepen": 18.0
+            }
+          }
+        ]
+      },
+      {
+        "institute": "Ifop",
+        "fieldwork": {
+          "start": "2011-11-02",
+          "end": "2011-11-04"
+        },
+        "sampleSize": 1843,
+        "url": "https://www.ifop.com/wp-content/uploads/2018/03/1663-1-study_file.pdf",
+        "hypotheses": [
+          {
+            "id": "H1",
+            "scores": {
+              "arthaud": 0.25,
+              "poutou": 0.5,
+              "melenchon": 6.0,
+              "chevenement": 0.25,
+              "hollande": 32.5,
+              "joly": 4.5,
+              "bayrou": 7.0,
+              "lepage": 1.0,
+              "villepin": 2.0,
+              "morin": 1.0,
+              "nihous": 0.25,
+              "sarkozy": 25.5,
+              "boutin": 0.25,
+              "dupont-aignan": 1.0,
+              "lepen": 19.0
+            }
+          }
+        ]
+      },
+      {
+        "institute": "Ipsos",
+        "fieldwork": {
+          "start": "2011-10-28",
+          "end": "2011-10-29"
+        },
+        "sampleSize": 970,
+        "url": "https://web.archive.org/web/20111125012136/http://www.ipsos.fr/sites/default/files/attachments/barometre_intentions_de_vote_ipsos_vague6_1.pdf",
+        "hypotheses": [
+          {
+            "id": "H1",
+            "scores": {
+              "arthaud": 1.0,
+              "poutou": 1.0,
+              "melenchon": 6.0,
+              "hollande": 35.0,
+              "joly": 6.0,
+              "bayrou": 5.5,
+              "villepin": 2.0,
+              "sarkozy": 24.0,
+              "dupont-aignan": 0.5,
+              "lepen": 19.0
+            }
+          }
+        ]
+      },
+      {
+        "institute": "LH2",
+        "fieldwork": {
+          "start": "2011-10-21",
+          "end": "2011-10-22"
+        },
+        "sampleSize": 813,
+        "url": "https://web.archive.org/web/20111226093215/http://www.lh2.fr/_upload/ressources/sondages/politique_nationale/lh2yahoointentionsvotepresidentielle2012vague_5octobre2011.pdf",
+        "hypotheses": [
+          {
+            "id": "H1",
+            "scores": {
+              "arthaud": 0.5,
+              "poutou": 0.0,
+              "melenchon": 6.5,
+              "hollande": 39.0,
+              "joly": 5.0,
+              "bayrou": 8.5,
+              "lepage": 0.0,
+              "villepin": 1.5,
+              "morin": 0.5,
+              "sarkozy": 24.0,
+              "boutin": 0.0,
+              "dupont-aignan": 0.5,
+              "lepen": 14.0
+            }
+          }
+        ]
+      },
+      {
+        "institute": "Ifop",
+        "fieldwork": {
+          "start": "2011-10-18",
+          "end": "2011-10-20"
+        },
+        "sampleSize": 941,
+        "url": "https://www.ifop.com/wp-content/uploads/2018/03/1652-1-study_file.pdf",
+        "hypotheses": [
+          {
+            "id": "H1",
+            "scores": {
+              "arthaud": 0.5,
+              "poutou": 0.5,
+              "melenchon": 6.0,
+              "chevenement": 0.25,
+              "hollande": 35.0,
+              "joly": 4.5,
+              "bayrou": 6.5,
+              "lepage": 0.5,
+              "villepin": 2.0,
+              "morin": 1.0,
+              "nihous": 0.5,
+              "sarkozy": 25.0,
+              "boutin": 0.5,
+              "dupont-aignan": 0.5,
+              "lepen": 17.0
+            }
+          }
+        ]
+      },
+      {
+        "institute": "BVA",
+        "fieldwork": {
+          "start": "2011-10-17",
+          "end": "2011-10-18"
+        },
+        "sampleSize": 753,
+        "url": "https://staticswww.bva-group.com/wp-content/uploads/2017/02/fichier_intention_de_vote_bva-orange-presse_regionale-rtlc80f6.pdf",
+        "hypotheses": [
+          {
+            "id": "H1",
+            "scores": {
+              "arthaud": 2.0,
+              "poutou": 0.25,
+              "melenchon": 6.0,
+              "hollande": 39.0,
+              "joly": 4.0,
+              "bayrou": 7.0,
+              "sarkozy": 23.0,
+              "lepen": 19.0
+            }
+          }
+        ]
+      },
+      {
+        "institute": "CSA",
+        "fieldwork": {
+          "start": "2011-10-17",
+          "end": "2011-10-17"
+        },
+        "sampleSize": 859,
+        "url": "https://web.archive.org/web/20111027015728/http://www.csa.eu/multimedia/data/sondages/data2011/opi20111017-le-bilan-des-primaires-socialistes-et-les-intentions-de-vote-pour-l-election-presidentielle-de-2012.pdf",
+        "hypotheses": [
+          {
+            "id": "H1",
+            "scores": {
+              "arthaud": 1.0,
+              "poutou": 0.5,
+              "melenchon": 5.0,
+              "hollande": 35.0,
+              "joly": 3.0,
+              "bayrou": 9.0,
+              "lepage": 0.5,
+              "villepin": 2.0,
+              "morin": 1.0,
+              "sarkozy": 25.0,
+              "boutin": 1.5,
+              "dupont-aignan": 0.5,
+              "lepen": 16.0
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "secondRound": {
+    "registered": 46066307,
+    "voters": 37016309,
+    "blankOrInvalid": 2154956,
+    "expressed": 34861353,
+    "candidates": [
+      {
+        "id": "hollande",
+        "votes": 18000668
+      },
+      {
+        "id": "sarkozy",
+        "votes": 16860685
+      }
+    ],
+    "source": {
+      "label": "Conseil constitutionnel – Décision n° 2012-154 PDR du 10/05/2012 (résultats du 2nd tour ; blancs et nuls non distingués : voir total)",
+      "url": "https://www.conseil-constitutionnel.fr/decision/2012/2012154PDR.htm"
+    }
+  }
+}
