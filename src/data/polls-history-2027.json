@@ -2,6 +2,31 @@
   "description": "Historique des vagues de sondages de 1er tour 2025–2027 (une seule hypothèse cohérente retenue par vague depuis la page Wikipedia « Liste de sondages sur l’élection présidentielle française de 2027 », exigeant la présence simultanée de Marine Le Pen et Jean-Luc Mélenchon et ≥ 75 % de masse simulée).",
   "polls": [
     {
+      "id": "harris-interactive-toluna-20261119",
+      "institute": "Harris Interactive (Toluna)",
+      "fieldwork": {
+        "start": "2026-11-18",
+        "end": "2026-11-19"
+      },
+      "sampleSize": 2088,
+      "scores": {
+        "arthaud": 1,
+        "melenchon": 18,
+        "roussel": 1,
+        "tondelier": 1,
+        "glucksmann": 11,
+        "attal": 4,
+        "philippe": 9,
+        "retailleau": 4,
+        "lisnard": 11,
+        "dupont-aignan": 1,
+        "lepen": 31,
+        "zemmour": 3,
+        "riner": 4,
+        "villepin": 1
+      }
+    },
+    {
       "id": "yougov-20261117",
       "institute": "YouGov",
       "fieldwork": {
