@@ -75,7 +75,7 @@ export function VoteFlow({ result }: { result: SimulationResult }) {
         </figure>
       ) : (
         <>
-          <div className="mt-4 space-y-3">
+          <ul aria-label="Composition des voix des finalistes" className="mt-4 space-y-3">
             <Composition
               label={a.shortName}
               flows={flows}
@@ -92,7 +92,7 @@ export function VoteFlow({ result }: { result: SimulationResult }) {
               total={sr.totals.b}
               score={sr.pct.b}
             />
-          </div>
+          </ul>
           <TransferTable
             sr={sr}
             flows={[...allies, ...transfers]}
@@ -237,7 +237,7 @@ function Composition({
 }) {
   const parts = flows.filter((f) => pick(f) > 0.05)
   return (
-    <div className="grid grid-cols-[5.5rem_1fr_3.5rem] items-center gap-3">
+    <li className="grid grid-cols-[5.5rem_1fr_3.5rem] items-center gap-3">
       <span className="truncate text-sm font-medium">{label}</span>
       <div className="flex h-3 gap-[2px]">
         {parts.map((f) => {
@@ -266,6 +266,6 @@ function Composition({
         )}
       </div>
       <span className="num text-right text-sm text-ink-2">{pct(score)}</span>
-    </div>
+    </li>
   )
 }
