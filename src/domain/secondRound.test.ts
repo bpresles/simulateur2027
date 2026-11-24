@@ -1,16 +1,19 @@
+import { legislativeDuelPolls2024, simulationData as liveSimulationData } from '../data/schema'
 import { frozenData as simulationData } from '../test/frozenData'
 import {
   aggregatedProfileDropout,
+  betweenRoundsSummaries,
   computeSecondRound,
   directPollGapAlert,
   directPollRmse,
   implicitNoIntention,
+  matchingLegislativeDuelPolls,
   noIntentionRange,
   pollBiasGaps,
   presidentialDropout,
   secondRoundDropout,
 } from './secondRound'
-import { defaultSettings } from './simulate'
+import { defaultSettings, simulate } from './simulate'
 import {
   REPUBLICAN_FRONT_PRESETS,
   applyRepublicanFrontRow,
@@ -23,7 +26,7 @@ import {
   resolveDuel,
 } from './transfers'
 import { BLOCS } from './types'
-import type { Candidate, ProfileId, SecondRoundPoll } from './types'
+import type { Candidate, LegislativeDuelPolls2024Data, ProfileId, SecondRoundPoll } from './types'
 
 const { transfers, declaredTransfers, reference2022, reference2017, secondRoundDropout: dropoutData } = simulationData
 
@@ -336,5 +339,157 @@ describe('alerte d’écart aux sondages directs et sans-intention implicite', (
     const r = implicitNoIntention(70, 52, { share: 20, base: 'votants' }, 70)
     expect(r).toMatchObject({ kind: 'impossible', reason: 'out-of-range' })
     expect(implicitNoIntention(Number.NaN, 52, { share: 20, base: 'votants' }, 70)).toBeUndefined()
+  })
+})
+
+describe('P4 — sondages de l’entre-deux-tours (affichage seulement) et règle d’identité stricte', () => {
+  it('pollBiasGaps et directPollRmse renvoient des valeurs strictement identiques avec ou sans entreDeuxTours', () => {
+    const onlyBefore = {
+      ...liveSimulationData.secondRoundPollBias,
+      elections: liveSimulationData.secondRoundPollBias.elections.map((e) => ({
+        ...e,
+        polls: e.polls.filter((p) => p.phase === 'avantPremierTour'),
+      })),
+    }
+
+    // Invariance stricte sur les données vivantes et sur la date de référence du 23/11/2026
+    expect(pollBiasGaps(liveSimulationData.secondRoundPollBias, liveSimulationData.polls)).toEqual(
+      pollBiasGaps(onlyBefore, liveSimulationData.polls),
+    )
+    expect(directPollRmse(liveSimulationData.secondRoundPollBias, liveSimulationData.polls)).toEqual(
+      directPollRmse(onlyBefore, liveSimulationData.polls),
+    )
+
+    const refDate = { asOf: '2026-11-23', electionDate: '2027-04-18' }
+    const gapsWith = pollBiasGaps(liveSimulationData.secondRoundPollBias, refDate)
+    const gapsWithout = pollBiasGaps(onlyBefore, refDate)
+    expect(gapsWith).toEqual(gapsWithout)
+    // Vérification directe des mesures de référence (−3,3 et −4,1 pts pour les sondages au 23/11/2026)
+    expect(gapsWith.find((g) => g.year === 2022)!.gap).toBeCloseTo(3.277272727272724, 12)
+    expect(gapsWith.find((g) => g.year === 2017)!.gap).toBeCloseTo(4.099999999999994, 12)
+
+    const rmseWith = directPollRmse(liveSimulationData.secondRoundPollBias, refDate)
+    const rmseWithout = directPollRmse(onlyBefore, refDate)
+    expect(rmseWith).toEqual(rmseWithout)
+    expect(rmseWith!.rmse).toBeCloseTo(3.525354592094245, 12)
+    expect(rmseWith!.count).toBe(12)
+  })
+
+  it('betweenRoundsSummaries ne retient que les sondages entreDeuxTours (2017 et 2022)', () => {
+    const summaries = betweenRoundsSummaries(liveSimulationData.secondRoundPollBias)
+    expect(summaries.map((s) => s.year)).toEqual([2022, 2017])
+    const s2022 = summaries.find((s) => s.year === 2022)!
+    expect(s2022.pollCount).toBe(42)
+    expect(s2022.lastDayDate).toBe('2022-04-22')
+    expect(s2022.lastDayCount).toBe(5)
+    expect(s2022.polls.every((p) => p.phase === 'entreDeuxTours')).toBe(true)
+
+    const s2017 = summaries.find((s) => s.year === 2017)!
+    expect(s2017.pollCount).toBe(22)
+    expect(s2017.lastDayDate).toBe('2017-05-05')
+    expect(s2017.lastDayCount).toBe(3)
+    expect(s2017.polls.every((p) => p.phase === 'entreDeuxTours')).toBe(true)
+  })
+
+  it('la sortie de runMonteCarlo à graine fixe (2027) est strictement inchangée par l’ajout des sondages entreDeuxTours', () => {
+    const onlyBeforeData = {
+      ...simulationData,
+      secondRoundPollBias: {
+        ...simulationData.secondRoundPollBias,
+        elections: simulationData.secondRoundPollBias.elections.map((e) => ({
+          ...e,
+          polls: e.polls.filter((p) => p.phase === 'avantPremierTour'),
+        })),
+      },
+    }
+    const settings = defaultSettings()
+    const withBetween = simulate(simulationData, settings)
+    const withoutBetween = simulate(onlyBeforeData, settings)
+    expect(withBetween.monteCarlo).toEqual(withoutBetween.monteCarlo)
+    expect(withBetween.secondRound).toEqual(withoutBetween.secondRound)
+    expect(withBetween.monteCarlo.seed).toBe(2027)
+  })
+
+  it('règle d’identité stricte : associe exactement la paire de partis et exclut toute paire voisine ou alliée', () => {
+    // Données réelles : Calvados 6e (Renaissance – RN) correspond à Attal – Le Pen (dans les deux ordres)
+    const attalLePen = matchingLegislativeDuelPolls(legislativeDuelPolls2024, 'attal', 'lepen')
+    expect(attalLePen).toHaveLength(1)
+    expect(attalLePen[0]!.poll.constituencyCode).toBe('1406')
+    expect(attalLePen[0]!.candidateA.party).toBe('Renaissance')
+    expect(attalLePen[0]!.candidateB.party).toBe('RN')
+    expect(attalLePen[0]!.gapA).toBeCloseTo(2.36, 6)
+
+    const lePenAttal = matchingLegislativeDuelPolls(legislativeDuelPolls2024, 'lepen', 'attal')
+    expect(lePenAttal).toHaveLength(1)
+    expect(lePenAttal[0]!.candidateA.party).toBe('RN')
+    expect(lePenAttal[0]!.gapA).toBeCloseTo(-2.36, 6)
+
+    // Paire voisine exclue : Philippe (Horizons) – Le Pen (RN) ≠ Renaissance – RN
+    expect(matchingLegislativeDuelPolls(legislativeDuelPolls2024, 'philippe', 'lepen')).toEqual([])
+    // Aucun sondage d'entre-deux-tours LFI – RN dans les données réelles
+    expect(matchingLegislativeDuelPolls(legislativeDuelPolls2024, 'melenchon', 'lepen')).toEqual([])
+    // Candidat sans parti unique : toujours exclu
+    expect(matchingLegislativeDuelPolls(legislativeDuelPolls2024, 'polony', 'lepen')).toEqual([])
+
+    // Fixture explicite : LFI – RN inclus sur Mélenchon – Le Pen, mais allié du RN (UXD) – LFI et PS – RN exclus
+    const src = { label: 'Source', url: 'https://example.org/source' }
+    const fixture: LegislativeDuelPolls2024Data = {
+      description: 'Fixture',
+      inventoryNote: 'Fixture',
+      electionDates: { firstRound: '2024-06-30', secondRound: '2024-07-07' },
+      candidateParties: { melenchon: 'LFI', lepen: 'RN', glucksmann: 'Place publique' },
+      polls: [
+        {
+          id: 'exact-lfi-rn',
+          constituencyCode: '0001',
+          constituencyLabel: 'Circo exacte',
+          institute: 'Institut',
+          sponsor: 'Média',
+          fieldwork: { start: '2024-07-02', end: '2024-07-03' },
+          sampleSize: 600,
+          url: src.url,
+          officialResultSource: src,
+          candidates: [
+            { name: 'Cand LFI', party: 'LFI', officialNuance: 'UG', partySource: src, pollScore: 48, officialScore: 51 },
+            { name: 'Cand RN', party: 'RN', officialNuance: 'RN', partySource: src, pollScore: 52, officialScore: 49 },
+          ],
+        },
+        {
+          id: 'ally-uxd-lfi',
+          constituencyCode: '0002',
+          constituencyLabel: 'Circo allié RN',
+          institute: 'Institut',
+          sponsor: 'Média',
+          fieldwork: { start: '2024-07-02', end: '2024-07-03' },
+          sampleSize: 600,
+          url: src.url,
+          officialResultSource: src,
+          candidates: [
+            { name: 'Cand LFI', party: 'LFI', officialNuance: 'UG', partySource: src, pollScore: 50, officialScore: 52 },
+            { name: 'Cand UXD', party: 'UXD', officialNuance: 'UXD', partySource: src, pollScore: 50, officialScore: 48 },
+          ],
+        },
+        {
+          id: 'neighbor-ps-rn',
+          constituencyCode: '0003',
+          constituencyLabel: 'Circo PS – RN',
+          institute: 'Institut',
+          sponsor: 'Média',
+          fieldwork: { start: '2024-07-02', end: '2024-07-03' },
+          sampleSize: 600,
+          url: src.url,
+          officialResultSource: src,
+          candidates: [
+            { name: 'Cand PS', party: 'PS', officialNuance: 'UG', partySource: src, pollScore: 53, officialScore: 55 },
+            { name: 'Cand RN', party: 'RN', officialNuance: 'RN', partySource: src, pollScore: 47, officialScore: 45 },
+          ],
+        },
+      ],
+    }
+    const matchedLfiRn = matchingLegislativeDuelPolls(fixture, 'melenchon', 'lepen')
+    expect(matchedLfiRn.map((m) => m.poll.id)).toEqual(['exact-lfi-rn'])
+    expect(matchedLfiRn[0]!.gapA).toBeCloseTo(3, 6)
+    // Place publique – RN ≠ PS – RN
+    expect(matchingLegislativeDuelPolls(fixture, 'glucksmann', 'lepen')).toEqual([])
   })
 })

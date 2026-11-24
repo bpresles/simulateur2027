@@ -11,7 +11,17 @@ import { aggregatedProfileDropout } from '../domain/secondRound'
 import { defaultSettings, simulate } from '../domain/simulate'
 import type { Alliance, Poll } from '../domain/types'
 import pollsJson from './polls-2027.json'
-import { parseData, simulationData, validateData } from './schema'
+import {
+  legislativeDuelPolls2024,
+  parseData,
+  parseLegislativeDuelPolls2024,
+  parseSecondRoundReferenceMatrices,
+  secondRoundReferenceMatrices,
+  simulationData,
+  validateData,
+  validateLegislativeDuelPolls2024,
+  validateSecondRoundReferenceMatrices,
+} from './schema'
 
 describe('données', () => {
   it('tous les fichiers JSON passent la validation et les contrôles croisés', () => {
@@ -168,12 +178,32 @@ describe('données', () => {
     expect(() => parseData({ ...simulationData, polls: broken })).toThrow(/candidat inconnu/)
   })
 
-  it('le 2nd tour de 2017 est requis et cohérent (votants = blancs + nuls + exprimés)', () => {
+  it('le 2nd tour de 2017 est requis et cohérent (votants = blancs + nuls + exprimés, voix = exprimés)', () => {
     const { secondRound: _omitted, ...without } = structuredClone(simulationData.reference2017)
     expect(() => parseData({ ...simulationData, reference2017: without })).toThrow()
     const broken = structuredClone(simulationData)
     broken.reference2017.secondRound.blank += 1
     expect(validateData(broken)).toEqual([expect.stringMatching(/2017 : 2nd tour incohérent/)])
+    const broken2 = structuredClone(simulationData)
+    broken2.reference2017.secondRound.candidates[0]!.votes += 1
+    expect(validateData(broken2)).toEqual([expect.stringMatching(/2017 : total des voix des finalistes/)])
+  })
+
+  it('les matrices brutes de référence 2017–2022 passent la validation et rejettent toute incohérence', () => {
+    const refs = { '2017': simulationData.reference2017, '2022': simulationData.reference2022 }
+    expect(validateSecondRoundReferenceMatrices(secondRoundReferenceMatrices, refs)).toEqual([])
+
+    const badSum = structuredClone(secondRoundReferenceMatrices)
+    badSum.rows['2017'][0]!.bySurvey.ipsos_2017!.antiRn += 2
+    expect(validateSecondRoundReferenceMatrices(badSum, refs)).toEqual([expect.stringMatching(/somme 102 hors/)])
+
+    const badCand = structuredClone(secondRoundReferenceMatrices)
+    badCand.rows['2022'][0]!.candidateId = 'inconnu'
+    expect(validateSecondRoundReferenceMatrices(badCand, refs)).toEqual([expect.stringMatching(/candidat inconnu « inconnu »/)])
+
+    const badSurvey = structuredClone(secondRoundReferenceMatrices)
+    badSurvey.rows['2017'][0]!.bySurvey.inconnue = { antiRn: 50, rn: 20, nonExpressed: 30 }
+    expect(() => parseSecondRoundReferenceMatrices(badSurvey, refs)).toThrow(/enquête non déclarée « inconnue »/)
   })
 
   it('un agrégat 2024 cohérent existe pour chaque profil de reports', () => {
@@ -201,5 +231,50 @@ describe('données', () => {
     const broken2 = structuredClone(simulationData)
     broken2.reference2012.secondRound.candidates[0]!.votes += 1
     expect(validateData(broken2).join(' ')).toMatch(/2012 : total des voix/)
+  })
+
+  it('valide les phases avantPremierTour et entreDeuxTours dans second-round-poll-bias.json', () => {
+    const brokenPre = structuredClone(simulationData)
+    const prePoll = brokenPre.secondRoundPollBias.elections[0]!.polls.find((p) => p.phase === 'avantPremierTour')!
+    prePoll.end = brokenPre.secondRoundPollBias.elections[0]!.electionDate
+    expect(validateData(brokenPre)).toEqual([expect.stringMatching(/avantPremierTour postérieur au 1er tour/)])
+
+    const brokenBetweenEarly = structuredClone(simulationData)
+    const btPoll = brokenBetweenEarly.secondRoundPollBias.elections[0]!.polls.find((p) => p.phase === 'entreDeuxTours')!
+    btPoll.end = '2022-04-09'
+    expect(validateData(brokenBetweenEarly)).toEqual([expect.stringMatching(/entreDeuxTours hors/)])
+
+    const brokenBetweenLate = structuredClone(simulationData)
+    const btPoll2 = brokenBetweenLate.secondRoundPollBias.elections[0]!.polls.find((p) => p.phase === 'entreDeuxTours')!
+    btPoll2.end = brokenBetweenLate.secondRoundPollBias.elections[0]!.secondRoundDate
+    expect(validateData(brokenBetweenLate)).toEqual([expect.stringMatching(/entreDeuxTours hors/)])
+  })
+
+  it('valide legislative-duel-polls-2024.json et rejette triangulaires, dates hors entre-deux-tours et scores ≠ 100', () => {
+    expect(validateLegislativeDuelPolls2024(legislativeDuelPolls2024, simulationData.polls)).toEqual([])
+
+    const triangular = structuredClone(legislativeDuelPolls2024) as unknown as {
+      polls: { candidates: unknown[] }[]
+    }
+    triangular.polls[0]!.candidates.push({ ...legislativeDuelPolls2024.polls[0]!.candidates[0], party: 'LFI' })
+    expect(() => parseLegislativeDuelPolls2024(triangular, simulationData.polls)).toThrow()
+
+    const beforeFirstRound = structuredClone(legislativeDuelPolls2024)
+    beforeFirstRound.polls[0]!.fieldwork = { start: '2024-06-25', end: '2024-06-27' }
+    expect(validateLegislativeDuelPolls2024(beforeFirstRound, simulationData.polls)).toEqual([
+      expect.stringMatching(/terrain hors entre-deux-tours/),
+    ])
+
+    const badScoreSum = structuredClone(legislativeDuelPolls2024)
+    badScoreSum.polls[0]!.candidates[0].pollScore = 60
+    expect(validateLegislativeDuelPolls2024(badScoreSum, simulationData.polls)).toEqual([
+      expect.stringMatching(/somme des scores du sondage/),
+    ])
+
+    const unknownCand = structuredClone(legislativeDuelPolls2024)
+    unknownCand.candidateParties.inconnu = 'RN'
+    expect(validateLegislativeDuelPolls2024(unknownCand, simulationData.polls)).toEqual([
+      expect.stringMatching(/candidat inconnu « inconnu »/),
+    ])
   })
 })

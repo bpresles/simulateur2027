@@ -1,0 +1,73 @@
+{
+  "description": "Sondages de circonscription publiés entre les deux tours des élections législatives de 2024 (duels uniquement, triangulaires exclues), comparés au résultat officiel du 2nd tour. Affichés à titre d'illustration pour les seuls duels 2027 dont la paire de partis est strictement identique ; jamais utilisés dans aucun calcul.",
+  "inventoryNote": "Inventaire réalisé le 24/11/2026 à partir des listes Wikipédia (française et anglaise), du moteur de notices de la Commission des sondages (série complète des notices n° 9865 à 9888 de juin-juillet 2024) et des publications des instituts en juillet 2024. Sur les cinq sondages de circonscription répertoriés lors des législatives 2024, quatre ont été réalisés avant le 1er tour du 30/06/2024 (Nord 10e, Lot-et-Garonne 3e, Alpes-Maritimes 1re, Seine-Saint-Denis 7e) et sont exclus du périmètre. Un seul sondage de circonscription d'entre-deux-tours (duel) a été identifié : la 6e circonscription du Calvados (Ifop-Fiducial pour Sud Radio, terrain 02-03/07/2024, duel Renaissance – RN). Aucun sondage de circonscription d'entre-deux-tours n'a été identifié pour les autres paires de partis (notamment LFI – RN, Horizons – RN, LR – RN, Place publique – RN, PCF – RN, Les Écologistes – RN).",
+  "electionDates": {
+    "firstRound": "2024-06-30",
+    "secondRound": "2024-07-07"
+  },
+  "candidateParties": {
+    "arthaud": "LO",
+    "melenchon": "LFI",
+    "roussel": "PCF",
+    "tondelier": "Les Écologistes",
+    "glucksmann": "Place publique",
+    "attal": "Renaissance",
+    "philippe": "Horizons",
+    "retailleau": "LR",
+    "lisnard": "Nouvelle Énergie",
+    "dupont-aignan": "DLF",
+    "lepen": "RN",
+    "zemmour": "Reconquête",
+    "ruffin": null,
+    "villepin": "La France humaniste",
+    "polony": null,
+    "bouamrane": "PS",
+    "lagarde": "LR",
+    "asselineau": "UPR",
+    "riner": null
+  },
+  "polls": [
+    {
+      "id": "calvados-6-ifop-2024-07-03",
+      "constituencyCode": "1406",
+      "constituencyLabel": "6e circonscription du Calvados",
+      "institute": "Ifop-Fiducial",
+      "sponsor": "Sud Radio",
+      "fieldwork": {
+        "start": "2024-07-02",
+        "end": "2024-07-03"
+      },
+      "sampleSize": 611,
+      "sampleNote": "611 personnes inscrites sur les listes électorales, issues d'un échantillon de 711 personnes de 18 ans et plus résidant dans la circonscription (téléphone).",
+      "url": "https://www.ifop.com/wp-content/uploads/2024/07/120979-Resultats.pdf",
+      "officialResultSource": {
+        "label": "Ministère de l'Intérieur — Résultats définitifs du 2nd tour par circonscription (data.gouv.fr, 1406)",
+        "url": "https://www.data.gouv.fr/datasets/elections-legislatives-des-30-juin-et-7-juillet-2024-resultats-definitifs-du-2nd-tour"
+      },
+      "candidates": [
+        {
+          "name": "Élisabeth Borne",
+          "party": "Renaissance",
+          "officialNuance": "ENS",
+          "partySource": {
+            "label": "Assemblée nationale — Fiche d'Élisabeth Borne (Calvados, 6e circonscription)",
+            "url": "https://www.assemblee-nationale.fr/dyn/deputes/PA717161"
+          },
+          "pollScore": 54,
+          "officialScore": 56.36
+        },
+        {
+          "name": "Nicolas Calbrix",
+          "party": "RN",
+          "officialNuance": "RN",
+          "partySource": {
+            "label": "Ifop-Fiducial / Sud Radio — Étude n° 120979 (6e circonscription du Calvados, 02-03/07/2024)",
+            "url": "https://www.ifop.com/wp-content/uploads/2024/07/120979-Resultats.pdf"
+          },
+          "pollScore": 46,
+          "officialScore": 43.64
+        }
+      ]
+    }
+  ]
+}

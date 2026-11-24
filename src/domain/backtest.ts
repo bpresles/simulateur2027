@@ -170,7 +170,7 @@ function logit(p: number): number {
   return Math.log(c / (1 - c))
 }
 
-function historicalBloc(id: string): Bloc {
+export function historicalBloc(id: string): Bloc {
   if (LEFT_IDS.has(id)) return 'gauche'
   if (ED_IDS.has(id)) return 'extreme_droite'
   if (RIGHT_IDS.has(id)) return 'droite'
@@ -468,14 +468,9 @@ export function computeBacktest(
     })
 
     // Couverture empirique des intervalles Monte-Carlo à 80 % ([P10, P90])
-    const biasEntry = data.secondRoundPollBias.elections.find((e) => e.year === year)
+    const sr2 = year === 2022 ? data.reference2022.secondRound : year === 2017 ? data.reference2017.secondRound : null
     const actualAntiRn =
-      year === 2012
-        ? null
-        : year === 2022
-          ? (100 * data.reference2022.secondRound.candidates.find((c) => c.id === 'macron')!.votes) /
-            data.reference2022.secondRound.expressed
-          : (biasEntry?.result.antiRn ?? 66.1)
+      sr2 === null ? null : (100 * sr2.candidates.find((c) => c.id === 'macron')!.votes) / sr2.expressed
     const duel: [string, string] = year === 2012 ? ['hollande', 'sarkozy'] : ['macron', 'lepen']
 
     if (avg.institutesUsed > 0) {
@@ -545,12 +540,8 @@ export function computeBacktest(
   ) as Record<Bloc, TransferValues>
   const gaps = pollBiasGaps(data.secondRoundPollBias, pollsRef)
   const secondRoundPresidential: SecondRoundBacktestYear[] = presidentialRefs.map(({ year, ref }) => {
-    const biasEntry = data.secondRoundPollBias.elections.find((e) => e.year === year)
-    const actualAntiRn =
-      year === 2022
-        ? (100 * data.reference2022.secondRound.candidates.find((c) => c.id === 'macron')!.votes) /
-          data.reference2022.secondRound.expressed
-        : (biasEntry?.result.antiRn ?? 66.1)
+    const sr2 = year === 2022 ? data.reference2022.secondRound : data.reference2017.secondRound
+    const actualAntiRn = (100 * sr2.candidates.find((c) => c.id === 'macron')!.votes) / sr2.expressed
     const otherPres = data.transfers.presidentialCenterRn.elections[year === 2017 ? '2022' : '2017']
     const antiRnQ = effectiveAbstainerAntiRnShare(0.55, 0)
     return {
