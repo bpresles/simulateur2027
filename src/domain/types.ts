@@ -227,7 +227,7 @@ export interface Reference2022 extends PastElectionReference {
 }
 
 export interface Reference2017 extends PastElectionReference {
-  secondRound: SecondRoundOfficial
+  secondRound: SecondRoundOfficial & { candidates: SecondRoundCandidateVotes[] }
 }
 
 /** 2012 : 2nd tour Hollande–Sarkozy (sans RN), blancs et nuls publiés en un seul total. */
@@ -419,9 +419,12 @@ export interface SecondRoundDropoutData {
   }
 }
 
+export type PollBiasPhase = 'avantPremierTour' | 'entreDeuxTours'
+
 export interface PollBiasPoll {
   institute: string
   end: string
+  phase: PollBiasPhase
   antiRn: number
   rn: number
   url: string
@@ -440,6 +443,143 @@ export interface PollBiasElection {
 export interface SecondRoundPollBiasData {
   description: string
   elections: PollBiasElection[]
+}
+
+export interface BetweenRoundsElectionSummary {
+  year: number
+  duel: string
+  electionDate: string
+  secondRoundDate: string
+  result: { antiRn: number; rn: number; source: SourceLink }
+  listSource: SourceLink
+  polls: PollBiasPoll[]
+  pollCount: number
+  /** Moyenne de l'opposant au RN sur l'ensemble des sondages d'entre-deux-tours (%). */
+  meanAntiRn: number
+  /** Écart résultat − moyenne (points) pour l'opposant au RN. */
+  meanGap: number
+  /** Dernière date de fin de terrain avant l'interdiction légale (ISO). */
+  lastDayDate: string
+  lastDayCount: number
+  /** Moyenne de l'opposant au RN sur les sondages du dernier jour avant interdiction (%). */
+  lastDayMeanAntiRn: number
+  /** Écart résultat − moyenne du dernier jour (points) pour l'opposant au RN. */
+  lastDayGap: number
+}
+
+// ——— Sondages de circonscription des législatives 2024 (P4, affichage seulement) ———
+
+export interface LegislativeDuelCandidate2024 {
+  name: string
+  /** Appartenance partisane stricte, sourcée candidat par candidat (jamais la seule nuance officielle). */
+  party: string
+  officialNuance: string
+  partySource: SourceLink
+  pollScore: number
+  officialScore: number
+}
+
+export interface LegislativeDuelPoll2024 {
+  id: string
+  constituencyCode: string
+  constituencyLabel: string
+  institute: string
+  sponsor: string
+  fieldwork: Fieldwork
+  sampleSize: number
+  sampleNote?: string
+  url: string
+  officialResultSource: SourceLink
+  /** Duel uniquement (exactement 2 candidats ; triangulaires exclues). */
+  candidates: [LegislativeDuelCandidate2024, LegislativeDuelCandidate2024]
+}
+
+export interface LegislativeDuelPolls2024Data {
+  description: string
+  inventoryNote: string
+  electionDates: { firstRound: string; secondRound: string }
+  /** Correspondance explicite candidat 2027 → parti canonique (null si sans parti unique). Jamais déduite. */
+  candidateParties: Record<CandidateId, string | null>
+  polls: LegislativeDuelPoll2024[]
+}
+
+export interface LegislativeDuelMatch {
+  poll: LegislativeDuelPoll2024
+  /** Candidat législatif 2024 appartenant strictement au parti du candidat A du duel affiché. */
+  candidateA: LegislativeDuelCandidate2024
+  /** Candidat législatif 2024 appartenant strictement au parti du candidat B du duel affiché. */
+  candidateB: LegislativeDuelCandidate2024
+  /** Écart résultat − sondage (en points) pour le parti du candidat A. */
+  gapA: number
+}
+
+// ——— Matrices brutes de reports de référence 2017 et 2022 (P1) ———
+
+export type ReferenceMatrixYear = '2017' | '2022'
+
+export type SurveyTiming = 'before' | 'electionDay' | 'after'
+
+export interface ReferenceMatrixSurvey {
+  id: string
+  year: 2017 | 2022
+  institute: 'Ipsos Sopra Steria' | 'Ifop-Fiducial'
+  fieldwork: Fieldwork
+  /** Réalisation avant le scrutin, le jour du scrutin ou après le scrutin. */
+  timing: SurveyTiming
+  sampleSize: number
+  mode: string
+  /** Description du redressement, ou null s'il n'est pas documenté. */
+  weighting: string | null
+  note?: string
+  url: string
+  noticeUrl?: string
+  pdfPage: number
+  printedPage: number | null
+  participationPdfPage?: number
+  participationPrintedPage?: number | null
+}
+
+/** Triplet brut de report d'un électorat du 1er tour (% des électeurs du candidat). */
+export interface ReferenceTransferTriplet {
+  antiRn: number
+  rn: number
+  nonExpressed: number
+}
+
+export interface ReferenceMatrixRow {
+  candidateId: CandidateId
+  /** Valeurs brutes publiées par identifiant d'enquête (null si la ligne n'est pas publiée). */
+  bySurvey: Record<string, ReferenceTransferTriplet | null>
+}
+
+export interface ReferenceParticipationTable {
+  surveyId: string
+  pdfPage: number
+  printedPage: number | null
+  /** Taux d'abstention au 2nd tour (% des électeurs du candidat au 1er tour) tel que publié par l'Ifop. */
+  abstentionPctByCandidate: Record<CandidateId, number>
+}
+
+export interface ReferenceAbstainersPartialRow {
+  surveyId: string
+  turnoutPdfPage: number
+  turnoutPrintedPage: number | null
+  expressedPdfPage: number
+  expressedPrintedPage: number | null
+  /** Part des abstentionnistes du 1er tour déclarant voter au 2nd (%). */
+  votersSharePct: number
+  /** Répartition exprimée au 2nd tour parmi les abstentionnistes du 1er tour qui votent (%). */
+  expressedSplit: { antiRn: number; rn: number }
+}
+
+export interface SecondRoundReferenceMatricesData {
+  description: string
+  surveys: ReferenceMatrixSurvey[]
+  rows: Record<ReferenceMatrixYear, ReferenceMatrixRow[]>
+  participation: Record<ReferenceMatrixYear, ReferenceParticipationTable>
+  abstainers: {
+    '2022': ReferenceAbstainersPartialRow
+  }
 }
 
 export interface PollBiasGap {

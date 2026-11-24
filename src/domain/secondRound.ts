@@ -3,10 +3,13 @@ import { blendProfiles, blocRow, nonRnSplit } from './transfers'
 import type { ProfileTable } from './transfers'
 import type {
   Aggregated2024Profile,
+  BetweenRoundsElectionSummary,
   Bloc,
   Candidate,
   CandidateId,
   FidelitySplit,
+  LegislativeDuelMatch,
+  LegislativeDuelPolls2024Data,
   NoIntention,
   PollBiasGap,
   PresidentialDuel,
@@ -56,7 +59,9 @@ export function pollBiasGaps(
 ): PollBiasGap[] {
   const distance = daysBetween(polls.asOf, polls.electionDate)
   return data.elections.flatMap((e) => {
-    const dated = e.polls.map((p) => ({ p, gap: Math.abs(daysBetween(p.end, e.electionDate) - distance) }))
+    const dated = e.polls
+      .filter((p) => p.phase === 'avantPremierTour')
+      .map((p) => ({ p, gap: Math.abs(daysBetween(p.end, e.electionDate) - distance) }))
     if (dated.length === 0) return []
     const inWindow = dated.filter((d) => d.gap <= POLL_BIAS_WINDOW_DAYS)
     const nearest = inWindow.length > 0 ? null : dated.reduce((best, d) => (d.gap < best.gap ? d : best))
@@ -81,7 +86,7 @@ export function pollBiasGaps(
 
 /**
  * RMSE historique (en points) des sondages directs de 2nd tour : écart quadratique moyen entre le score
- * publié du candidat opposé au RN et le résultat, sur tous les sondages des élections de
+ * publié du candidat opposé au RN et le résultat, sur tous les sondages `avantPremierTour` des élections de
  * `second-round-poll-bias.json` dont la fin de terrain est à la même distance du 1er tour que la base 2027
  * (± `POLL_BIAS_WINDOW_DAYS`) ; faute de sondage dans la fenêtre pour une élection, le plus proche.
  * Calculé depuis les données, sans constante. Undefined si aucune donnée.
@@ -93,7 +98,9 @@ export function directPollRmse(
   const distance = daysBetween(polls.asOf, polls.electionDate)
   const errors: number[] = []
   for (const e of data.elections) {
-    const dated = e.polls.map((p) => ({ p, gap: Math.abs(daysBetween(p.end, e.electionDate) - distance) }))
+    const dated = e.polls
+      .filter((p) => p.phase === 'avantPremierTour')
+      .map((p) => ({ p, gap: Math.abs(daysBetween(p.end, e.electionDate) - distance) }))
     if (dated.length === 0) continue
     const inWindow = dated.filter((d) => d.gap <= POLL_BIAS_WINDOW_DAYS)
     const used = inWindow.length > 0 ? inWindow : [dated.reduce((best, d) => (d.gap < best.gap ? d : best))]
@@ -101,6 +108,72 @@ export function directPollRmse(
   }
   if (errors.length === 0) return undefined
   return { rmse: Math.sqrt(errors.reduce((t, x) => t + x * x, 0) / errors.length), count: errors.length }
+}
+
+/**
+ * Synthèse descriptive des sondages publiés entre les deux tours (phase `entreDeuxTours`) en 2017 et 2022,
+ * jusqu'aux derniers sondages avant l'interdiction légale. Affichage pour mémoire uniquement : jamais utilisé
+ * dans un calcul, ni dans `pollBiasGaps` ni dans `directPollRmse`.
+ */
+export function betweenRoundsSummaries(data: SecondRoundPollBiasData): BetweenRoundsElectionSummary[] {
+  return data.elections.flatMap((e) => {
+    const polls = e.polls
+      .filter((p) => p.phase === 'entreDeuxTours')
+      .slice()
+      .sort((x, y) => y.end.localeCompare(x.end))
+    if (polls.length === 0) return []
+    const meanAntiRn = polls.reduce((t, p) => t + p.antiRn, 0) / polls.length
+    const lastDayDate = polls[0]!.end
+    const lastDay = polls.filter((p) => p.end === lastDayDate)
+    const lastDayMeanAntiRn = lastDay.reduce((t, p) => t + p.antiRn, 0) / lastDay.length
+    return [
+      {
+        year: e.year,
+        duel: e.duel,
+        electionDate: e.electionDate,
+        secondRoundDate: e.secondRoundDate,
+        result: e.result,
+        listSource: e.listSource,
+        polls,
+        pollCount: polls.length,
+        meanAntiRn,
+        meanGap: e.result.antiRn - meanAntiRn,
+        lastDayDate,
+        lastDayCount: lastDay.length,
+        lastDayMeanAntiRn,
+        lastDayGap: e.result.antiRn - lastDayMeanAntiRn,
+      },
+    ]
+  })
+}
+
+/**
+ * Règle d'identité stricte (P4) : retourne les sondages de circonscription d'entre-deux-tours des
+ * législatives 2024 (duels uniquement) dont la paire non ordonnée de partis est strictement identique
+ * à celle du duel affiché `(a, b)`. La correspondance candidat 2027 → parti est lue exclusivement dans
+ * `data.candidateParties` (jamais déduite d'une coalition, d'une nuance officielle ou d'un profil de reports).
+ * Un parti allié ou voisin (ex. Horizons vs Renaissance, ou allié RN vs RN) est strictement exclu.
+ */
+export function matchingLegislativeDuelPolls(
+  data: LegislativeDuelPolls2024Data,
+  a: CandidateId,
+  b: CandidateId,
+): LegislativeDuelMatch[] {
+  const partyA = data.candidateParties[a] ?? null
+  const partyB = data.candidateParties[b] ?? null
+  if (!partyA || !partyB || partyA === partyB) return []
+
+  const matches: LegislativeDuelMatch[] = []
+  for (const poll of data.polls) {
+    if (poll.candidates.length !== 2) continue
+    const [c1, c2] = poll.candidates
+    if (c1.party === partyA && c2.party === partyB) {
+      matches.push({ poll, candidateA: c1, candidateB: c2, gapA: c1.officialScore - c1.pollScore })
+    } else if (c1.party === partyB && c2.party === partyA) {
+      matches.push({ poll, candidateA: c2, candidateB: c1, gapA: c2.officialScore - c2.pollScore })
+    }
+  }
+  return matches.sort((x, y) => y.poll.fieldwork.end.localeCompare(x.poll.fieldwork.end))
 }
 
 export interface DirectPollGapAlert {

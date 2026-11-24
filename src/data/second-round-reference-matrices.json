@@ -1,0 +1,209 @@
+{
+  "description": "Matrices brutes de reports de voix publiées pour les seconds tours présidentiels 2017 et 2022 (Macron – Le Pen), au format finaliste opposé au RN / RN / non-exprimé (% des électeurs du candidat au 1er tour). Les moyennes R1.1 sont calculées dans le code et jamais stockées ici.",
+  "surveys": [
+    {
+      "id": "ipsos_2017",
+      "year": 2017,
+      "institute": "Ipsos Sopra Steria",
+      "fieldwork": {
+        "start": "2017-05-04",
+        "end": "2017-05-06"
+      },
+      "timing": "before",
+      "sampleSize": 4838,
+      "mode": "En ligne, quotas (inscrits)",
+      "weighting": null,
+      "note": "Redressement non documenté. Reports « tenant compte » de l'analyse des transferts dans 500 bureaux de vote. Notice CDS non trouvée.",
+      "url": "https://www.ipsos.com/sites/default/files/files-fr-fr/doc_associe/ipsos_sopra_steria_sociologie_des_electorats_7_mai_20h15_0.pdf",
+      "pdfPage": 4,
+      "printedPage": null
+    },
+    {
+      "id": "ifop_2017",
+      "year": 2017,
+      "institute": "Ifop-Fiducial",
+      "fieldwork": {
+        "start": "2017-05-07",
+        "end": "2017-05-07"
+      },
+      "timing": "electionDay",
+      "sampleSize": 2470,
+      "mode": "Questionnaire auto-administré en ligne, quotas (inscrits de métropole, 11 h à 18 h)",
+      "weighting": null,
+      "note": "Redressement non documenté en méthodologie. Note p. 9 (imprimée p. 7) : « Résultats France métropolitaine sur la base de l'estimation Ifop publiée à 17h00 ». Tableau de participation complet par vote au 1er tour : p. 11 (imprimée p. 9) ; synthèse hors Dupont-Aignan p. 9 (imprimée p. 7).",
+      "url": "https://www.ifop.com/wp-content/uploads/2018/03/3756-1-study_file.pdf",
+      "pdfPage": 27,
+      "printedPage": 25,
+      "participationPdfPage": 11,
+      "participationPrintedPage": 9
+    },
+    {
+      "id": "ipsos_2022",
+      "year": 2022,
+      "institute": "Ipsos Sopra Steria",
+      "fieldwork": {
+        "start": "2022-04-21",
+        "end": "2022-04-23"
+      },
+      "timing": "before",
+      "sampleSize": 4000,
+      "mode": "Access Panel en ligne (inscrits)",
+      "weighting": "Sociodémographique et souvenir du vote au 1er tour 2022 (notice CDS n° 1593, rattachée au rapport « Comprendre le vote » : son application au rapport « Sociologie » est une inférence). Reports « tenant compte » de l'analyse des transferts dans 500 bureaux de vote.",
+      "url": "https://www.ipsos.com/sites/default/files/ct/news/documents/2022-04/Ipsos%20Sopra%20Steria_Sociologie%20des%20e%CC%81lectorats%20et%20profil%20des%20abstentionnistes_24%20Avril%2020h.pdf",
+      "noticeUrl": "https://www.commission-des-sondages.fr/notices/medias/fichiers/add/1593",
+      "pdfPage": 4,
+      "printedPage": null
+    },
+    {
+      "id": "ifop_2022",
+      "year": 2022,
+      "institute": "Ifop-Fiducial",
+      "fieldwork": {
+        "start": "2022-04-24",
+        "end": "2022-04-24"
+      },
+      "timing": "electionDay",
+      "sampleSize": 4827,
+      "mode": "Questionnaire auto-administré en ligne, quotas (inscrits, 11 h à 18 h)",
+      "weighting": "Sur la base de l'estimation des résultats définitifs du ministère de l'Intérieur. Redressement sur le 1er tour non précisé.",
+      "note": "Version 10 h du 25/04/2022. Tableau de participation par vote au 1er tour : p. 9 (imprimée p. 8) et p. 11 (imprimée p. 10) ; vote exprimé des abstentionnistes du 1er tour : p. 25 (imprimée p. 24).",
+      "url": "https://www.ifop.com/wp-content/uploads/2022/04/118997-rapport-jdv-pre22-t2-10h-complet-25.04.pdf",
+      "pdfPage": 23,
+      "printedPage": 22,
+      "participationPdfPage": 11,
+      "participationPrintedPage": 10
+    }
+  ],
+  "rows": {
+    "2017": [
+      {
+        "candidateId": "melenchon",
+        "bySurvey": {
+          "ipsos_2017": { "antiRn": 52, "rn": 7, "nonExpressed": 41 },
+          "ifop_2017": { "antiRn": 54, "rn": 14, "nonExpressed": 32 }
+        }
+      },
+      {
+        "candidateId": "hamon",
+        "bySurvey": {
+          "ipsos_2017": { "antiRn": 71, "rn": 2, "nonExpressed": 27 },
+          "ifop_2017": { "antiRn": 79, "rn": 4, "nonExpressed": 17 }
+        }
+      },
+      {
+        "candidateId": "macron",
+        "bySurvey": {
+          "ipsos_2017": null,
+          "ifop_2017": { "antiRn": 97, "rn": 2, "nonExpressed": 1 }
+        }
+      },
+      {
+        "candidateId": "fillon",
+        "bySurvey": {
+          "ipsos_2017": { "antiRn": 48, "rn": 20, "nonExpressed": 32 },
+          "ifop_2017": { "antiRn": 51, "rn": 23, "nonExpressed": 26 }
+        }
+      },
+      {
+        "candidateId": "dupont-aignan",
+        "bySurvey": {
+          "ipsos_2017": { "antiRn": 27, "rn": 30, "nonExpressed": 43 },
+          "ifop_2017": { "antiRn": 26, "rn": 46, "nonExpressed": 28 }
+        }
+      },
+      {
+        "candidateId": "lepen",
+        "bySurvey": {
+          "ipsos_2017": null,
+          "ifop_2017": { "antiRn": 3, "rn": 91, "nonExpressed": 6 }
+        }
+      }
+    ],
+    "2022": [
+      {
+        "candidateId": "melenchon",
+        "bySurvey": {
+          "ipsos_2022": { "antiRn": 42, "rn": 17, "nonExpressed": 41 },
+          "ifop_2022": { "antiRn": 42, "rn": 13, "nonExpressed": 45 }
+        }
+      },
+      {
+        "candidateId": "jadot",
+        "bySurvey": {
+          "ipsos_2022": { "antiRn": 65, "rn": 6, "nonExpressed": 29 },
+          "ifop_2022": { "antiRn": 64, "rn": 7, "nonExpressed": 29 }
+        }
+      },
+      {
+        "candidateId": "macron",
+        "bySurvey": {
+          "ipsos_2022": { "antiRn": 98, "rn": 1, "nonExpressed": 1 },
+          "ifop_2022": { "antiRn": 96, "rn": 1, "nonExpressed": 3 }
+        }
+      },
+      {
+        "candidateId": "pecresse",
+        "bySurvey": {
+          "ipsos_2022": { "antiRn": 53, "rn": 18, "nonExpressed": 29 },
+          "ifop_2022": { "antiRn": 52, "rn": 18, "nonExpressed": 30 }
+        }
+      },
+      {
+        "candidateId": "lepen",
+        "bySurvey": {
+          "ipsos_2022": { "antiRn": 3, "rn": 91, "nonExpressed": 6 },
+          "ifop_2022": { "antiRn": 2, "rn": 94, "nonExpressed": 4 }
+        }
+      },
+      {
+        "candidateId": "zemmour",
+        "bySurvey": {
+          "ipsos_2022": { "antiRn": 10, "rn": 73, "nonExpressed": 17 },
+          "ifop_2022": { "antiRn": 9, "rn": 78, "nonExpressed": 13 }
+        }
+      }
+    ]
+  },
+  "participation": {
+    "2017": {
+      "surveyId": "ifop_2017",
+      "pdfPage": 11,
+      "printedPage": 9,
+      "abstentionPctByCandidate": {
+        "melenchon": 36,
+        "hamon": 24,
+        "macron": 5,
+        "fillon": 24,
+        "dupont-aignan": 29,
+        "lepen": 11
+      }
+    },
+    "2022": {
+      "surveyId": "ifop_2022",
+      "pdfPage": 11,
+      "printedPage": 10,
+      "abstentionPctByCandidate": {
+        "melenchon": 46,
+        "jadot": 31,
+        "macron": 8,
+        "pecresse": 23,
+        "lepen": 13,
+        "zemmour": 15
+      }
+    }
+  },
+  "abstainers": {
+    "2022": {
+      "surveyId": "ifop_2022",
+      "turnoutPdfPage": 11,
+      "turnoutPrintedPage": 10,
+      "expressedPdfPage": 25,
+      "expressedPrintedPage": 24,
+      "votersSharePct": 32,
+      "expressedSplit": {
+        "antiRn": 59,
+        "rn": 41
+      }
+    }
+  }
+}

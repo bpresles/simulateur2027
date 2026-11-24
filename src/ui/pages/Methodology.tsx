@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react'
 import sigmaCalibrationJson from '../../data/sigma-calibration.json'
-import { simulationData } from '../../data/schema'
+import { secondRoundReferenceMatrices, simulationData } from '../../data/schema'
 import { availableAlliances, testedOptions } from '../../domain/alliances'
 import {
   CANDIDATE_FLOOR,
@@ -23,6 +23,10 @@ import {
   windowDaysOf,
 } from '../../domain/pollAverage'
 import { noIntentionRange, presidentialDropout, secondRoundDropout } from '../../domain/secondRound'
+import { computeStep2Report } from '../../domain/secondRoundDegradation'
+import { ALL_REPRODUCTION_VARIANTS, reproduceReferenceElection } from '../../domain/secondRoundReproduction'
+import type { ReproductionVariant } from '../../domain/secondRoundReproduction'
+import { computeStep3Report } from '../../domain/secondRoundStep3'
 import {
   REPUBLICAN_FRONT_PRESETS,
   correctDeclaredRowLogit,
@@ -233,6 +237,162 @@ function SigmaCalibrationBlock() {
           </li>
         </ul>
       </div>
+    </>
+  )
+}
+
+const P1_VARIANT_LABELS: Record<ReproductionVariant, string> = {
+  r1_1: 'R1.1 (moyenne Ipsos/Ifop)',
+  ipsos_only: 'R1.6 — Ipsos seul',
+  ifop_only: 'R1.6 — Ifop seul (publié)',
+  r1_7_r1_1: 'R1.7 sur R1.1',
+  r1_7_ifop_only: 'R1.7 sur Ifop seul',
+}
+
+const p1Step1 = {
+  '2017': Object.fromEntries(
+    ALL_REPRODUCTION_VARIANTS.map((v) => [
+      v,
+      reproduceReferenceElection('2017', reference2017, secondRoundReferenceMatrices, v),
+    ]),
+  ) as Record<ReproductionVariant, ReturnType<typeof reproduceReferenceElection>>,
+  '2022': Object.fromEntries(
+    ALL_REPRODUCTION_VARIANTS.map((v) => [
+      v,
+      reproduceReferenceElection('2022', reference2022, secondRoundReferenceMatrices, v),
+    ]),
+  ) as Record<ReproductionVariant, ReturnType<typeof reproduceReferenceElection>>,
+}
+
+const p1Step2 = {
+  '2017': computeStep2Report('2017', reference2017, secondRoundReferenceMatrices, transfers),
+  '2022': computeStep2Report('2022', reference2022, secondRoundReferenceMatrices, transfers),
+}
+
+const p1Step3 = computeStep3Report(simulationData, secondRoundReferenceMatrices, backtestReport)
+
+/** Audit P1 du moteur du 2nd tour (24/11/2026) : résultats publiés quel que soit le verdict (P1 rejeté). */
+function SecondRoundP1AuditBlock() {
+  const ed = p1Step3.r13ByVariant.r1_1.r114PooledExtremeDroiteRow
+  return (
+    <>
+      <div className="prose-method">
+        <p>
+          <strong>Audit du moteur du 2nd tour (P1, 24/11/2026 — rejeté, aucun défaut modifié) :</strong> afin
+          d’examiner l’écart en échantillon du moteur sur 2017 et 2022, les matrices brutes des quatre enquêtes
+          Ipsos Sopra Steria et Ifop-Fiducial ont été archivées (sans branchement sur le moteur par défaut) et
+          éprouvées selon des règles pré-enregistrées dans le journal méthodologique. P1 échoue aux critères
+          d’adoption (tolérance R1.2 dépassée en 2017 et 2022 ; erreur en échantillon &gt; 1 pt et erreur
+          croisée moyenne dégradée en R1.4) et a été rejeté : aucun réglage par défaut n’est modifié.
+        </p>
+        <p>
+          <strong>Classement historique des petits candidats dans le backtest</strong> (hypothèse documentée,
+          faute de mesure publiée pour ces candidats) : <em>gauche</em> (Arthaud, Poutou, Roussel, Hidalgo,
+          Mélenchon, Hamon, Jadot, Joly, Hollande, Montebourg, Taubira, Valls, Duflot, Peillon, Pinel),{' '}
+          <em>droite</em> (Fillon, Pécresse, Lassalle, Bertrand, Juppé, Sarkozy), <em>extrême droite</em>{' '}
+          (Le Pen, Zemmour, Dupont-Aignan, Asselineau, Philippot) et <em>centre</em> par défaut (Macron,
+          Bayrou, Cheminade). Borne maximale d’effet des candidats sans ligne (voix / exprimés du 2nd tour) :{' '}
+          <strong>{num(p1Step2['2017'].boundC.maxEffectPts, 2)} pts</strong> en 2017 et{' '}
+          <strong>{num(p1Step2['2022'].boundC.maxEffectPts, 2)} pts</strong> en 2022.
+        </p>
+      </div>
+
+      <Table caption="Audit P1, étape 1 — Reproduction partielle en voix, variantes et contrôle du résidu (R1.8) sur 2017 et 2022">
+        <thead>
+          <tr className="border-b border-rule">
+            <th className={th}>Scrutin · variante</th>
+            <th className={`${th} text-right`}>Résidu Macron</th>
+            <th className={`${th} text-right`}>Résidu Le Pen</th>
+            <th className={`${th} text-right`}>Part expr. du résidu</th>
+            <th className={th}>Contrôle R1.8</th>
+          </tr>
+        </thead>
+        <tbody>
+          {(['2017', '2022'] as const).flatMap((year) =>
+            ALL_REPRODUCTION_VARIANTS.map((variant) => {
+              const r = p1Step1[year][variant]
+              return (
+                <tr key={`${year}-${variant}`} className="border-b border-rule/60">
+                  <td className={`${td} ${variant === 'r1_1' ? 'font-medium' : 'text-ink-3'}`}>
+                    <span className="num">{year}</span> · {P1_VARIANT_LABELS[variant]}
+                    {r.fallbackCandidates.length > 0 && (
+                      <span className="block text-xs font-normal text-ink-3">
+                        repli Ifop : {r.fallbackCandidates.join(', ')}
+                      </span>
+                    )}
+                  </td>
+                  <td className={`${td} num text-right`}>{integer(Math.round(r.residual.antiRn))}</td>
+                  <td className={`${td} num text-right`}>{integer(Math.round(r.residual.rn))}</td>
+                  <td className={`${td} num text-right`}>{pct(r.residualExpressedSharePct, 2)}</td>
+                  <td className={`${td} ${r.feasibility.feasible ? 'text-ballpoint' : 'font-medium text-hypo'}`}>
+                    {r.feasibility.feasible ? 'Réalisable' : 'Non réalisable'}
+                  </td>
+                </tr>
+              )
+            }),
+          )}
+        </tbody>
+      </Table>
+
+      <Table caption="Audit P1, étape 2 — Décomposition des simplifications (pts d’exprimés sur Macron) ; référence R1.1 hors tolérance R1.2 (−2,04 pts en 2017 ; volumes −2,25 / −1,00 pt en 2022)">
+        <thead>
+          <tr className="border-b border-rule">
+            <th className={th}>Simplification</th>
+            <th className={`${th} text-right`}>2017 ajouté à réf.</th>
+            <th className={`${th} text-right`}>2017 retiré de l’actuel</th>
+            <th className={`${th} text-right`}>2022 ajouté à réf.</th>
+            <th className={`${th} text-right`}>2022 retiré de l’actuel</th>
+          </tr>
+        </thead>
+        <tbody>
+          {p1Step2['2017'].degradations.map((d17) => {
+            const d22 = p1Step2['2022'].degradations.find((x) => x.key === d17.key)!
+            return (
+              <tr key={d17.key} className="border-b border-rule/60">
+                <td className={`${td} ${d17.key === 'b' ? 'font-medium' : ''}`}>{d17.label}</td>
+                <td className={`${td} num text-right`}>{pts(d17.addedToReferencePts, 2)}</td>
+                <td className={`${td} num text-right text-ink-3`}>{pts(d17.removedFromCurrentGainPts, 2)}</td>
+                <td className={`${td} num text-right`}>{pts(d22.addedToReferencePts, 2)}</td>
+                <td className={`${td} num text-right text-ink-3`}>{pts(d22.removedFromCurrentGainPts, 2)}</td>
+              </tr>
+            )
+          })}
+        </tbody>
+      </Table>
+
+      <Table
+        caption={`Audit P1, étape 3 — Évaluation R1.4 pour la seule correction passant R1.3 : (b) extrême droite hors finaliste (ligne R1.14 : ${num(ed.finalist, 1)} / ${num(ed.rn, 2)} / ${num(ed.abstention, 2)}) ; référence croisée actuelle : ${num(p1Step3.baseline.crossMeanAbsErrorPts, 3)} pts`}
+      >
+        <thead>
+          <tr className="border-b border-rule">
+            <th className={th}>Variante</th>
+            <th className={`${th} text-right`}>Éch. 2017</th>
+            <th className={`${th} text-right`}>Éch. 2022</th>
+            <th className={`${th} text-right`}>Croisé 2017</th>
+            <th className={`${th} text-right`}>Croisé 2022</th>
+            <th className={`${th} text-right`}>Moy. |err| croisée</th>
+            <th className={th}>Verdict R1.4</th>
+          </tr>
+        </thead>
+        <tbody>
+          {ALL_REPRODUCTION_VARIANTS.map((variant) => {
+            const r = p1Step3.r13ByVariant[variant]
+            return (
+              <tr key={variant} className="border-b border-rule/60">
+                <td className={`${td} ${variant === 'r1_1' ? 'font-medium' : 'text-ink-3'}`}>
+                  {P1_VARIANT_LABELS[variant]}
+                </td>
+                <td className={`${td} num text-right`}>{pts(r.inSample['2017'].errorPts, 2)}</td>
+                <td className={`${td} num text-right`}>{pts(r.inSample['2022'].errorPts, 2)}</td>
+                <td className={`${td} num text-right`}>{pts(r.cross['2017'].errorPts, 2)}</td>
+                <td className={`${td} num text-right`}>{pts(r.cross['2022'].errorPts, 2)}</td>
+                <td className={`${td} num text-right font-medium`}>{num(r.crossMeanAbsErrorPts, 3)}</td>
+                <td className={`${td} font-medium text-hypo`}>Rejeté (éch. &amp; croisé)</td>
+              </tr>
+            )
+          })}
+        </tbody>
+      </Table>
     </>
   )
 }
@@ -866,6 +1026,23 @@ export function Methodology({ result }: { result: SimulationResult }) {
               projection de campagne, fuite inter-blocs, concentration du centre, nouveaux votants,
               mobilisation des abstentionnistes, fidélité des finalistes, report gauche hors LFI).
             </p>
+            <p>
+              <strong>Sondages de l’entre-deux-tours (P4, affichage seulement) :</strong> le bloc du 2nd tour
+              affiche pour mémoire deux tableaux distincts, sans jamais les intégrer dans aucun calcul ni dans les
+              mesures d’écart historique avant 1er tour (<code>pollBiasGaps</code>, <code>directPollRmse</code>) :
+              (i) l’ensemble des sondages publiés entre les deux tours jusqu’à l’interdiction légale en 2017
+              (22 sondages, 23/04 au 05/05/2017) et 2022 (42 sondages, 10/04 au 22/04/2022) pour Macron – Le Pen
+              (2002 exclu) ; (ii) les sondages de circonscription d’entre-deux-tours des législatives 2024 (duels
+              uniquement, triangulaires exclues, stockés dans <code>legislative-duel-polls-2024.json</code>) selon
+              une règle d’identité stricte des partis écrite candidat par candidat (un allié ou une coalition ne
+              compte pas). Après inventaire (Wikipédia FR/EN, notices de la Commission des sondages n° 9865 à
+              9888 et publications d’instituts de juillet 2024), seul un duel de circonscription d’entre-deux-tours
+              a été identifié : la 6e circonscription du Calvados (Ifop-Fiducial pour Sud Radio, 02-03/07/2024,
+              n = 611 inscrits, Renaissance – RN : Élisabeth Borne 54 % contre 56,36 % au résultat officiel),
+              affiché uniquement sur le duel Attal – Le Pen. Aucun sondage de circonscription d’entre-deux-tours
+              n’ayant été identifié pour les autres paires de partis (notamment LFI – RN, Horizons – RN, LR – RN,
+              Place publique – RN), rien n’est affiché pour ces duels.
+            </p>
           </div>
 
           <div className="grid gap-6 lg:grid-cols-2">
@@ -1009,6 +1186,8 @@ export function Methodology({ result }: { result: SimulationResult }) {
               ))}
             </tbody>
           </Table>
+
+          <SecondRoundP1AuditBlock />
 
           <Table caption="Contrôle interne (en échantillon) sur les 342 duels agrégés des législatives 2024 (Ipsos-Talan brute vs urnes)">
             <thead>
