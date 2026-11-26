@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react'
+import p3AuditJson from '../../data/second-round-p3-audit.json'
 import sigmaCalibrationJson from '../../data/sigma-calibration.json'
 import { secondRoundReferenceMatrices, simulationData } from '../../data/schema'
 import { availableAlliances, testedOptions } from '../../domain/alliances'
@@ -24,6 +25,7 @@ import {
 } from '../../domain/pollAverage'
 import { noIntentionRange, presidentialDropout, secondRoundDropout } from '../../domain/secondRound'
 import { computeStep2Report } from '../../domain/secondRoundDegradation'
+import { parseP3AuditJson } from '../../domain/secondRoundP3'
 import { ALL_REPRODUCTION_VARIANTS, reproduceReferenceElection } from '../../domain/secondRoundReproduction'
 import type { ReproductionVariant } from '../../domain/secondRoundReproduction'
 import { computeStep3Report } from '../../domain/secondRoundStep3'
@@ -270,6 +272,182 @@ const p1Step2 = {
 }
 
 const p1Step3 = computeStep3Report(simulationData, secondRoundReferenceMatrices, backtestReport)
+const p3Audit = parseP3AuditJson(p3AuditJson)
+
+const P3_SHOCK_ROLES: { shock: string; role: string; overlap: string }[] = [
+  {
+    shock: 'rfShock (front républicain)',
+    role: 'Déplacement corrélé le long de l’axe mesuré 2022 ↔ 2017 ↔ 2024 (borné à [0 ; 1]).',
+    overlap: 'Partiel avec η, mais strictement borné à l’enveloppe des ancres.',
+  },
+  {
+    shock: 'dirichlet (κ = 40)',
+    role: 'Aléa indépendant par électorat éliminé (erreur d’enquête + spécificité d’un bloc).',
+    overlap: 'Non : erreurs indépendantes par bloc, à la différence du choc commun national η.',
+  },
+  {
+    shock: 'edU (ED 2017 ↔ 2022)',
+    role: 'Hétérogénéité structurelle de l’extrême droite hors RN (Dupont-Aignan vs Zemmour).',
+    overlap: 'Non : propre à un seul électorat.',
+  },
+  {
+    shock: 'lfiLeftU (35–75 %)',
+    role: 'Report non mesuré gauche hors LFI → Mélenchon (profil lfi_rn uniquement).',
+    overlap: 'Non : propre à lfi_rn (amortit même la corrélation avec rfShock en mode incertain).',
+  },
+  {
+    shock: 'fidelity, qDelta, mob, turnout',
+    role: 'Tolérances mécaniques mineures (< 2 % de variance chacun ; mob et turnout ≈ 0 % sous S2).',
+    overlap: 'Négligeable.',
+  },
+  {
+    shock: 'η (σ = 3,0 pts RN / 2,0 hors RN)',
+    role: 'Choc national commun d’entre-deux-tours et erreur structurelle hors enveloppe des ancres.',
+    overlap: 'À σ_η = 0, la largeur (5,7–6,5 pts) ne couvre pas 2022 en LOO R2.4.',
+  },
+]
+
+/** Audit P3 du budget d'incertitude du 2nd tour et courbe CRPS conditionnelle de σ_η (26/11/2026). */
+function SecondRoundP3BudgetBlock() {
+  const prim = p3Audit.curves.primary_leg2024_r25
+  const para = p3Audit.curves.parallel_uncertain_r25
+  const compS3 = p3Audit.curves.comparison_leg2024_s3
+  const fixedCases = p3Audit.varianceFixedR1.filter((c) =>
+    [
+      '2017_leg2024_loo',
+      '2022_leg2024_loo',
+      '2012_non_rn',
+      '2027_lepen_melenchon_leg2024',
+      '2027_lepen_philippe_leg2024',
+    ].includes(c.id),
+  )
+  const shockPct = (c: (typeof fixedCases)[number], key: string) =>
+    c.shocks.find((s) => s.cut === key)?.deltaVarPct ?? null
+
+  return (
+    <>
+      <div className="prose-method">
+        <p>
+          <strong>
+            Audit P3 — Budget d’incertitude du 2nd tour et calage de σ_η (26/11/2026 — σ_η inchangé) :
+          </strong>{' '}
+          l’évaluation conditionnelle à 1er tour réel fixé en leave-one-out R2.4 (finalistes mesurés R2.5,{' '}
+          {integer(p3Audit.iterations)} tirages, graine {p3Audit.seed}) a balayé σ_η de 0 à 5 points (pas 0,25).
+          Contrairement à l’hypothèse initiale d’un surdimensionnement, σ_η = 3,0 pts ne couvre pas 2022 en LOO
+          (2022 à 58,55 % se situe hors de l’enveloppe des ancres restantes [2017, 2024]) et toute baisse sous 3,0 pts
+          dégrade strictement le CRPS. La règle CRPS + couverture 2/2 désigne{' '}
+          <strong>σ_η = {num(prim.selected?.sigmaEta ?? 0, 2)} pts</strong> en primaire (
+          {num(para.selected?.sigmaEta ?? 0, 2)} pts en mode <em>Incertain</em> LOO ;{' '}
+          {num(compS3.selected?.sigmaEta ?? 0, 2)} pts en comparaison S3 neutre ; contrôles à 10 000 tirages :{' '}
+          {num(p3Audit.control10k.leg2024_r25_selected ?? 0, 2)} et{' '}
+          {num(p3Audit.control10k.uncertain_r25_selected ?? 0, 2)} pts), ce qui améliore le CRPS (
+          {pts(prim.selected?.crpsDeltaVs3Pct ?? 0, 2)} %) mais <strong>augmente la largeur moyenne</strong> de{' '}
+          {num(prim.currentAt3.meanWidth80, 2)} à {num(prim.selected?.meanWidth80 ?? 0, 2)} pts. Le critère
+          pré-enregistré de baisse de largeur (§5.3) n’étant pas satisfait, la modification de σ_η est{' '}
+          <strong>rejetée</strong> : σ_η reste fixé à <strong>3,0 pts face au RN</strong> et{' '}
+          <strong>2,0 pts hors RN</strong> (non recalé sur 2012 car les matrices hors RN proviennent de 2007–2012).
+        </p>
+      </div>
+
+      <Table caption="Audit P3 — Décomposition de variance du 2nd tour à 1er tour fixé (% de variance T2 perdue en coupant chaque aléa, N = 2 000)">
+        <thead>
+          <tr className="border-b border-rule">
+            <th className={th}>Scénario (1er tour fixé)</th>
+            <th className={`${th} text-right`}>Larg. [P10 ; P90]</th>
+            <th className={`${th} text-right`}>η</th>
+            <th className={`${th} text-right`}>Dirichlet</th>
+            <th className={`${th} text-right`}>rfShock</th>
+            <th className={`${th} text-right`}>edU</th>
+            <th className={`${th} text-right`}>q / fid. / mob</th>
+          </tr>
+        </thead>
+        <tbody>
+          {fixedCases.map((c) => {
+            const eta = shockPct(c, 'eta')
+            const dir = shockPct(c, 'dirichlet')
+            const rf = shockPct(c, 'rfShock')
+            const ed = shockPct(c, 'edU')
+            const small = (shockPct(c, 'qDelta') ?? 0) + (shockPct(c, 'fidelity') ?? 0) + (shockPct(c, 'mob') ?? 0)
+            return (
+              <tr key={c.id} className="border-b border-rule/60">
+                <td className={td}>{c.label}</td>
+                <td className={`${td} num text-right font-medium`}>{num(c.width80, 2)} pts</td>
+                <td className={`${td} num text-right font-medium`}>{eta !== null ? pct(eta, 1) : '—'}</td>
+                <td className={`${td} num text-right`}>{dir !== null ? pct(dir, 1) : '—'}</td>
+                <td className={`${td} num text-right`}>{rf !== null ? pct(rf, 1) : '—'}</td>
+                <td className={`${td} num text-right`}>{ed !== null ? pct(ed, 1) : '—'}</td>
+                <td className={`${td} num text-right text-ink-3`}>{pct(small, 1)}</td>
+              </tr>
+            )
+          })}
+        </tbody>
+      </Table>
+
+      <Table caption="Audit P3 — Source d’incertitude distincte de chaque aléa du 2nd tour et contrôle de double emploi">
+        <thead>
+          <tr className="border-b border-rule">
+            <th className={th}>Aléa</th>
+            <th className={th}>Source représentée</th>
+            <th className={th}>Chevauchement avec η</th>
+          </tr>
+        </thead>
+        <tbody>
+          {P3_SHOCK_ROLES.map((r) => (
+            <tr key={r.shock} className="border-b border-rule/60">
+              <td className={`${td} font-medium`}>{r.shock}</td>
+              <td className={td}>{r.role}</td>
+              <td className={`${td} text-ink-2`}>{r.overlap}</td>
+            </tr>
+          ))}
+        </tbody>
+      </Table>
+
+      <Table
+        caption={`Audit P3 — Courbe CRPS conditionnelle complète en fonction de σ_η (1er tour réel fixé, LOO R2.4, relevé du ${date(p3Audit.generatedOn)}) ; σ_η conservé à 3,00 pts`}
+      >
+        <thead>
+          <tr className="border-b border-rule">
+            <th className={th}>σ_η</th>
+            <th className={`${th} text-right`}>Primaire `leg2024` + R2.5 : 2017 / 2022</th>
+            <th className={`${th} text-right`}>Larg. moy.</th>
+            <th className={`${th} text-right`}>CRPS moy. (prim.)</th>
+            <th className={`${th} text-right`}>CRPS moy. (Incert. R2.5)</th>
+            <th className={`${th} text-right`}>CRPS moy. (comp. S3)</th>
+          </tr>
+        </thead>
+        <tbody>
+          {prim.grid.map((g, i) => {
+            const pRow = para.grid[i]!
+            const s3Row = compS3.grid[i]!
+            const isCurrent = Math.abs(g.sigmaEta - p3Audit.sigmaEtaRnRetained) < 1e-6
+            const isArgmin = prim.selected?.sigmaEta === g.sigmaEta
+            return (
+              <tr
+                key={g.sigmaEta}
+                className={`border-b border-rule/60 ${isCurrent ? 'bg-ballpoint-soft/30 font-medium' : ''}`}
+              >
+                <td className={`${td} num`}>
+                  {num(g.sigmaEta, 2)}
+                  {isCurrent ? ' (actuel)' : isArgmin ? ' (min R2.5)' : ''}
+                </td>
+                <td className={`${td} num text-right`}>
+                  {g.y2017.covered ? 'OK' : 'KO'} / {g.y2022.covered ? 'OK' : 'KO'}
+                  <span className="ml-1.5 text-xs font-normal text-ink-3">
+                    (2022 : [{num(g.y2022.p10, 1)} ; {num(g.y2022.p90, 1)}])
+                  </span>
+                </td>
+                <td className={`${td} num text-right`}>{num(g.meanWidth80, 2)} pts</td>
+                <td className={`${td} num text-right`}>{num(g.meanCrps, 3)}</td>
+                <td className={`${td} num text-right text-ink-2`}>{num(pRow.meanCrps, 3)}</td>
+                <td className={`${td} num text-right text-ink-3`}>{num(s3Row.meanCrps, 3)}</td>
+              </tr>
+            )
+          })}
+        </tbody>
+      </Table>
+    </>
+  )
+}
 
 /** Audit P1 du moteur du 2nd tour (24/11/2026) : résultats publiés quel que soit le verdict (P1 rejeté). */
 function SecondRoundP1AuditBlock() {
@@ -1148,7 +1326,7 @@ export function Methodology({ result }: { result: SimulationResult }) {
                 <th className={`${th} text-right`}>σ_logit</th>
                 <th className={`${th} text-right`}>1er tour (brut)</th>
                 <th className={`${th} text-right`}>1er tour (croisé)</th>
-                <th className={`${th} text-right`}>2nd tour (IC 80 % vs réel)</th>
+                <th className={`${th} text-right`}>2nd tour (IC 80 %, largeur et CRPS vs réel)</th>
               </tr>
             </thead>
             <tbody>
@@ -1179,6 +1357,11 @@ export function Methodology({ result }: { result: SimulationResult }) {
                         <span className={r.secondRoundCovered ? 'font-medium text-ballpoint' : 'text-hypo'}>
                           ({r.secondRoundCovered ? 'couvert' : 'hors IC'})
                         </span>
+                        {r.secondRoundWidth80 !== null && r.secondRoundCrps !== null && (
+                          <span className="block text-xs font-normal text-ink-3">
+                            larg. {num(r.secondRoundWidth80, 1)} pts · CRPS {num(r.secondRoundCrps, 2)}
+                          </span>
+                        )}
                       </>
                     )}
                   </td>
@@ -1233,6 +1416,7 @@ export function Methodology({ result }: { result: SimulationResult }) {
           </Table>
 
           <SecondRoundP1AuditBlock />
+          <SecondRoundP3BudgetBlock />
 
           <Table caption="Contrôle interne (en échantillon) sur les 342 duels agrégés des législatives 2024 (Ipsos-Talan brute vs urnes)">
             <thead>

@@ -738,6 +738,7 @@ export function runMonteCarlo(input: MonteCarloInput): MonteCarloSummary {
   const firstRoundSamples = input.returnSamples
     ? (Object.fromEntries(activeIds.map((id, i) => [id, scoreSamples[i]!])) as Record<CandidateId, Float64Array>)
     : undefined
+  const displayedDuelSamples = input.returnSamples ? displayedScores : undefined
 
   const sortedDisp = Array.from(displayedScores).sort((x, y) => x - y)
 
@@ -748,6 +749,7 @@ export function runMonteCarlo(input: MonteCarloInput): MonteCarloSummary {
     sigmaLogit,
     candidates,
     ...(firstRoundSamples ? { firstRoundSamples } : {}),
+    ...(displayedDuelSamples ? { displayedDuelSamples } : {}),
     topDuels,
     displayedDuel: {
       a: displayedDuel[0],

@@ -1,5 +1,46 @@
 # Journal méthodologique — simulateur2027
 
+## 26/11/2026 — P3 (audit clôturé — σ_η inchangé selon §5.3) — Budget d'incertitude du 2nd tour et recalage de η
+
+**Règles pré-enregistrées le 26/11/2026 avant tout calcul P3** (plan `docs/plan-front-republicain.md`, section 5, décisions 4 et 11 du 24/11/2026), exécutées sur la base v2.3 (`68bfff3`, P1-bis S1–S5 + P2 3 ancres `s_2017 = 0,5502`, défaut `leg2024`). **Verdict (décision du 26/11/2026) : la modification de σ_η est rejetée selon les critères pré-enregistrés §5.3** (`σ_η = 3,0 pts` face au RN et `2,0 pts` hors RN sont conservés inchangés dans `monteCarlo.ts`, aucune modification de sortie Monte-Carlo ni de version de stockage). La décomposition de variance, la largeur/CRPS du 2nd tour et la courbe complète de σ_η sont publiées dans `backtest.ts`, `src/data/second-round-p3-audit.json` et `/methodologie`. Les sondages directs de 2nd tour 2027 ne servent jamais au calage.
+
+### Protocole pré-enregistré P3
+
+1. **Décomposition de variance (section 5.2, étape 1) :**
+   - Coupure d'un aléa du 2nd tour à la fois (`rfShock`, `dirichlet`, `edU`, `lfiLeftU`, `turnout`, `mob`, `qDelta`, `fidelity`, `commonShockEta`) en mesurant la largeur `[P10 ; P90]`, l'écart-type et la variance (graine `2027`, `N = 2 000`, contrôle à `N = 10 000`) :
+     - **à 1er tour réel fixé** (2017, 2022, 2012, et 2027 déterministe sur `lepen|melenchon`, `lepen|philippe`, `melenchon|philippe`, en modes `leg2024` et `uncertain`) ;
+     - **avec incertitude de campagne du 1er tour** aux dates de backtest (2017, 2022) et pour 2027.
+2. **Audit de double emploi (section 5.2, étape 2) :**
+   - Recensement explicite des chevauchements entre le choc commun $\eta$ (`σ = 3,0 pts` face au RN, `2,0 pts` hors RN) et `rfShock`, `dirichlet` (`κ = 40`), `edU`, `mob`, `qDelta`, `turnout` et `fidelity`, et attribution d'une source d'incertitude distincte à chaque aléa.
+3. **Recalage conditionnel de $\sigma_\eta$ face au RN (section 5.2, étape 3) :**
+   - **Grille :** $\sigma_\eta \in [0,00 ; 5,00]$ points d'exprimés, au pas de `0,25` (`21` valeurs ; `N = 2 000`, graine `2027`, contrôle à `N = 10 000`).
+   - **Distribution conditionnelle :** 1er tour réel fixé (2017 et 2022), tous les autres aléas du 2nd tour actifs (`rfShock`, `dirichlet`, `edU`, `turnout`, `mob`, `qDelta`, `fidelity`).
+   - **Front républicain en leave-one-out sur les ancres (R2.4) :** 2017 est évalué avec les seules ancres `[2022 (0), 2024 (1)]`, et 2022 avec les seules ancres `[2017 (0,5502), 2024 (1)]`. La courbe primaire applique le réglage par défaut actif (`leg2024` avec `normalRfShock` tronqué sur l'étendue LOO restante) ; la courbe en mode `uncertain` LOO (tirage uniforme sur l'étendue des deux ancres restantes) est publiée en parallèle.
+   - **Finalistes (R2.5) :** la règle primaire applique aux finalistes leurs lignes mesurées R1.1 de leur élection (`2017 : Macron 97/2/1, Le Pen 91/3/6` ; `2022 : Macron 97/1/2, Le Pen 92,5/2,5/5`), avec l'aléa `±2,5 pts` actif autour de ces lignes. Les courbes de comparaison avec la fidélité symétrique neutre S3 (`94,75/1,75/3,50 %`, défaut historique v2.3) et avec Harris 2026 (`95/1,5/3,5` et `96/1/3`) sont publiées pour transparence et jamais retenues pour contourner la règle.
+   - **Règle de choix :** on retient le $\sigma_\eta$ minimisant le CRPS conditionnel moyen sur 2017 et 2022 parmi les valeurs où les deux résultats réels (`66,10 %` et `58,55 %`) tombent dans leur `[P10 ; P90]` conditionnel ; à égalité, la plus petite valeur.
+   - **$\eta$ hors RN (2012) :** `transfers.nonRnPresidential` provenant directement de la moyenne des enquêtes « jour du vote » 2007 et 2012 (`presidentielles2007_2012`), le recalage sur 2012 serait en échantillon ; selon la section 5.2, **$\sigma_\eta^{\text{hors RN}} = 2,0$ pts est conservé tel quel et documenté comme hypothèse**.
+4. **Critères d'adoption P3 (section 5.3, décision 11) :**
+   - Couverture `[P10 ; P90]` maintenue sur 2017 et 2022 ;
+   - Largeur moyenne `[P10 ; P90]` strictement réduite par rapport à $\sigma_\eta = 3,0$ pts ;
+   - CRPS moyen du 2nd tour dégradé au plus de `2 %` par rapport à $\sigma_\eta = 3,0$ pts ;
+   - Aucune cible nominale de couverture sur deux points ; effet sur 2027 relevé uniquement après validation.
+
+### Résultats P3 (script `scripts/evaluate-p3.ts`, archive `src/data/second-round-p3-audit.json`)
+
+1. **Décomposition de variance à 1er tour fixé (`N = 2 000`, graine `2027`) :**
+   - **Duels RN (`2017`, `2022`, `2027 Le Pen–Mélenchon`, `2027 Le Pen–Philippe`, défaut `leg2024`) :** largeur `[P10 ; P90]` de `9,48` à `10,10 pts`. Le choc commun **$\eta$ (`σ = 3,0 pts`)** explique `60,0 %` à `65,6 %` de la variance T2 (`−3,89` à `−4,12 pts` de largeur si coupé), **Dirichlet (`κ = 40`)** `19,5 %` à `30,6 %`, **`rfShock`** `5,2 %` à `12,0 %` (`3,8 %` à `15,6 %` en `uncertain`), **`edU`** `0 %` à `7,0 %` (`9,7 %` en 2022 `uncertain`), **`qDelta`** et **`fidelity`** `≤ 1,8 %` chacun, et **`mob` / `turnout`** `≈ 0,0–0,2 %` (invariance de premier ordre sous S2). Sur `2027 Le Pen–Mélenchon`, couper `lfiLeftU` augmente la variance (`+1,4 %` en `leg2024`, `+11,1 %` en `uncertain`) car le tirage triangulaire `[35 ; 75 %]` amortit la corrélation avec `rfShock`.
+   - **Duels hors RN (`2012 Hollande–Sarkozy`, `2027 Mélenchon–Philippe`) :** largeur `6,62` à `8,31 pts` ; `dirichlet` (`38,5 %` / `61,4 %`) + $\eta$ (`σ = 2,0 pts`, `54,8 %` / `33,3 %`) représentent `> 93 %` de la variance T2.
+   - **Part du 2nd tour face à la campagne 1er tour (J−82 / J−143) :** l'ensemble des aléas T2 pèse `5,0 %` à `10,0 %` de la variance totale (`9,5–10,1 pts` contre `30,6–42,8 pts` de largeur totale), et $\eta$ `3,3 %` à `6,5 %`.
+2. **Audit de double emploi :** aucun doublon avec `dirichlet` (aléa indépendant par bloc) ni avec les petits paramètres (`< 2 %`). Le recouvrement avec `rfShock` est seulement partiel car `rfShock` est borné à `[0 ; 1]` ; à `σ_η = 0`, la largeur conditionnelle (`5,6–6,5 pts`) est trop étroite pour couvrir 2022 en LOO R2.4 (`[62,4 ; 68,0]` vs `58,55 %`).
+3. **Calage conditionnel CRPS de $\sigma_\eta$ sur `[0 ; 5]` (LOO R2.4, 1er tour réel fixé) :**
+   - **Primaire (`leg2024` LOO + finalistes mesurés R2.5) :** à `σ_η = 3,00`, 2017 est couvert (`[61,3 ; 71,0]`, CRPS `0,899`) mais **2022 est hors IC** (`[60,5 ; 70,2]` vs `58,55 %`, CRPS `4,781`, larg. moy. `9,69`, CRPS moy. `2,840`). La règle §5.2 sélectionne **`σ_η = 4,75 pts`** (identique à `N = 10 000`) : couverture 2/2, CRPS moy. `2,768` (`−2,54 %`, `−2,95 %` à `10k`), mais largeur moy. **`13,55 pts` (`+3,86 pts`)**.
+   - **Parallèle (`uncertain` LOO + R2.5) :** `σ_η = 4,50 pts` (`4,25` à `10k`), larg. `13,31 pts` (`+3,24`), CRPS `2,566` (`−2,23 %`).
+   - **Comparaisons (jamais retenues) :** S3 neutre `leg2024` et `uncertain`, ainsi que Harris 2026 `leg2024` et `uncertain`, sélectionnent toutes **`σ_η = 4,00 pts`** (largeur `+2,16` à `+2,20 pts`, CRPS `−0,82 %` à `−1,58 %`).
+   - Toute diminution sous `3,00 pts` dégrade strictement le CRPS (`+7,0 %` à `+10,8 %` à `0,00`) et ne couvre pas 2022.
+4. **Décision (26/11/2026, application stricte §5.3) :** le critère d'adoption pré-enregistré « la largeur moyenne baisse » échoue sur toutes les courbes (en LOO sur `n = 2` scrutins RN, 2022 est hors enveloppe `[2017, 2024]`, de sorte que `σ_η` absorbe un écart de centrage `+5–6 pts`). **$\sigma_\eta$ reste inchangé (`3,0 pts` face au RN, `2,0 pts` hors RN).** Conformément à §5.2 étape 4, la largeur et le CRPS du 2nd tour sont ajoutés au backtest (`backtest.ts`) et le budget complet d'incertitude + la courbe CRPS complète `[0 ; 5]` sont publiés sur `/methodologie`.
+
+---
+
 ## 26/11/2026 — v2.3 (adoptée par décision explicite) — Refonte structurelle du moteur du 2nd tour (P1-bis, S1–S5) et 3e ancre présidentielle 2017 (P2)
 
 **Règles pré-enregistrées le 26/11/2026 avant tout calcul P1-bis** (plan `docs/plan-front-republicain.md`, section 12 ; règles P2 pré-enregistrées le 24/11/2026). **Statut : adoptée en v2.3 (`STORAGE_VERSION = 18`) par décision explicite du propriétaire du projet**, hors réussite stricte des critères pré-enregistrés (détail ci-dessous, comme l'amendement v2.2 du 23/11/2026 sur la projection de campagne). Les sondages directs de 2nd tour 2027 ne servent jamais au calage ; leurs effets (R1.5-bis) n'ont été relevés qu'après les décisions B2 et B4.

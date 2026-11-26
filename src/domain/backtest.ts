@@ -2,7 +2,7 @@ import { defaultProjectionSettings, projectCampaign } from './campaignProjection
 import { runMonteCarlo } from './monteCarlo'
 import type { MonteCarloInput } from './monteCarlo'
 import { addDays, averageHypothesisPolls, daysBetween, normalize, pollWeight, weightedMeanByKey } from './pollAverage'
-import { calibrationDates } from './sigmaCalibration'
+import { calibrationDates, crpsFromSamples } from './sigmaCalibration'
 import type { CalibrationYear } from './sigmaCalibration'
 import { aggregatedProfileDropout, computeSecondRound, pollBiasGaps } from './secondRound'
 import {
@@ -77,6 +77,10 @@ export interface CoverageBacktestYear {
   secondRoundCovered: boolean | null
   secondRoundP10: number | null
   secondRoundP90: number | null
+  /** Largeur de l'intervalle [P10 ; P90] du 2nd tour (pts) ; null en 2012. */
+  secondRoundWidth80: number | null
+  /** CRPS empirique de la distribution simulée du 2nd tour face au résultat officiel (pts) ; null en 2012. */
+  secondRoundCrps: number | null
   secondRoundActual: number | null
 }
 
@@ -491,6 +495,7 @@ export function computeBacktest(
         electionDateOverride: ref.electionDate,
         iterations: COVERAGE_MC_ITERATIONS,
         seed: COVERAGE_MC_SEED,
+        returnSamples: true,
       })
       const mcCross = runMonteCarlo({
         data,
@@ -519,6 +524,10 @@ export function computeBacktest(
       }).length
       const srP10 = mcRaw.displayedDuel.aScoreP10
       const srP90 = mcRaw.displayedDuel.aScoreP90
+      const srCrps =
+        actualAntiRn === null || !mcRaw.displayedDuelSamples
+          ? null
+          : crpsFromSamples(mcRaw.displayedDuelSamples, actualAntiRn)
       coverage80.push({
         year,
         effectiveDaysBefore,
@@ -531,6 +540,8 @@ export function computeBacktest(
         secondRoundCovered: actualAntiRn === null ? null : actualAntiRn >= srP10 && actualAntiRn <= srP90,
         secondRoundP10: actualAntiRn === null ? null : srP10,
         secondRoundP90: actualAntiRn === null ? null : srP90,
+        secondRoundWidth80: actualAntiRn === null ? null : srP90 - srP10,
+        secondRoundCrps: srCrps,
         secondRoundActual: actualAntiRn,
       })
     }
