@@ -2269,10 +2269,25 @@
         "attal": 44,
         "lepen": 56
       }
+    },
+    {
+      "origin": "wikipedia",
+      "institute": "OpinionWay",
+      "sponsor": "JDD",
+      "fieldwork": {
+        "start": "2026-09-02",
+        "end": "2026-09-03"
+      },
+      "sampleSize": 1003,
+      "url": "https://www.commission-des-sondages.fr/notices/files/notices/2026/septembre/10252-pres-iv-opinionway-jdd-7-septembre.pdf",
+      "scores": {
+        "attal": 45,
+        "lepen": 55
+      }
     }
   ],
   "period": {
     "label": "Octobre-décembre 2026",
-    "start": "2026-09-09"
+    "start": "2026-09-02"
   }
 }
