@@ -165,10 +165,38 @@ describe('migration des réglages (→ v17), front républicain par électorat e
     expect(customKept.abstainerAntiRnShare).toBeCloseTo(0.62, 9)
   })
 
-  it('version trop récente (> 17) : réglages par défaut', async () => {
-    const s = await rehydrate(99, { firstRoundTurnout: 85 })
+  it('v18 → v19 : conserve tous les réglages v18 et initialise betweenRoundsBias à "none"', async () => {
+    const s = await rehydrate(18, {
+      excludedPolls: ['elabe-20261016'],
+      abstainerMobilization: 0.18,
+      abstainerAntiRnShare: 0.6,
+      republicanFront: { gauche: 0.5, centre: 0.5, droite: 0.5 },
+    })
+    expect(s.excludedPolls).toEqual(['elabe-20261016'])
+    expect(s.abstainerMobilization).toBeCloseTo(0.18, 9)
+    expect(s.abstainerAntiRnShare).toBeCloseTo(0.6, 9)
+    expect(s.betweenRoundsBias).toBe('none')
+  })
+
+  it('action setBetweenRoundsBias et réinitialisations (resetTransfers / resetAll)', () => {
+    const st = useSettings.getState()
+    expect(st.betweenRoundsBias).toBe('none')
+    st.setBetweenRoundsBias('2022')
+    expect(useSettings.getState().betweenRoundsBias).toBe('2022')
+    st.setBetweenRoundsBias('2017')
+    expect(useSettings.getState().betweenRoundsBias).toBe('2017')
+    st.resetTransfers()
+    expect(useSettings.getState().betweenRoundsBias).toBe('none')
+    st.setBetweenRoundsBias('2022')
+    st.resetAll()
+    expect(useSettings.getState().betweenRoundsBias).toBe('none')
+  })
+
+  it('version trop récente (> 19) : réglages par défaut', async () => {
+    const s = await rehydrate(99, { firstRoundTurnout: 85, betweenRoundsBias: '2017' })
     expect(s.firstRoundTurnout).toBe(74)
     expect(s.abstainerMobilization).toBeCloseTo(0.225, 9)
     expect(s.abstainerAntiRnShare).toBeNull()
+    expect(s.betweenRoundsBias).toBe('none')
   })
 })

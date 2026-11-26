@@ -3,7 +3,7 @@ import type { SimulationResult, VoteFlow as Flow } from '../../domain/types'
 import { newVoterReferenceRates } from '../../hooks/useSimulation'
 import { useSettings } from '../../state/settingsStore'
 import { cand, colorVars, transferLabel } from '../candidates'
-import { num, pct, shownScore } from '../format'
+import { num, pct, pts, shownScore } from '../format'
 import { abstentionNote, unmeasuredNote } from '../newVotersText'
 import { Segmented } from './controls'
 import { InfoTip } from './InfoTip'
@@ -118,6 +118,14 @@ export function VoteFlow({ result }: { result: SimulationResult }) {
         )}
         {flows.some((f) => f.like) &&
           ' Les électeurs d’un petit candidat se reportent comme les électorats indiqués (réglages).'}
+        {sr.betweenRoundsBiasApplied && sr.duel.challengerId && (
+          <>
+            {' '}
+            Les flux ci-dessus précèdent le décalage optionnel entre-deux-tours{' '}
+            {sr.betweenRoundsBiasApplied.mode} ({pts(sr.betweenRoundsBiasApplied.shiftPts)} ajoutés au score final de{' '}
+            {cand(sr.duel.challengerId).shortName}).
+          </>
+        )}
       </p>
     </section>
   )

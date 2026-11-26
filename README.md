@@ -14,7 +14,7 @@ Ce simulateur reconstruit les scénarios de 1er et 2nd tour de l'élection prés
 
 - **Vite, React 19, TypeScript** (strict) et **Tailwind CSS v4** : SPA statique.
 - **Radix UI** (composants accessibles) et **Motion** (animations).
-- **Zustand** (`persist`) pour les réglages locaux (`localStorage`, version 18).
+- **Zustand** (`persist`) pour les réglages locaux (`localStorage`, version 19).
 - **Zod** pour la validation des données JSON au chargement.
 - **Vitest** pour les tests et **bun** comme gestionnaire de paquets.
 
@@ -40,7 +40,7 @@ src/
             campaignProjection, transfers, newVoters, secondRound, backtest, sensitivity, monteCarlo, simulate.
   data/     Fichiers JSON sourcés + validation Zod et contrôles croisés (schema.ts).
   sync/     Synchronisation Wikipedia, flux RSS d'instituts et notices (scripts/sync-polls.ts).
-  state/    Réglages utilisateur persistés (settingsStore.ts, v18).
+  state/    Réglages utilisateur persistés (settingsStore.ts, v19).
   hooks/    useSimulation(), backtestReport, newVoterReferenceRates.
   ui/       Composants React, graphiques (Sankey, trajectoire, barres 0–100 % + IC 80 %), page /methodologie.
 docs/
@@ -59,7 +59,7 @@ docs/
 | `src/data/transfers-2027-declared.json` | Option activable : reports et fidélités déclarés 2026 (Harris Interactive / Odoxa) et paramètres de correction logit multinomial. |
 | `src/data/reference-2012.json` | Présidentielle 2012 (deux tours, Conseil constitutionnel) pour le backtest. |
 | `src/data/second-round-dropout.json` | Totaux agrégés des 342 duels des législatives 2024 (contrôle interne), repères présidentiels 2002–2012 et statistiques nouveaux votants (Ifop 2022, Insee). |
-| `src/data/second-round-poll-bias.json` | Sondages directs de 2nd tour (2017 et 2022) avant le 1er tour (`avantPremierTour`, pour l'écart historique et le RMSE) et entre les deux tours (`entreDeuxTours`, affichés pour mémoire uniquement) ; jamais utilisés dans les calculs. |
+| `src/data/second-round-poll-bias.json` | Sondages directs de 2nd tour (2017 et 2022) avant le 1er tour (`avantPremierTour`, pour l'écart historique et le RMSE) et entre les deux tours (`entreDeuxTours`, affichés pour mémoire par défaut ; écart des derniers sondages applicable en option désactivée par défaut sur les duels face au RN). |
 | `src/data/legislative-duel-polls-2024.json` | Sondages de circonscription d'entre-deux-tours des législatives 2024 (duels uniquement) et table explicite `candidateParties`, affichés pour les seuls duels de partis strictement identiques (P4) ; jamais utilisés dans les calculs. |
 | `src/data/second-round-reference-matrices.json` | Matrices brutes de reports des enquêtes Ipsos et Ifop (2017 et 2022) utilisées pour les audits P1 / P1-bis / P2 / P3. |
 | `src/data/second-round-p3-audit.json` | Audit P3 (décomposition de variance du 2nd tour et courbe CRPS conditionnelle de `σ_η` sur `[0 ; 5]`, produit par `scripts/evaluate-p3.ts --write`). |

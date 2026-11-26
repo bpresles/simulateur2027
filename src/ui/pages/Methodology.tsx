@@ -1243,21 +1243,27 @@ export function Methodology({ result }: { result: SimulationResult }) {
               mobilisation des abstentionnistes, fidélité des finalistes, report gauche hors LFI).
             </p>
             <p>
-              <strong>Sondages de l’entre-deux-tours (P4, affichage seulement) :</strong> le bloc du 2nd tour
-              affiche pour mémoire deux tableaux distincts, sans jamais les intégrer dans aucun calcul ni dans les
-              mesures d’écart historique avant 1er tour (<code>pollBiasGaps</code>, <code>directPollRmse</code>) :
+              <strong>Sondages de l’entre-deux-tours (P4, désactivés par défaut) :</strong> le bloc du 2nd tour
+              affiche deux tableaux distincts, jamais utilisés dans les réglages par défaut ni dans les mesures
+              d’écart historique avant 1er tour (<code>pollBiasGaps</code>, <code>directPollRmse</code>, backtest) :
               (i) l’ensemble des sondages publiés entre les deux tours jusqu’à l’interdiction légale en 2017
               (22 sondages, 23/04 au 05/05/2017) et 2022 (42 sondages, 10/04 au 22/04/2022) pour Macron – Le Pen
-              (2002 exclu) ; (ii) les sondages de circonscription d’entre-deux-tours des législatives 2024 (duels
-              uniquement, triangulaires exclues, stockés dans <code>legislative-duel-polls-2024.json</code>) selon
-              une règle d’identité stricte des partis écrite candidat par candidat (un allié ou une coalition ne
-              compte pas). Après inventaire (Wikipédia FR/EN, notices de la Commission des sondages n° 9865 à
-              9888 et publications d’instituts de juillet 2024), seul un duel de circonscription d’entre-deux-tours
-              a été identifié : la 6e circonscription du Calvados (Ifop-Fiducial pour Sud Radio, 02-03/07/2024,
-              n = 611 inscrits, Renaissance – RN : Élisabeth Borne 54 % contre 56,36 % au résultat officiel),
-              affiché uniquement sur le duel Attal – Le Pen. Aucun sondage de circonscription d’entre-deux-tours
-              n’ayant été identifié pour les autres paires de partis (notamment LFI – RN, Horizons – RN, LR – RN,
-              Place publique – RN), rien n’est affiché pour ces duels.
+              (2002 exclu) ; une option facultative (désactivée par défaut, accessible dans les paramètres de la
+              simulation et les réglages avancés) permet toutefois à l’utilisateur d’appliquer l’écart mesuré entre
+              les derniers sondages avant l’interdiction légale et le résultat officiel — 2022 (+2,3 pts) ou 2017
+              (+3,4 pts) — au score simulé de l’adversaire du RN sur les duels face au RN (score central et
+              Monte-Carlo, sans effet hors duel RN), avec avertissement explicite sur le risque de double compte
+              lorsque les matrices historiques « jour du vote » sont actives ; (ii) les sondages de circonscription
+              d’entre-deux-tours des législatives 2024 (duels uniquement, triangulaires exclues, stockés dans{' '}
+              <code>legislative-duel-polls-2024.json</code>) selon une règle d’identité stricte des partis écrite
+              candidat par candidat (un allié ou une coalition ne compte pas), jamais utilisés dans le calcul. Après
+              inventaire (Wikipédia FR/EN, notices de la Commission des sondages n° 9865 à 9888 et publications
+              d’instituts de juillet 2024), seul un duel de circonscription d’entre-deux-tours a été identifié : la
+              6e circonscription du Calvados (Ifop-Fiducial pour Sud Radio, 02-03/07/2024, n = 611 inscrits,
+              Renaissance – RN : Élisabeth Borne 54 % contre 56,36 % au résultat officiel), affiché uniquement sur
+              le duel Attal – Le Pen. Aucun sondage de circonscription d’entre-deux-tours n’ayant été identifié pour
+              les autres paires de partis (notamment LFI – RN, Horizons – RN, LR – RN, Place publique – RN), rien
+              n’est affiché pour ces duels.
             </p>
           </div>
 

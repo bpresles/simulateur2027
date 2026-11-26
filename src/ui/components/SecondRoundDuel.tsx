@@ -74,7 +74,16 @@ export function SecondRoundDuel({ result }: { result: SimulationResult }) {
           {pct(sr.participation, 1)}, exprimés T2 {pct(sr.expressed2, 1)} des inscrits, soit un abandon net
           équivalent de {pct(sr.netDropout, 1)} ; nouveaux votants {pct(sr.newVoters, 1)} des inscrits).
           Fidélité appliquée : {cand(sr.a).shortName} {pct(sr.fidelity.a.loyal, 0)}, {cand(sr.b).shortName}{' '}
-          {pct(sr.fidelity.b.loyal, 0)}. Détail dans les{' '}
+          {pct(sr.fidelity.b.loyal, 0)}.
+          {sr.betweenRoundsBiasApplied && sr.duel.challengerId && (
+            <>
+              {' '}
+              Écart entre-deux-tours {sr.betweenRoundsBiasApplied.mode} appliqué (
+              <strong className="num font-medium text-ink-2">{pts(sr.betweenRoundsBiasApplied.shiftPts)}</strong>{' '}
+              pour {cand(sr.duel.challengerId).shortName}).
+            </>
+          )}{' '}
+          Détail dans les{' '}
           <Link to="simulateur" hash="flow-title" className="link">
             reports
           </Link>
@@ -82,7 +91,7 @@ export function SecondRoundDuel({ result }: { result: SimulationResult }) {
         </p>
         <MethodLine result={result} />
         <PollBiasLine result={result} />
-        <BetweenRoundsTable />
+        <BetweenRoundsTable result={result} />
         <LegislativeDuelTable aId={sr.a} bId={sr.b} />
         <SensitivityTable result={result} />
       </div>
@@ -141,15 +150,34 @@ function PollBiasLine({ result }: { result: SimulationResult }) {
   )
 }
 
-function BetweenRoundsTable() {
+function BetweenRoundsTable({ result }: { result: SimulationResult }) {
+  const mode = useSettings((s) => s.betweenRoundsBias)
   if (BETWEEN_ROUNDS.length === 0) return null
+  const enabled = mode !== 'none'
+  const isRnDuel = result.secondRound.duel.kind === 'rn-sourced'
+  const activeSummary = enabled ? BETWEEN_ROUNDS.find((s) => String(s.year) === mode) : undefined
+  const heading = !enabled
+    ? 'Entre-deux-tours (pour mémoire, non utilisé dans le calcul)'
+    : isRnDuel && activeSummary
+      ? `Entre-deux-tours (écart ${mode} appliqué au calcul : ${pts(activeSummary.lastDayGap)})`
+      : `Entre-deux-tours (option ${mode} activée, sans effet hors duel RN)`
+
   return (
     <div className="mt-4 rounded-lg border border-rule px-3.5 py-3 text-sm text-ink-2">
-      <h3 className="font-medium text-ink">Entre-deux-tours (pour mémoire, non utilisé dans le calcul)</h3>
+      <h3 className="font-medium text-ink">{heading}</h3>
       <p className="mt-1 text-xs text-ink-3">
         Sondages publiés entre le soir du 1er tour et le dernier jour avant l’interdiction légale en 2017 et
         2022 (Macron – Le Pen), comparés au résultat officiel. Écart = résultat − sondages (points sur le score
         de Macron). 2002 exclu.
+        {enabled && isRnDuel && activeSummary && (
+          <>
+            {' '}
+            <strong className="font-medium text-ink">
+              Option active : {pts(activeSummary.lastDayGap)} ajoutés au score de l’adversaire du RN
+            </strong>{' '}
+            (attention au risque de double compte avec les matrices « jour du vote » en base historique).
+          </>
+        )}
       </p>
       <div className="mt-2 overflow-x-auto">
         <table className="w-full text-left text-xs">
@@ -164,28 +192,40 @@ function BetweenRoundsTable() {
             </tr>
           </thead>
           <tbody>
-            {BETWEEN_ROUNDS.map((s) => (
-              <tr key={s.year} className="border-b border-rule/60 align-top">
-                <td className="py-1.5 pr-3 font-medium text-ink">
-                  {s.year} ({s.duel})
-                </td>
-                <td className="num py-1.5 pr-3">
-                  {s.pollCount} ({date(s.electionDate)} – {date(s.lastDayDate)})
-                </td>
-                <td className="num py-1.5 pr-3 text-right">{pct(s.meanAntiRn)}</td>
-                <td className="num py-1.5 pr-3 text-right">
-                  {pct(s.lastDayMeanAntiRn)} ({s.lastDayCount} au {date(s.lastDayDate)})
-                </td>
-                <td className="num py-1.5 pr-3 text-right font-medium text-ink">
-                  <a href={s.result.source.url} target="_blank" rel="noreferrer" className="link">
-                    {pct(s.result.antiRn, 2)}
-                  </a>
-                </td>
-                <td className="num py-1.5 text-right">
-                  {pts(s.lastDayGap)} / {pts(s.meanGap)}
-                </td>
-              </tr>
-            ))}
+            {BETWEEN_ROUNDS.map((s) => {
+              const isSelected = enabled && String(s.year) === mode
+              return (
+                <tr
+                  key={s.year}
+                  className={`border-b border-rule/60 align-top ${isSelected ? 'bg-ballpoint-soft/30' : ''}`}
+                >
+                  <td className="py-1.5 pr-3 font-medium text-ink">
+                    {s.year} ({s.duel})
+                  </td>
+                  <td className="num py-1.5 pr-3">
+                    {s.pollCount} ({date(s.electionDate)} – {date(s.lastDayDate)})
+                  </td>
+                  <td className="num py-1.5 pr-3 text-right">{pct(s.meanAntiRn)}</td>
+                  <td className="num py-1.5 pr-3 text-right">
+                    {pct(s.lastDayMeanAntiRn)} ({s.lastDayCount} au {date(s.lastDayDate)})
+                  </td>
+                  <td className="num py-1.5 pr-3 text-right font-medium text-ink">
+                    <a href={s.result.source.url} target="_blank" rel="noreferrer" className="link">
+                      {pct(s.result.antiRn, 2)}
+                    </a>
+                  </td>
+                  <td className="num py-1.5 text-right">
+                    <span className={isSelected && isRnDuel ? 'font-semibold text-ballpoint' : ''}>
+                      {pts(s.lastDayGap)}
+                    </span>
+                    {isSelected && isRnDuel && (
+                      <span className="ml-1 text-[0.7rem] font-medium text-ballpoint">(appliqué)</span>
+                    )}{' '}
+                    / {pts(s.meanGap)}
+                  </td>
+                </tr>
+              )
+            })}
           </tbody>
         </table>
       </div>

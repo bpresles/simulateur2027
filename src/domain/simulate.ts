@@ -4,7 +4,7 @@ import { runMonteCarlo } from './monteCarlo'
 import type { CandidacyScenario } from './monteCarlo'
 import { newVoterRates } from './newVoters'
 import { averagePolls } from './pollAverage'
-import { computeSecondRound, pollBiasGaps } from './secondRound'
+import { betweenRoundsLastDayGap, computeSecondRound, pollBiasGaps } from './secondRound'
 import {
   DEFAULT_LFI_LEFT_TRANSFER_RANGE,
   defaultRepublicanFront,
@@ -43,6 +43,7 @@ export function defaultSettings(): Settings {
     firstRoundTurnout: 74,
     abstainerMobilization: 0.225,
     abstainerAntiRnShare: null,
+    betweenRoundsBias: 'none',
     selectedDuel: null,
   }
 }
@@ -145,6 +146,7 @@ export function simulate(data: SimulationData, settings: Settings, options: Simu
   const profiles = effectiveProfiles(transfers, declaredTransfers, settings, { rnId })
   const minorTransfers = minorTransferParts(polls.candidates, settings.minorTransfers)
   const { bnShare } = newVoterRates(data)
+  const betweenRoundsShiftPts = betweenRoundsLastDayGap(data.secondRoundPollBias, settings.betweenRoundsBias)
 
   const evaluateDuel = (aId: CandidateId, bId: CandidateId): SecondRoundResult => {
     const duel = resolveDuel(aId, bId, candidatesById)
@@ -171,6 +173,8 @@ export function simulate(data: SimulationData, settings: Settings, options: Simu
       abstainerMobilization: settings.abstainerMobilization,
       abstainerAntiRnShare: effectiveAbstainerAntiRnShare(settings.abstainerAntiRnShare, rfStrength),
       republicanFrontStrength: rfStrength,
+      betweenRoundsBiasMode: settings.betweenRoundsBias,
+      betweenRoundsShiftPts,
       secondRoundPolls: polls.secondRoundPolls,
       minorTransfers,
     }

@@ -1,4 +1,5 @@
 import { CROSS_BLOC_LEAK, TARGET_CONCENTRATION } from './campaignProjection'
+import { betweenRoundsLastDayGap } from './secondRound'
 import { simulate } from './simulate'
 import type { SimulateOptions } from './simulate'
 import { REPUBLICAN_FRONT_PRESETS, correctDeclaredFidelityLogit } from './transfers'
@@ -165,6 +166,34 @@ export function computeSensitivity(data: SimulationData, settings: Settings): Se
             ),
     ],
   })
+  if (isRnDuel) {
+    const mode = settings.betweenRoundsBias
+    const g22 = betweenRoundsLastDayGap(data.secondRoundPollBias, '2022')
+    const g17 = betweenRoundsLastDayGap(data.secondRoundPollBias, '2017')
+    const fmtGap = (g: number) => `+${fmtDec(Math.round(g * 10) / 10)} pts`
+    rows.push({
+      id: 'between-rounds-bias',
+      label: 'Écart derniers sondages avant T2 → résultat',
+      active:
+        mode === 'none'
+          ? 'désactivé (défaut)'
+          : mode === '2022'
+            ? `2022 (${fmtGap(g22)})`
+            : `2017 (${fmtGap(g17)})`,
+      variants: (['none', '2022', '2017'] as const)
+        .filter((m) => m !== mode)
+        .map((m) =>
+          variant(
+            m === 'none'
+              ? 'Désactivé (défaut)'
+              : m === '2022'
+                ? `Écart 2022 (${fmtGap(g22)})`
+                : `Écart 2017 (${fmtGap(g17)})`,
+            { ...pinned, betweenRoundsBias: m },
+          ),
+        ),
+    })
+  }
   const lfi = base.secondRound.lfiLeftSensitivity
   if (lfi) {
     const rnIsA = base.secondRound.duel.rnId === a

@@ -3,6 +3,7 @@ import { blendProfiles, blocRow, nonRnSplit } from './transfers'
 import type { ProfileTable } from './transfers'
 import type {
   Aggregated2024Profile,
+  BetweenRoundsBiasMode,
   BetweenRoundsElectionSummary,
   Bloc,
   Candidate,
@@ -148,6 +149,19 @@ export function betweenRoundsSummaries(data: SecondRoundPollBiasData): BetweenRo
 }
 
 /**
+ * Écart (résultat réel − moyenne des derniers sondages avant le 2nd tour, en points sur le score de l'adversaire du RN)
+ * calculé dynamiquement depuis `second-round-poll-bias.json` pour le mode choisi (`'none'` → `0`, `'2022'` → `+2,35`, `'2017'` → `+3,43`).
+ */
+export function betweenRoundsLastDayGap(
+  data: SecondRoundPollBiasData,
+  mode: BetweenRoundsBiasMode,
+): number {
+  if (mode === 'none') return 0
+  const year = mode === '2017' ? 2017 : 2022
+  return betweenRoundsSummaries(data).find((s) => s.year === year)?.lastDayGap ?? 0
+}
+
+/**
  * Règle d'identité stricte (P4) : retourne les sondages de circonscription d'entre-deux-tours des
  * législatives 2024 (duels uniquement) dont la paire non ordonnée de partis est strictement identique
  * à celle du duel affiché `(a, b)`. La correspondance candidat 2027 → parti est lue exclusivement dans
@@ -263,6 +277,10 @@ export interface SecondRoundInput {
   abstainerAntiRnShare: number | null
   /** Force du front républicain appliquée à ce duel (0 à 1), ou null hors duel RN (informatif). */
   republicanFrontStrength?: number | null
+  /** Mode d'écart entre-deux-tours optionnel ('none' par défaut). */
+  betweenRoundsBiasMode?: BetweenRoundsBiasMode
+  /** Décalage en points appliqué à l'adversaire du RN sur un duel RN (0 par défaut). */
+  betweenRoundsShiftPts?: number
   secondRoundPolls: SecondRoundPoll[]
   /** Petits candidats : électorats principaux dont leurs électeurs suivent les reports (poids de total 1). */
   minorTransfers?: Record<CandidateId, ReferencePart[]>
@@ -389,8 +407,24 @@ export function computeSecondRound(input: SecondRoundInput): SecondRoundResult {
     nonExpressed: sumFlows('abstention') + abstainers.nonExpressed + blankNull.nonExpressed,
   }
   const expressed2 = totals.a + totals.b
-  const pct =
+  const rawPct =
     expressed2 > 0 ? { a: (100 * totals.a) / expressed2, b: (100 * totals.b) / expressed2 } : { a: 50, b: 50 }
+  const appliedShift =
+    duel.kind === 'rn-sourced' && input.betweenRoundsShiftPts ? input.betweenRoundsShiftPts : 0
+  let pct = rawPct
+  if (appliedShift !== 0) {
+    if (challengerIsA) {
+      const aPct = clamp(rawPct.a + appliedShift, 1, 99)
+      pct = { a: aPct, b: 100 - aPct }
+    } else {
+      const bPct = clamp(rawPct.b + appliedShift, 1, 99)
+      pct = { a: 100 - bPct, b: bPct }
+    }
+  }
+  const betweenRoundsBiasApplied =
+    appliedShift !== 0 && input.betweenRoundsBiasMode && input.betweenRoundsBiasMode !== 'none'
+      ? { mode: input.betweenRoundsBiasMode, shiftPts: appliedShift }
+      : null
   const netDropout = expressed1 > 0 ? 100 * (1 - expressed2 / expressed1) : 0
 
   const duelIds = new Set([a, b])
@@ -420,6 +454,7 @@ export function computeSecondRound(input: SecondRoundInput): SecondRoundResult {
     fidelity: { a: fidelityA, b: fidelityB },
     effectiveAbstainerAntiRnShare: effectiveAntiRnShare,
     republicanFrontStrength: duel.kind === 'rn-sourced' ? (input.republicanFrontStrength ?? null) : null,
+    betweenRoundsBiasApplied,
     netDropout,
     directPolls,
   }

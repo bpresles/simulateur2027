@@ -1,5 +1,16 @@
 # Journal méthodologique — simulateur2027
 
+## 26/11/2026 — Option facultative : écart entre derniers sondages d'entre-deux-tours et résultats réels (`STORAGE_VERSION = 19`)
+
+**Réglage par défaut strictement inchangé** (`betweenRoundsBias = 'none'`, aucun impact sur le scénario par défaut, le Monte-Carlo par défaut, `pollBiasGaps`, `directPollRmse` ni le backtest).
+
+- **Option utilisateur (« Tenir compte des écarts entre les derniers sondages avant le 2nd tour et les résultats réels ») :** désactivée par défaut, proposée dans les paramètres de la simulation (`ScenarioBar`) et les réglages avancés (`SettingsSheet`, onglet `reports`).
+- **Mécanisme :** lorsqu'elle est activée, l'utilisateur choisit l'écart mesuré entre les derniers sondages d'entre-deux-tours (dernier jour avant l'interdiction légale) et le résultat officiel — calculé dynamiquement depuis `second-round-poll-bias.json` via `betweenRoundsLastDayGap` (`2022 : +2,35 pts`, 5 sondages du 22/04/2022 ; `2017 : +3,43 pts`, 3 sondages du 05/05/2017). Ce décalage est appliqué au score simulé de l'adversaire du RN (déterministe et Monte-Carlo, sans tirage PRNG supplémentaire) sur les seuls duels face au RN, et reste sans effet sur les duels hors RN.
+- **Affichage et précaution méthodologique :** lorsque l'option est active, la mention « non utilisé dans le calcul » disparaît du bloc « Entre-deux-tours » au profit de l'écart appliqué, la ligne du scrutin choisi est mise en évidence (`(appliqué)`), et un avertissement rappelle le risque de double compte en base historique (les matrices de reports provenant déjà d'enquêtes « jour du vote » et non des sondages directs T2). L'option figure également dans le tableau de sensibilité.
+- **Stockage (`STORAGE_VERSION = 19`) :** migration transparente depuis `v18` conservant tous les réglages existants avec `betweenRoundsBias = 'none'`.
+
+---
+
 ## 26/11/2026 — P3 (audit clôturé — σ_η inchangé selon §5.3) — Budget d'incertitude du 2nd tour et recalage de η
 
 **Règles pré-enregistrées le 26/11/2026 avant tout calcul P3** (plan `docs/plan-front-republicain.md`, section 5, décisions 4 et 11 du 24/11/2026), exécutées sur la base v2.3 (`68bfff3`, P1-bis S1–S5 + P2 3 ancres `s_2017 = 0,5502`, défaut `leg2024`). **Verdict (décision du 26/11/2026) : la modification de σ_η est rejetée selon les critères pré-enregistrés §5.3** (`σ_η = 3,0 pts` face au RN et `2,0 pts` hors RN sont conservés inchangés dans `monteCarlo.ts`, aucune modification de sortie Monte-Carlo ni de version de stockage). La décomposition de variance, la largeur/CRPS du 2nd tour et la courbe complète de σ_η sont publiées dans `backtest.ts`, `src/data/second-round-p3-audit.json` et `/methodologie`. Les sondages directs de 2nd tour 2027 ne servent jamais au calage.

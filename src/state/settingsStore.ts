@@ -9,6 +9,7 @@ import {
 } from '../domain/transfers'
 import { REPUBLICAN_FRONT_BLOCS } from '../domain/types'
 import type {
+  BetweenRoundsBiasMode,
   Bloc,
   BlocUsefulVote,
   CandidateId,
@@ -52,6 +53,7 @@ interface SettingsActions {
   setFirstRoundTurnout: (turnout: number) => void
   setAbstainerMobilization: (mob: number) => void
   setAbstainerAntiRnShare: (share: number | null) => void
+  setBetweenRoundsBias: (mode: BetweenRoundsBiasMode) => void
   setSelectedDuel: (duelId: string | null) => void
   resetTransfers: () => void
   resetAll: () => void
@@ -60,7 +62,7 @@ interface SettingsActions {
 export type SettingsStore = Settings & SettingsActions
 
 const STORAGE_KEY = 'simulateur2027:settings'
-const STORAGE_VERSION = 18
+const STORAGE_VERSION = 19
 
 export const useSettings = create<SettingsStore>()(
   persist(
@@ -153,6 +155,7 @@ export const useSettings = create<SettingsStore>()(
       setFirstRoundTurnout: (firstRoundTurnout) => set({ firstRoundTurnout }),
       setAbstainerMobilization: (abstainerMobilization) => set({ abstainerMobilization }),
       setAbstainerAntiRnShare: (abstainerAntiRnShare) => set({ abstainerAntiRnShare }),
+      setBetweenRoundsBias: (betweenRoundsBias) => set({ betweenRoundsBias }),
       setSelectedDuel: (selectedDuel) => set({ selectedDuel }),
       resetTransfers: () => {
         const d = defaultSettings()
@@ -167,6 +170,7 @@ export const useSettings = create<SettingsStore>()(
           firstRoundTurnout: d.firstRoundTurnout,
           abstainerMobilization: d.abstainerMobilization,
           abstainerAntiRnShare: d.abstainerAntiRnShare,
+          betweenRoundsBias: d.betweenRoundsBias,
         })
       },
       resetAll: () => set(defaultSettings()),
@@ -191,15 +195,25 @@ export const useSettings = create<SettingsStore>()(
         firstRoundTurnout: s.firstRoundTurnout,
         abstainerMobilization: s.abstainerMobilization,
         abstainerAntiRnShare: s.abstainerAntiRnShare,
+        betweenRoundsBias: s.betweenRoundsBias,
         selectedDuel: s.selectedDuel,
       }),
       migrate: (persisted, version) => {
-        if (version < 1 || version > 17 || !persisted || typeof persisted !== 'object')
+        if (version < 1 || version > 18 || !persisted || typeof persisted !== 'object')
           return defaultSettings()
         const old = persisted as Partial<Settings> & {
           hypothesisSetId?: string | null
           centerRnPresidentialWeight?: number
           lfiLeftTransfer?: number
+        }
+        if (version === 18) {
+          const defProj = defaultProjectionSettings()
+          return {
+            ...defaultSettings(),
+            ...old,
+            betweenRoundsBias: 'none',
+            projection: old.projection ? { ...defProj, ...old.projection } : defProj,
+          }
         }
         // v17 → v18 (v2.3 P1-bis) : réinitialise uniquement les anciens défauts (a = 0,20 → 0,225 ; q = 0,55 → null),
         // les choix explicites des utilisateurs sont conservés.
@@ -312,6 +326,7 @@ export function selectSettings(s: SettingsStore): Settings {
     firstRoundTurnout: s.firstRoundTurnout,
     abstainerMobilization: s.abstainerMobilization,
     abstainerAntiRnShare: s.abstainerAntiRnShare,
+    betweenRoundsBias: s.betweenRoundsBias,
     selectedDuel: s.selectedDuel,
   }
 }

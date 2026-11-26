@@ -1,4 +1,5 @@
 import { daysBetween } from './pollAverage'
+import { betweenRoundsLastDayGap } from './secondRound'
 import {
   applyRepublicanFrontRow,
   effectiveProfiles,
@@ -363,6 +364,7 @@ export function runMonteCarlo(input: MonteCarloInput): MonteCarloSummary {
   const nrRight = new Float64Array(4)
   let nrSampledAt = -1
   const bnClamped = clamp(blankNullShare, 0, 0.5)
+  const betweenRoundsShift = betweenRoundsLastDayGap(data.secondRoundPollBias, settings.betweenRoundsBias)
 
   const ensureProfile = (p: number, iter: number, rfShock: number, wDecl: number, lfiLeftU: number, edU: number) => {
     if (profSampledAt[p] === iter) return
@@ -542,8 +544,9 @@ export function runMonteCarlo(input: MonteCarloInput): MonteCarloSummary {
 
     const expressed2 = totA + totB
     const rawPctA = expressed2 > 0 ? (100 * totA) / expressed2 : 50
+    const brShift = d.kind === 0 ? (d.challengerIsA ? betweenRoundsShift : -betweenRoundsShift) : 0
     const shock = d.kind === 0 ? (d.challengerIsA ? commonShockRn : -commonShockRn) : commonShockNonRn
-    return clamp(rawPctA + shock, 1, 99)
+    return clamp(rawPctA + brShift + shock, 1, 99)
   }
 
   const [lfiLeftMin, lfiLeftMax] = [

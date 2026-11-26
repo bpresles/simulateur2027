@@ -10,6 +10,7 @@ import { BLOC_LABELS, BLOC_VOTERS, MINOR_CANDIDATES, cand, colorVars, transferLa
 import { num, pct } from '../format'
 import { provenanceClass } from '../provenance'
 import { AllianceSwitches } from './AllianceSwitches'
+import { BetweenRoundsBiasControl } from './BetweenRoundsBiasControl'
 import { ProvenanceLegend } from './Provenance'
 import { RepublicanFrontControls } from './RepublicanFrontControls'
 import { Segmented, Slider, Switch, TextButton } from './controls'
@@ -337,6 +338,7 @@ function SecondRoundParamsPanel({ result }: { result: SimulationResult }) {
   return (
     <div className="space-y-5 border-b border-rule pb-6">
       <RepublicanFrontControls compact result={result} />
+      <BetweenRoundsBiasControl idPrefix="settings" compact result={result} />
 
       <div className="rounded-md border border-rule bg-surface px-3 py-2.5 text-xs">
         <div className="flex items-center justify-between gap-2">

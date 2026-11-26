@@ -2,6 +2,7 @@ import { legislativeDuelPolls2024, simulationData as liveSimulationData } from '
 import { frozenData as simulationData } from '../test/frozenData'
 import {
   aggregatedProfileDropout,
+  betweenRoundsLastDayGap,
   betweenRoundsSummaries,
   computeSecondRound,
   directPollGapAlert,
@@ -597,5 +598,125 @@ describe('P4 — sondages de l’entre-deux-tours (affichage seulement) et règl
     expect(matchedLfiRn[0]!.gapA).toBeCloseTo(3, 6)
     // Place publique – RN ≠ PS – RN
     expect(matchingLegislativeDuelPolls(fixture, 'glucksmann', 'lepen')).toEqual([])
+  })
+
+  it('option facultative betweenRoundsBias : calcule dynamiquement les écarts 2022/2017 et décale uniquement les duels face au RN', () => {
+    const summaries = betweenRoundsSummaries(liveSimulationData.secondRoundPollBias)
+    const gapNone = betweenRoundsLastDayGap(liveSimulationData.secondRoundPollBias, 'none')
+    const gap2022 = betweenRoundsLastDayGap(liveSimulationData.secondRoundPollBias, '2022')
+    const gap2017 = betweenRoundsLastDayGap(liveSimulationData.secondRoundPollBias, '2017')
+    expect(gapNone).toBe(0)
+    expect(gap2022).toBeCloseTo(summaries.find((s) => s.year === 2022)!.lastDayGap, 10)
+    expect(gap2017).toBeCloseTo(summaries.find((s) => s.year === 2017)!.lastDayGap, 10)
+    expect(gap2022).toBeCloseTo(2.35, 4)
+    expect(gap2017).toBeCloseTo(3.4333, 3)
+
+    const electorate = { lepen: 40, melenchon: 20, ens: 20, eco: 10, lr: 5, rec: 5 }
+    const profiles = effectiveProfiles(transfers, declaredTransfers, defaultSettings())
+    const common = {
+      electorate,
+      profiles,
+      nonRnPresidential: transfers.nonRnPresidential,
+      fidelityA: { loyal: 94.75, cross: 1.75, abstention: 3.5 },
+      fidelityB: { loyal: 94.75, cross: 1.75, abstention: 3.5 },
+      candidatesById: byId,
+      firstRoundTurnout: 74,
+      blankNullShare: 0.025,
+      abstainerMobilization: 0.225,
+      abstainerAntiRnShare: null,
+      republicanFrontStrength: 1,
+      secondRoundPolls: [],
+    }
+
+    // Duel RN (a = RN, b = adversaire) : l'adversaire gagne +shiftPts, le RN perd -shiftPts
+    const baseRnA = computeSecondRound({
+      ...common,
+      a: 'lepen',
+      b: 'melenchon',
+      duel: resolveDuel('lepen', 'melenchon', byId),
+      betweenRoundsBiasMode: 'none',
+      betweenRoundsShiftPts: 0,
+    })
+    const shiftedRnA = computeSecondRound({
+      ...common,
+      a: 'lepen',
+      b: 'melenchon',
+      duel: resolveDuel('lepen', 'melenchon', byId),
+      betweenRoundsBiasMode: '2022',
+      betweenRoundsShiftPts: gap2022,
+    })
+    expect(baseRnA.betweenRoundsBiasApplied).toBeNull()
+    expect(shiftedRnA.betweenRoundsBiasApplied).toEqual({ mode: '2022', shiftPts: gap2022 })
+    expect(shiftedRnA.pct.b - baseRnA.pct.b).toBeCloseTo(gap2022, 8)
+    expect(shiftedRnA.pct.a - baseRnA.pct.a).toBeCloseTo(-gap2022, 8)
+    expect(shiftedRnA.pct.a + shiftedRnA.pct.b).toBeCloseTo(100, 10)
+    expect(shiftedRnA.totals.a + shiftedRnA.totals.b + shiftedRnA.totals.nonExpressed).toBeCloseTo(100, 10)
+
+    // Ordre inversé (a = adversaire, b = RN) : a gagne +shiftPts
+    const baseRnB = computeSecondRound({
+      ...common,
+      a: 'melenchon',
+      b: 'lepen',
+      duel: resolveDuel('melenchon', 'lepen', byId),
+      betweenRoundsBiasMode: 'none',
+      betweenRoundsShiftPts: 0,
+    })
+    const shiftedRnB = computeSecondRound({
+      ...common,
+      a: 'melenchon',
+      b: 'lepen',
+      duel: resolveDuel('melenchon', 'lepen', byId),
+      betweenRoundsBiasMode: '2017',
+      betweenRoundsShiftPts: gap2017,
+    })
+    expect(shiftedRnB.pct.a - baseRnB.pct.a).toBeCloseTo(gap2017, 8)
+    expect(shiftedRnB.pct.b - baseRnB.pct.b).toBeCloseTo(-gap2017, 8)
+    expect(shiftedRnB.betweenRoundsBiasApplied).toEqual({ mode: '2017', shiftPts: gap2017 })
+
+    // Duel hors RN : aucun effet même si l'option est active
+    const baseNonRn = computeSecondRound({
+      ...common,
+      a: 'melenchon',
+      b: 'ens',
+      duel: resolveDuel('melenchon', 'ens', byId),
+      betweenRoundsBiasMode: 'none',
+      betweenRoundsShiftPts: 0,
+    })
+    const shiftedNonRn = computeSecondRound({
+      ...common,
+      a: 'melenchon',
+      b: 'ens',
+      duel: resolveDuel('melenchon', 'ens', byId),
+      betweenRoundsBiasMode: '2017',
+      betweenRoundsShiftPts: gap2017,
+    })
+    expect(shiftedNonRn.pct).toEqual(baseNonRn.pct)
+    expect(shiftedNonRn.betweenRoundsBiasApplied).toBeNull()
+
+    // Intégration complète simulate() : décale score déterministe ET médiane Monte-Carlo sur duel RN
+    const baseSim = simulate(
+      liveSimulationData,
+      { ...defaultSettings(), selectedDuel: 'lepen|philippe', betweenRoundsBias: 'none' },
+      { monteCarloIterations: 200 },
+    )
+    const sim2022 = simulate(
+      liveSimulationData,
+      { ...defaultSettings(), selectedDuel: 'lepen|philippe', betweenRoundsBias: '2022' },
+      { monteCarloIterations: 200 },
+    )
+    const sim2017 = simulate(
+      liveSimulationData,
+      { ...defaultSettings(), selectedDuel: 'lepen|philippe', betweenRoundsBias: '2017' },
+      { monteCarloIterations: 200 },
+    )
+    expect(sim2022.secondRound.pct.b - baseSim.secondRound.pct.b).toBeCloseTo(gap2022, 6)
+    expect(sim2017.secondRound.pct.b - baseSim.secondRound.pct.b).toBeCloseTo(gap2017, 6)
+    const mcBase = baseSim.monteCarlo.displayedDuel
+    const mc2022 = sim2022.monteCarlo.displayedDuel
+    const mc2017 = sim2017.monteCarlo.displayedDuel
+    expect(mcBase.aScoreMedian - mc2022.aScoreMedian).toBeCloseTo(gap2022, 4)
+    expect(mcBase.aScoreMedian - mc2017.aScoreMedian).toBeCloseTo(gap2017, 4)
+    expect(mc2017.aWinProb).toBeLessThanOrEqual(mc2022.aWinProb)
+    expect(mc2022.aWinProb).toBeLessThanOrEqual(mcBase.aWinProb)
   })
 })

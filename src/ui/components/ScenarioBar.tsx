@@ -5,6 +5,7 @@ import { useSettings } from '../../state/settingsStore'
 import { cand } from '../candidates'
 import { fieldwork, num, pct } from '../format'
 import { AllianceSwitches } from './AllianceSwitches'
+import { BetweenRoundsBiasControl } from './BetweenRoundsBiasControl'
 import { Checkbox, Segmented, Switch } from './controls'
 import { RepublicanFrontControls } from './RepublicanFrontControls'
 import type { SettingsTab } from './SettingsSheet'
@@ -119,6 +120,9 @@ export function ScenarioBar({
                   </button>
                 }
               />
+
+              {/* Option facultative (désactivée par défaut) : écart derniers sondages avant T2 → résultat réel */}
+              <BetweenRoundsBiasControl idPrefix="scenario" result={result} />
             </div>
           </fieldset>
 
