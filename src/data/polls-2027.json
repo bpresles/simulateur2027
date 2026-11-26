@@ -1144,13 +1144,13 @@
             "glucksmann": 11,
             "attal": 4,
             "philippe": 9,
+            "villepin": 1,
             "retailleau": 4,
             "lisnard": 11,
             "dupont-aignan": 1,
             "lepen": 31,
             "zemmour": 3,
-            "riner": 4,
-            "villepin": 1
+            "riner": 4
           }
         },
         {
@@ -1163,13 +1163,13 @@
             "tondelier": 1,
             "glucksmann": 11,
             "philippe": 10,
+            "villepin": 2,
             "retailleau": 4,
             "lisnard": 11,
             "dupont-aignan": 1,
             "lepen": 31,
             "zemmour": 4,
-            "riner": 4,
-            "villepin": 2
+            "riner": 4
           }
         },
         {
@@ -1182,13 +1182,13 @@
             "tondelier": 2,
             "glucksmann": 11,
             "attal": 7,
+            "villepin": 2,
             "retailleau": 5,
             "lisnard": 12,
             "dupont-aignan": 1,
             "lepen": 30,
             "zemmour": 4,
-            "riner": 5,
-            "villepin": 2
+            "riner": 5
           }
         }
       ]
@@ -1284,7 +1284,7 @@
         },
         {
           "id": "H5",
-          "label": "Tondelier, Attal, Philippe, Retailleau, Lisnard, Riner, Villepin",
+          "label": "Tondelier, Attal, Philippe, Villepin, Retailleau, Lisnard, Riner",
           "scores": {
             "arthaud": 1,
             "melenchon": 17,
@@ -1293,13 +1293,13 @@
             "glucksmann": 9,
             "attal": 4,
             "philippe": 7,
+            "villepin": 2,
             "retailleau": 6,
             "lisnard": 9,
             "dupont-aignan": 2,
             "lepen": 32,
             "zemmour": 3,
-            "riner": 3,
-            "villepin": 2
+            "riner": 3
           }
         }
       ]
@@ -1338,7 +1338,7 @@
       "hypotheses": [
         {
           "id": "H1",
-          "label": "Attal, Philippe, Retailleau, Lisnard, Polony, Riner, Ruffin, Villepin",
+          "label": "Attal, Philippe, Villepin, Retailleau, Lisnard, Polony, Riner, Ruffin",
           "scores": {
             "arthaud": 0,
             "melenchon": 17,
@@ -1347,6 +1347,7 @@
             "glucksmann": 8,
             "attal": 4.5,
             "philippe": 10,
+            "villepin": 1.5,
             "retailleau": 4,
             "lisnard": 8,
             "dupont-aignan": 1.5,
@@ -1354,8 +1355,7 @@
             "zemmour": 3,
             "polony": 1,
             "riner": 4,
-            "ruffin": 2,
-            "villepin": 1.5
+            "ruffin": 2
           }
         },
         {
@@ -1482,11 +1482,11 @@
             "tondelier": 3,
             "glucksmann": 13.5,
             "philippe": 15,
+            "villepin": 2.5,
             "retailleau": 6,
             "dupont-aignan": 3,
             "lepen": 33,
-            "zemmour": 4.5,
-            "villepin": 2.5
+            "zemmour": 4.5
           }
         },
         {
@@ -1499,11 +1499,11 @@
             "tondelier": 3,
             "glucksmann": 14,
             "attal": 10,
+            "villepin": 3,
             "retailleau": 9,
             "dupont-aignan": 2.5,
             "lepen": 33,
-            "zemmour": 4.5,
-            "villepin": 3
+            "zemmour": 4.5
           }
         },
         {
@@ -1722,7 +1722,7 @@
         },
         {
           "id": "H4",
-          "label": "Attal, Philippe, Asselineau, Lagarde, Polony, Riner, Ruffin, Villepin",
+          "label": "Attal, Philippe, Villepin, Asselineau, Lagarde, Polony, Riner, Ruffin",
           "scores": {
             "arthaud": 0.5,
             "melenchon": 19,
@@ -1731,6 +1731,7 @@
             "glucksmann": 8,
             "attal": 2,
             "philippe": 8,
+            "villepin": 1,
             "retailleau": 5,
             "lisnard": 8,
             "dupont-aignan": 2,
@@ -1740,8 +1741,7 @@
             "lagarde": 8,
             "polony": 2.5,
             "riner": 2,
-            "ruffin": 1.5,
-            "villepin": 1
+            "ruffin": 1.5
           }
         }
       ]
@@ -1919,13 +1919,13 @@
     {
       "origin": "wikipedia",
       "institute": "YouGov",
-      "sponsor": "Non indiqué",
+      "sponsor": "Le HuffPost",
       "fieldwork": {
         "start": "2026-11-12",
         "end": "2026-11-17"
       },
       "sampleSize": 952,
-      "url": "http://www.commission-des-sondages.fr/notices/files/notices/2026/novembre/10382-pres-iv-yougov-le-huffpost-19-novembre.pdf",
+      "url": "https://www.commission-des-sondages.fr/notices/files/notices/2026/novembre/10382-pres-iv-yougov-le-huffpost-19-novembre.pdf",
       "scores": {
         "attal": 45,
         "lepen": 55
@@ -1934,13 +1934,13 @@
     {
       "origin": "wikipedia",
       "institute": "YouGov",
-      "sponsor": "Non indiqué",
+      "sponsor": "Le HuffPost",
       "fieldwork": {
         "start": "2026-11-12",
         "end": "2026-11-17"
       },
       "sampleSize": 952,
-      "url": "http://www.commission-des-sondages.fr/notices/files/notices/2026/novembre/10382-pres-iv-yougov-le-huffpost-19-novembre.pdf",
+      "url": "https://www.commission-des-sondages.fr/notices/files/notices/2026/novembre/10382-pres-iv-yougov-le-huffpost-19-novembre.pdf",
       "scores": {
         "glucksmann": 42,
         "lepen": 58
@@ -1949,13 +1949,13 @@
     {
       "origin": "wikipedia",
       "institute": "YouGov",
-      "sponsor": "Non indiqué",
+      "sponsor": "Le HuffPost",
       "fieldwork": {
         "start": "2026-11-12",
         "end": "2026-11-17"
       },
       "sampleSize": 952,
-      "url": "http://www.commission-des-sondages.fr/notices/files/notices/2026/novembre/10382-pres-iv-yougov-le-huffpost-19-novembre.pdf",
+      "url": "https://www.commission-des-sondages.fr/notices/files/notices/2026/novembre/10382-pres-iv-yougov-le-huffpost-19-novembre.pdf",
       "scores": {
         "melenchon": 37,
         "lepen": 63
@@ -1964,13 +1964,13 @@
     {
       "origin": "wikipedia",
       "institute": "YouGov",
-      "sponsor": "Non indiqué",
+      "sponsor": "Le HuffPost",
       "fieldwork": {
         "start": "2026-11-12",
         "end": "2026-11-17"
       },
       "sampleSize": 952,
-      "url": "http://www.commission-des-sondages.fr/notices/files/notices/2026/novembre/10382-pres-iv-yougov-le-huffpost-19-novembre.pdf",
+      "url": "https://www.commission-des-sondages.fr/notices/files/notices/2026/novembre/10382-pres-iv-yougov-le-huffpost-19-novembre.pdf",
       "scores": {
         "philippe": 46,
         "lepen": 54
@@ -1979,13 +1979,13 @@
     {
       "origin": "wikipedia",
       "institute": "YouGov",
-      "sponsor": "Non indiqué",
+      "sponsor": "Le HuffPost",
       "fieldwork": {
         "start": "2026-11-12",
         "end": "2026-11-17"
       },
       "sampleSize": 952,
-      "url": "http://www.commission-des-sondages.fr/notices/files/notices/2026/novembre/10382-pres-iv-yougov-le-huffpost-19-novembre.pdf",
+      "url": "https://www.commission-des-sondages.fr/notices/files/notices/2026/novembre/10382-pres-iv-yougov-le-huffpost-19-novembre.pdf",
       "scores": {
         "melenchon": 39,
         "philippe": 61
@@ -2284,10 +2284,25 @@
         "attal": 45,
         "lepen": 55
       }
+    },
+    {
+      "origin": "wikipedia",
+      "institute": "Elabe",
+      "sponsor": "Non indiqué",
+      "fieldwork": {
+        "start": "2026-08-26",
+        "end": "2026-08-28"
+      },
+      "sampleSize": 1503,
+      "url": "https://www.commission-des-sondages.fr/notices/files/notices/2026/aout/10245-pres-iv-elabe-29-aout.pdf",
+      "scores": {
+        "attal": 43,
+        "lepen": 57
+      }
     }
   ],
   "period": {
     "label": "Octobre-décembre 2026",
-    "start": "2026-09-02"
+    "start": "2026-08-28"
   }
 }
