@@ -2254,10 +2254,25 @@
           "url": "https://www.odoxa.fr/wp-content/uploads/2026/10/Odoxa-Backbone-pour-la-Presse-Regionale-Public-Senat-et-le-Nouvel-Obs-IV-a-lelection-presidentielle-de-2027.pdf"
         }
       }
+    },
+    {
+      "origin": "wikipedia",
+      "institute": "Harris Interactive (Toluna)",
+      "sponsor": "RTL",
+      "fieldwork": {
+        "start": "2026-09-08",
+        "end": "2026-09-10"
+      },
+      "sampleSize": 2052,
+      "url": "https://www.commission-des-sondages.fr/notices/files/notices/2026/septembre/10263-pres-iv-toluna-harris-interactive-rtl-14-septembre.pdf",
+      "scores": {
+        "attal": 44,
+        "lepen": 56
+      }
     }
   ],
   "period": {
     "label": "Octobre-décembre 2026",
-    "start": "2026-09-16"
+    "start": "2026-09-09"
   }
 }
