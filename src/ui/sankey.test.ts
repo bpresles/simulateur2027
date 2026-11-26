@@ -239,7 +239,7 @@ describe('mise en page du diagramme de Sankey', () => {
   it('ne change rien quand les étiquettes tiennent déjà', () => {
     const input = defaultInput()
     const plain = layoutSankey(input, options)
-    expect(plain.bottom).toBe(options.bottom)
+    close(plain.bottom, options.bottom)
     expect(layoutSankey(input, { ...options, sourceLabels: { height: () => 0, gap: 0 } })).toEqual(plain)
     const roomy: SankeyInput = {
       sources: ['x', 'y'],

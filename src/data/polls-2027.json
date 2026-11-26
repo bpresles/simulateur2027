@@ -1,5 +1,5 @@
 {
-  "asOf": "2026-11-23",
+  "asOf": "2026-11-26",
   "electionDate": "2027-04-18",
   "windowDays": 21,
   "collection": {
@@ -1123,12 +1123,8 @@
         },
         {
           "label": "Notice (Commission des sondages)",
-          "url": "https://www.commission-des-sondages.fr/notices/medias/fichiers/add/2417",
+          "url": "https://www.commission-des-sondages.fr/notices/files/notices/2026/novembre/10393-pres-iv-vague-10-toluna-harris-interactive-23-novembre.pdf",
           "kind": "notice"
-        },
-        {
-          "label": "Publication",
-          "url": "https://tolunacorporate.com/wp-content/uploads/2026/11/Rapport-Toluna-Barometre-Presidentielle-2027-Vague-10-M6-RTL-LExpress-23-novembre-2026.pdf"
         },
         {
           "label": "Wikipedia – liste des sondages",
@@ -1914,7 +1910,7 @@
         "end": "2026-11-19"
       },
       "sampleSize": 2088,
-      "url": "https://www.commission-des-sondages.fr/notices/medias/fichiers/add/2417",
+      "url": "https://www.commission-des-sondages.fr/notices/files/notices/2026/novembre/10393-pres-iv-vague-10-toluna-harris-interactive-23-novembre.pdf",
       "scores": {
         "melenchon": 35,
         "lepen": 65
@@ -2258,10 +2254,25 @@
           "url": "https://www.odoxa.fr/wp-content/uploads/2026/10/Odoxa-Backbone-pour-la-Presse-Regionale-Public-Senat-et-le-Nouvel-Obs-IV-a-lelection-presidentielle-de-2027.pdf"
         }
       }
+    },
+    {
+      "origin": "wikipedia",
+      "institute": "Harris Interactive (Toluna)",
+      "sponsor": "RTL",
+      "fieldwork": {
+        "start": "2026-09-08",
+        "end": "2026-09-10"
+      },
+      "sampleSize": 2052,
+      "url": "https://www.commission-des-sondages.fr/notices/files/notices/2026/septembre/10263-pres-iv-toluna-harris-interactive-rtl-14-septembre.pdf",
+      "scores": {
+        "attal": 44,
+        "lepen": 56
+      }
     }
   ],
   "period": {
     "label": "Octobre-décembre 2026",
-    "start": "2026-09-21"
+    "start": "2026-09-09"
   }
 }
