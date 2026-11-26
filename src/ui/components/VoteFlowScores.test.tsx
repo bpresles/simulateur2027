@@ -50,11 +50,10 @@ describe('score des candidats dans les reports', () => {
   it('les blancs et nuls du 1er tour sont en % des votants (bnShare), dans le graphique et le tableau', () => {
     const shown = `${pct(newVoterRates(simulationData).bnShare * 100)} des votants`
     renderFlow()
-    for (const name of [/^Blancs et nuls au 1er tour/, /^Non mesuré/]) {
-      expect(screen.getByRole('button', { name }).textContent).toContain(shown.replace(' des votants', ''))
-      expect(screen.getByRole('button', { name }).textContent).toContain('des votants')
-    }
-    expect(screen.getByRole('button', { name: /^Blancs et nuls au 1er tour/ }).textContent).toContain(shown)
+    const bnBtn = screen.getByRole('button', { name: /^Blancs et nuls au 1er tour/ })
+    expect(bnBtn.textContent).toContain(shown.replace(' des votants', ''))
+    expect(bnBtn.textContent).toContain('des votants')
+    expect(bnBtn.textContent).toContain(shown)
     act(() => fireEvent.click(screen.getByRole('radio', { name: 'Tableau' })))
     const rows = within(screen.getByRole('table')).getAllByRole('row')
     const blankNull = rows.find((r) => r.textContent?.startsWith('Blancs et nuls au 1er tour'))!

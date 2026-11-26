@@ -17,7 +17,7 @@
     },
     "presidentielles2017_2022": {
       "label": "Présidentielles 2017 et 2022 (Ipsos / Ifop)",
-      "description": "Enquêtes « jour du vote » des seconds tours présidentiels Macron – Le Pen de 2017 et 2022 (Ipsos Sopra Steria, Ifop-Fiducial). L'enquête 2022 sert d'ancre basse (0 %) dans l'interpolation directe 2022 ↔ 2024 sur les 4 types de duels face au RN.",
+      "description": "Enquêtes « jour du vote » admissibles R1.8 des seconds tours présidentiels Macron – Le Pen de 2017 (Ipsos) et 2022 (Ipsos / Ifop). Elles forment les ancres 0 % (2022) et 55 % (2017, s_2017 = 0,5502) de l'interpolation logit linéaire par morceaux à 3 ancres 2022 ↔ 2017 ↔ 2024 (P2).",
       "url": "https://www.ipsos.com/fr-fr/presidentielle-2022/second-tour-profil-des-abstentionnistes-et-sociologie-des-electorats"
     },
     "presidentielles2007_2012": {
@@ -47,55 +47,45 @@
       "description": "Valeur sans mesure directe disponible (ex. duel entre deux candidats du même camp)."
     }
   },
-  "completionRule": "Quand une seule valeur manque et que les deux autres sont sourcées, elle est déduite par soustraction (le total fait 100). Quand seul le report vers le finaliste est connu, le reste est réparti entre RN et blanc/nul/abstention au prorata d'une ligne sourcée du même électorat dans un autre type de duel. Quand l'enquête ne publie aucun report pour un électorat (électeurs du même camp que le finaliste), on reprend son taux mesuré dans le duel le plus proche. Les électeurs de Zemmour et Dupont-Aignan, que l'enquête ne couvre pas, sont rattachés au camp RN.",
+  "completionRule": "Quand une seule valeur manque et que les deux autres sont sourcées, elle est déduite par soustraction (le total fait 100). Quand seul le report vers le finaliste est connu, le reste est réparti entre RN et blanc/nul/abstention au prorata d'une ligne sourcée du même électorat dans un autre type de duel. Quand l'enquête ne publie aucun report pour un électorat (électeurs du même camp que le finaliste), on reprend son taux mesuré dans le duel le plus proche. Les électeurs d'extrême droite hors finaliste RN (Reconquête, DLF), que l'enquête 2024 ne couvre pas séparément, reçoivent la moyenne simple des deux observations présidentielles admissibles R1.8 : Dupont-Aignan 2017 (Ipsos : 27 / 30 / 43) et Zemmour 2022 (Ipsos/Ifop : 9,5 / 75,5 / 15), soit 18,25 / 52,75 / 29 (P1-bis, S4).",
   "fidelity": {
     "default": {
-      "loyal": 95,
-      "cross": 1.5,
+      "loyal": 94.75,
+      "cross": 1.75,
       "abstention": 3.5
     },
-    "byCandidate": {
-      "lepen": {
-        "loyal": 96,
-        "cross": 1,
-        "abstention": 3
-      },
-      "melenchon": {
-        "loyal": 92,
-        "cross": 2,
-        "abstention": 6
-      }
-    },
-    "note": "Depuis 2007, 90 à 99 % des électeurs des finalistes revotent pour leur candidat au 2nd tour (1 à 2 % votent pour l'adversaire, le reste s'abstient ou vote blanc/nul). Dans les enquêtes Harris Interactive de l'automne 2026 (notices 10263–10362), la fidélité déclarée est asymétrique : 97–98 % pour Marine Le Pen, 91–93 % pour Jean-Luc Mélenchon. Valeurs ajustables dans les réglages."
+    "byCandidate": {},
+    "note": "Fidélité symétrique neutre « jour du vote » (P1-bis, S3) : moyenne simple des deux finalistes des enquêtes présidentielles admissibles R1.8 publiant les finalistes (Ipsos et Ifop 2022 : Macron 97 / 1 / 2 %, Le Pen 92,5 / 2,5 / 5 %, soit 94,75 / 1,75 / 3,50 % pour tout finaliste, sans paramètre par candidat). Les déclarations pré-campagne Harris 2026 sont isolées dans transfers-2027-declared.json (mode Déclarations 2027). Ajustable manuellement dans les réglages."
   },
   "presidentialCenterRn": {
-    "description": "Reports mesurés par enquête « jour du vote » (Ipsos Sopra Steria / Ifop-Fiducial) lors des deux seconds tours présidentiels Macron – Le Pen (2017 et 2022). L'enquête 2022 sert d'ancre basse (0 %) de l'interpolation directe 2022 ↔ 2024 et les deux scrutins alimentent le backtest présidentiel.",
+    "description": "Reports mesurés par les enquêtes « jour du vote » admissibles R1.8 (P1-bis, S5) lors des deux seconds tours présidentiels Macron – Le Pen : Ipsos 2017 (ifop_2017 exclue car non réalisable comptablement, −40 812 voix RN) et moyenne Ipsos / Ifop 2022. En P2, les trois ancres (2022 à 0, 2017 à s_2017 = 0,5502 sous R2.5 + ED mesurée 2017, 2024 à 1) définissent une interpolation logit linéaire par morceaux sans extrapolation.",
     "defaultWeight": 0.5,
+    "anchor2017Position": 0.5502,
     "elections": {
       "2017": {
-        "gauche": { "finalist": 58, "rn": 9, "abstention": 33 },
+        "gauche": { "finalist": 56.65, "rn": 5.78, "abstention": 37.57 },
         "centre": { "finalist": 79, "rn": 7, "abstention": 14 },
-        "droite": { "finalist": 48, "rn": 23, "abstention": 29 },
-        "extreme_droite": { "finalist": 0, "rn": 96, "abstention": 4 }
+        "droite": { "finalist": 48, "rn": 20, "abstention": 32 },
+        "extreme_droite": { "finalist": 27, "rn": 30, "abstention": 43 }
       },
       "2022": {
-        "gauche": { "finalist": 47, "rn": 15, "abstention": 38 },
+        "gauche": { "finalist": 45.92, "rn": 13.52, "abstention": 40.56 },
         "centre": { "finalist": 79, "rn": 7, "abstention": 14 },
-        "droite": { "finalist": 53, "rn": 18, "abstention": 29 },
-        "extreme_droite": { "finalist": 0, "rn": 96, "abstention": 4 }
+        "droite": { "finalist": 52.5, "rn": 18, "abstention": 29.5 },
+        "extreme_droite": { "finalist": 9.5, "rn": 75.5, "abstention": 15 }
       }
     },
     "rows": {
       "gauche": {
-        "finalist": 52.5,
-        "rn": 12,
-        "abstention": 35.5,
+        "finalist": 51.29,
+        "rn": 9.65,
+        "abstention": 39.06,
         "provenance": {
           "finalist": "presidentielles2017_2022",
           "rn": "presidentielles2017_2022",
           "abstention": "presidentielles2017_2022"
         },
-        "note": "Moyenne 2017 (Mélenchon 53/11/36 et Hamon 75/3/22 pondérés : 58/9/33) et 2022 (Mélenchon 42/17/41 et Jadot 65/8/27 pondérés : 47/15/38)."
+        "note": "Moyenne 2017 admissible (Ipsos : Mélenchon 52/7/41 et Hamon 71/2/27 pondérés : 56,65/5,78/37,57) et 2022 admissible (Ipsos/Ifop : Mélenchon 42/15/43 et Jadot 64,5/6,5/29 pondérés : 45,92/13,52/40,56)."
       },
       "centre": {
         "finalist": 79,
@@ -109,27 +99,26 @@
         "note": "Électeurs d'un second candidat du centre non qualifié : report transposé du profil Ensemble face à LR/RN en 2024."
       },
       "droite": {
-        "finalist": 50.5,
-        "rn": 20.5,
+        "finalist": 50.25,
+        "rn": 19,
+        "abstention": 30.75,
+        "provenance": {
+          "finalist": "presidentielles2017_2022",
+          "rn": "presidentielles2017_2022",
+          "abstention": "presidentielles2017_2022"
+        },
+        "note": "Moyenne 2017 admissible (Ipsos Fillon : 48/20/32) et 2022 admissible (Ipsos/Ifop Pécresse : 52,5/18/29,5)."
+      },
+      "extreme_droite": {
+        "finalist": 18.25,
+        "rn": 52.75,
         "abstention": 29,
         "provenance": {
           "finalist": "presidentielles2017_2022",
           "rn": "presidentielles2017_2022",
           "abstention": "presidentielles2017_2022"
         },
-        "note": "Moyenne 2017 (Fillon : 48/23/29) et 2022 (Pécresse : 53/18/29)."
-      },
-      "extreme_droite": {
-        "finalist": 0,
-        "rn": 100,
-        "abstention": 0,
-        "camp": "rn",
-        "provenance": {
-          "finalist": "camp",
-          "rn": "camp",
-          "abstention": "camp"
-        },
-        "note": "Électorat Reconquête / DLF rattaché au camp RN (suit la fidélité du camp RN)."
+        "note": "Électorat d'extrême droite hors finaliste RN (Reconquête, DLF) : moyenne simple des observations admissibles R1.8 de Dupont-Aignan 2017 (Ipsos : 27/30/43) et Zemmour 2022 (Ipsos/Ifop : 9,5/75,5/15). En Monte-Carlo, tirage uniforme entre ces deux bornes (S4)."
       }
     }
   },
@@ -173,16 +162,15 @@
           "note": "Électeurs LR dans les duels LFI-RN : 26 % LFI, 38 % RN, 36 % blanc, nul ou abstention."
         },
         "extreme_droite": {
-          "finalist": 0,
-          "rn": 100,
-          "abstention": 0,
-          "camp": "rn",
+          "finalist": 18.25,
+          "rn": 52.75,
+          "abstention": 29,
           "provenance": {
-            "finalist": "camp",
-            "rn": "camp",
-            "abstention": "camp"
+            "finalist": "presidentielles2017_2022",
+            "rn": "presidentielles2017_2022",
+            "abstention": "presidentielles2017_2022"
           },
-          "note": "Électeurs Reconquête et DLF : non couverts par l'enquête. Rattachés au camp RN (électorat « RN et alliés » des législatives 2024) : ils votent RN selon la fidélité du camp RN."
+          "note": "Électeurs Reconquête et DLF (hors finaliste RN) : moyenne simple des observations présidentielles admissibles R1.8 de Dupont-Aignan 2017 (Ipsos : 27/30/43) et Zemmour 2022 (Ipsos/Ifop : 9,5/75,5/15). Tirage uniforme entre ces deux bornes en Monte-Carlo (P1-bis, S4)."
         }
       }
     },
@@ -225,16 +213,15 @@
           "note": "Électeurs LR et divers droite : 29 % pour le candidat de gauche, 34 % RN, 37 % blanc, nul ou abstention."
         },
         "extreme_droite": {
-          "finalist": 0,
-          "rn": 100,
-          "abstention": 0,
-          "camp": "rn",
+          "finalist": 18.25,
+          "rn": 52.75,
+          "abstention": 29,
           "provenance": {
-            "finalist": "camp",
-            "rn": "camp",
-            "abstention": "camp"
+            "finalist": "presidentielles2017_2022",
+            "rn": "presidentielles2017_2022",
+            "abstention": "presidentielles2017_2022"
           },
-          "note": "Électeurs Reconquête et DLF : non couverts par l'enquête. Rattachés au camp RN : ils votent RN selon la fidélité du camp RN."
+          "note": "Électeurs Reconquête et DLF (hors finaliste RN) : moyenne simple des observations présidentielles admissibles R1.8 de Dupont-Aignan 2017 (Ipsos : 27/30/43) et Zemmour 2022 (Ipsos/Ifop : 9,5/75,5/15). Tirage uniforme entre ces deux bornes en Monte-Carlo (P1-bis, S4)."
         }
       }
     },
@@ -277,16 +264,15 @@
           "note": "Électeurs LR et divers droite : 53 % Ensemble (franceinfo). Les 47 % restants sont répartis au prorata de la ligne LR du duel PS/écologiste/PCF-RN (34 % RN, 37 % blanc/abstention) : 22,5 % RN et 24,5 % blanc/abstention."
         },
         "extreme_droite": {
-          "finalist": 0,
-          "rn": 100,
-          "abstention": 0,
-          "camp": "rn",
+          "finalist": 18.25,
+          "rn": 52.75,
+          "abstention": 29,
           "provenance": {
-            "finalist": "camp",
-            "rn": "camp",
-            "abstention": "camp"
+            "finalist": "presidentielles2017_2022",
+            "rn": "presidentielles2017_2022",
+            "abstention": "presidentielles2017_2022"
           },
-          "note": "Électeurs Reconquête et DLF : non couverts par l'enquête. Rattachés au camp RN : ils votent RN selon la fidélité du camp RN."
+          "note": "Électeurs Reconquête et DLF (hors finaliste RN) : moyenne simple des observations présidentielles admissibles R1.8 de Dupont-Aignan 2017 (Ipsos : 27/30/43) et Zemmour 2022 (Ipsos/Ifop : 9,5/75,5/15). Tirage uniforme entre ces deux bornes en Monte-Carlo (P1-bis, S4)."
         }
       }
     },
@@ -329,16 +315,15 @@
           "note": "Report non publié pour les électeurs LR dans les duels LR-RN (c'était leur camp). On reprend le taux mesuré des électeurs LR et divers droite dans les duels Ensemble-RN, le plus proche : 53 % pour le finaliste (franceinfo), le reste réparti au prorata de leur ligne du duel PS/écologiste/PCF-RN."
         },
         "extreme_droite": {
-          "finalist": 0,
-          "rn": 100,
-          "abstention": 0,
-          "camp": "rn",
+          "finalist": 18.25,
+          "rn": 52.75,
+          "abstention": 29,
           "provenance": {
-            "finalist": "camp",
-            "rn": "camp",
-            "abstention": "camp"
+            "finalist": "presidentielles2017_2022",
+            "rn": "presidentielles2017_2022",
+            "abstention": "presidentielles2017_2022"
           },
-          "note": "Électeurs Reconquête et DLF : non couverts par l'enquête. Rattachés au camp RN : ils votent RN selon la fidélité du camp RN."
+          "note": "Électeurs Reconquête et DLF (hors finaliste RN) : moyenne simple des observations présidentielles admissibles R1.8 de Dupont-Aignan 2017 (Ipsos : 27/30/43) et Zemmour 2022 (Ipsos/Ifop : 9,5/75,5/15). Tirage uniforme entre ces deux bornes en Monte-Carlo (P1-bis, S4)."
         }
       }
     }

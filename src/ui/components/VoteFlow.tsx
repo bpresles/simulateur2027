@@ -54,7 +54,7 @@ export function VoteFlow({ result }: { result: SimulationResult }) {
       </div>
       <p className="mt-1 text-ink-2">
         D’où viennent les voix de {a.shortName} et de {b.shortName} au 2nd tour, en flux bruts (% des
-        inscrits), y compris les abstentionnistes du 1er tour qui votent au 2nd.
+        inscrits), y compris les non-exprimés du 1er tour qui votent au 2nd.
       </p>
 
       {view === 'chart' ? (
@@ -62,7 +62,7 @@ export function VoteFlow({ result }: { result: SimulationResult }) {
           <figcaption className="mb-2 text-sm text-ink-3">
             Scores en % des exprimés, blancs et nuls en % des votants, abstention en % des inscrits ;
             l’épaisseur des rubans suit le nombre d’électeurs. À gauche, les électorats du 1er tour ; à
-            droite, les finalistes, ceux qui ne s’expriment pas et le vote non mesuré des blancs et nuls.
+            droite, les finalistes et ceux qui ne s’expriment pas.
           </figcaption>
           <VoteFlowSankey
             sr={sr}
@@ -71,6 +71,7 @@ export function VoteFlow({ result }: { result: SimulationResult }) {
             scores={scores}
             mobilization={settings.abstainerMobilization}
             antiRnShare={sr.duel.kind === 'rn-sourced' ? sr.effectiveAbstainerAntiRnShare : undefined}
+            endogenous={settings.abstainerAntiRnShare === null}
           />
         </figure>
       ) : (
@@ -80,7 +81,7 @@ export function VoteFlow({ result }: { result: SimulationResult }) {
               label={a.shortName}
               flows={flows}
               pick={(f) => f.toA}
-              fromAbstention={sr.abstainers.toA}
+              fromAbstention={sr.abstainers.toA + sr.blankNull.toA}
               total={sr.totals.a}
               score={sr.pct.a}
             />
@@ -88,7 +89,7 @@ export function VoteFlow({ result }: { result: SimulationResult }) {
               label={b.shortName}
               flows={flows}
               pick={(f) => f.toB}
-              fromAbstention={sr.abstainers.toB}
+              fromAbstention={sr.abstainers.toB + sr.blankNull.toB}
               total={sr.totals.b}
               score={sr.pct.b}
             />
@@ -101,6 +102,7 @@ export function VoteFlow({ result }: { result: SimulationResult }) {
             b={b.shortName}
             mobilization={settings.abstainerMobilization}
             antiRnShare={sr.duel.kind === 'rn-sourced' ? sr.effectiveAbstainerAntiRnShare : undefined}
+            endogenous={settings.abstainerAntiRnShare === null}
           />
         </>
       )}
@@ -129,6 +131,7 @@ function TransferTable({
   b,
   mobilization,
   antiRnShare,
+  endogenous,
 }: {
   sr: SimulationResult['secondRound']
   flows: Flow[]
@@ -137,10 +140,11 @@ function TransferTable({
   b: string
   mobilization: number
   antiRnShare: number | undefined
+  endogenous: boolean
 }) {
   const { abstainers, blankNull } = sr
   const rates = newVoterReferenceRates
-  const share = (v: number) => (abstainers.volume > 0 ? (v * 100) / abstainers.volume : 0)
+  const shareOf = (v: number, volume: number) => (volume > 0 ? (v * 100) / volume : 0)
   return (
     <div className="mt-5 overflow-x-auto">
       <table className="w-full min-w-[22rem] text-sm">
@@ -163,20 +167,20 @@ function TransferTable({
           ))}
           <tr className="border-b border-rule/70">
             <td className="py-1.5 pr-2">
-              <InfoTip content={abstentionNote(rates, mobilization, antiRnShare)}>
+              <InfoTip content={abstentionNote(rates, mobilization, antiRnShare, endogenous)}>
                 <span className="cursor-help underline decoration-dotted underline-offset-2">
                   Abstention au 1er tour
                 </span>
               </InfoTip>
               <span className="block text-xs text-ink-3">
-                {pct(mobilization * 100, 0)} votent au 2nd tour
+                {pct(mobilization * 100, 1)} votent au 2nd tour
               </span>
             </td>
             <td className="num py-1.5 pr-2 text-right text-ink-2">{pct(abstainers.volume)} des inscrits</td>
-            <td className="num py-1.5 pr-2 text-right">{num(share(abstainers.toA), 1)}&#8239;%</td>
-            <td className="num py-1.5 pr-2 text-right">{num(share(abstainers.toB), 1)}&#8239;%</td>
+            <td className="num py-1.5 pr-2 text-right">{num(shareOf(abstainers.toA, abstainers.volume), 1)}&#8239;%</td>
+            <td className="num py-1.5 pr-2 text-right">{num(shareOf(abstainers.toB, abstainers.volume), 1)}&#8239;%</td>
             <td className="num py-1.5 text-right text-ink-2">
-              {num(share(abstainers.nonExpressed), 1)}&#8239;%
+              {num(shareOf(abstainers.nonExpressed, abstainers.volume), 1)}&#8239;%
             </td>
           </tr>
           <tr className="border-b border-rule/70">
@@ -186,10 +190,13 @@ function TransferTable({
                   Blancs et nuls au 1er tour
                 </span>
               </InfoTip>
+              <span className="block text-xs text-ink-3">non mesuré séparément (même taux que l’abstention)</span>
             </td>
             <td className="num py-1.5 pr-2 text-right text-ink-2">{pct(rates.bnShare * 100)} des votants</td>
-            <td colSpan={3} className="py-1.5 text-right text-ink-3">
-              non mesuré
+            <td className="num py-1.5 pr-2 text-right">{num(shareOf(blankNull.toA, blankNull.volume), 1)}&#8239;%</td>
+            <td className="num py-1.5 pr-2 text-right">{num(shareOf(blankNull.toB, blankNull.volume), 1)}&#8239;%</td>
+            <td className="num py-1.5 text-right text-ink-2">
+              {num(shareOf(blankNull.nonExpressed, blankNull.volume), 1)}&#8239;%
             </td>
           </tr>
         </tbody>

@@ -21,25 +21,28 @@ export function abstentionNote(
   rates: Pick<NewVoterRates, 'insee' | 'rAbs'>,
   mobilization?: number,
   antiRnShare?: number,
+  endogenous = false,
 ): string {
   const { ifop2022 } = newVoters
   const insee = rates.insee.find((y) => y.year === 2022) ?? rates.insee.at(-1)
   const first = ifop2022.abstainersVote[0]!
   return [
     mobilization !== undefined
-      ? `Paramètre de mobilisation : ${pct(mobilization * 100, 0)} des abstentionnistes du 1er tour votent valablement au 2nd` +
-        (antiRnShare !== undefined ? ` (${pct(antiRnShare * 100, 0)} pour l’adversaire du RN).` : '.')
+      ? `Paramètre de mobilisation (S1) : ${pct(mobilization * 100, 1)} des non-exprimés du 1er tour votent valablement au 2nd` +
+        (antiRnShare !== undefined
+          ? ` (${pct(antiRnShare * 100, 1)} pour l’adversaire du RN${endogenous ? ', miroir neutre des exprimés T1' : ''}).`
+          : '.')
       : '',
-    `Repère Ifop-Fiducial 2022 : environ ${pct(rates.rAbs * 100, 1)} des abstentionnistes du 1er tour se sont exprimés au 2nd (${pct(first.share, 0)} pour ${finalist2022Name(first.id)}).`,
+    `Repère Ifop-Fiducial 2022 : environ ${pct(rates.rAbs * 100, 1)} des abstentionnistes du 1er tour se sont exprimés au 2nd (${pct(first.share, 0)} pour ${finalist2022Name(first.id)}, identique à l’ensemble des votants T2 à 58,5 %).`,
     insee
-      ? `Contrôle Insee (${insee.year}) : ${pct(insee.share, 1)} des absents du 1er tour ont voté au 2nd (blancs et nuls compris).`
+      ? `Contrôle Insee (${insee.year}) : ${pct(insee.share, 1)} des absents du 1er tour ont voté au 2nd (blancs et nuls compris ; ~22,5 % exprimés en moyenne 2017–2022).`
       : '',
   ]
     .filter(Boolean)
     .join(' ')
 }
 
-/** Infobulle du nœud « Non mesuré » : `blankNull` en % des inscrits. */
+/** Infobulle des blancs et nuls du 1er tour (S1 : hypothèse unifiée avec l'abstention T1). */
 export function unmeasuredNote(blankNull: number): string {
-  return `Aucune source publique ne mesure le vote au 2nd tour des votants blancs ou nuls du 1er tour (${points(blankNull, 1, true)} des inscrits). Ils sont isolés comme flux non mesuré.`
+  return `Aucune source publique ne mesure séparément le vote au 2nd tour des votants blancs ou nuls du 1er tour (${points(blankNull, 1, true)} des inscrits). Par hypothèse unifiée (S1), ils suivent le même taux de mobilisation et la même orientation que les abstentionnistes du 1er tour.`
 }

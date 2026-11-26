@@ -50,10 +50,11 @@ describe('taux de référence des nouveaux votants', () => {
   it('invariants comptables du moteur unifié en flux bruts (% des inscrits)', () => {
     const sr = simulate(frozenData, defaultSettings()).secondRound
     const left = sr.flows.reduce((t, f) => t + f.share, 0) + sr.abstainers.volume + sr.blankNull.volume
-    const right = sr.totals.a + sr.totals.b + sr.totals.nonExpressed + sr.blankNull.volume
+    const right = sr.totals.a + sr.totals.b + sr.totals.nonExpressed
     expect(left).toBeCloseTo(100, 9)
     expect(right).toBeCloseTo(100, 9)
     for (const f of sr.flows) expect(f.toA + f.toB + f.abstention).toBeCloseTo(f.share, 9)
     expect(sr.abstainers.toA + sr.abstainers.toB + sr.abstainers.nonExpressed).toBeCloseTo(sr.abstainers.volume, 9)
+    expect(sr.blankNull.toA + sr.blankNull.toB + sr.blankNull.nonExpressed).toBeCloseTo(sr.blankNull.volume, 9)
   })
 })

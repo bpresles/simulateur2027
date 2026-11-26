@@ -51,7 +51,7 @@ interface SettingsActions {
   setFidelity: (fidelity: number | null) => void
   setFirstRoundTurnout: (turnout: number) => void
   setAbstainerMobilization: (mob: number) => void
-  setAbstainerAntiRnShare: (share: number) => void
+  setAbstainerAntiRnShare: (share: number | null) => void
   setSelectedDuel: (duelId: string | null) => void
   resetTransfers: () => void
   resetAll: () => void
@@ -60,7 +60,7 @@ interface SettingsActions {
 export type SettingsStore = Settings & SettingsActions
 
 const STORAGE_KEY = 'simulateur2027:settings'
-const STORAGE_VERSION = 17
+const STORAGE_VERSION = 18
 
 export const useSettings = create<SettingsStore>()(
   persist(
@@ -194,20 +194,42 @@ export const useSettings = create<SettingsStore>()(
         selectedDuel: s.selectedDuel,
       }),
       migrate: (persisted, version) => {
-        if (version < 1 || version > 16 || !persisted || typeof persisted !== 'object')
+        if (version < 1 || version > 17 || !persisted || typeof persisted !== 'object')
           return defaultSettings()
         const old = persisted as Partial<Settings> & {
           hypothesisSetId?: string | null
           centerRnPresidentialWeight?: number
           lfiLeftTransfer?: number
         }
+        // v17 → v18 (v2.3 P1-bis) : réinitialise uniquement les anciens défauts (a = 0,20 → 0,225 ; q = 0,55 → null),
+        // les choix explicites des utilisateurs sont conservés.
+        const migrateNewVoters = (
+          mob: number | undefined,
+          q: number | null | undefined,
+        ): { abstainerMobilization: number; abstainerAntiRnShare: number | null } => {
+          const def = defaultSettings()
+          return {
+            abstainerMobilization: mob === undefined || Math.abs(mob - 0.2) < 1e-9 ? def.abstainerMobilization : mob,
+            abstainerAntiRnShare: q === undefined || (q !== null && Math.abs(q - 0.55) < 1e-9) ? def.abstainerAntiRnShare : q,
+          }
+        }
+        if (version === 17) {
+          const defProj = defaultProjectionSettings()
+          return {
+            ...defaultSettings(),
+            ...old,
+            ...migrateNewVoters(old.abstainerMobilization, old.abstainerAntiRnShare),
+            projection: old.projection ? { ...defProj, ...old.projection } : defProj,
+          }
+        }
         if (version === 16) {
-          // v2.2 : préréglage « incertain » ajouté ; le choix de l'utilisateur pour la projection est conservé.
+          // v2.2 → v2.3 : le choix de l'utilisateur pour la projection est conservé.
           const { lfiLeftTransfer: _legacyLfi, ...rest } = old
           const defProj = defaultProjectionSettings()
           return {
             ...defaultSettings(),
             ...rest,
+            ...migrateNewVoters(old.abstainerMobilization, old.abstainerAntiRnShare),
             projection: old.projection ? { ...defProj, ...old.projection } : defProj,
           }
         }
@@ -216,6 +238,7 @@ export const useSettings = create<SettingsStore>()(
           return {
             ...defaultSettings(),
             ...rest,
+            ...migrateNewVoters(old.abstainerMobilization, old.abstainerAntiRnShare),
             republicanFront: defaultRepublicanFront(),
           }
         }
@@ -225,6 +248,7 @@ export const useSettings = create<SettingsStore>()(
           return {
             ...defaultSettings(),
             ...rest,
+            ...migrateNewVoters(old.abstainerMobilization, old.abstainerAntiRnShare),
             projection: old.projection ? { ...defProj, ...old.projection, enabled: true } : defProj,
             republicanFront: defaultRepublicanFront(),
             candidacyUncertaintyEnabled: true,
@@ -245,6 +269,7 @@ export const useSettings = create<SettingsStore>()(
           return {
             ...defaultSettings(),
             ...rest,
+            ...migrateNewVoters(old.abstainerMobilization, old.abstainerAntiRnShare),
             projection: keptProj,
             republicanFront: defaultRepublicanFront(),
             lfiLeftTransferRange: [...DEFAULT_LFI_LEFT_TRANSFER_RANGE],

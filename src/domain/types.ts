@@ -307,6 +307,8 @@ export interface TransfersData {
   presidentialCenterRn: {
     description: string
     defaultWeight: number
+    /** Position s_2017 de l'ancre présidentielle 2017 sur l'échelle logit 2022 (0) ↔ 2024 (1) (P2, R2.5). */
+    anchor2017Position: number
     elections: Record<'2017' | '2022', Record<Bloc, TransferValues>>
     rows: Record<Bloc, TransferRow>
   }
@@ -323,6 +325,8 @@ export interface TransfersData {
 
 export interface DeclaredTransferRow extends TransferValues {
   camp?: 'finalist' | 'rn'
+  /** Vrai si la ligne est déjà un repli historique « jour du vote » (ne subit pas la correction logit pré-campagne). */
+  historicalFallback?: boolean
   note?: string
 }
 
@@ -336,6 +340,8 @@ export interface DeclaredTransfersData {
     deltaFinalist: number
     deltaRn: number
   }
+  /** Fidélités déclarées pré-campagne 2027 (Harris Interactive, appliquées uniquement hors mode historique pur). */
+  fidelity: FidelityConfig
   profiles: Record<ProfileId, Record<Bloc, DeclaredTransferRow>>
 }
 
@@ -679,14 +685,14 @@ export interface Settings {
   transferOverrides: Partial<Record<ProfileId, Partial<Record<Bloc, TransferValues>>>>
   /** Répartition choisie pour les électeurs de chaque petit candidat. */
   minorTransfers: Record<CandidateId, string>
-  /** Fidélité uniforme manuelle (0 à 1), null = fidélité différenciée par finaliste des données. */
+  /** Fidélité uniforme manuelle (0 à 1), null = fidélité par défaut de la source active (symétrique en mode historique). */
   fidelity: number | null
   /** Participation au 1er tour (% des inscrits, défaut : 74). */
   firstRoundTurnout: number
-  /** Part des abstentionnistes du 1er tour qui votent valablement au 2nd (0 à 1, défaut : 0,20). */
+  /** Part des non-exprimés du 1er tour (abstention + blancs/nuls) qui votent valablement au 2nd (0 à 1, défaut : 0,225). */
   abstainerMobilization: number
-  /** Part de référence des nouveaux votants allant à l'adversaire du RN (0 à 1, défaut : 0,55 ; 0,50 hors RN). */
-  abstainerAntiRnShare: number
+  /** Part manuelle des nouveaux votants allant à l'adversaire du RN (0 à 1), ou null = mode endogène neutre (miroir des exprimés T1). */
+  abstainerAntiRnShare: number | null
   /** Duel affiché parmi les duels plausibles (identifiant `idA|idB`), null = duel du top 2 déterministe. */
   selectedDuel: string | null
 }
@@ -817,7 +823,7 @@ export interface SecondRoundResult {
   duel: ResolvedDuel
   /** Scores en % des suffrages exprimés du 2nd tour (total 100). */
   pct: { a: number; b: number }
-  /** Flux bruts unifiés en % des inscrits (A + B + nonExpressed + blankNull1 = 100). */
+  /** Flux bruts unifiés en % des inscrits (totals.a + totals.b + totals.nonExpressed = 100). */
   participation: number
   abstention1: number
   blankNull1: number
@@ -827,11 +833,11 @@ export interface SecondRoundResult {
   newVoters: number
   flows: VoteFlow[]
   abstainers: GroupFlow
-  blankNull: { volume: number }
+  blankNull: GroupFlow
   totals: { a: number; b: number; nonExpressed: number }
   /** Fidélité effectivement appliquée à chaque finaliste. */
   fidelity: { a: FidelitySplit; b: FidelitySplit }
-  /** Part effective des nouveaux votants attribuée à l'adversaire du RN (0,50 hors RN). */
+  /** Part effective des nouveaux votants attribuée à l'adversaire du RN (duel RN) ou au candidat A (hors RN). */
   effectiveAbstainerAntiRnShare: number
   /** Position du front républicain (0 = Prés. 2022, 1 = Lég. 2024) appliquée à ce duel, ou null hors duel RN. */
   republicanFrontStrength: number | null

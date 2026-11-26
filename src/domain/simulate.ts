@@ -41,8 +41,8 @@ export function defaultSettings(): Settings {
     minorTransfers: {},
     fidelity: null,
     firstRoundTurnout: 74,
-    abstainerMobilization: 0.2,
-    abstainerAntiRnShare: 0.55,
+    abstainerMobilization: 0.225,
+    abstainerAntiRnShare: null,
     selectedDuel: null,
   }
 }
@@ -149,14 +149,22 @@ export function simulate(data: SimulationData, settings: Settings, options: Simu
   const evaluateDuel = (aId: CandidateId, bId: CandidateId): SecondRoundResult => {
     const duel = resolveDuel(aId, bId, candidatesById)
     const rfStrength = frontStrengthForDuel(duel, settings.republicanFront)
+    const isRnDuel = duel.kind === 'rn-sourced'
+    const fidOpts = (id: CandidateId) => ({
+      declaredTransfers,
+      transferSource: settings.transferSource,
+      declaredWeight: settings.declaredWeight,
+      isRnDuel,
+      isRnFinalist: duel.rnId === id,
+    })
     const baseInput = {
       electorate: activeScores,
       a: aId,
       b: bId,
       duel,
       nonRnPresidential: transfers.nonRnPresidential,
-      fidelityA: fidelityFor(aId, transfers, settings.fidelity),
-      fidelityB: fidelityFor(bId, transfers, settings.fidelity),
+      fidelityA: fidelityFor(aId, transfers, settings.fidelity, fidOpts(aId)),
+      fidelityB: fidelityFor(bId, transfers, settings.fidelity, fidOpts(bId)),
       candidatesById,
       firstRoundTurnout: settings.firstRoundTurnout,
       blankNullShare: bnShare,

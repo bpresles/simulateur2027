@@ -54,12 +54,20 @@ describe('backtest (validation historique 2012, 2017, 2022 et 2024)', () => {
     const y2022 = report.secondRoundPresidential.find((r) => r.year === 2022)!
     expect(y2017.actualAntiRn).toBeCloseTo(66.1, 1)
     expect(y2022.actualAntiRn).toBeCloseTo(58.55, 2)
-    // L'ancre 2024 (hors échantillon) reste à < 3 pts sur 2022 et < 4 pts sur 2017 ;
-    // l'ancre 2022 sur 2017 coïncide avec la présidentielle croisée et sous-estime 2022 (~3,6 pts) car Zemmour/NDA sont traités au taux de fidélité RN (96 %).
-    expect(Math.abs(y2022.predLeg2024 - y2022.actualAntiRn)).toBeLessThan(3)
-    expect(Math.abs(y2017.predLeg2024 - y2017.actualAntiRn)).toBeLessThan(4)
-    expect(Math.abs(y2022.predPres2022 - y2022.actualAntiRn)).toBeLessThan(4)
+    // Sous P1-bis (S1–S5), l'ancre Lég. 2024 reproduit de près le front républicain fort de 2017 (< 1,5 pt)
+    // et surestime logiquement le front républicain plus faible de 2022 (~+6,4 pts, sans les biais qui
+    // masquaient cet écart en v2.2) ; l'ancre 2022 en échantillon est à ~−1,55 pt sur 2022 et coïncide avec
+    // la présidentielle croisée sur 2017.
+    expect(Math.abs(y2017.predLeg2024 - y2017.actualAntiRn)).toBeLessThan(1.5)
+    expect(y2022.predLeg2024 - y2022.actualAntiRn).toBeGreaterThan(4)
+    expect(y2022.predLeg2024 - y2022.actualAntiRn).toBeLessThan(8)
+    expect(Math.abs(y2022.predPres2022 - y2022.actualAntiRn)).toBeLessThan(2)
     expect(y2017.predPres2022).toBeCloseTo(y2017.predCrossPresidential, 3)
+    // Leave-one-out R2.4 sur les ancres (2017 sans ancre 2017 → [2022, 2024] ; 2022 sans ancre 2022 → [2017, 2024])
+    expect(y2017.looAnchors).toEqual(['2022', '2024'])
+    expect(y2022.looAnchors).toEqual(['2017', '2024'])
+    expect(Math.abs(y2017.predLooUncertainMidpoint - y2017.actualAntiRn)).toBeLessThan(3)
+    expect(Math.abs(y2022.predLooUncertainMidpoint - y2022.actualAntiRn)).toBeLessThan(6)
   })
 
   it('vérifie la cohérence agrégée de l’enquête Ipsos-Talan brute sur les 342 duels de 2024', () => {

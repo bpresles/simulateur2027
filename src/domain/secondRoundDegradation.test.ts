@@ -1,5 +1,4 @@
 import { secondRoundReferenceMatrices, simulationData } from '../data/schema'
-import { computeBacktest } from './backtest'
 import { computeSecondRound } from './secondRound'
 import {
   CURRENT_ENGINE_FLAGS,
@@ -11,9 +10,8 @@ import {
 import { resolveDuel } from './transfers'
 import type { Candidate } from './types'
 
-describe('P1 étape 2 — configuration de référence, contrôle R1.2 et dégradations', () => {
-  it('reproduit exactement le moteur actuel en échantillon lorsque (a), (b), (d) et (f) sont actifs', () => {
-    const bt = computeBacktest(simulationData, simulationData.polls)
+describe('P1 étape 2 — configuration de référence, contrôle R1.2 et dégradations (archive v2.2)', () => {
+  it('reproduit exactement le moteur v2.2 archivé lorsque (a), (b), (d) et (f) sont actifs', () => {
     const cur2017 = evaluateSecondRoundConfig(
       '2017',
       simulationData.reference2017,
@@ -29,7 +27,7 @@ describe('P1 étape 2 — configuration de référence, contrôle R1.2 et dégra
       CURRENT_ENGINE_FLAGS,
     )
 
-    // Valeurs de référence du diagnostic §2.1 et §2.2
+    // Valeurs archivées du diagnostic v2.2 §2.1 et §2.2
     expect(cur2017.antiRnPct).toBeCloseTo(59.23, 2)
     expect(cur2017.totals.a).toBeCloseTo(39.88, 2)
     expect(cur2017.totals.b).toBeCloseTo(27.45, 2)
@@ -39,13 +37,9 @@ describe('P1 étape 2 — configuration de référence, contrôle R1.2 et dégra
     expect(cur2022.totals.a).toBeCloseTo(35.97, 2)
     expect(cur2022.totals.b).toBeCloseTo(29.49, 2)
     expect(cur2022.expressed2).toBeCloseTo(65.46, 2)
-
-    // Concordance exacte avec predPres2022 sur 2022 dans computeBacktest (ancre 0 % = matrice 2022 du dépôt)
-    const bt2022 = bt.secondRoundPresidential.find((r) => r.year === 2022)!
-    expect(cur2022.antiRnPct).toBeCloseTo(bt2022.predPres2022, 9)
   })
 
-  it('respecte l’invariant comptable totals.a + totals.b + nonExpressed + blankNull1 = 100 et q = 0,5 hors duel RN', () => {
+  it('respecte les invariants comptables (archive v2.2 et moteur P1-bis) et q = 0,5 hors duel RN', () => {
     for (const [year, ref] of [
       ['2017', simulationData.reference2017],
       ['2022', simulationData.reference2022],
@@ -86,7 +80,7 @@ describe('P1 étape 2 — configuration de référence, contrôle R1.2 et dégra
     })
     expect(sr.effectiveAbstainerAntiRnShare).toBe(0.5)
     expect(sr.abstainers.toA).toBeCloseTo(sr.abstainers.toB, 9)
-    expect(sr.totals.a + sr.totals.b + sr.totals.nonExpressed + sr.blankNull1).toBeCloseTo(100, 9)
+    expect(sr.totals.a + sr.totals.b + sr.totals.nonExpressed).toBeCloseTo(100, 9)
   })
 
   it('contrôle correctement la tolérance R1.2 (±1 pt part et ±1 pt d’inscrits par volume)', () => {

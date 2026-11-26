@@ -16,6 +16,26 @@
     "deltaFinalist": 0.35,
     "deltaRn": -0.2
   },
+  "fidelity": {
+    "default": {
+      "loyal": 95,
+      "cross": 1.5,
+      "abstention": 3.5
+    },
+    "byCandidate": {
+      "lepen": {
+        "loyal": 96,
+        "cross": 1,
+        "abstention": 3
+      },
+      "melenchon": {
+        "loyal": 92,
+        "cross": 2,
+        "abstention": 6
+      }
+    },
+    "note": "Fidélités déclarées pré-campagne dans les enquêtes Harris Interactive de l'automne 2026 (notices 10263–10362 : 97–98 % pour Marine Le Pen, 91–93 % pour Jean-Luc Mélenchon, ~95 % autres). Utilisées uniquement en mode Déclarations 2027 (et mélange pondéré), après application de la correction logit en duel RN (P1-bis, S3)."
+  },
   "profiles": {
     "lfi_rn": {
       "gauche": {
@@ -37,11 +57,11 @@
         "note": "Électeurs de droite (Retailleau / Lisnard) dans les tableaux Harris Interactive / Odoxa."
       },
       "extreme_droite": {
-        "finalist": 0,
-        "rn": 100,
-        "abstention": 0,
-        "camp": "rn",
-        "note": "Électorat Reconquête / DLF rattaché au camp RN."
+        "finalist": 18.25,
+        "rn": 52.75,
+        "abstention": 29,
+        "historicalFallback": true,
+        "note": "Électorat Reconquête / DLF hors finaliste RN (non publié séparément en 2026) : repli sur la moyenne historique admissible R1.8 (Dupont-Aignan 2017 Ipsos 27/30/43 et Zemmour 2022 9,5/75,5/15), déjà mesurée « jour du vote » (sans nouvelle correction logit)."
       }
     },
     "ecolo_ps_pcf_rn": {
@@ -64,11 +84,11 @@
         "note": "Électeurs de droite (LR) dans un duel Glucksmann – Le Pen."
       },
       "extreme_droite": {
-        "finalist": 0,
-        "rn": 100,
-        "abstention": 0,
-        "camp": "rn",
-        "note": "Électorat Reconquête / DLF rattaché au camp RN."
+        "finalist": 18.25,
+        "rn": 52.75,
+        "abstention": 29,
+        "historicalFallback": true,
+        "note": "Électorat Reconquête / DLF hors finaliste RN (non publié séparément en 2026) : repli sur la moyenne historique admissible R1.8 (Dupont-Aignan 2017 Ipsos 27/30/43 et Zemmour 2022 9,5/75,5/15), déjà mesurée « jour du vote » (sans nouvelle correction logit)."
       }
     },
     "ensemble_rn": {
@@ -91,11 +111,11 @@
         "note": "Électeurs de droite (LR) dans un duel Philippe/Attal – Le Pen."
       },
       "extreme_droite": {
-        "finalist": 0,
-        "rn": 100,
-        "abstention": 0,
-        "camp": "rn",
-        "note": "Électorat Reconquête / DLF rattaché au camp RN."
+        "finalist": 18.25,
+        "rn": 52.75,
+        "abstention": 29,
+        "historicalFallback": true,
+        "note": "Électorat Reconquête / DLF hors finaliste RN (non publié séparément en 2026) : repli sur la moyenne historique admissible R1.8 (Dupont-Aignan 2017 Ipsos 27/30/43 et Zemmour 2022 9,5/75,5/15), déjà mesurée « jour du vote » (sans nouvelle correction logit)."
       }
     },
     "lr_rn": {
@@ -118,11 +138,11 @@
         "note": "Électeurs d'un second candidat de droite non qualifié."
       },
       "extreme_droite": {
-        "finalist": 0,
-        "rn": 100,
-        "abstention": 0,
-        "camp": "rn",
-        "note": "Électorat Reconquête / DLF rattaché au camp RN."
+        "finalist": 18.25,
+        "rn": 52.75,
+        "abstention": 29,
+        "historicalFallback": true,
+        "note": "Électorat Reconquête / DLF hors finaliste RN (non publié séparément en 2026) : repli sur la moyenne historique admissible R1.8 (Dupont-Aignan 2017 Ipsos 27/30/43 et Zemmour 2022 9,5/75,5/15), déjà mesurée « jour du vote » (sans nouvelle correction logit)."
       }
     }
   }

@@ -24,14 +24,18 @@ describe('tableau de sensibilité (sans Monte-Carlo)', () => {
     expect(rows.find((r) => r.id === 'leak')!.inactive).toBeTruthy()
   })
 
-  it('mobilisation des abstentionnistes : bornes des repères 14 % et 22 %', () => {
+  it('mobilisation des non-exprimés : bornes des repères 14 % (Ifop) et 25,3 % (Insee)', () => {
     const rows = computeSensitivity(frozenData, defaultSettings())
     const mob = rows.find((r) => r.id === 'mobilization')!
-    expect(mob.active).toBe('20\u202f%')
+    expect(mob.active).toBe('22,5\u202f%')
     expect(mob.variants).toHaveLength(2)
     expect(mob.variants[0]!.label).toContain('14\u202f%')
-    expect(mob.variants[1]!.label).toContain('22\u202f%')
+    expect(mob.variants[1]!.label).toContain('25,3\u202f%')
     for (const v of mob.variants) expect(Number.isFinite(v.delta)).toBe(true)
+    // En mode neutre (abstainerAntiRnShare = null), l'orientation des nouveaux votants est active en miroir.
+    const abst = rows.find((r) => r.id === 'abstainers')!
+    expect(abst.active).toContain('miroir des exprimés')
+    expect(abst.variants).toHaveLength(2)
     // Aucune alternative identique à la valeur active.
     const s = defaultSettings()
     s.abstainerMobilization = 0.14
@@ -39,18 +43,18 @@ describe('tableau de sensibilité (sans Monte-Carlo)', () => {
     expect(m2.variants).toHaveLength(1)
   })
 
-  it('fidélité : uniforme par défaut contre différenciée, et inversement', () => {
+  it('fidélité : symétrique neutre par défaut (S3) contre déclarée 2027 (Harris, logit), et uniforme manuel contre symétrique', () => {
     const rows = computeSensitivity(frozenData, defaultSettings())
     const fid = rows.find((r) => r.id === 'fidelity')!
-    expect(fid.active).toContain('différenciée')
+    expect(fid.active).toContain('symétrique')
     expect(fid.variants).toHaveLength(1)
-    expect(fid.variants[0]!.label).toContain('Uniforme 95')
+    expect(fid.variants[0]!.label).toContain('Déclarations Harris 2026')
     expect(Number.isFinite(fid.variants[0]!.delta)).toBe(true)
     const s = defaultSettings()
     s.fidelity = 0.9
     const u = computeSensitivity(frozenData, s).find((r) => r.id === 'fidelity')!
     expect(u.active).toContain('uniforme')
-    expect(u.variants[0]!.label).toContain('Différenciée')
+    expect(u.variants[0]!.label).toContain('Symétrique neutre')
   })
 
   it('projection : désactivée en alternative sur le même duel, activée en alternative si inactive', () => {
