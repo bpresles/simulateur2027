@@ -1,0 +1,2779 @@
+{
+  "generatedOn": "2026-11-26",
+  "iterations": 2000,
+  "seed": 2027,
+  "sigmaEtaRnRetained": 3,
+  "sigmaEtaNonRnRetained": 2,
+  "verdict": "rejected_width_not_reduced",
+  "varianceFixedR1": [
+    {
+      "id": "2017_leg2024_loo",
+      "label": "2017 Macron–Le Pen (1er tour réel, LOO [2022,2024], défaut leg2024)",
+      "width80": 9.6837,
+      "sd": 3.7728,
+      "variance": 14.2339,
+      "shocks": [
+        {
+          "cut": "eta",
+          "deltaVarPct": 64.9833,
+          "deltaWidth80": 3.9065
+        },
+        {
+          "cut": "rfShock",
+          "deltaVarPct": 5.1649,
+          "deltaWidth80": 0.054
+        },
+        {
+          "cut": "dirichlet",
+          "deltaVarPct": 30.602,
+          "deltaWidth80": 1.6532
+        },
+        {
+          "cut": "edU",
+          "deltaVarPct": 2.3603,
+          "deltaWidth80": 0.0919
+        },
+        {
+          "cut": "lfiLeftU",
+          "deltaVarPct": 0,
+          "deltaWidth80": 0
+        },
+        {
+          "cut": "turnout",
+          "deltaVarPct": -0.0342,
+          "deltaWidth80": 0.0157
+        },
+        {
+          "cut": "mob",
+          "deltaVarPct": -0.084,
+          "deltaWidth80": -0.025
+        },
+        {
+          "cut": "qDelta",
+          "deltaVarPct": 1.206,
+          "deltaWidth80": 0.107
+        },
+        {
+          "cut": "fidelity",
+          "deltaVarPct": 1.8325,
+          "deltaWidth80": 0.091
+        }
+      ]
+    },
+    {
+      "id": "2017_uncertain_loo",
+      "label": "2017 Macron–Le Pen (1er tour réel, LOO [2022,2024], mode uncertain)",
+      "width80": 10.3641,
+      "sd": 4.0669,
+      "variance": 16.5393,
+      "shocks": [
+        {
+          "cut": "eta",
+          "deltaVarPct": 54.4085,
+          "deltaWidth80": 3.2963
+        },
+        {
+          "cut": "rfShock",
+          "deltaVarPct": 9.0926,
+          "deltaWidth80": 0.581
+        },
+        {
+          "cut": "dirichlet",
+          "deltaVarPct": 29.9703,
+          "deltaWidth80": 1.7323
+        },
+        {
+          "cut": "edU",
+          "deltaVarPct": 3.5827,
+          "deltaWidth80": 0.2043
+        },
+        {
+          "cut": "lfiLeftU",
+          "deltaVarPct": 0,
+          "deltaWidth80": 0
+        },
+        {
+          "cut": "turnout",
+          "deltaVarPct": 0.0456,
+          "deltaWidth80": 0.0032
+        },
+        {
+          "cut": "mob",
+          "deltaVarPct": -0.0317,
+          "deltaWidth80": 0.017
+        },
+        {
+          "cut": "qDelta",
+          "deltaVarPct": 0.7786,
+          "deltaWidth80": 0.0248
+        },
+        {
+          "cut": "fidelity",
+          "deltaVarPct": 1.1719,
+          "deltaWidth80": 0.0732
+        }
+      ]
+    },
+    {
+      "id": "2022_leg2024_loo",
+      "label": "2022 Macron–Le Pen (1er tour réel, LOO [2017,2024], défaut leg2024)",
+      "width80": 9.703,
+      "sd": 3.7354,
+      "variance": 13.9536,
+      "shocks": [
+        {
+          "cut": "eta",
+          "deltaVarPct": 64.674,
+          "deltaWidth80": 4.1201
+        },
+        {
+          "cut": "rfShock",
+          "deltaVarPct": 8.7869,
+          "deltaWidth80": 0.3216
+        },
+        {
+          "cut": "dirichlet",
+          "deltaVarPct": 19.5019,
+          "deltaWidth80": 1.0681
+        },
+        {
+          "cut": "edU",
+          "deltaVarPct": 6.9871,
+          "deltaWidth80": 0.4875
+        },
+        {
+          "cut": "lfiLeftU",
+          "deltaVarPct": 0,
+          "deltaWidth80": 0
+        },
+        {
+          "cut": "turnout",
+          "deltaVarPct": -0.0254,
+          "deltaWidth80": 0.0018
+        },
+        {
+          "cut": "mob",
+          "deltaVarPct": -0.0544,
+          "deltaWidth80": -0.002
+        },
+        {
+          "cut": "qDelta",
+          "deltaVarPct": 1.7984,
+          "deltaWidth80": 0.073
+        },
+        {
+          "cut": "fidelity",
+          "deltaVarPct": 1.6444,
+          "deltaWidth80": 0.0856
+        }
+      ]
+    },
+    {
+      "id": "2022_uncertain_loo",
+      "label": "2022 Macron–Le Pen (1er tour réel, LOO [2017,2024], mode uncertain)",
+      "width80": 9.7702,
+      "sd": 3.78,
+      "variance": 14.2885,
+      "shocks": [
+        {
+          "cut": "eta",
+          "deltaVarPct": 63.8009,
+          "deltaWidth80": 3.8521
+        },
+        {
+          "cut": "rfShock",
+          "deltaVarPct": 3.7613,
+          "deltaWidth80": 0.1257
+        },
+        {
+          "cut": "dirichlet",
+          "deltaVarPct": 20.4842,
+          "deltaWidth80": 1.1265
+        },
+        {
+          "cut": "edU",
+          "deltaVarPct": 9.6822,
+          "deltaWidth80": 0.514
+        },
+        {
+          "cut": "lfiLeftU",
+          "deltaVarPct": 0,
+          "deltaWidth80": 0
+        },
+        {
+          "cut": "turnout",
+          "deltaVarPct": 0.1326,
+          "deltaWidth80": -0.0293
+        },
+        {
+          "cut": "mob",
+          "deltaVarPct": -0.0325,
+          "deltaWidth80": 0.0373
+        },
+        {
+          "cut": "qDelta",
+          "deltaVarPct": 1.6036,
+          "deltaWidth80": 0.2201
+        },
+        {
+          "cut": "fidelity",
+          "deltaVarPct": 1.5387,
+          "deltaWidth80": 0.0026
+        }
+      ]
+    },
+    {
+      "id": "2012_non_rn",
+      "label": "2012 Hollande–Sarkozy (1er tour réel, hors RN)",
+      "width80": 6.6208,
+      "sd": 2.5955,
+      "variance": 6.7369,
+      "shocks": [
+        {
+          "cut": "eta",
+          "deltaVarPct": 54.7698,
+          "deltaWidth80": 2.0951
+        },
+        {
+          "cut": "dirichlet",
+          "deltaVarPct": 38.4747,
+          "deltaWidth80": 1.2972
+        },
+        {
+          "cut": "turnout",
+          "deltaVarPct": -0.0362,
+          "deltaWidth80": -0.0378
+        },
+        {
+          "cut": "mob",
+          "deltaVarPct": 0.0784,
+          "deltaWidth80": -0.0493
+        },
+        {
+          "cut": "qDelta",
+          "deltaVarPct": 2.1074,
+          "deltaWidth80": 0.1157
+        },
+        {
+          "cut": "fidelity",
+          "deltaVarPct": 2.0356,
+          "deltaWidth80": 0.135
+        }
+      ]
+    },
+    {
+      "id": "2027_lepen_melenchon_leg2024",
+      "label": "2027 Le Pen–Mélenchon (1er tour projeté fixe, défaut leg2024)",
+      "width80": 10.1021,
+      "sd": 3.8935,
+      "variance": 15.1596,
+      "shocks": [
+        {
+          "cut": "eta",
+          "deltaVarPct": 60.021,
+          "deltaWidth80": 3.9029
+        },
+        {
+          "cut": "rfShock",
+          "deltaVarPct": 12.0386,
+          "deltaWidth80": 0.6199
+        },
+        {
+          "cut": "dirichlet",
+          "deltaVarPct": 24.8736,
+          "deltaWidth80": 1.4265
+        },
+        {
+          "cut": "edU",
+          "deltaVarPct": 1.4725,
+          "deltaWidth80": 0.0482
+        },
+        {
+          "cut": "lfiLeftU",
+          "deltaVarPct": -1.4082,
+          "deltaWidth80": -0.063
+        },
+        {
+          "cut": "turnout",
+          "deltaVarPct": 0.037,
+          "deltaWidth80": -0.0705
+        },
+        {
+          "cut": "mob",
+          "deltaVarPct": 0.1813,
+          "deltaWidth80": 0.0754
+        },
+        {
+          "cut": "qDelta",
+          "deltaVarPct": 0.9354,
+          "deltaWidth80": 0.0836
+        },
+        {
+          "cut": "fidelity",
+          "deltaVarPct": 0.6566,
+          "deltaWidth80": -0.0628
+        }
+      ]
+    },
+    {
+      "id": "2027_lepen_melenchon_uncertain",
+      "label": "2027 Le Pen–Mélenchon (1er tour projeté fixe, mode uncertain)",
+      "width80": 10.4211,
+      "sd": 4.0032,
+      "variance": 16.0255,
+      "shocks": [
+        {
+          "cut": "eta",
+          "deltaVarPct": 56.2404,
+          "deltaWidth80": 3.5623
+        },
+        {
+          "cut": "rfShock",
+          "deltaVarPct": 15.5546,
+          "deltaWidth80": 0.8578
+        },
+        {
+          "cut": "dirichlet",
+          "deltaVarPct": 19.7289,
+          "deltaWidth80": 1.1451
+        },
+        {
+          "cut": "edU",
+          "deltaVarPct": 1.9757,
+          "deltaWidth80": 0.1172
+        },
+        {
+          "cut": "lfiLeftU",
+          "deltaVarPct": -11.1054,
+          "deltaWidth80": -0.3976
+        },
+        {
+          "cut": "turnout",
+          "deltaVarPct": 0.0859,
+          "deltaWidth80": 0.0593
+        },
+        {
+          "cut": "mob",
+          "deltaVarPct": 0.0081,
+          "deltaWidth80": 0.0317
+        },
+        {
+          "cut": "qDelta",
+          "deltaVarPct": -0.0649,
+          "deltaWidth80": 0.1048
+        },
+        {
+          "cut": "fidelity",
+          "deltaVarPct": 0.9514,
+          "deltaWidth80": 0.1867
+        }
+      ]
+    },
+    {
+      "id": "2027_lepen_philippe_leg2024",
+      "label": "2027 Le Pen–Philippe (1er tour projeté fixe, défaut leg2024)",
+      "width80": 9.4798,
+      "sd": 3.7259,
+      "variance": 13.8825,
+      "shocks": [
+        {
+          "cut": "eta",
+          "deltaVarPct": 65.5563,
+          "deltaWidth80": 3.889
+        },
+        {
+          "cut": "rfShock",
+          "deltaVarPct": 9.7676,
+          "deltaWidth80": 0.2668
+        },
+        {
+          "cut": "dirichlet",
+          "deltaVarPct": 24.6819,
+          "deltaWidth80": 1.2057
+        },
+        {
+          "cut": "edU",
+          "deltaVarPct": -0.4645,
+          "deltaWidth80": 0.0947
+        },
+        {
+          "cut": "lfiLeftU",
+          "deltaVarPct": 0,
+          "deltaWidth80": 0
+        },
+        {
+          "cut": "turnout",
+          "deltaVarPct": 0.1778,
+          "deltaWidth80": 0.0214
+        },
+        {
+          "cut": "mob",
+          "deltaVarPct": 0.1568,
+          "deltaWidth80": 0.0178
+        },
+        {
+          "cut": "qDelta",
+          "deltaVarPct": 1.2914,
+          "deltaWidth80": 0.055
+        },
+        {
+          "cut": "fidelity",
+          "deltaVarPct": 0.6518,
+          "deltaWidth80": 0.0878
+        }
+      ]
+    },
+    {
+      "id": "2027_lepen_philippe_uncertain",
+      "label": "2027 Le Pen–Philippe (1er tour projeté fixe, mode uncertain)",
+      "width80": 10.8174,
+      "sd": 4.1675,
+      "variance": 17.3681,
+      "shocks": [
+        {
+          "cut": "eta",
+          "deltaVarPct": 53.0561,
+          "deltaWidth80": 3.4653
+        },
+        {
+          "cut": "rfShock",
+          "deltaVarPct": 15.5777,
+          "deltaWidth80": 0.9529
+        },
+        {
+          "cut": "dirichlet",
+          "deltaVarPct": 26.624,
+          "deltaWidth80": 1.6268
+        },
+        {
+          "cut": "edU",
+          "deltaVarPct": 1.9714,
+          "deltaWidth80": 0.2225
+        },
+        {
+          "cut": "lfiLeftU",
+          "deltaVarPct": 0,
+          "deltaWidth80": 0
+        },
+        {
+          "cut": "turnout",
+          "deltaVarPct": 0.0339,
+          "deltaWidth80": 0.0276
+        },
+        {
+          "cut": "mob",
+          "deltaVarPct": 0.1515,
+          "deltaWidth80": 0.0139
+        },
+        {
+          "cut": "qDelta",
+          "deltaVarPct": 1.1643,
+          "deltaWidth80": 0.0204
+        },
+        {
+          "cut": "fidelity",
+          "deltaVarPct": 0.8364,
+          "deltaWidth80": 0.2269
+        }
+      ]
+    },
+    {
+      "id": "2027_melenchon_philippe_non_rn",
+      "label": "2027 Mélenchon–Philippe (1er tour projeté fixe, hors RN)",
+      "width80": 8.31,
+      "sd": 3.287,
+      "variance": 10.8046,
+      "shocks": [
+        {
+          "cut": "eta",
+          "deltaVarPct": 33.3077,
+          "deltaWidth80": 1.3465
+        },
+        {
+          "cut": "dirichlet",
+          "deltaVarPct": 61.4412,
+          "deltaWidth80": 2.9551
+        },
+        {
+          "cut": "turnout",
+          "deltaVarPct": -0.0818,
+          "deltaWidth80": 0.0192
+        },
+        {
+          "cut": "mob",
+          "deltaVarPct": 0.1361,
+          "deltaWidth80": 0.0153
+        },
+        {
+          "cut": "qDelta",
+          "deltaVarPct": 2.2463,
+          "deltaWidth80": 0.172
+        },
+        {
+          "cut": "fidelity",
+          "deltaVarPct": 0.5641,
+          "deltaWidth80": -0.0145
+        }
+      ]
+    }
+  ],
+  "campaignVsSecondRound": [
+    {
+      "id": "2017_backtest",
+      "label": "2017 à J−82 (campagne + 2nd tour)",
+      "fullWidth80": 30.5953,
+      "fullVariance": 142.4878,
+      "r2OnlyWidth80": 9.6837,
+      "r2OnlyVariance": 14.2339,
+      "r2OnlyNoEtaWidth80": 5.7772,
+      "r2OnlyNoEtaVariance": 4.9842,
+      "r2ShareOfFullVarPct": 9.9896,
+      "etaShareOfR2VarPct": 64.9833,
+      "etaShareOfFullVarPct": 6.4916
+    },
+    {
+      "id": "2022_backtest",
+      "label": "2022 à J−143 (campagne + 2nd tour)",
+      "fullWidth80": 36.366,
+      "fullVariance": 201.307,
+      "r2OnlyWidth80": 9.703,
+      "r2OnlyVariance": 13.9536,
+      "r2OnlyNoEtaWidth80": 5.5829,
+      "r2OnlyNoEtaVariance": 4.9292,
+      "r2ShareOfFullVarPct": 6.9315,
+      "etaShareOfR2VarPct": 64.674,
+      "etaShareOfFullVarPct": 4.4829
+    },
+    {
+      "id": "2027_lepen_melenchon_leg2024",
+      "label": "2027 Le Pen–Mélenchon (J−d, défaut leg2024)",
+      "fullWidth80": 42.6447,
+      "fullVariance": 276.8198,
+      "r2OnlyWidth80": 10.1021,
+      "r2OnlyVariance": 15.1596,
+      "r2OnlyNoEtaWidth80": 6.1992,
+      "r2OnlyNoEtaVariance": 6.0607,
+      "r2ShareOfFullVarPct": 5.4763,
+      "etaShareOfR2VarPct": 60.021,
+      "etaShareOfFullVarPct": 3.287
+    },
+    {
+      "id": "2027_lepen_philippe_leg2024",
+      "label": "2027 Le Pen–Philippe (J−d, défaut leg2024)",
+      "fullWidth80": 42.8243,
+      "fullVariance": 279.1563,
+      "r2OnlyWidth80": 9.4798,
+      "r2OnlyVariance": 13.8825,
+      "r2OnlyNoEtaWidth80": 5.5908,
+      "r2OnlyNoEtaVariance": 4.7816,
+      "r2ShareOfFullVarPct": 4.973,
+      "etaShareOfR2VarPct": 65.5563,
+      "etaShareOfFullVarPct": 3.2601
+    }
+  ],
+  "curves": {
+    "primary_leg2024_r25": {
+      "frontMode": "leg2024_loo",
+      "fidelityMode": "r2_5_measured",
+      "iterations": 2000,
+      "currentAt3": {
+        "sigmaEta": 3,
+        "y2017": {
+          "p10": 61.3119,
+          "median": 66.097,
+          "p90": 70.9955,
+          "width80": 9.6837,
+          "covered": true,
+          "crps": 0.8993
+        },
+        "y2022": {
+          "p10": 60.496,
+          "median": 65.2085,
+          "p90": 70.1989,
+          "width80": 9.703,
+          "covered": false,
+          "crps": 4.7811
+        },
+        "bothCovered": false,
+        "meanWidth80": 9.6933,
+        "meanCrps": 2.8402,
+        "crpsDeltaVs3Pct": 0
+      },
+      "selected": {
+        "sigmaEta": 4.75,
+        "y2017": {
+          "p10": 59.2631,
+          "median": 66.032,
+          "p90": 72.8129,
+          "width80": 13.5498,
+          "covered": true,
+          "crps": 1.2453
+        },
+        "y2022": {
+          "p10": 58.5337,
+          "median": 65.1883,
+          "p90": 72.0899,
+          "width80": 13.5562,
+          "covered": true,
+          "crps": 4.2907
+        },
+        "bothCovered": true,
+        "meanWidth80": 13.553,
+        "meanCrps": 2.768,
+        "crpsDeltaVs3Pct": -2.54
+      },
+      "adoptionCriteria": {
+        "hasFeasibleSigma": true,
+        "bothCoveredMaintained": true,
+        "meanWidthStrictlyReduced": false,
+        "crpsDegradationWithin2Pct": true,
+        "allPassed": false
+      },
+      "grid": [
+        {
+          "sigmaEta": 0,
+          "y2017": {
+            "p10": 63.2777,
+            "median": 66.2386,
+            "p90": 69.0549,
+            "width80": 5.7772,
+            "covered": true,
+            "crps": 0.525
+          },
+          "y2022": {
+            "p10": 62.4411,
+            "median": 65.4468,
+            "p90": 68.024,
+            "width80": 5.5829,
+            "covered": false,
+            "crps": 5.553
+          },
+          "bothCovered": false,
+          "meanWidth80": 5.68,
+          "meanCrps": 3.039,
+          "crpsDeltaVs3Pct": 7.0024
+        },
+        {
+          "sigmaEta": 0.25,
+          "y2017": {
+            "p10": 63.3196,
+            "median": 66.2685,
+            "p90": 69.1144,
+            "width80": 5.7948,
+            "covered": true,
+            "crps": 0.5347
+          },
+          "y2022": {
+            "p10": 62.4223,
+            "median": 65.4517,
+            "p90": 68.0838,
+            "width80": 5.6614,
+            "covered": false,
+            "crps": 5.5406
+          },
+          "bothCovered": false,
+          "meanWidth80": 5.7281,
+          "meanCrps": 3.0377,
+          "crpsDeltaVs3Pct": 6.9546
+        },
+        {
+          "sigmaEta": 0.5,
+          "y2017": {
+            "p10": 63.2169,
+            "median": 66.294,
+            "p90": 69.1661,
+            "width80": 5.9492,
+            "covered": true,
+            "crps": 0.5485
+          },
+          "y2022": {
+            "p10": 62.3846,
+            "median": 65.4468,
+            "p90": 68.1517,
+            "width80": 5.7671,
+            "covered": false,
+            "crps": 5.5133
+          },
+          "bothCovered": false,
+          "meanWidth80": 5.8581,
+          "meanCrps": 3.0309,
+          "crpsDeltaVs3Pct": 6.7148
+        },
+        {
+          "sigmaEta": 0.75,
+          "y2017": {
+            "p10": 63.1227,
+            "median": 66.3064,
+            "p90": 69.211,
+            "width80": 6.0884,
+            "covered": true,
+            "crps": 0.5656
+          },
+          "y2022": {
+            "p10": 62.3228,
+            "median": 65.4162,
+            "p90": 68.2614,
+            "width80": 5.9386,
+            "covered": false,
+            "crps": 5.4717
+          },
+          "bothCovered": false,
+          "meanWidth80": 6.0135,
+          "meanCrps": 3.0187,
+          "crpsDeltaVs3Pct": 6.2848
+        },
+        {
+          "sigmaEta": 1,
+          "y2017": {
+            "p10": 62.9637,
+            "median": 66.2678,
+            "p90": 69.2989,
+            "width80": 6.3352,
+            "covered": true,
+            "crps": 0.587
+          },
+          "y2022": {
+            "p10": 62.2527,
+            "median": 65.4091,
+            "p90": 68.3728,
+            "width80": 6.1202,
+            "covered": false,
+            "crps": 5.4178
+          },
+          "bothCovered": false,
+          "meanWidth80": 6.2277,
+          "meanCrps": 3.0024,
+          "crpsDeltaVs3Pct": 5.7132
+        },
+        {
+          "sigmaEta": 1.25,
+          "y2017": {
+            "p10": 62.8197,
+            "median": 66.2253,
+            "p90": 69.4798,
+            "width80": 6.6601,
+            "covered": true,
+            "crps": 0.6147
+          },
+          "y2022": {
+            "p10": 62.1399,
+            "median": 65.3817,
+            "p90": 68.549,
+            "width80": 6.4091,
+            "covered": false,
+            "crps": 5.3537
+          },
+          "bothCovered": false,
+          "meanWidth80": 6.5346,
+          "meanCrps": 2.9842,
+          "crpsDeltaVs3Pct": 5.0726
+        },
+        {
+          "sigmaEta": 1.5,
+          "y2017": {
+            "p10": 62.6745,
+            "median": 66.2136,
+            "p90": 69.6753,
+            "width80": 7.0007,
+            "covered": true,
+            "crps": 0.6485
+          },
+          "y2022": {
+            "p10": 61.974,
+            "median": 65.3923,
+            "p90": 68.771,
+            "width80": 6.797,
+            "covered": false,
+            "crps": 5.2807
+          },
+          "bothCovered": false,
+          "meanWidth80": 6.8989,
+          "meanCrps": 2.9646,
+          "crpsDeltaVs3Pct": 4.381
+        },
+        {
+          "sigmaEta": 1.75,
+          "y2017": {
+            "p10": 62.518,
+            "median": 66.1769,
+            "p90": 69.8502,
+            "width80": 7.3322,
+            "covered": true,
+            "crps": 0.6853
+          },
+          "y2022": {
+            "p10": 61.7616,
+            "median": 65.3153,
+            "p90": 68.9842,
+            "width80": 7.2227,
+            "covered": false,
+            "crps": 5.2019
+          },
+          "bothCovered": false,
+          "meanWidth80": 7.2774,
+          "meanCrps": 2.9436,
+          "crpsDeltaVs3Pct": 3.6416
+        },
+        {
+          "sigmaEta": 2,
+          "y2017": {
+            "p10": 62.2971,
+            "median": 66.1597,
+            "p90": 70.0357,
+            "width80": 7.7385,
+            "covered": true,
+            "crps": 0.7255
+          },
+          "y2022": {
+            "p10": 61.5031,
+            "median": 65.2764,
+            "p90": 69.1826,
+            "width80": 7.6795,
+            "covered": false,
+            "crps": 5.1208
+          },
+          "bothCovered": false,
+          "meanWidth80": 7.709,
+          "meanCrps": 2.9232,
+          "crpsDeltaVs3Pct": 2.9227
+        },
+        {
+          "sigmaEta": 2.25,
+          "y2017": {
+            "p10": 62.069,
+            "median": 66.1213,
+            "p90": 70.2706,
+            "width80": 8.2016,
+            "covered": true,
+            "crps": 0.7675
+          },
+          "y2022": {
+            "p10": 61.2327,
+            "median": 65.2363,
+            "p90": 69.4512,
+            "width80": 8.2185,
+            "covered": false,
+            "crps": 5.0359
+          },
+          "bothCovered": false,
+          "meanWidth80": 8.21,
+          "meanCrps": 2.9017,
+          "crpsDeltaVs3Pct": 2.1675
+        },
+        {
+          "sigmaEta": 2.5,
+          "y2017": {
+            "p10": 61.8294,
+            "median": 66.1137,
+            "p90": 70.4906,
+            "width80": 8.6612,
+            "covered": true,
+            "crps": 0.8102
+          },
+          "y2022": {
+            "p10": 60.9591,
+            "median": 65.2315,
+            "p90": 69.7192,
+            "width80": 8.7601,
+            "covered": false,
+            "crps": 4.9497
+          },
+          "bothCovered": false,
+          "meanWidth80": 8.7106,
+          "meanCrps": 2.88,
+          "crpsDeltaVs3Pct": 1.4025
+        },
+        {
+          "sigmaEta": 2.75,
+          "y2017": {
+            "p10": 61.5998,
+            "median": 66.1072,
+            "p90": 70.7638,
+            "width80": 9.164,
+            "covered": true,
+            "crps": 0.854
+          },
+          "y2022": {
+            "p10": 60.7288,
+            "median": 65.2103,
+            "p90": 69.9365,
+            "width80": 9.2077,
+            "covered": false,
+            "crps": 4.8658
+          },
+          "bothCovered": false,
+          "meanWidth80": 9.1858,
+          "meanCrps": 2.8599,
+          "crpsDeltaVs3Pct": 0.6951
+        },
+        {
+          "sigmaEta": 3,
+          "y2017": {
+            "p10": 61.3119,
+            "median": 66.097,
+            "p90": 70.9955,
+            "width80": 9.6837,
+            "covered": true,
+            "crps": 0.8993
+          },
+          "y2022": {
+            "p10": 60.496,
+            "median": 65.2085,
+            "p90": 70.1989,
+            "width80": 9.703,
+            "covered": false,
+            "crps": 4.7811
+          },
+          "bothCovered": false,
+          "meanWidth80": 9.6933,
+          "meanCrps": 2.8402,
+          "crpsDeltaVs3Pct": 0
+        },
+        {
+          "sigmaEta": 3.25,
+          "y2017": {
+            "p10": 61.0363,
+            "median": 66.0856,
+            "p90": 71.2576,
+            "width80": 10.2213,
+            "covered": true,
+            "crps": 0.9468
+          },
+          "y2022": {
+            "p10": 60.2328,
+            "median": 65.188,
+            "p90": 70.4525,
+            "width80": 10.2197,
+            "covered": false,
+            "crps": 4.6967
+          },
+          "bothCovered": false,
+          "meanWidth80": 10.2205,
+          "meanCrps": 2.8217,
+          "crpsDeltaVs3Pct": -0.6487
+        },
+        {
+          "sigmaEta": 3.5,
+          "y2017": {
+            "p10": 60.7427,
+            "median": 66.1115,
+            "p90": 71.4655,
+            "width80": 10.7228,
+            "covered": true,
+            "crps": 0.9947
+          },
+          "y2022": {
+            "p10": 59.9938,
+            "median": 65.1884,
+            "p90": 70.73,
+            "width80": 10.7362,
+            "covered": false,
+            "crps": 4.6157
+          },
+          "bothCovered": false,
+          "meanWidth80": 10.7295,
+          "meanCrps": 2.8052,
+          "crpsDeltaVs3Pct": -1.2308
+        },
+        {
+          "sigmaEta": 3.75,
+          "y2017": {
+            "p10": 60.3894,
+            "median": 66.0556,
+            "p90": 71.6869,
+            "width80": 11.2974,
+            "covered": true,
+            "crps": 1.0433
+          },
+          "y2022": {
+            "p10": 59.7372,
+            "median": 65.2132,
+            "p90": 71.0691,
+            "width80": 11.3319,
+            "covered": false,
+            "crps": 4.5374
+          },
+          "bothCovered": false,
+          "meanWidth80": 11.3147,
+          "meanCrps": 2.7904,
+          "crpsDeltaVs3Pct": -1.7529
+        },
+        {
+          "sigmaEta": 4,
+          "y2017": {
+            "p10": 60.135,
+            "median": 66.0463,
+            "p90": 71.9588,
+            "width80": 11.8238,
+            "covered": true,
+            "crps": 1.0929
+          },
+          "y2022": {
+            "p10": 59.4381,
+            "median": 65.1976,
+            "p90": 71.336,
+            "width80": 11.8978,
+            "covered": false,
+            "crps": 4.4655
+          },
+          "bothCovered": false,
+          "meanWidth80": 11.8608,
+          "meanCrps": 2.7792,
+          "crpsDeltaVs3Pct": -2.1467
+        },
+        {
+          "sigmaEta": 4.25,
+          "y2017": {
+            "p10": 59.8536,
+            "median": 66.065,
+            "p90": 72.2288,
+            "width80": 12.3752,
+            "covered": true,
+            "crps": 1.1427
+          },
+          "y2022": {
+            "p10": 59.1857,
+            "median": 65.1717,
+            "p90": 71.5003,
+            "width80": 12.3146,
+            "covered": false,
+            "crps": 4.4005
+          },
+          "bothCovered": false,
+          "meanWidth80": 12.3449,
+          "meanCrps": 2.7716,
+          "crpsDeltaVs3Pct": -2.4127
+        },
+        {
+          "sigmaEta": 4.5,
+          "y2017": {
+            "p10": 59.5459,
+            "median": 66.0293,
+            "p90": 72.5376,
+            "width80": 12.9917,
+            "covered": true,
+            "crps": 1.1936
+          },
+          "y2022": {
+            "p10": 58.8317,
+            "median": 65.18,
+            "p90": 71.8352,
+            "width80": 13.0035,
+            "covered": false,
+            "crps": 4.3425
+          },
+          "bothCovered": false,
+          "meanWidth80": 12.9976,
+          "meanCrps": 2.7681,
+          "crpsDeltaVs3Pct": -2.5385
+        },
+        {
+          "sigmaEta": 4.75,
+          "y2017": {
+            "p10": 59.2631,
+            "median": 66.032,
+            "p90": 72.8129,
+            "width80": 13.5498,
+            "covered": true,
+            "crps": 1.2453
+          },
+          "y2022": {
+            "p10": 58.5337,
+            "median": 65.1883,
+            "p90": 72.0899,
+            "width80": 13.5562,
+            "covered": true,
+            "crps": 4.2907
+          },
+          "bothCovered": true,
+          "meanWidth80": 13.553,
+          "meanCrps": 2.768,
+          "crpsDeltaVs3Pct": -2.54
+        },
+        {
+          "sigmaEta": 5,
+          "y2017": {
+            "p10": 58.965,
+            "median": 66.0385,
+            "p90": 73.1109,
+            "width80": 14.1459,
+            "covered": true,
+            "crps": 1.2973
+          },
+          "y2022": {
+            "p10": 58.2587,
+            "median": 65.1957,
+            "p90": 72.3999,
+            "width80": 14.1412,
+            "covered": true,
+            "crps": 4.2435
+          },
+          "bothCovered": true,
+          "meanWidth80": 14.1436,
+          "meanCrps": 2.7704,
+          "crpsDeltaVs3Pct": -2.4559
+        }
+      ]
+    },
+    "parallel_uncertain_r25": {
+      "frontMode": "uncertain_loo",
+      "fidelityMode": "r2_5_measured",
+      "iterations": 2000,
+      "currentAt3": {
+        "sigmaEta": 3,
+        "y2017": {
+          "p10": 59.1324,
+          "median": 64.3116,
+          "p90": 69.4965,
+          "width80": 10.3641,
+          "covered": true,
+          "crps": 1.2571
+        },
+        "y2022": {
+          "p10": 59.6206,
+          "median": 64.4353,
+          "p90": 69.3909,
+          "width80": 9.7702,
+          "covered": false,
+          "crps": 3.9911
+        },
+        "bothCovered": false,
+        "meanWidth80": 10.0672,
+        "meanCrps": 2.6241,
+        "crpsDeltaVs3Pct": 0
+      },
+      "selected": {
+        "sigmaEta": 4.5,
+        "y2017": {
+          "p10": 57.6906,
+          "median": 64.2917,
+          "p90": 71.1162,
+          "width80": 13.4256,
+          "covered": true,
+          "crps": 1.5025
+        },
+        "y2022": {
+          "p10": 57.7927,
+          "median": 64.3482,
+          "p90": 70.9874,
+          "width80": 13.1947,
+          "covered": true,
+          "crps": 3.6287
+        },
+        "bothCovered": true,
+        "meanWidth80": 13.3101,
+        "meanCrps": 2.5656,
+        "crpsDeltaVs3Pct": -2.2286
+      },
+      "adoptionCriteria": {
+        "hasFeasibleSigma": true,
+        "bothCoveredMaintained": true,
+        "meanWidthStrictlyReduced": false,
+        "crpsDegradationWithin2Pct": true,
+        "allPassed": false
+      },
+      "grid": [
+        {
+          "sigmaEta": 0,
+          "y2017": {
+            "p10": 60.7999,
+            "median": 64.6005,
+            "p90": 67.8677,
+            "width80": 7.0678,
+            "covered": true,
+            "crps": 0.9785
+          },
+          "y2022": {
+            "p10": 61.568,
+            "median": 64.6722,
+            "p90": 67.4862,
+            "width80": 5.9182,
+            "covered": false,
+            "crps": 4.7878
+          },
+          "bothCovered": false,
+          "meanWidth80": 6.493,
+          "meanCrps": 2.8832,
+          "crpsDeltaVs3Pct": 9.8717
+        },
+        {
+          "sigmaEta": 0.25,
+          "y2017": {
+            "p10": 60.761,
+            "median": 64.5944,
+            "p90": 67.8603,
+            "width80": 7.0993,
+            "covered": true,
+            "crps": 0.9859
+          },
+          "y2022": {
+            "p10": 61.5414,
+            "median": 64.6786,
+            "p90": 67.572,
+            "width80": 6.0306,
+            "covered": false,
+            "crps": 4.7708
+          },
+          "bothCovered": false,
+          "meanWidth80": 6.565,
+          "meanCrps": 2.8783,
+          "crpsDeltaVs3Pct": 9.6875
+        },
+        {
+          "sigmaEta": 0.5,
+          "y2017": {
+            "p10": 60.7946,
+            "median": 64.5586,
+            "p90": 67.877,
+            "width80": 7.0824,
+            "covered": true,
+            "crps": 0.9968
+          },
+          "y2022": {
+            "p10": 61.5915,
+            "median": 64.6654,
+            "p90": 67.6581,
+            "width80": 6.0666,
+            "covered": false,
+            "crps": 4.7396
+          },
+          "bothCovered": false,
+          "meanWidth80": 6.5745,
+          "meanCrps": 2.8682,
+          "crpsDeltaVs3Pct": 9.3017
+        },
+        {
+          "sigmaEta": 0.75,
+          "y2017": {
+            "p10": 60.7221,
+            "median": 64.5712,
+            "p90": 67.964,
+            "width80": 7.2419,
+            "covered": true,
+            "crps": 1.0093
+          },
+          "y2022": {
+            "p10": 61.4904,
+            "median": 64.6474,
+            "p90": 67.7337,
+            "width80": 6.2433,
+            "covered": false,
+            "crps": 4.6948
+          },
+          "bothCovered": false,
+          "meanWidth80": 6.7426,
+          "meanCrps": 2.852,
+          "crpsDeltaVs3Pct": 8.6856
+        },
+        {
+          "sigmaEta": 1,
+          "y2017": {
+            "p10": 60.6331,
+            "median": 64.5275,
+            "p90": 67.9794,
+            "width80": 7.3463,
+            "covered": true,
+            "crps": 1.0275
+          },
+          "y2022": {
+            "p10": 61.3946,
+            "median": 64.6279,
+            "p90": 67.808,
+            "width80": 6.4134,
+            "covered": false,
+            "crps": 4.6383
+          },
+          "bothCovered": false,
+          "meanWidth80": 6.8799,
+          "meanCrps": 2.8329,
+          "crpsDeltaVs3Pct": 7.9553
+        },
+        {
+          "sigmaEta": 1.25,
+          "y2017": {
+            "p10": 60.5658,
+            "median": 64.4807,
+            "p90": 68.1435,
+            "width80": 7.5777,
+            "covered": true,
+            "crps": 1.0503
+          },
+          "y2022": {
+            "p10": 61.245,
+            "median": 64.593,
+            "p90": 67.8844,
+            "width80": 6.6393,
+            "covered": false,
+            "crps": 4.5717
+          },
+          "bothCovered": false,
+          "meanWidth80": 7.1085,
+          "meanCrps": 2.811,
+          "crpsDeltaVs3Pct": 7.1215
+        },
+        {
+          "sigmaEta": 1.5,
+          "y2017": {
+            "p10": 60.348,
+            "median": 64.4668,
+            "p90": 68.3277,
+            "width80": 7.9798,
+            "covered": true,
+            "crps": 1.0742
+          },
+          "y2022": {
+            "p10": 61.0263,
+            "median": 64.5534,
+            "p90": 68.0601,
+            "width80": 7.0338,
+            "covered": false,
+            "crps": 4.4969
+          },
+          "bothCovered": false,
+          "meanWidth80": 7.5068,
+          "meanCrps": 2.7856,
+          "crpsDeltaVs3Pct": 6.1534
+        },
+        {
+          "sigmaEta": 1.75,
+          "y2017": {
+            "p10": 60.1661,
+            "median": 64.4201,
+            "p90": 68.517,
+            "width80": 8.3508,
+            "covered": true,
+            "crps": 1.0993
+          },
+          "y2022": {
+            "p10": 60.824,
+            "median": 64.499,
+            "p90": 68.2208,
+            "width80": 7.3968,
+            "covered": false,
+            "crps": 4.4163
+          },
+          "bothCovered": false,
+          "meanWidth80": 7.8738,
+          "meanCrps": 2.7578,
+          "crpsDeltaVs3Pct": 5.0958
+        },
+        {
+          "sigmaEta": 2,
+          "y2017": {
+            "p10": 60.007,
+            "median": 64.4022,
+            "p90": 68.6851,
+            "width80": 8.6782,
+            "covered": true,
+            "crps": 1.1283
+          },
+          "y2022": {
+            "p10": 60.5958,
+            "median": 64.4912,
+            "p90": 68.3904,
+            "width80": 7.7946,
+            "covered": false,
+            "crps": 4.3299
+          },
+          "bothCovered": false,
+          "meanWidth80": 8.2364,
+          "meanCrps": 2.7291,
+          "crpsDeltaVs3Pct": 4.0008
+        },
+        {
+          "sigmaEta": 2.25,
+          "y2017": {
+            "p10": 59.8341,
+            "median": 64.371,
+            "p90": 68.839,
+            "width80": 9.0049,
+            "covered": true,
+            "crps": 1.1578
+          },
+          "y2022": {
+            "p10": 60.3392,
+            "median": 64.4594,
+            "p90": 68.6396,
+            "width80": 8.3004,
+            "covered": false,
+            "crps": 4.2414
+          },
+          "bothCovered": false,
+          "meanWidth80": 8.6527,
+          "meanCrps": 2.6996,
+          "crpsDeltaVs3Pct": 2.8764
+        },
+        {
+          "sigmaEta": 2.5,
+          "y2017": {
+            "p10": 59.5622,
+            "median": 64.3376,
+            "p90": 69.0489,
+            "width80": 9.4867,
+            "covered": true,
+            "crps": 1.1883
+          },
+          "y2022": {
+            "p10": 60.154,
+            "median": 64.4612,
+            "p90": 68.8501,
+            "width80": 8.6961,
+            "covered": false,
+            "crps": 4.1551
+          },
+          "bothCovered": false,
+          "meanWidth80": 9.0914,
+          "meanCrps": 2.6717,
+          "crpsDeltaVs3Pct": 1.8123
+        },
+        {
+          "sigmaEta": 2.75,
+          "y2017": {
+            "p10": 59.3578,
+            "median": 64.3353,
+            "p90": 69.2375,
+            "width80": 9.8797,
+            "covered": true,
+            "crps": 1.2222
+          },
+          "y2022": {
+            "p10": 59.8808,
+            "median": 64.404,
+            "p90": 69.1222,
+            "width80": 9.2413,
+            "covered": false,
+            "crps": 4.0711
+          },
+          "bothCovered": false,
+          "meanWidth80": 9.5605,
+          "meanCrps": 2.6467,
+          "crpsDeltaVs3Pct": 0.8594
+        },
+        {
+          "sigmaEta": 3,
+          "y2017": {
+            "p10": 59.1324,
+            "median": 64.3116,
+            "p90": 69.4965,
+            "width80": 10.3641,
+            "covered": true,
+            "crps": 1.2571
+          },
+          "y2022": {
+            "p10": 59.6206,
+            "median": 64.4353,
+            "p90": 69.3909,
+            "width80": 9.7702,
+            "covered": false,
+            "crps": 3.9911
+          },
+          "bothCovered": false,
+          "meanWidth80": 10.0672,
+          "meanCrps": 2.6241,
+          "crpsDeltaVs3Pct": 0
+        },
+        {
+          "sigmaEta": 3.25,
+          "y2017": {
+            "p10": 58.9026,
+            "median": 64.3278,
+            "p90": 69.7564,
+            "width80": 10.8538,
+            "covered": true,
+            "crps": 1.2932
+          },
+          "y2022": {
+            "p10": 59.3348,
+            "median": 64.427,
+            "p90": 69.6107,
+            "width80": 10.2759,
+            "covered": false,
+            "crps": 3.9129
+          },
+          "bothCovered": false,
+          "meanWidth80": 10.5648,
+          "meanCrps": 2.603,
+          "crpsDeltaVs3Pct": -0.8031
+        },
+        {
+          "sigmaEta": 3.5,
+          "y2017": {
+            "p10": 58.6399,
+            "median": 64.3308,
+            "p90": 70.0472,
+            "width80": 11.4073,
+            "covered": true,
+            "crps": 1.3307
+          },
+          "y2022": {
+            "p10": 59.0586,
+            "median": 64.4048,
+            "p90": 69.8917,
+            "width80": 10.8331,
+            "covered": false,
+            "crps": 3.843
+          },
+          "bothCovered": false,
+          "meanWidth80": 11.1202,
+          "meanCrps": 2.5869,
+          "crpsDeltaVs3Pct": -1.4185
+        },
+        {
+          "sigmaEta": 3.75,
+          "y2017": {
+            "p10": 58.3447,
+            "median": 64.3117,
+            "p90": 70.3041,
+            "width80": 11.9594,
+            "covered": true,
+            "crps": 1.3716
+          },
+          "y2022": {
+            "p10": 58.73,
+            "median": 64.3769,
+            "p90": 70.222,
+            "width80": 11.4919,
+            "covered": false,
+            "crps": 3.7805
+          },
+          "bothCovered": false,
+          "meanWidth80": 11.7257,
+          "meanCrps": 2.576,
+          "crpsDeltaVs3Pct": -1.8321
+        },
+        {
+          "sigmaEta": 4,
+          "y2017": {
+            "p10": 58.1071,
+            "median": 64.2821,
+            "p90": 70.606,
+            "width80": 12.4989,
+            "covered": true,
+            "crps": 1.4143
+          },
+          "y2022": {
+            "p10": 58.3841,
+            "median": 64.36,
+            "p90": 70.4618,
+            "width80": 12.0777,
+            "covered": true,
+            "crps": 3.725
+          },
+          "bothCovered": true,
+          "meanWidth80": 12.2883,
+          "meanCrps": 2.5696,
+          "crpsDeltaVs3Pct": -2.0753
+        },
+        {
+          "sigmaEta": 4.25,
+          "y2017": {
+            "p10": 57.9098,
+            "median": 64.2999,
+            "p90": 70.8254,
+            "width80": 12.9156,
+            "covered": true,
+            "crps": 1.458
+          },
+          "y2022": {
+            "p10": 58.1313,
+            "median": 64.3412,
+            "p90": 70.719,
+            "width80": 12.5877,
+            "covered": true,
+            "crps": 3.6753
+          },
+          "bothCovered": true,
+          "meanWidth80": 12.7517,
+          "meanCrps": 2.5666,
+          "crpsDeltaVs3Pct": -2.1901
+        },
+        {
+          "sigmaEta": 4.5,
+          "y2017": {
+            "p10": 57.6906,
+            "median": 64.2917,
+            "p90": 71.1162,
+            "width80": 13.4256,
+            "covered": true,
+            "crps": 1.5025
+          },
+          "y2022": {
+            "p10": 57.7927,
+            "median": 64.3482,
+            "p90": 70.9874,
+            "width80": 13.1947,
+            "covered": true,
+            "crps": 3.6287
+          },
+          "bothCovered": true,
+          "meanWidth80": 13.3101,
+          "meanCrps": 2.5656,
+          "crpsDeltaVs3Pct": -2.2286
+        },
+        {
+          "sigmaEta": 4.75,
+          "y2017": {
+            "p10": 57.3961,
+            "median": 64.2649,
+            "p90": 71.4184,
+            "width80": 14.0223,
+            "covered": true,
+            "crps": 1.5479
+          },
+          "y2022": {
+            "p10": 57.5787,
+            "median": 64.3615,
+            "p90": 71.2788,
+            "width80": 13.7002,
+            "covered": true,
+            "crps": 3.5883
+          },
+          "bothCovered": true,
+          "meanWidth80": 13.8612,
+          "meanCrps": 2.5681,
+          "crpsDeltaVs3Pct": -2.1349
+        },
+        {
+          "sigmaEta": 5,
+          "y2017": {
+            "p10": 57.0604,
+            "median": 64.2483,
+            "p90": 71.6571,
+            "width80": 14.5967,
+            "covered": true,
+            "crps": 1.5941
+          },
+          "y2022": {
+            "p10": 57.1961,
+            "median": 64.3521,
+            "p90": 71.5894,
+            "width80": 14.3933,
+            "covered": true,
+            "crps": 3.5528
+          },
+          "bothCovered": true,
+          "meanWidth80": 14.495,
+          "meanCrps": 2.5735,
+          "crpsDeltaVs3Pct": -1.9304
+        }
+      ]
+    },
+    "comparison_leg2024_s3": {
+      "frontMode": "leg2024_loo",
+      "fidelityMode": "s3_neutral",
+      "iterations": 2000,
+      "currentAt3": {
+        "sigmaEta": 3,
+        "y2017": {
+          "p10": 60.4042,
+          "median": 65.2135,
+          "p90": 70.0977,
+          "width80": 9.6935,
+          "covered": true,
+          "crps": 0.9764
+        },
+        "y2022": {
+          "p10": 59.605,
+          "median": 64.3355,
+          "p90": 69.3231,
+          "width80": 9.718,
+          "covered": false,
+          "crps": 3.9672
+        },
+        "bothCovered": false,
+        "meanWidth80": 9.7057,
+        "meanCrps": 2.4718,
+        "crpsDeltaVs3Pct": 0
+      },
+      "selected": {
+        "sigmaEta": 4,
+        "y2017": {
+          "p10": 59.2221,
+          "median": 65.1521,
+          "p90": 71.0561,
+          "width80": 11.8339,
+          "covered": true,
+          "crps": 1.163
+        },
+        "y2022": {
+          "p10": 58.5386,
+          "median": 64.3297,
+          "p90": 70.4449,
+          "width80": 11.9063,
+          "covered": true,
+          "crps": 3.7243
+        },
+        "bothCovered": true,
+        "meanWidth80": 11.8701,
+        "meanCrps": 2.4437,
+        "crpsDeltaVs3Pct": -1.1376
+      },
+      "adoptionCriteria": {
+        "hasFeasibleSigma": true,
+        "bothCoveredMaintained": true,
+        "meanWidthStrictlyReduced": false,
+        "crpsDegradationWithin2Pct": true,
+        "allPassed": false
+      },
+      "grid": [
+        {
+          "sigmaEta": 0,
+          "y2017": {
+            "p10": 62.424,
+            "median": 65.335,
+            "p90": 68.1206,
+            "width80": 5.6966,
+            "covered": true,
+            "crps": 0.6197
+          },
+          "y2022": {
+            "p10": 61.54,
+            "median": 64.5738,
+            "p90": 67.1478,
+            "width80": 5.6078,
+            "covered": false,
+            "crps": 4.6683
+          },
+          "bothCovered": false,
+          "meanWidth80": 5.6522,
+          "meanCrps": 2.644,
+          "crpsDeltaVs3Pct": 6.9684
+        },
+        {
+          "sigmaEta": 0.25,
+          "y2017": {
+            "p10": 62.4109,
+            "median": 65.3504,
+            "p90": 68.1603,
+            "width80": 5.7493,
+            "covered": true,
+            "crps": 0.6264
+          },
+          "y2022": {
+            "p10": 61.5137,
+            "median": 64.5571,
+            "p90": 67.2111,
+            "width80": 5.6974,
+            "covered": false,
+            "crps": 4.6563
+          },
+          "bothCovered": false,
+          "meanWidth80": 5.7234,
+          "meanCrps": 2.6414,
+          "crpsDeltaVs3Pct": 6.8613
+        },
+        {
+          "sigmaEta": 0.5,
+          "y2017": {
+            "p10": 62.3169,
+            "median": 65.3722,
+            "p90": 68.2215,
+            "width80": 5.9045,
+            "covered": true,
+            "crps": 0.6375
+          },
+          "y2022": {
+            "p10": 61.4722,
+            "median": 64.5658,
+            "p90": 67.2786,
+            "width80": 5.8065,
+            "covered": false,
+            "crps": 4.6297
+          },
+          "bothCovered": false,
+          "meanWidth80": 5.8555,
+          "meanCrps": 2.6336,
+          "crpsDeltaVs3Pct": 6.5469
+        },
+        {
+          "sigmaEta": 0.75,
+          "y2017": {
+            "p10": 62.181,
+            "median": 65.373,
+            "p90": 68.2884,
+            "width80": 6.1074,
+            "covered": true,
+            "crps": 0.6553
+          },
+          "y2022": {
+            "p10": 61.4217,
+            "median": 64.5433,
+            "p90": 67.3809,
+            "width80": 5.9592,
+            "covered": false,
+            "crps": 4.5895
+          },
+          "bothCovered": false,
+          "meanWidth80": 6.0333,
+          "meanCrps": 2.6224,
+          "crpsDeltaVs3Pct": 6.0926
+        },
+        {
+          "sigmaEta": 1,
+          "y2017": {
+            "p10": 62.0275,
+            "median": 65.3673,
+            "p90": 68.3974,
+            "width80": 6.3698,
+            "covered": true,
+            "crps": 0.6788
+          },
+          "y2022": {
+            "p10": 61.3414,
+            "median": 64.5242,
+            "p90": 67.4901,
+            "width80": 6.1487,
+            "covered": false,
+            "crps": 4.5389
+          },
+          "bothCovered": false,
+          "meanWidth80": 6.2593,
+          "meanCrps": 2.6088,
+          "crpsDeltaVs3Pct": 5.5444
+        },
+        {
+          "sigmaEta": 1.25,
+          "y2017": {
+            "p10": 61.9313,
+            "median": 65.3313,
+            "p90": 68.5889,
+            "width80": 6.6575,
+            "covered": true,
+            "crps": 0.7051
+          },
+          "y2022": {
+            "p10": 61.2546,
+            "median": 64.5052,
+            "p90": 67.6875,
+            "width80": 6.4329,
+            "covered": false,
+            "crps": 4.4785
+          },
+          "bothCovered": false,
+          "meanWidth80": 6.5452,
+          "meanCrps": 2.5918,
+          "crpsDeltaVs3Pct": 4.8552
+        },
+        {
+          "sigmaEta": 1.5,
+          "y2017": {
+            "p10": 61.8174,
+            "median": 65.3043,
+            "p90": 68.7713,
+            "width80": 6.9538,
+            "covered": true,
+            "crps": 0.7354
+          },
+          "y2022": {
+            "p10": 61.0708,
+            "median": 64.4917,
+            "p90": 67.8943,
+            "width80": 6.8234,
+            "covered": false,
+            "crps": 4.4126
+          },
+          "bothCovered": false,
+          "meanWidth80": 6.8886,
+          "meanCrps": 2.574,
+          "crpsDeltaVs3Pct": 4.1371
+        },
+        {
+          "sigmaEta": 1.75,
+          "y2017": {
+            "p10": 61.6458,
+            "median": 65.2715,
+            "p90": 68.9407,
+            "width80": 7.2949,
+            "covered": true,
+            "crps": 0.7698
+          },
+          "y2022": {
+            "p10": 60.8512,
+            "median": 64.4497,
+            "p90": 68.0925,
+            "width80": 7.2413,
+            "covered": false,
+            "crps": 4.343
+          },
+          "bothCovered": false,
+          "meanWidth80": 7.2681,
+          "meanCrps": 2.5564,
+          "crpsDeltaVs3Pct": 3.4235
+        },
+        {
+          "sigmaEta": 2,
+          "y2017": {
+            "p10": 61.4221,
+            "median": 65.2357,
+            "p90": 69.1223,
+            "width80": 7.7002,
+            "covered": true,
+            "crps": 0.8085
+          },
+          "y2022": {
+            "p10": 60.6154,
+            "median": 64.3888,
+            "p90": 68.3098,
+            "width80": 7.6944,
+            "covered": false,
+            "crps": 4.269
+          },
+          "bothCovered": false,
+          "meanWidth80": 7.6973,
+          "meanCrps": 2.5388,
+          "crpsDeltaVs3Pct": 2.7106
+        },
+        {
+          "sigmaEta": 2.25,
+          "y2017": {
+            "p10": 61.2258,
+            "median": 65.2158,
+            "p90": 69.3414,
+            "width80": 8.1156,
+            "covered": true,
+            "crps": 0.8485
+          },
+          "y2022": {
+            "p10": 60.3346,
+            "median": 64.3613,
+            "p90": 68.5925,
+            "width80": 8.2579,
+            "covered": false,
+            "crps": 4.1941
+          },
+          "bothCovered": false,
+          "meanWidth80": 8.1867,
+          "meanCrps": 2.5213,
+          "crpsDeltaVs3Pct": 2.0042
+        },
+        {
+          "sigmaEta": 2.5,
+          "y2017": {
+            "p10": 60.9635,
+            "median": 65.1882,
+            "p90": 69.5633,
+            "width80": 8.5997,
+            "covered": true,
+            "crps": 0.8889
+          },
+          "y2022": {
+            "p10": 60.0773,
+            "median": 64.341,
+            "p90": 68.8329,
+            "width80": 8.7556,
+            "covered": false,
+            "crps": 4.1179
+          },
+          "bothCovered": false,
+          "meanWidth80": 8.6777,
+          "meanCrps": 2.5034,
+          "crpsDeltaVs3Pct": 1.2785
+        },
+        {
+          "sigmaEta": 2.75,
+          "y2017": {
+            "p10": 60.7029,
+            "median": 65.1936,
+            "p90": 69.8084,
+            "width80": 9.1055,
+            "covered": true,
+            "crps": 0.9324
+          },
+          "y2022": {
+            "p10": 59.8446,
+            "median": 64.3177,
+            "p90": 69.075,
+            "width80": 9.2304,
+            "covered": false,
+            "crps": 4.0416
+          },
+          "bothCovered": false,
+          "meanWidth80": 9.1679,
+          "meanCrps": 2.487,
+          "crpsDeltaVs3Pct": 0.6151
+        },
+        {
+          "sigmaEta": 3,
+          "y2017": {
+            "p10": 60.4042,
+            "median": 65.2135,
+            "p90": 70.0977,
+            "width80": 9.6935,
+            "covered": true,
+            "crps": 0.9764
+          },
+          "y2022": {
+            "p10": 59.605,
+            "median": 64.3355,
+            "p90": 69.3231,
+            "width80": 9.718,
+            "covered": false,
+            "crps": 3.9672
+          },
+          "bothCovered": false,
+          "meanWidth80": 9.7057,
+          "meanCrps": 2.4718,
+          "crpsDeltaVs3Pct": 0
+        },
+        {
+          "sigmaEta": 3.25,
+          "y2017": {
+            "p10": 60.1484,
+            "median": 65.1773,
+            "p90": 70.349,
+            "width80": 10.2006,
+            "covered": true,
+            "crps": 1.0213
+          },
+          "y2022": {
+            "p10": 59.3121,
+            "median": 64.3066,
+            "p90": 69.5646,
+            "width80": 10.2525,
+            "covered": false,
+            "crps": 3.897
+          },
+          "bothCovered": false,
+          "meanWidth80": 10.2265,
+          "meanCrps": 2.4592,
+          "crpsDeltaVs3Pct": -0.5104
+        },
+        {
+          "sigmaEta": 3.5,
+          "y2017": {
+            "p10": 59.8545,
+            "median": 65.1641,
+            "p90": 70.5789,
+            "width80": 10.7244,
+            "covered": true,
+            "crps": 1.0677
+          },
+          "y2022": {
+            "p10": 59.0332,
+            "median": 64.3176,
+            "p90": 69.868,
+            "width80": 10.8348,
+            "covered": false,
+            "crps": 3.8323
+          },
+          "bothCovered": false,
+          "meanWidth80": 10.7796,
+          "meanCrps": 2.45,
+          "crpsDeltaVs3Pct": -0.8807
+        },
+        {
+          "sigmaEta": 3.75,
+          "y2017": {
+            "p10": 59.5382,
+            "median": 65.1494,
+            "p90": 70.7971,
+            "width80": 11.2588,
+            "covered": true,
+            "crps": 1.1145
+          },
+          "y2022": {
+            "p10": 58.8256,
+            "median": 64.3342,
+            "p90": 70.1706,
+            "width80": 11.345,
+            "covered": false,
+            "crps": 3.775
+          },
+          "bothCovered": false,
+          "meanWidth80": 11.3019,
+          "meanCrps": 2.4447,
+          "crpsDeltaVs3Pct": -1.0937
+        },
+        {
+          "sigmaEta": 4,
+          "y2017": {
+            "p10": 59.2221,
+            "median": 65.1521,
+            "p90": 71.0561,
+            "width80": 11.8339,
+            "covered": true,
+            "crps": 1.163
+          },
+          "y2022": {
+            "p10": 58.5386,
+            "median": 64.3297,
+            "p90": 70.4449,
+            "width80": 11.9063,
+            "covered": true,
+            "crps": 3.7243
+          },
+          "bothCovered": true,
+          "meanWidth80": 11.8701,
+          "meanCrps": 2.4437,
+          "crpsDeltaVs3Pct": -1.1376
+        },
+        {
+          "sigmaEta": 4.25,
+          "y2017": {
+            "p10": 58.9362,
+            "median": 65.1574,
+            "p90": 71.3507,
+            "width80": 12.4145,
+            "covered": true,
+            "crps": 1.2122
+          },
+          "y2022": {
+            "p10": 58.2938,
+            "median": 64.3201,
+            "p90": 70.6407,
+            "width80": 12.3469,
+            "covered": true,
+            "crps": 3.6788
+          },
+          "bothCovered": true,
+          "meanWidth80": 12.3807,
+          "meanCrps": 2.4455,
+          "crpsDeltaVs3Pct": -1.0621
+        },
+        {
+          "sigmaEta": 4.5,
+          "y2017": {
+            "p10": 58.6278,
+            "median": 65.1444,
+            "p90": 71.6121,
+            "width80": 12.9843,
+            "covered": true,
+            "crps": 1.2624
+          },
+          "y2022": {
+            "p10": 57.944,
+            "median": 64.2882,
+            "p90": 70.9531,
+            "width80": 13.0091,
+            "covered": true,
+            "crps": 3.6381
+          },
+          "bothCovered": true,
+          "meanWidth80": 12.9967,
+          "meanCrps": 2.4503,
+          "crpsDeltaVs3Pct": -0.8702
+        },
+        {
+          "sigmaEta": 4.75,
+          "y2017": {
+            "p10": 58.3232,
+            "median": 65.1375,
+            "p90": 71.8783,
+            "width80": 13.5551,
+            "covered": true,
+            "crps": 1.3131
+          },
+          "y2022": {
+            "p10": 57.6527,
+            "median": 64.3092,
+            "p90": 71.2076,
+            "width80": 13.555,
+            "covered": true,
+            "crps": 3.6021
+          },
+          "bothCovered": true,
+          "meanWidth80": 13.555,
+          "meanCrps": 2.4576,
+          "crpsDeltaVs3Pct": -0.5725
+        },
+        {
+          "sigmaEta": 5,
+          "y2017": {
+            "p10": 58.0212,
+            "median": 65.1659,
+            "p90": 72.2196,
+            "width80": 14.1984,
+            "covered": true,
+            "crps": 1.3641
+          },
+          "y2022": {
+            "p10": 57.3783,
+            "median": 64.3002,
+            "p90": 71.5308,
+            "width80": 14.1525,
+            "covered": true,
+            "crps": 3.5697
+          },
+          "bothCovered": true,
+          "meanWidth80": 14.1754,
+          "meanCrps": 2.4669,
+          "crpsDeltaVs3Pct": -0.1962
+        }
+      ]
+    },
+    "comparison_uncertain_s3": {
+      "frontMode": "uncertain_loo",
+      "fidelityMode": "s3_neutral",
+      "iterations": 2000,
+      "currentAt3": {
+        "sigmaEta": 3,
+        "y2017": {
+          "p10": 58.2072,
+          "median": 63.3571,
+          "p90": 68.5398,
+          "width80": 10.3325,
+          "covered": true,
+          "crps": 1.64
+        },
+        "y2022": {
+          "p10": 58.6919,
+          "median": 63.519,
+          "p90": 68.5027,
+          "width80": 9.8107,
+          "covered": false,
+          "crps": 3.2192
+        },
+        "bothCovered": false,
+        "meanWidth80": 10.0716,
+        "meanCrps": 2.4296,
+        "crpsDeltaVs3Pct": 0
+      },
+      "selected": {
+        "sigmaEta": 4,
+        "y2017": {
+          "p10": 57.1829,
+          "median": 63.353,
+          "p90": 69.6547,
+          "width80": 12.4718,
+          "covered": true,
+          "crps": 1.7442
+        },
+        "y2022": {
+          "p10": 57.5107,
+          "median": 63.4681,
+          "p90": 69.5758,
+          "width80": 12.0651,
+          "covered": true,
+          "crps": 3.0383
+        },
+        "bothCovered": true,
+        "meanWidth80": 12.2685,
+        "meanCrps": 2.3913,
+        "crpsDeltaVs3Pct": -1.579
+      },
+      "adoptionCriteria": {
+        "hasFeasibleSigma": true,
+        "bothCoveredMaintained": true,
+        "meanWidthStrictlyReduced": false,
+        "crpsDegradationWithin2Pct": true,
+        "allPassed": false
+      },
+      "grid": [
+        {
+          "sigmaEta": 0,
+          "y2017": {
+            "p10": 59.8669,
+            "median": 63.66,
+            "p90": 66.9457,
+            "width80": 7.0788,
+            "covered": true,
+            "crps": 1.487
+          },
+          "y2022": {
+            "p10": 60.6392,
+            "median": 63.7764,
+            "p90": 66.6009,
+            "width80": 5.9617,
+            "covered": false,
+            "crps": 3.8969
+          },
+          "bothCovered": false,
+          "meanWidth80": 6.5202,
+          "meanCrps": 2.692,
+          "crpsDeltaVs3Pct": 10.7971
+        },
+        {
+          "sigmaEta": 0.25,
+          "y2017": {
+            "p10": 59.8385,
+            "median": 63.6537,
+            "p90": 66.93,
+            "width80": 7.0915,
+            "covered": true,
+            "crps": 1.4936
+          },
+          "y2022": {
+            "p10": 60.6349,
+            "median": 63.7785,
+            "p90": 66.6873,
+            "width80": 6.0524,
+            "covered": false,
+            "crps": 3.8811
+          },
+          "bothCovered": false,
+          "meanWidth80": 6.572,
+          "meanCrps": 2.6874,
+          "crpsDeltaVs3Pct": 10.6084
+        },
+        {
+          "sigmaEta": 0.5,
+          "y2017": {
+            "p10": 59.8795,
+            "median": 63.6235,
+            "p90": 66.9421,
+            "width80": 7.0626,
+            "covered": true,
+            "crps": 1.4991
+          },
+          "y2022": {
+            "p10": 60.6718,
+            "median": 63.7768,
+            "p90": 66.7833,
+            "width80": 6.1114,
+            "covered": false,
+            "crps": 3.8521
+          },
+          "bothCovered": false,
+          "meanWidth80": 6.587,
+          "meanCrps": 2.6756,
+          "crpsDeltaVs3Pct": 10.1235
+        },
+        {
+          "sigmaEta": 0.75,
+          "y2017": {
+            "p10": 59.8185,
+            "median": 63.6156,
+            "p90": 66.9903,
+            "width80": 7.1718,
+            "covered": true,
+            "crps": 1.5072
+          },
+          "y2022": {
+            "p10": 60.5706,
+            "median": 63.7359,
+            "p90": 66.8404,
+            "width80": 6.2698,
+            "covered": false,
+            "crps": 3.8107
+          },
+          "bothCovered": false,
+          "meanWidth80": 6.7208,
+          "meanCrps": 2.6589,
+          "crpsDeltaVs3Pct": 9.4386
+        },
+        {
+          "sigmaEta": 1,
+          "y2017": {
+            "p10": 59.723,
+            "median": 63.5728,
+            "p90": 67.0551,
+            "width80": 7.3321,
+            "covered": true,
+            "crps": 1.5162
+          },
+          "y2022": {
+            "p10": 60.4651,
+            "median": 63.7246,
+            "p90": 66.9008,
+            "width80": 6.4357,
+            "covered": false,
+            "crps": 3.7581
+          },
+          "bothCovered": false,
+          "meanWidth80": 6.8839,
+          "meanCrps": 2.6372,
+          "crpsDeltaVs3Pct": 8.5417
+        },
+        {
+          "sigmaEta": 1.25,
+          "y2017": {
+            "p10": 59.6188,
+            "median": 63.5375,
+            "p90": 67.2424,
+            "width80": 7.6236,
+            "covered": true,
+            "crps": 1.5244
+          },
+          "y2022": {
+            "p10": 60.3292,
+            "median": 63.6899,
+            "p90": 67.0039,
+            "width80": 6.6748,
+            "covered": false,
+            "crps": 3.6978
+          },
+          "bothCovered": false,
+          "meanWidth80": 7.1492,
+          "meanCrps": 2.6111,
+          "crpsDeltaVs3Pct": 7.4687
+        },
+        {
+          "sigmaEta": 1.5,
+          "y2017": {
+            "p10": 59.4297,
+            "median": 63.5029,
+            "p90": 67.3983,
+            "width80": 7.9686,
+            "covered": true,
+            "crps": 1.5358
+          },
+          "y2022": {
+            "p10": 60.1094,
+            "median": 63.6551,
+            "p90": 67.1672,
+            "width80": 7.0578,
+            "covered": false,
+            "crps": 3.6308
+          },
+          "bothCovered": false,
+          "meanWidth80": 7.5132,
+          "meanCrps": 2.5833,
+          "crpsDeltaVs3Pct": 6.3248
+        },
+        {
+          "sigmaEta": 1.75,
+          "y2017": {
+            "p10": 59.2743,
+            "median": 63.4761,
+            "p90": 67.6123,
+            "width80": 8.338,
+            "covered": true,
+            "crps": 1.5492
+          },
+          "y2022": {
+            "p10": 59.926,
+            "median": 63.6155,
+            "p90": 67.3479,
+            "width80": 7.4219,
+            "covered": false,
+            "crps": 3.559
+          },
+          "bothCovered": false,
+          "meanWidth80": 7.88,
+          "meanCrps": 2.5541,
+          "crpsDeltaVs3Pct": 5.1224
+        },
+        {
+          "sigmaEta": 2,
+          "y2017": {
+            "p10": 59.1261,
+            "median": 63.4439,
+            "p90": 67.8003,
+            "width80": 8.6742,
+            "covered": true,
+            "crps": 1.5633
+          },
+          "y2022": {
+            "p10": 59.6803,
+            "median": 63.5963,
+            "p90": 67.5084,
+            "width80": 7.828,
+            "covered": false,
+            "crps": 3.4861
+          },
+          "bothCovered": false,
+          "meanWidth80": 8.2511,
+          "meanCrps": 2.5247,
+          "crpsDeltaVs3Pct": 3.9138
+        },
+        {
+          "sigmaEta": 2.25,
+          "y2017": {
+            "p10": 58.9464,
+            "median": 63.4069,
+            "p90": 67.9306,
+            "width80": 8.9843,
+            "covered": true,
+            "crps": 1.5801
+          },
+          "y2022": {
+            "p10": 59.4288,
+            "median": 63.5474,
+            "p90": 67.741,
+            "width80": 8.3122,
+            "covered": false,
+            "crps": 3.4146
+          },
+          "bothCovered": false,
+          "meanWidth80": 8.6482,
+          "meanCrps": 2.4974,
+          "crpsDeltaVs3Pct": 2.7889
+        },
+        {
+          "sigmaEta": 2.5,
+          "y2017": {
+            "p10": 58.6584,
+            "median": 63.3824,
+            "p90": 68.1688,
+            "width80": 9.5104,
+            "covered": true,
+            "crps": 1.5976
+          },
+          "y2022": {
+            "p10": 59.2108,
+            "median": 63.5412,
+            "p90": 67.9743,
+            "width80": 8.7634,
+            "covered": false,
+            "crps": 3.3455
+          },
+          "bothCovered": false,
+          "meanWidth80": 9.1369,
+          "meanCrps": 2.4715,
+          "crpsDeltaVs3Pct": 1.7255
+        },
+        {
+          "sigmaEta": 2.75,
+          "y2017": {
+            "p10": 58.4362,
+            "median": 63.3944,
+            "p90": 68.3513,
+            "width80": 9.9151,
+            "covered": true,
+            "crps": 1.6177
+          },
+          "y2022": {
+            "p10": 58.9507,
+            "median": 63.5134,
+            "p90": 68.2251,
+            "width80": 9.2745,
+            "covered": false,
+            "crps": 3.2799
+          },
+          "bothCovered": false,
+          "meanWidth80": 9.5948,
+          "meanCrps": 2.4488,
+          "crpsDeltaVs3Pct": 0.7905
+        },
+        {
+          "sigmaEta": 3,
+          "y2017": {
+            "p10": 58.2072,
+            "median": 63.3571,
+            "p90": 68.5398,
+            "width80": 10.3325,
+            "covered": true,
+            "crps": 1.64
+          },
+          "y2022": {
+            "p10": 58.6919,
+            "median": 63.519,
+            "p90": 68.5027,
+            "width80": 9.8107,
+            "covered": false,
+            "crps": 3.2192
+          },
+          "bothCovered": false,
+          "meanWidth80": 10.0716,
+          "meanCrps": 2.4296,
+          "crpsDeltaVs3Pct": 0
+        },
+        {
+          "sigmaEta": 3.25,
+          "y2017": {
+            "p10": 57.9653,
+            "median": 63.3944,
+            "p90": 68.8112,
+            "width80": 10.8459,
+            "covered": true,
+            "crps": 1.6636
+          },
+          "y2022": {
+            "p10": 58.4771,
+            "median": 63.5394,
+            "p90": 68.7271,
+            "width80": 10.2501,
+            "covered": true,
+            "crps": 3.1659
+          },
+          "bothCovered": true,
+          "meanWidth80": 10.548,
+          "meanCrps": 2.4147,
+          "crpsDeltaVs3Pct": -0.6133
+        },
+        {
+          "sigmaEta": 3.5,
+          "y2017": {
+            "p10": 57.7018,
+            "median": 63.3983,
+            "p90": 69.1344,
+            "width80": 11.4326,
+            "covered": true,
+            "crps": 1.6885
+          },
+          "y2022": {
+            "p10": 58.1682,
+            "median": 63.5024,
+            "p90": 68.9949,
+            "width80": 10.8267,
+            "covered": true,
+            "crps": 3.1182
+          },
+          "bothCovered": true,
+          "meanWidth80": 11.1297,
+          "meanCrps": 2.4033,
+          "crpsDeltaVs3Pct": -1.0817
+        },
+        {
+          "sigmaEta": 3.75,
+          "y2017": {
+            "p10": 57.4089,
+            "median": 63.3623,
+            "p90": 69.4341,
+            "width80": 12.0252,
+            "covered": true,
+            "crps": 1.7154
+          },
+          "y2022": {
+            "p10": 57.8375,
+            "median": 63.4751,
+            "p90": 69.3494,
+            "width80": 11.5119,
+            "covered": true,
+            "crps": 3.0752
+          },
+          "bothCovered": true,
+          "meanWidth80": 11.7685,
+          "meanCrps": 2.3953,
+          "crpsDeltaVs3Pct": -1.4135
+        },
+        {
+          "sigmaEta": 4,
+          "y2017": {
+            "p10": 57.1829,
+            "median": 63.353,
+            "p90": 69.6547,
+            "width80": 12.4718,
+            "covered": true,
+            "crps": 1.7442
+          },
+          "y2022": {
+            "p10": 57.5107,
+            "median": 63.4681,
+            "p90": 69.5758,
+            "width80": 12.0651,
+            "covered": true,
+            "crps": 3.0383
+          },
+          "bothCovered": true,
+          "meanWidth80": 12.2685,
+          "meanCrps": 2.3913,
+          "crpsDeltaVs3Pct": -1.579
+        },
+        {
+          "sigmaEta": 4.25,
+          "y2017": {
+            "p10": 56.9717,
+            "median": 63.38,
+            "p90": 69.9032,
+            "width80": 12.9315,
+            "covered": true,
+            "crps": 1.7754
+          },
+          "y2022": {
+            "p10": 57.2225,
+            "median": 63.4705,
+            "p90": 69.8239,
+            "width80": 12.6015,
+            "covered": true,
+            "crps": 3.0077
+          },
+          "bothCovered": true,
+          "meanWidth80": 12.7665,
+          "meanCrps": 2.3915,
+          "crpsDeltaVs3Pct": -1.5676
+        },
+        {
+          "sigmaEta": 4.5,
+          "y2017": {
+            "p10": 56.7961,
+            "median": 63.3669,
+            "p90": 70.164,
+            "width80": 13.368,
+            "covered": true,
+            "crps": 1.8097
+          },
+          "y2022": {
+            "p10": 56.9113,
+            "median": 63.4345,
+            "p90": 70.0777,
+            "width80": 13.1665,
+            "covered": true,
+            "crps": 2.9826
+          },
+          "bothCovered": true,
+          "meanWidth80": 13.2672,
+          "meanCrps": 2.3961,
+          "crpsDeltaVs3Pct": -1.3782
+        },
+        {
+          "sigmaEta": 4.75,
+          "y2017": {
+            "p10": 56.5196,
+            "median": 63.3473,
+            "p90": 70.4442,
+            "width80": 13.9246,
+            "covered": true,
+            "crps": 1.8446
+          },
+          "y2022": {
+            "p10": 56.6871,
+            "median": 63.4504,
+            "p90": 70.3395,
+            "width80": 13.6523,
+            "covered": true,
+            "crps": 2.9613
+          },
+          "bothCovered": true,
+          "meanWidth80": 13.7885,
+          "meanCrps": 2.403,
+          "crpsDeltaVs3Pct": -1.0973
+        },
+        {
+          "sigmaEta": 5,
+          "y2017": {
+            "p10": 56.2057,
+            "median": 63.3286,
+            "p90": 70.7267,
+            "width80": 14.5211,
+            "covered": true,
+            "crps": 1.8802
+          },
+          "y2022": {
+            "p10": 56.2937,
+            "median": 63.4457,
+            "p90": 70.6869,
+            "width80": 14.3933,
+            "covered": true,
+            "crps": 2.946
+          },
+          "bothCovered": true,
+          "meanWidth80": 14.4572,
+          "meanCrps": 2.4131,
+          "crpsDeltaVs3Pct": -0.6812
+        }
+      ]
+    }
+  },
+  "control10k": {
+    "leg2024_r25_selected": 4.75,
+    "leg2024_r25_crpsAt3": 2.7927,
+    "leg2024_r25_crpsAtSelected": 2.7102,
+    "uncertain_r25_selected": 4.25,
+    "uncertain_r25_crpsAt3": 2.6421,
+    "uncertain_r25_crpsAtSelected": 2.5967
+  },
+  "nonRn2012Note": {
+    "uses2012InModel": true,
+    "sigmaEtaNonRnRetained": 2,
+    "actualHollande2012": 51.63502403363404,
+    "fixedR1StatsAt2": {
+      "mean": 51.47225536649802,
+      "sd": 2.5955496470979225,
+      "variance": 6.736877970550149,
+      "p10": 48.05132364749737,
+      "median": 51.512316340825464,
+      "p90": 54.67216210288726,
+      "width80": 6.620838455389894
+    },
+    "fixedR1StatsAt0": {
+      "mean": 51.397852304923305,
+      "sd": 1.7455960147430811,
+      "variance": 3.0471054466869267,
+      "p10": 49.19774240029295,
+      "median": 51.36056952538436,
+      "p90": 53.72344821463022,
+      "width80": 4.525705814337265
+    }
+  }
+}

@@ -9,7 +9,7 @@ import { layoutSankey, placeLabels } from '../sankey'
 import type { PlacedLabel, SankeyLink, SankeyNode } from '../sankey'
 import { InfoTip } from './InfoTip'
 
-const TARGETS = ['a', 'b', 'abstention', 'unmeasured'] as const
+const TARGETS = ['a', 'b', 'abstention'] as const
 type Target = (typeof TARGETS)[number]
 
 const ABSTENTION_1 = '__abstention1'
@@ -54,6 +54,7 @@ export function VoteFlowSankey({
   scores,
   mobilization,
   antiRnShare,
+  endogenous,
 }: {
   sr: SecondRoundResult
   flows: Flow[]
@@ -61,10 +62,10 @@ export function VoteFlowSankey({
   scores: Map<string, number>
   mobilization: number
   antiRnShare: number | undefined
+  endogenous: boolean
 }) {
   const [ref, measured] = useWidth()
   const descId = useId()
-  const hatchId = `hatch-${descId.replace(/:/g, '')}`
   const [hover, setHover] = useState<Active | null>(null)
   const [pinned, setPinned] = useState<Active | null>(null)
   const active = hover ?? pinned
@@ -73,35 +74,21 @@ export function VoteFlowSankey({
   const b = cand(sr.b)
   const flowOf = new Map(flows.map((f) => [f.candidateId, f]))
   const targetName = (t: Target) =>
-    t === 'a'
-      ? a.shortName
-      : t === 'b'
-        ? b.shortName
-        : t === 'abstention'
-          ? 'ne s’expriment pas'
-          : 'non mesuré'
-  const pick = (f: Flow, t: Target) => (t === 'a' ? f.toA : t === 'b' ? f.toB : t === 'abstention' ? f.abstention : 0)
+    t === 'a' ? a.shortName : t === 'b' ? b.shortName : 'ne s’expriment pas'
+  const pick = (f: Flow, t: Target) => (t === 'a' ? f.toA : t === 'b' ? f.toB : f.abstention)
   const rate = (v: number, share: number) => pct(share > 0 ? (v * 100) / share : 0, 0)
   const { abstainers, blankNull } = sr
   const group = (id: string) => (id === ABSTENTION_1 ? abstainers.volume : blankNull.volume)
   const groupName = (id: string) => (id === ABSTENTION_1 ? 'Abstention au 1er tour' : 'Blancs et nuls au 1er tour')
-  const groupPick = (id: string, t: Target) =>
-    id === ABSTENTION_1
-      ? t === 'a'
-        ? abstainers.toA
-        : t === 'b'
-          ? abstainers.toB
-          : t === 'abstention'
-            ? abstainers.nonExpressed
-            : 0
-      : t === 'unmeasured'
-        ? blankNull.volume
-        : 0
+  const groupPick = (id: string, t: Target) => {
+    const g = id === ABSTENTION_1 ? abstainers : blankNull
+    return t === 'a' ? g.toA : t === 'b' ? g.toB : g.nonExpressed
+  }
   const sourceIds = [...flows.map((f) => f.candidateId), BLANK_NULL_1, ABSTENTION_1]
   const sourceName = (id: string) => (isGroup(id) ? groupName(id) : cand(id).shortName)
   const sourceValue = (id: string, t: Target) => (isGroup(id) ? groupPick(id, t) : pick(flowOf.get(id)!, t))
   const targetTotal = (t: Target) =>
-    t === 'a' ? sr.totals.a : t === 'b' ? sr.totals.b : t === 'abstention' ? sr.totals.nonExpressed : blankNull.volume
+    t === 'a' ? sr.totals.a : t === 'b' ? sr.totals.b : sr.totals.nonExpressed
 
   const W = Math.max(MIN_WIDTH, measured)
   const compact = W < 520
@@ -152,7 +139,7 @@ export function VoteFlowSankey({
     { top: 0, bottom: H, gap: 4, maxShift: H },
   )
 
-  const isNewVoterLink = (l: SankeyLink) => l.source === ABSTENTION_1 && (l.target === 'a' || l.target === 'b')
+  const isNewVoterLink = (l: SankeyLink) => isGroup(l.source) && (l.target === 'a' || l.target === 'b')
   const sourceActive = (id: string): Active => ({ kind: 'source', key: `s:${id}`, id })
   const targetActive = (t: Target): Active => ({ kind: 'target', key: `t:${t}`, id: t })
   const linkActive = (l: SankeyLink): Active => ({
@@ -184,14 +171,14 @@ export function VoteFlowSankey({
   const inscrits = (v: number) => `${pct(v)} des inscrits`
   const votants = `${pct(rates.bnShare * 100)} des votants`
   const bnText = `${votants}, soit ${inscrits(blankNull.volume)}`
-  const absNote = abstentionNote(rates, mobilization, antiRnShare)
+  const absNote = abstentionNote(rates, mobilization, antiRnShare, endogenous)
   const linkText = (l: SankeyLink) => {
     const t = l.target as Target
     if (l.source === ABSTENTION_1) {
       return `Abstention au 1er tour → ${targetName(t)} : ${inscrits(l.value)} (${rate(l.value, abstainers.volume)} des abstentionnistes du 1er tour). ${t === 'abstention' ? '' : absNote}`.trim()
     }
     if (l.source === BLANK_NULL_1) {
-      return `Blancs et nuls au 1er tour → non mesuré : ${bnText}. ${unmeasuredNote(blankNull.volume)}`
+      return `Blancs et nuls au 1er tour → ${targetName(t)} : ${inscrits(l.value)} (${rate(l.value, blankNull.volume)} des blancs et nuls du 1er tour). ${unmeasuredNote(blankNull.volume)}`
     }
     const f = flowOf.get(l.source)!
     return `Électeurs de ${cand(l.source).shortName} → ${targetName(t)} : ${inscrits(l.value)} (${rate(l.value, f.share)} de son électorat).`
@@ -201,7 +188,7 @@ export function VoteFlowSankey({
       return `Abstention au 1er tour : ${inscrits(abstainers.volume)}. ${rate(abstainers.toA, abstainers.volume)} votent ${a.shortName}, ${rate(abstainers.toB, abstainers.volume)} votent ${b.shortName}, ${rate(abstainers.nonExpressed, abstainers.volume)} ne s’expriment pas. ${absNote}`
     }
     if (id === BLANK_NULL_1) {
-      return `Blancs et nuls au 1er tour : ${bnText}. Leur vote au 2nd tour n’est pas mesuré. ${unmeasuredNote(blankNull.volume)}`
+      return `Blancs et nuls au 1er tour : ${bnText}. ${rate(blankNull.toA, blankNull.volume)} votent ${a.shortName}, ${rate(blankNull.toB, blankNull.volume)} votent ${b.shortName}, ${rate(blankNull.nonExpressed, blankNull.volume)} ne s’expriment pas. ${unmeasuredNote(blankNull.volume)}`
     }
     const f = flowOf.get(id)!
     const who = `Électeurs de ${cand(id).shortName} : ${pct(scores.get(id) ?? 0)} des exprimés, soit ${inscrits(f.share)}${
@@ -215,11 +202,12 @@ export function VoteFlowSankey({
       .filter((id) => sourceValue(id, t) >= MIN_DRAWN)
       .sort((x, y) => sourceValue(y, t) - sourceValue(x, t))
       .slice(0, 2)
-      .map((id) => `${isGroup(id) ? 'les abstentionnistes du 1er tour' : `les électeurs de ${sourceName(id)}`} (${pct(sourceValue(id, t))})`)
-    if (t === 'unmeasured') return `Non mesuré : ${bnText}. ${unmeasuredNote(total)}`
+      .map((id) =>
+        `${id === ABSTENTION_1 ? 'les abstentionnistes du 1er tour' : id === BLANK_NULL_1 ? 'les blancs et nuls du 1er tour' : `les électeurs de ${sourceName(id)}`} (${pct(sourceValue(id, t))})`,
+      )
     const head =
       t === 'abstention'
-        ? `Ne s’expriment pas (abstention, blanc, nul) : ${inscrits(total)}, hors blancs et nuls du 1er tour (non mesurés)`
+        ? `Ne s’expriment pas (abstention, blanc, nul) : ${inscrits(total)}`
         : `${targetName(t)} : ${pct(t === 'a' ? sr.pct.a : sr.pct.b)} des exprimés, soit ${inscrits(total)}`
     return `${head}${main.length > 0 ? `, surtout ${main.join(', ')}` : ''}.`
   }
@@ -230,7 +218,7 @@ export function VoteFlowSankey({
   }
 
   const opacity = (l: SankeyLink) => {
-    const strong = l.source === ABSTENTION_1 ? l.target === 'a' || l.target === 'b' : l.target === 'unmeasured'
+    const strong = isNewVoterLink(l)
     return !active ? (strong ? 0.85 : 0.45) : related(l, active) ? 0.95 : strong ? 0.2 : 0.12
   }
   const nodeBox = (n: SankeyNode) => {
@@ -262,7 +250,7 @@ export function VoteFlowSankey({
         <div className="relative w-full" style={{ minWidth: MIN_WIDTH, height: H }}>
           <svg
             role="img"
-            aria-label={`Reports vers le second tour : à gauche l’électorat de chaque candidat au 1er tour, les blancs et nuls et l’abstention au 1er tour, à droite ${a.shortName} (${pct(sr.pct.a)} des exprimés), ${b.shortName} (${pct(sr.pct.b)} des exprimés), ceux qui ne s’expriment pas (${inscrits(sr.totals.nonExpressed)}) et le vote non mesuré des blancs et nuls du 1er tour (${votants}).`}
+            aria-label={`Reports vers le second tour : à gauche l’électorat de chaque candidat au 1er tour, les blancs et nuls et l’abstention au 1er tour, à droite ${a.shortName} (${pct(sr.pct.a)} des exprimés), ${b.shortName} (${pct(sr.pct.b)} des exprimés) et ceux qui ne s’expriment pas (${inscrits(sr.totals.nonExpressed)}).`}
             aria-describedby={descId}
             viewBox={`0 0 ${W} ${H}`}
             width="100%"
@@ -270,12 +258,6 @@ export function VoteFlowSankey({
             className="block select-none"
             onClick={() => setPinned(null)}
           >
-            <defs>
-              <pattern id={hatchId} width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
-                <rect width="6" height="6" className="fill-surface" />
-                <line x1="0" y1="0" x2="0" y2="6" strokeWidth="2.5" className="stroke-ink-2" />
-              </pattern>
-            </defs>
             <desc id={descId}>
               {TARGETS.map(targetText).join(' ')} Le mode Tableau donne le report de chaque électorat.
             </desc>
@@ -287,11 +269,10 @@ export function VoteFlowSankey({
                     <path
                       d={l.path}
                       style={isGroup(l.source) ? undefined : colorVars(cand(l.source))}
-                      fill={l.target === 'unmeasured' ? `url(#${hatchId})` : undefined}
                       fillOpacity={opacity(l)}
                       stroke="transparent"
                       strokeWidth={4}
-                      className={`${isGroup(l.source) ? (l.target === 'unmeasured' ? '' : isNewVoterLink(l) ? 'fill-new-voters' : 'fill-ink-3') : 'cand-svg'} cursor-pointer outline-none transition-[fill-opacity] duration-150`}
+                      className={`${isGroup(l.source) ? (isNewVoterLink(l) ? 'fill-new-voters' : 'fill-ink-3') : 'cand-svg'} cursor-pointer outline-none transition-[fill-opacity] duration-150`}
                       {...pointer(linkActive(l))}
                     />
                   </InfoTip>
@@ -308,15 +289,6 @@ export function VoteFlowSankey({
               {layout.targets.map((n) =>
                 n.id === 'abstention' ? (
                   <rect key={n.id} {...nodeBox(n)} rx={1.5} className="fill-ink-3/60" />
-                ) : n.id === 'unmeasured' ? (
-                  <rect
-                    key={n.id}
-                    {...nodeBox(n)}
-                    rx={1.5}
-                    fill={`url(#${hatchId})`}
-                    className="stroke-ink-3"
-                    strokeWidth={1}
-                  />
                 ) : (
                   <rect
                     key={n.id}
@@ -398,18 +370,14 @@ export function VoteFlowSankey({
                         Ne s’expriment <br />
                         pas
                       </>
-                    ) : t === 'unmeasured' ? (
-                      'Non mesuré'
                     ) : (
                       targetName(t)
                     )}
                   </span>
-                  {t === 'abstention' || t === 'unmeasured' ? (
+                  {t === 'abstention' ? (
                     <span className={`num text-ink-2 ${compact ? 'text-sm leading-[22px]' : 'text-base leading-7'}`}>
-                      {pct(t === 'unmeasured' ? rates.bnShare * 100 : targetTotal(t))}
-                      <span className="block text-xs leading-4 text-ink-3">
-                        {t === 'unmeasured' ? 'des votants' : 'des inscrits'}
-                      </span>
+                      {pct(targetTotal(t))}
+                      <span className="block text-xs leading-4 text-ink-3">des inscrits</span>
                     </span>
                   ) : (
                     <span className={`figure text-ink ${compact ? 'text-lg leading-[22px]' : 'text-2xl leading-7'}`}>
@@ -426,7 +394,7 @@ export function VoteFlowSankey({
       <p className="mt-2 flex items-center gap-2 text-sm text-ink-2">
         <span aria-hidden className="inline-block h-3 w-3 shrink-0 rounded-full bg-new-voters" />
         <span>
-          Nouveaux votants : abstentionnistes du 1er tour qui votent au 2nd ({inscrits(sr.newVoters)})
+          Nouveaux votants : non-exprimés du 1er tour (abstention, blancs et nuls) qui votent au 2nd ({inscrits(sr.newVoters)})
         </span>
       </p>
 

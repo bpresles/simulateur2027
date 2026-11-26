@@ -2,6 +2,7 @@ import { z } from 'zod'
 import { BLOCS } from '../domain/types'
 import type {
   DeclaredTransfersData,
+  LegislativeDuelPolls2024Data,
   PastElectionReference,
   PollHistoryData,
   PollsData,
@@ -10,9 +11,11 @@ import type {
   Reference2022,
   SecondRoundDropoutData,
   SecondRoundPollBiasData,
+  SecondRoundReferenceMatricesData,
   SimulationData,
   TransfersData,
 } from '../domain/types'
+import legislativeDuelPolls2024Json from './legislative-duel-polls-2024.json'
 import pollsJson from './polls-2027.json'
 import pollsHistoryJson from './polls-history-2027.json'
 import reference2012Json from './reference-2012.json'
@@ -20,6 +23,7 @@ import reference2017Json from './reference-2017.json'
 import referenceJson from './reference-2022.json'
 import secondRoundDropoutJson from './second-round-dropout.json'
 import secondRoundPollBiasJson from './second-round-poll-bias.json'
+import secondRoundReferenceMatricesJson from './second-round-reference-matrices.json'
 import transfersJson from './transfers-legislatives-2024.json'
 import declaredTransfersJson from './transfers-2027-declared.json'
 
@@ -213,7 +217,12 @@ const reference2012Schema: z.ZodType<Reference2012> = z.object({
   }),
 })
 
-const reference2017Schema: z.ZodType<Reference2017> = z.object({ ...pastElectionShape, secondRound: secondRoundShape })
+const reference2017Schema: z.ZodType<Reference2017> = z.object({
+  ...pastElectionShape,
+  secondRound: secondRoundShape.extend({
+    candidates: z.array(z.object({ id: z.string(), votes: z.number().int().nonnegative() })).min(2),
+  }),
+})
 
 const transferValuesSchema = z.object({ finalist: percent, rn: percent, abstention: percent })
 const transferRow = transferValuesSchema.extend({
@@ -238,6 +247,7 @@ const transfersSchema: z.ZodType<TransfersData> = z.object({
   presidentialCenterRn: z.object({
     description: z.string(),
     defaultWeight: z.number().min(0).max(1),
+    anchor2017Position: z.number(),
     elections: z.object({
       '2017': blocRecord(transferValuesSchema),
       '2022': blocRecord(transferValuesSchema),
@@ -266,11 +276,17 @@ const declaredTransfersSchema: z.ZodType<DeclaredTransfersData> = z.object({
     deltaFinalist: z.number(),
     deltaRn: z.number(),
   }),
+  fidelity: z.object({
+    default: fidelitySplitSchema,
+    byCandidate: z.record(z.string(), fidelitySplitSchema),
+    note: z.string(),
+  }),
   profiles: z.record(
     profileId,
     blocRecord(
       transferValuesSchema.extend({
         camp: z.enum(['finalist', 'rn']).optional(),
+        historicalFallback: z.boolean().optional(),
         note: z.string().optional(),
       }),
     ),
@@ -354,6 +370,8 @@ const secondRoundDropoutSchema: z.ZodType<SecondRoundDropoutData> = z.object({
   }),
 })
 
+const pollBiasPhase = z.enum(['avantPremierTour', 'entreDeuxTours'])
+
 const secondRoundPollBiasSchema: z.ZodType<SecondRoundPollBiasData> = z.object({
   description: z.string(),
   elections: z.array(
@@ -365,7 +383,14 @@ const secondRoundPollBiasSchema: z.ZodType<SecondRoundPollBiasData> = z.object({
       result: z.object({ antiRn: percent, rn: percent, source: sourceLink }),
       listSource: sourceLink,
       polls: z.array(
-        z.object({ institute: z.string(), end: isoDate, antiRn: percent, rn: percent, url: z.url() }),
+        z.object({
+          institute: z.string(),
+          end: isoDate,
+          phase: pollBiasPhase,
+          antiRn: percent,
+          rn: percent,
+          url: z.url(),
+        }),
       ),
     }),
   ),
@@ -406,7 +431,6 @@ export function validateData(data: SimulationData): string[] {
   const simulated = new Set(polls.candidates.map((c) => c.id))
   const main = new Set(polls.candidates.filter((c) => !c.minor).map((c) => c.id))
   const known = new Set([...simulated, ...polls.otherCandidates.map((c) => c.id)])
-  const ref2022Ids = new Set(reference2022.candidates.map((c) => c.id))
   const profileIds = new Set(transfers.profiles.map((p) => p.id))
 
   for (const c of polls.candidates) {
@@ -464,9 +488,6 @@ export function validateData(data: SimulationData): string[] {
   }
 
   const finalists = reference2022.secondRound.candidates
-  if (finalists.some((c) => !ref2022Ids.has(c.id))) errors.push('2nd tour 2022 : finaliste inconnu du 1er tour')
-  if (finalists.reduce((t, c) => t + c.votes, 0) !== reference2022.secondRound.expressed)
-    errors.push('2022 : total des voix des finalistes ≠ exprimés du 2nd tour')
   const { ifop2022, insee } = data.secondRoundDropout.newVoters
   const ifopLists = [ifop2022.abstainedFirstRound, ifop2022.abstainersVote, ifop2022.allVotersVote]
   if (ifopLists.some((l) => l.some((s) => !finalists.some((c) => c.id === s.id))))
@@ -497,6 +518,10 @@ export function validateData(data: SimulationData): string[] {
     ['2017', reference2017],
   ] as const) {
     const t2 = ref.secondRound
+    const r1Ids = new Set(ref.candidates.map((c) => c.id))
+    if (t2.candidates.some((c) => !r1Ids.has(c.id))) errors.push(`2nd tour ${label} : finaliste inconnu du 1er tour`)
+    if (t2.candidates.reduce((t, c) => t + c.votes, 0) !== t2.expressed)
+      errors.push(`${label} : total des voix des finalistes ≠ exprimés du 2nd tour`)
     if (t2.voters - t2.blank - t2.invalid !== t2.expressed)
       errors.push(`${label} : 2nd tour incohérent (votants − blancs − nuls ≠ exprimés)`)
     if (t2.voters > t2.registered) errors.push(`${label} : 2nd tour incohérent (votants > inscrits)`)
@@ -511,6 +536,11 @@ export function validateData(data: SimulationData): string[] {
   for (const [id, f] of Object.entries(transfers.fidelity.byCandidate)) {
     if (!simulated.has(id)) errors.push(`Fidélité : candidat inconnu « ${id} »`)
     checkFid(id, f)
+  }
+  checkFid('déclarée défaut', declaredTransfers.fidelity.default)
+  for (const [id, f] of Object.entries(declaredTransfers.fidelity.byCandidate)) {
+    if (!simulated.has(id)) errors.push(`Fidélité déclarée : candidat inconnu « ${id} »`)
+    checkFid(`déclarée ${id}`, f)
   }
 
   // Vérification des profils de reports (total 100 %)
@@ -564,7 +594,10 @@ export function validateData(data: SimulationData): string[] {
     for (const p of e.polls) {
       if (Math.abs(p.antiRn + p.rn - 100) > 0.51)
         errors.push(`Écart des sondages ${e.year} ${p.institute} ${p.end} : scores ≠ 100`)
-      if (p.end >= e.electionDate) errors.push(`Écart des sondages ${e.year} ${p.institute} ${p.end} : postérieur au 1er tour`)
+      if (p.phase === 'avantPremierTour' && p.end >= e.electionDate)
+        errors.push(`Écart des sondages ${e.year} ${p.institute} ${p.end} : avantPremierTour postérieur au 1er tour`)
+      if (p.phase === 'entreDeuxTours' && (p.end < e.electionDate || p.end >= e.secondRoundDate))
+        errors.push(`Écart des sondages ${e.year} ${p.institute} ${p.end} : entreDeuxTours hors [1er tour ; 2nd tour[`)
     }
   }
   return errors
@@ -610,6 +643,149 @@ export function parseData(raw: {
   return data
 }
 
+const referenceTransferTripletSchema = z.object({
+  antiRn: percent,
+  rn: percent,
+  nonExpressed: percent,
+})
+
+const referenceMatrixRowSchema = z.object({
+  candidateId: z.string(),
+  bySurvey: z.record(z.string(), referenceTransferTripletSchema.nullable()),
+})
+
+const referenceParticipationTableSchema = z.object({
+  surveyId: z.string(),
+  pdfPage: z.number().int().positive(),
+  printedPage: z.number().int().positive().nullable(),
+  abstentionPctByCandidate: z.record(z.string(), percent),
+})
+
+export const secondRoundReferenceMatricesSchema: z.ZodType<SecondRoundReferenceMatricesData> = z.object({
+  description: z.string(),
+  surveys: z
+    .array(
+      z.object({
+        id: z.string(),
+        year: z.union([z.literal(2017), z.literal(2022)]),
+        institute: z.enum(['Ipsos Sopra Steria', 'Ifop-Fiducial']),
+        fieldwork,
+        timing: z.enum(['before', 'electionDay', 'after']),
+        sampleSize: z.number().int().positive(),
+        mode: z.string(),
+        weighting: z.string().nullable(),
+        note: z.string().optional(),
+        url: z.url(),
+        noticeUrl: z.url().optional(),
+        pdfPage: z.number().int().positive(),
+        printedPage: z.number().int().positive().nullable(),
+        participationPdfPage: z.number().int().positive().optional(),
+        participationPrintedPage: z.number().int().positive().nullable().optional(),
+      }),
+    )
+    .min(1),
+  rows: z.object({
+    '2017': z.array(referenceMatrixRowSchema).min(1),
+    '2022': z.array(referenceMatrixRowSchema).min(1),
+  }),
+  participation: z.object({
+    '2017': referenceParticipationTableSchema,
+    '2022': referenceParticipationTableSchema,
+  }),
+  abstainers: z.object({
+    '2022': z.object({
+      surveyId: z.string(),
+      turnoutPdfPage: z.number().int().positive(),
+      turnoutPrintedPage: z.number().int().positive().nullable(),
+      expressedPdfPage: z.number().int().positive(),
+      expressedPrintedPage: z.number().int().positive().nullable(),
+      votersSharePct: percent,
+      expressedSplit: z.object({ antiRn: percent, rn: percent }),
+    }),
+  }),
+})
+
+/** Contrôles croisés des matrices de référence 2017–2022 (somme à 100 ± 1 pt, candidats et enquêtes déclarés). */
+export function validateSecondRoundReferenceMatrices(
+  matrices: SecondRoundReferenceMatricesData,
+  refs: { '2017': Pick<Reference2017, 'candidates'>; '2022': Pick<Reference2022, 'candidates'> },
+): string[] {
+  const errors: string[] = []
+  const surveyById = new Map<string, (typeof matrices.surveys)[number]>()
+  for (const s of matrices.surveys) {
+    if (surveyById.has(s.id)) errors.push(`Matrices 2nd tour : enquête en double « ${s.id} »`)
+    surveyById.set(s.id, s)
+    if (s.fieldwork.start > s.fieldwork.end) errors.push(`Matrices 2nd tour ${s.id} : dates de terrain inversées`)
+  }
+
+  for (const year of ['2017', '2022'] as const) {
+    const yearNum = Number(year)
+    const refIds = new Set(refs[year].candidates.map((c) => c.id))
+    const seenCandidates = new Set<string>()
+    for (const row of matrices.rows[year]) {
+      if (!refIds.has(row.candidateId)) {
+        errors.push(`Matrices 2nd tour ${year} : candidat inconnu « ${row.candidateId} »`)
+      }
+      if (seenCandidates.has(row.candidateId)) {
+        errors.push(`Matrices 2nd tour ${year} : candidat en double « ${row.candidateId} »`)
+      }
+      seenCandidates.add(row.candidateId)
+      const entries = Object.entries(row.bySurvey)
+      if (!entries.some(([, v]) => v !== null)) {
+        errors.push(`Matrices 2nd tour ${year}/${row.candidateId} : aucune enquête renseignée`)
+      }
+      for (const [surveyId, triplet] of entries) {
+        const survey = surveyById.get(surveyId)
+        if (!survey) {
+          errors.push(`Matrices 2nd tour ${year}/${row.candidateId} : enquête non déclarée « ${surveyId} »`)
+        } else if (survey.year !== yearNum) {
+          errors.push(`Matrices 2nd tour ${year}/${row.candidateId} : enquête « ${surveyId} » d'une autre année`)
+        }
+        if (triplet !== null) {
+          const sum = triplet.antiRn + triplet.rn + triplet.nonExpressed
+          if (Math.abs(sum - 100) > 1) {
+            errors.push(`Matrices 2nd tour ${year}/${row.candidateId}/${surveyId} : somme ${sum} hors [99 ; 101]`)
+          }
+        }
+      }
+    }
+
+    const part = matrices.participation[year]
+    const partSurvey = surveyById.get(part.surveyId)
+    if (!partSurvey) {
+      errors.push(`Participation 2nd tour ${year} : enquête non déclarée « ${part.surveyId} »`)
+    } else if (partSurvey.year !== yearNum) {
+      errors.push(`Participation 2nd tour ${year} : enquête « ${part.surveyId} » d'une autre année`)
+    }
+    for (const candidateId of Object.keys(part.abstentionPctByCandidate)) {
+      if (!refIds.has(candidateId)) {
+        errors.push(`Participation 2nd tour ${year} : candidat inconnu « ${candidateId} »`)
+      }
+    }
+  }
+
+  const abs2022 = matrices.abstainers['2022']
+  const absSurvey = surveyById.get(abs2022.surveyId)
+  if (!absSurvey) errors.push(`Abstentionnistes 2022 : enquête non déclarée « ${abs2022.surveyId} »`)
+  else if (absSurvey.year !== 2022) errors.push(`Abstentionnistes 2022 : enquête « ${abs2022.surveyId} » d'une autre année`)
+  const absSum = abs2022.expressedSplit.antiRn + abs2022.expressedSplit.rn
+  if (Math.abs(absSum - 100) > 1) {
+    errors.push(`Abstentionnistes 2022 : somme exprimée ${absSum} hors [99 ; 101]`)
+  }
+
+  return errors
+}
+
+export function parseSecondRoundReferenceMatrices(
+  raw: unknown,
+  refs: { '2017': Pick<Reference2017, 'candidates'>; '2022': Pick<Reference2022, 'candidates'> },
+): SecondRoundReferenceMatricesData {
+  const parsed = secondRoundReferenceMatricesSchema.parse(raw)
+  const errors = validateSecondRoundReferenceMatrices(parsed, refs)
+  if (errors.length > 0) throw new Error(`Matrices de référence 2nd tour invalides :\n- ${errors.join('\n- ')}`)
+  return parsed
+}
+
 export const simulationData: SimulationData = parseData({
   polls: pollsJson,
   pollHistory: pollsHistoryJson,
@@ -621,3 +797,107 @@ export const simulationData: SimulationData = parseData({
   secondRoundDropout: secondRoundDropoutJson,
   secondRoundPollBias: secondRoundPollBiasJson,
 })
+
+const legislativeDuelCandidateSchema = z.object({
+  name: z.string().min(1),
+  party: z.string().min(1),
+  officialNuance: z.string().min(1),
+  partySource: sourceLink,
+  pollScore: percent,
+  officialScore: percent,
+})
+
+const legislativeDuelPolls2024Schema: z.ZodType<LegislativeDuelPolls2024Data> = z.object({
+  description: z.string(),
+  inventoryNote: z.string(),
+  electionDates: z.object({ firstRound: isoDate, secondRound: isoDate }),
+  candidateParties: z.record(z.string(), z.string().min(1).nullable()),
+  polls: z.array(
+    z.object({
+      id: z.string().min(1),
+      constituencyCode: z.string().min(1),
+      constituencyLabel: z.string().min(1),
+      institute: z.string().min(1),
+      sponsor: z.string().min(1),
+      fieldwork,
+      sampleSize: z.number().int().positive(),
+      sampleNote: z.string().optional(),
+      url: z.url(),
+      officialResultSource: sourceLink,
+      candidates: z.tuple([legislativeDuelCandidateSchema, legislativeDuelCandidateSchema]),
+    }),
+  ),
+})
+
+/** Contrôles croisés sur les sondages de circonscription d'entre-deux-tours des législatives 2024 (P4). */
+export function validateLegislativeDuelPolls2024(
+  data: LegislativeDuelPolls2024Data,
+  polls: Pick<PollsData, 'candidates'>,
+): string[] {
+  const errors: string[] = []
+  const { firstRound, secondRound } = data.electionDates
+  if (firstRound >= secondRound) {
+    errors.push('Législatives 2024 : dates des deux tours inversées')
+  }
+
+  const simulatedIds = new Set(polls.candidates.map((c) => c.id))
+  for (const id of Object.keys(data.candidateParties)) {
+    if (!simulatedIds.has(id)) {
+      errors.push(`Législatives 2024 candidateParties : candidat inconnu « ${id} »`)
+    }
+  }
+  for (const id of simulatedIds) {
+    if (!(id in data.candidateParties)) {
+      errors.push(`Législatives 2024 candidateParties : candidat simulé manquant « ${id} »`)
+    }
+  }
+
+  const seenIds = new Set<string>()
+  for (const poll of data.polls) {
+    if (seenIds.has(poll.id)) errors.push(`Législatives 2024 : identifiant en doublon « ${poll.id} »`)
+    seenIds.add(poll.id)
+
+    if (poll.fieldwork.start > poll.fieldwork.end) {
+      errors.push(`Législatives 2024 ${poll.id} : dates de terrain inversées`)
+    }
+    if (poll.fieldwork.start < firstRound || poll.fieldwork.end >= secondRound) {
+      errors.push(`Législatives 2024 ${poll.id} : terrain hors entre-deux-tours [${firstRound} ; ${secondRound}[`)
+    }
+    const [c1, c2] = poll.candidates
+    if (c1.party === c2.party) {
+      errors.push(`Législatives 2024 ${poll.id} : les deux candidats du duel ont le même parti « ${c1.party} »`)
+    }
+    const pollSum = c1.pollScore + c2.pollScore
+    if (Math.abs(pollSum - 100) > 0.51) {
+      errors.push(`Législatives 2024 ${poll.id} : somme des scores du sondage ${pollSum} ≠ 100`)
+    }
+    const officialSum = c1.officialScore + c2.officialScore
+    if (Math.abs(officialSum - 100) > 0.05) {
+      errors.push(`Législatives 2024 ${poll.id} : somme des résultats officiels ${officialSum} ≠ 100`)
+    }
+  }
+
+  return errors
+}
+
+export function parseLegislativeDuelPolls2024(
+  raw: unknown,
+  polls: Pick<PollsData, 'candidates'>,
+): LegislativeDuelPolls2024Data {
+  const parsed = legislativeDuelPolls2024Schema.parse(raw)
+  const errors = validateLegislativeDuelPolls2024(parsed, polls)
+  if (errors.length > 0) throw new Error(`Sondages législatifs 2024 invalides :\n- ${errors.join('\n- ')}`)
+  return parsed
+}
+
+/** Matrices brutes 2017–2022 validées ; non branchées sur le moteur par défaut tant que P1 n'est pas adopté (R1.12). */
+export const secondRoundReferenceMatrices: SecondRoundReferenceMatricesData = parseSecondRoundReferenceMatrices(
+  secondRoundReferenceMatricesJson,
+  { '2017': simulationData.reference2017, '2022': simulationData.reference2022 },
+)
+
+/** Sondages de circonscription d'entre-deux-tours des législatives 2024 (P4, affichage seulement, jamais dans les calculs). */
+export const legislativeDuelPolls2024: LegislativeDuelPolls2024Data = parseLegislativeDuelPolls2024(
+  legislativeDuelPolls2024Json,
+  simulationData.polls,
+)

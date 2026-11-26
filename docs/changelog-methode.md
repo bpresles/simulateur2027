@@ -1,5 +1,295 @@
 # Journal méthodologique — simulateur2027
 
+## 26/11/2026 — P3 (audit clôturé — σ_η inchangé selon §5.3) — Budget d'incertitude du 2nd tour et recalage de η
+
+**Règles pré-enregistrées le 26/11/2026 avant tout calcul P3** (plan `docs/plan-front-republicain.md`, section 5, décisions 4 et 11 du 24/11/2026), exécutées sur la base v2.3 (`68bfff3`, P1-bis S1–S5 + P2 3 ancres `s_2017 = 0,5502`, défaut `leg2024`). **Verdict (décision du 26/11/2026) : la modification de σ_η est rejetée selon les critères pré-enregistrés §5.3** (`σ_η = 3,0 pts` face au RN et `2,0 pts` hors RN sont conservés inchangés dans `monteCarlo.ts`, aucune modification de sortie Monte-Carlo ni de version de stockage). La décomposition de variance, la largeur/CRPS du 2nd tour et la courbe complète de σ_η sont publiées dans `backtest.ts`, `src/data/second-round-p3-audit.json` et `/methodologie`. Les sondages directs de 2nd tour 2027 ne servent jamais au calage.
+
+### Protocole pré-enregistré P3
+
+1. **Décomposition de variance (section 5.2, étape 1) :**
+   - Coupure d'un aléa du 2nd tour à la fois (`rfShock`, `dirichlet`, `edU`, `lfiLeftU`, `turnout`, `mob`, `qDelta`, `fidelity`, `commonShockEta`) en mesurant la largeur `[P10 ; P90]`, l'écart-type et la variance (graine `2027`, `N = 2 000`, contrôle à `N = 10 000`) :
+     - **à 1er tour réel fixé** (2017, 2022, 2012, et 2027 déterministe sur `lepen|melenchon`, `lepen|philippe`, `melenchon|philippe`, en modes `leg2024` et `uncertain`) ;
+     - **avec incertitude de campagne du 1er tour** aux dates de backtest (2017, 2022) et pour 2027.
+2. **Audit de double emploi (section 5.2, étape 2) :**
+   - Recensement explicite des chevauchements entre le choc commun $\eta$ (`σ = 3,0 pts` face au RN, `2,0 pts` hors RN) et `rfShock`, `dirichlet` (`κ = 40`), `edU`, `mob`, `qDelta`, `turnout` et `fidelity`, et attribution d'une source d'incertitude distincte à chaque aléa.
+3. **Recalage conditionnel de $\sigma_\eta$ face au RN (section 5.2, étape 3) :**
+   - **Grille :** $\sigma_\eta \in [0,00 ; 5,00]$ points d'exprimés, au pas de `0,25` (`21` valeurs ; `N = 2 000`, graine `2027`, contrôle à `N = 10 000`).
+   - **Distribution conditionnelle :** 1er tour réel fixé (2017 et 2022), tous les autres aléas du 2nd tour actifs (`rfShock`, `dirichlet`, `edU`, `turnout`, `mob`, `qDelta`, `fidelity`).
+   - **Front républicain en leave-one-out sur les ancres (R2.4) :** 2017 est évalué avec les seules ancres `[2022 (0), 2024 (1)]`, et 2022 avec les seules ancres `[2017 (0,5502), 2024 (1)]`. La courbe primaire applique le réglage par défaut actif (`leg2024` avec `normalRfShock` tronqué sur l'étendue LOO restante) ; la courbe en mode `uncertain` LOO (tirage uniforme sur l'étendue des deux ancres restantes) est publiée en parallèle.
+   - **Finalistes (R2.5) :** la règle primaire applique aux finalistes leurs lignes mesurées R1.1 de leur élection (`2017 : Macron 97/2/1, Le Pen 91/3/6` ; `2022 : Macron 97/1/2, Le Pen 92,5/2,5/5`), avec l'aléa `±2,5 pts` actif autour de ces lignes. Les courbes de comparaison avec la fidélité symétrique neutre S3 (`94,75/1,75/3,50 %`, défaut historique v2.3) et avec Harris 2026 (`95/1,5/3,5` et `96/1/3`) sont publiées pour transparence et jamais retenues pour contourner la règle.
+   - **Règle de choix :** on retient le $\sigma_\eta$ minimisant le CRPS conditionnel moyen sur 2017 et 2022 parmi les valeurs où les deux résultats réels (`66,10 %` et `58,55 %`) tombent dans leur `[P10 ; P90]` conditionnel ; à égalité, la plus petite valeur.
+   - **$\eta$ hors RN (2012) :** `transfers.nonRnPresidential` provenant directement de la moyenne des enquêtes « jour du vote » 2007 et 2012 (`presidentielles2007_2012`), le recalage sur 2012 serait en échantillon ; selon la section 5.2, **$\sigma_\eta^{\text{hors RN}} = 2,0$ pts est conservé tel quel et documenté comme hypothèse**.
+4. **Critères d'adoption P3 (section 5.3, décision 11) :**
+   - Couverture `[P10 ; P90]` maintenue sur 2017 et 2022 ;
+   - Largeur moyenne `[P10 ; P90]` strictement réduite par rapport à $\sigma_\eta = 3,0$ pts ;
+   - CRPS moyen du 2nd tour dégradé au plus de `2 %` par rapport à $\sigma_\eta = 3,0$ pts ;
+   - Aucune cible nominale de couverture sur deux points ; effet sur 2027 relevé uniquement après validation.
+
+### Résultats P3 (script `scripts/evaluate-p3.ts`, archive `src/data/second-round-p3-audit.json`)
+
+1. **Décomposition de variance à 1er tour fixé (`N = 2 000`, graine `2027`) :**
+   - **Duels RN (`2017`, `2022`, `2027 Le Pen–Mélenchon`, `2027 Le Pen–Philippe`, défaut `leg2024`) :** largeur `[P10 ; P90]` de `9,48` à `10,10 pts`. Le choc commun **$\eta$ (`σ = 3,0 pts`)** explique `60,0 %` à `65,6 %` de la variance T2 (`−3,89` à `−4,12 pts` de largeur si coupé), **Dirichlet (`κ = 40`)** `19,5 %` à `30,6 %`, **`rfShock`** `5,2 %` à `12,0 %` (`3,8 %` à `15,6 %` en `uncertain`), **`edU`** `0 %` à `7,0 %` (`9,7 %` en 2022 `uncertain`), **`qDelta`** et **`fidelity`** `≤ 1,8 %` chacun, et **`mob` / `turnout`** `≈ 0,0–0,2 %` (invariance de premier ordre sous S2). Sur `2027 Le Pen–Mélenchon`, couper `lfiLeftU` augmente la variance (`+1,4 %` en `leg2024`, `+11,1 %` en `uncertain`) car le tirage triangulaire `[35 ; 75 %]` amortit la corrélation avec `rfShock`.
+   - **Duels hors RN (`2012 Hollande–Sarkozy`, `2027 Mélenchon–Philippe`) :** largeur `6,62` à `8,31 pts` ; `dirichlet` (`38,5 %` / `61,4 %`) + $\eta$ (`σ = 2,0 pts`, `54,8 %` / `33,3 %`) représentent `> 93 %` de la variance T2.
+   - **Part du 2nd tour face à la campagne 1er tour (J−82 / J−143) :** l'ensemble des aléas T2 pèse `5,0 %` à `10,0 %` de la variance totale (`9,5–10,1 pts` contre `30,6–42,8 pts` de largeur totale), et $\eta$ `3,3 %` à `6,5 %`.
+2. **Audit de double emploi :** aucun doublon avec `dirichlet` (aléa indépendant par bloc) ni avec les petits paramètres (`< 2 %`). Le recouvrement avec `rfShock` est seulement partiel car `rfShock` est borné à `[0 ; 1]` ; à `σ_η = 0`, la largeur conditionnelle (`5,6–6,5 pts`) est trop étroite pour couvrir 2022 en LOO R2.4 (`[62,4 ; 68,0]` vs `58,55 %`).
+3. **Calage conditionnel CRPS de $\sigma_\eta$ sur `[0 ; 5]` (LOO R2.4, 1er tour réel fixé) :**
+   - **Primaire (`leg2024` LOO + finalistes mesurés R2.5) :** à `σ_η = 3,00`, 2017 est couvert (`[61,3 ; 71,0]`, CRPS `0,899`) mais **2022 est hors IC** (`[60,5 ; 70,2]` vs `58,55 %`, CRPS `4,781`, larg. moy. `9,69`, CRPS moy. `2,840`). La règle §5.2 sélectionne **`σ_η = 4,75 pts`** (identique à `N = 10 000`) : couverture 2/2, CRPS moy. `2,768` (`−2,54 %`, `−2,95 %` à `10k`), mais largeur moy. **`13,55 pts` (`+3,86 pts`)**.
+   - **Parallèle (`uncertain` LOO + R2.5) :** `σ_η = 4,50 pts` (`4,25` à `10k`), larg. `13,31 pts` (`+3,24`), CRPS `2,566` (`−2,23 %`).
+   - **Comparaisons (jamais retenues) :** S3 neutre `leg2024` et `uncertain`, ainsi que Harris 2026 `leg2024` et `uncertain`, sélectionnent toutes **`σ_η = 4,00 pts`** (largeur `+2,16` à `+2,20 pts`, CRPS `−0,82 %` à `−1,58 %`).
+   - Toute diminution sous `3,00 pts` dégrade strictement le CRPS (`+7,0 %` à `+10,8 %` à `0,00`) et ne couvre pas 2022.
+4. **Décision (26/11/2026, application stricte §5.3) :** le critère d'adoption pré-enregistré « la largeur moyenne baisse » échoue sur toutes les courbes (en LOO sur `n = 2` scrutins RN, 2022 est hors enveloppe `[2017, 2024]`, de sorte que `σ_η` absorbe un écart de centrage `+5–6 pts`). **$\sigma_\eta$ reste inchangé (`3,0 pts` face au RN, `2,0 pts` hors RN).** Conformément à §5.2 étape 4, la largeur et le CRPS du 2nd tour sont ajoutés au backtest (`backtest.ts`) et le budget complet d'incertitude + la courbe CRPS complète `[0 ; 5]` sont publiés sur `/methodologie`.
+
+---
+
+## 26/11/2026 — v2.3 (adoptée par décision explicite) — Refonte structurelle du moteur du 2nd tour (P1-bis, S1–S5) et 3e ancre présidentielle 2017 (P2)
+
+**Règles pré-enregistrées le 26/11/2026 avant tout calcul P1-bis** (plan `docs/plan-front-republicain.md`, section 12 ; règles P2 pré-enregistrées le 24/11/2026). **Statut : adoptée en v2.3 (`STORAGE_VERSION = 18`) par décision explicite du propriétaire du projet**, hors réussite stricte des critères pré-enregistrés (détail ci-dessous, comme l'amendement v2.2 du 23/11/2026 sur la projection de campagne). Les sondages directs de 2nd tour 2027 ne servent jamais au calage ; leurs effets (R1.5-bis) n'ont été relevés qu'après les décisions B2 et B4.
+
+### Règles structurelles pré-enregistrées (S1 à S5)
+
+- **S1 — Volumes unifiés (`nonExpressed1`) et mobilisation Insee (`a_ref`) :**
+  - La population non exprimée du 1er tour est unifiée : `nonExpressed1 = abstention1 + blankNull1 = 100 − expressed1`. Les blancs et nuls du 1er tour (non mesurés séparément) suivent par hypothèse documentée le même taux `a` et la même orientation `q` que les abstentionnistes du 1er tour (`totals.a + totals.b + totals.nonExpressed = 100 %` des inscrits).
+  - Défaut de `a` (`abstainerMobilization`) : moyenne des deux mesures administratives Insee ajustées du taux national de blancs et nuls du 2nd tour (`2017 : 24,62 % × (1 − 0,1152) = 21,78 %` ; `2022 : 25,34 % × (1 − 0,0866) = 23,15 %` → moyenne `22,46 %`, défaut `0,225`).
+  - Plage Monte-Carlo : `±0,085` autour de `a`, bornée à `[0,05 ; 0,45]`, couvrant à la fois Ifop (`0,14`) et Insee brut (`0,253`).
+- **S2 — Orientation endogène neutre des nouveaux votants (`q` miroir) :**
+  - Le défaut de `abstainerAntiRnShare` devient `null` (mode endogène neutre) : les nouveaux votants suivent exactement le partage T2 des électeurs exprimés du 1er tour (`q_A = V_A^(T1) / (V_A^(T1) + V_B^(T1))`, soit `Δq = 0`, cohérent avec Ifop 2022 `59 %` vs `58,5 %`).
+  - L'utilisateur peut toujours fixer une orientation manuelle face au RN via le curseur existant.
+  - En Monte-Carlo, en mode neutre (`null`), un écart symétrique `Δq ~ U[−0,08 ; +0,08]` est ajouté à `q_A` (borné à `[0,20 ; 0,80]`) pour tous les duels.
+- **S3 — Séparation des fidélités par source (neutralité stricte en mode historique) :**
+  - **Mode historique (`legislatives2024`, défaut) :** `byCandidate` est retiré du moteur historique. Les deux finalistes reçoivent la même fidélité symétrique neutre issue des enquêtes présidentielles « jour du vote » admissibles R1.8 publiant les finalistes (`ipsos_2022` et `ifop_2022` : Macron `97,0 / 1,0 / 2,0`, Le Pen `92,5 / 2,5 / 5,0` → moyenne symétrique **`94,75 / 1,75 / 3,50 %`**).
+  - **Mode `declared2027` :** les fidélités déclarées Harris Interactive de l'automne 2026 (`default: 95/1,5/3,5`, `lepen: 96/1/3`, `melenchon: 92/2/6`) sont déplacées dans `src/data/transfers-2027-declared.json` et soumises en duel RN à la même `logitCorrection` (`deltaFinalist = +0,35`, `deltaRn = −0,20`) que les électorats éliminés.
+  - **Mode `blend` :** mélange linéaire selon `declaredWeight` entre la fidélité historique neutre et la fidélité déclarée 2027 corrigée en logit.
+- **S4 — Suppression de `camp: "rn"` et ligne unique mesurée pour l'extrême droite hors finaliste :**
+  - Le rattachement `camp: "rn"` (`0 / 96 / 4`) est supprimé ; les 4 blocs actuels sont conservés sans sous-bloc ni paramètre par candidat.
+  - Ligne de référence : moyenne simple des deux observations présidentielles admissibles R1.8 (1 observation par élection) — Dupont-Aignan 2017 (`ipsos_2017` : `27,0 / 30,0 / 43,0`) et Zemmour 2022 (`r1_1` : `9,5 / 75,5 / 15,0`) → **`18,25 / 52,75 / 29,00 %`**.
+  - En Monte-Carlo (duels RN, hors surcharge manuelle), tirage uniforme `u_ed ~ U[0 ; 1]` interpolant entre la borne basse 2017 (`27/30/43`) et la borne haute 2022 (`9,5/75,5/15`) avant le tirage Dirichlet.
+  - Évaluation croisée : chaque année est évaluée avec la seule observation ED de l'autre année.
+- **S5 — Filtre d'admissibilité comptable pré-backtest (R1.1-bis) :**
+  - Toute enquête dont la reproduction partielle en voix échoue au contrôle de réalisabilité R1.8 (colonne du résidu strictement négative au-delà de `|Δ inscrits|`) est exclue de la moyenne de référence et conservée en variante diagnostique uniquement (`ifop_2017`, `−40 812` voix sur Le Pen, est donc exclue de la référence 2017 ; 2022 reste la moyenne `ipsos_2022` / `ifop_2022`).
+
+### Critères d'adoption pré-enregistrés (R1.2-bis et R1.4-bis)
+
+- **R1.2-bis — Reproduction en échantillon (S1–S5) :**
+  - *Contrôle comptable strict (fidélités mesurées de l'année) :* erreur `≤ 1,0 pt` sur la part de l'opposant au RN et `≤ 1,0 pt d'inscrits` sur chacun des deux volumes en 2017 **et** en 2022.
+  - *Moteur neutre (fidélité symétrique S3 `94,75/1,75/3,50`, matrices de bloc admissibles de l'année) :* erreur en échantillon `≤ 2,0 pts` sur la part et `≤ 1,5 pt d'inscrits` par volume en 2017 **et** en 2022, avec réduction stricte par rapport à v2.2 (`−6,87` en 2017, `−3,60` en 2022) sur les deux années.
+- **R1.4-bis — Validation croisée adaptée et cohérence 2024 (toutes requises, moteur neutre S1–S5) :**
+  1. Biais moyen croisé `|(e_2017 + e_2022) / 2| ≤ 1,5 pt` (v2.2 : `4,69 pts`), avec `e_2017` et `e_2022` de signes opposés.
+  2. Pire erreur croisée `max(|e_2017|, |e_2022|) < 8,20 pts` (v2.2 : `8,20 pts`).
+  3. RMSE croisée `sqrt((e_2017² + e_2022²) / 2) ≤ 5,86 pts` (v2.2 : `5,86 pts`).
+  4. Cohérence législatives 2024 : erreur absolue moyenne sur les 4 profils `≤ 1,0 pt` (v2.2 : `0,97 pt`) et aucun profil dégradé de plus de `0,5 pt` en valeur absolue par rapport à v2.2.
+- **R1.5-bis — Effet sur 2027 :** relevé après la décision d'adoption et publié quel que soit son sens.
+
+### Résultats de l'évaluation P1-bis (étape B2, script `scripts/evaluate-p1-bis.ts`)
+
+1. **Filtre d'admissibilité comptable pré-backtest S5 (R1.8 par enquête) :** `ipsos_2017` (réalisable), `ipsos_2022` (réalisable), `ifop_2022` (réalisable). `ifop_2017` est exclue (`−40 812` voix impossibles sur Le Pen, au-delà de `|Δ inscrits| = 13 490`).
+2. **Paramètres dérivés sans ajustement :**
+   - S1 mobilisation Insee ajustée des blancs/nuls du 2nd tour : `21,78 %` (2017), `23,15 %` (2022) → moyenne `22,46 %`, défaut `0,225` sur `nonExpressed1 = abstention1 + blankNull1` (MC `±0,085` borné à `[0,05 ; 0,45]`).
+   - S2 orientation endogène neutre : `abstainerAntiRnShare = null` (partage miroir des exprimés du 1er tour, `Δq = 0` ; MC `±0,08` borné à `[0,20 ; 0,80]`).
+   - S3 fidélité symétrique « jour du vote » (`ipsos_2022` + `ifop_2022`) : `94,75 / 1,75 / 3,50 %` (retrait de `byCandidate` du moteur historique ; Harris 2026 déplacé dans `transfers-2027-declared.json` avec correction logit en duel RN).
+   - S4 extrême droite hors finaliste : `27/30/43` (Dupont-Aignan 2017, Ipsos) et `9,5/75,5/15` (Zemmour 2022, R1.1) → moyenne `18,25 / 52,75 / 29,00 %` (suppression de `camp: "rn"`, tirage uniforme entre ces deux bornes en MC).
+3. **Évaluation R1.2-bis (en échantillon) :**
+   - *Contrôle comptable strict (fidélités mesurées de l'année) :* 2017 `−0,85 pt` (vol. Macron `−1,06 pt`, dépasse `1,0` de `0,06 pt` ; vol. Le Pen `+0,29`, expr. T2 `−0,77`), 2022 `−0,62 pt` (vol. Macron `−0,78`, vol. Le Pen `+0,13`, expr. T2 `−0,65` — OK).
+   - *Moteur neutre S3 :* 2017 **`−1,82 pt`** (vs `−6,87` en v2.2 ; vol. Macron `−1,73`, dépasse `1,5` de `0,23 pt` ; vol. Le Pen `+0,90`), 2022 **`−1,55 pt`** (vs `−3,60` en v2.2 ; vol. Macron `−1,41`, vol. Le Pen `+0,72` — OK). Réduction massive de l'erreur sur les deux scrutins.
+4. **Évaluation R1.4-bis (croisé & législatives 2024, moteur neutre S1–S5) :**
+   - Biais signé croisé : **`−0,49 pt`** (`2017 : −6,59`, `2022 : +5,60`, signes opposés) vs `−4,69 pts` en v2.2 — **OK** (`≤ 1,5 pt`).
+   - Pire erreur croisée : **`6,59 pts`** vs `8,20 pts` en v2.2 — **OK** (`< 8,20`).
+   - RMSE croisée : **`6,11 pts`** vs `5,86 pts` en v2.2 — **KO** (`+0,25 pt`, dû au report croisé NDA 2017 `30 %` RN ↔ Zemmour 2022 `75,5 %` RN).
+   - Législatives 2024 (4 profils) : MAE **`0,78 pt`** (vs `0,97 pt` en v2.2 ; `lfi_rn −1,52`, `ecolo_ps_pcf_rn −1,05`, `ensemble_rn −0,44`, `lr_rn −0,09`), dégradation max `+0,26 pt` (`≤ 0,5`) — **OK**.
+   - Contrôle hors RN 2012 (Hollande – Sarkozy) : `51,40 %` vs `51,64 %` (`−0,24 pt`), `expr2 = 72,39 %` vs `75,68 %`.
+5. **Décision explicite (étape B2, 26/11/2026) :** malgré les légers dépassements stricts sur 2017 (`0,06` / `0,23 pt` de volume) et sur la RMSE croisée (`6,11` vs `5,86`), le propriétaire du projet choisit d'**adopter P1-bis (S1–S5)** pour corriger les cinq incohérences structurelles prouvées et supprimer le biais systématique `−4,69 pts` de v2.2.
+
+### Résultats P2 sur le moteur P1-bis (étape B4, script `scripts/evaluate-p2.ts`)
+
+1. **Position `s_2017` sur l'échelle logit `2022 (0) ↔ 2024 (1)` (cible réelle 2017 : `66,10 %`) :**
+   - **R2.5 (Ifop 2017 pub.) + ED mesurée 2017 (`27/30/43`, front pur) :** **`s_2017 = 0,5502`** (proche `midpoint`, défaut R2.2 `uncertain`, étendue `[0 ; 1]`).
+   - **R2.5 (Ifop 2017 pub.) + ED S4 moyennée (`18,25/52,75/29`) :** `s_2017 = 0,884` (proche `leg2024`, défaut R2.2 `uncertain`, étendue `[0 ; 1]`).
+   - Variantes R2.5 + R1.7 : `0,453` (ED 2017) / `0,751` (ED S4). Comparaisons jamais retenues : S3 neutre `0,790` (ED 2017) / `1,258` (ED S4) ; Harris 2026 `0,853` (ED 2017) / `1,374` (ED S4).
+2. **Backtest leave-one-out R2.4 (moteur P1-bis S3 + ED S4) :**
+   - 2017 (ancres `[2022, 2024]`) : `2022` `60,72 %` (`−5,38`), `2024` `65,52 %` (`−0,58`), milieu `uncertain` `63,71 %` (`−2,39`).
+   - 2022 (ancres `[2017, 2024]`) : `2017` `62,15 %` (`+3,60`), `2024` `64,99 %` (`+6,44`), milieu `uncertain` `63,70 %` (`+5,16`).
+   - Contrôle R2.5 + ED de l'année : 2017 `uncertain` `−0,23 pt`, 2022 `uncertain` `+4,14 pts` (MAE `2,18 pts` vs `3,48 pts` pour `leg2024`).
+3. **Décision explicite (étape B4, 26/11/2026) :**
+   - **Adopté :** interpolation logit linéaire par morceaux à **3 ancres** (`2022` à `0`, `2017` à **`s_2017 = 0,5502`** sous R2.5 + ED mesurée 2017 afin d'isoler le front républicain pur sans absorber l'écart Zemmour 2022, `2024` à `1`, sans extrapolation hors `[0 ; 1]` conformément à R2.3 ; aucun nouveau curseur ni préréglage conformément à R2.1).
+   - **Écart explicite à R2.2 :** alors que R2.2 désignait `uncertain` (unanimement sur les 8 variantes), le propriétaire du projet choisit de **conserver `leg2024` comme réglage par défaut** du front républicain. Le préréglage `uncertain` reste disponible en un clic et tire désormais sur l'interpolation à 3 ancres.
+
+### Migration des réglages (`STORAGE_VERSION = 17 → 18`)
+
+- Dans `src/state/settingsStore.ts`, `abstainerMobilization` passe de `0,20` à `0,225` et `abstainerAntiRnShare` de `0,55` à `null` (neutre endogène) **uniquement** lorsque l'utilisateur avait conservé l'ancien défaut ; tout réglage manuel explicite est préservé. `republicanFront` reste inchangé (`leg2024` par défaut).
+
+### Effet constaté sur 2027 (R1.5-bis, relevé après décisions B2 et B4, sondages au 26/11/2026)
+
+Comparaison exacte v2.2 → v2.3 sur les mêmes sondages (`asOf = 2026-11-26`, projection avril 2027 activée, incertitude candidatures activée, 2 000 tirages, graine `2027`) :
+
+| Duel (score de l'adversaire du RN) | v2.2 `leg2024` | v2.3 `leg2024` (défaut) | Δ `leg2024` | v2.2 `midpoint` | v2.3 `midpoint` (3 ancres) | Δ `midpoint` | v2.3 `pres2022` |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| **Le Pen – Mélenchon** (duel par défaut) | 47,72 % | **49,60 %** | **+1,88 pt** | 44,66 % | 44,69 % | +0,03 pt | 42,47 % |
+| **Le Pen – Philippe** | 54,99 % | **57,06 %** | **+2,07 pts** | 52,68 % | 53,52 % | +0,84 pt | 50,66 % |
+| **Le Pen – Attal** | 53,49 % | **55,49 %** | **+2,00 pts** | 51,10 % | 51,78 % | +0,68 pt | 48,86 % |
+| **Le Pen – Glucksmann** | 47,91 % | **49,41 %** | **+1,50 pt** | 44,36 % | 43,00 % | −1,36 pt | 40,22 % |
+| **Le Pen – Lisnard** | 56,24 % | **58,46 %** | **+2,22 pts** | 53,72 % | 54,62 % | +0,90 pt | 51,66 % |
+
+- Sur le duel par défaut (Le Pen – Mélenchon, `leg2024`), la probabilité Monte-Carlo de victoire de Marine Le Pen sur ce duel passe de `53,3 %` (v2.2) à **`50,25 %`** (v2.3, médiane `50,03 %`, IC 80 % `[28,7 ; 71,7]`), et les exprimés du 2nd tour passent de `65,49 %` à `65,97 %` des inscrits (abandon net `9,51 % → 8,85 %`).
+- Probabilités globales de victoire (Monte-Carlo, tous duels confondus) : Le Pen `36,5 % → 33,5 %`, Mélenchon `30,6 % → 33,1 %`, Philippe `18,8 % → 16,6 %`, Lisnard `9,1 % → 11,9 %`. L'effet principal (`+1,5` à `+2,2 pts` en faveur de l'adversaire du RN à `leg2024`) provient directement de la suppression de l'asymétrie de fidélité pré-campagne (S3) et du rattachement forcé `camp: "rn"` sur l'extrême droite hors RN (S4). À `midpoint` (`50 %`), l'ancre 2017 (`55 %`, où Fillon est à `48 %` contre `52,5 %` pour Pécresse 2022) infléchit légèrement les profils à voisin droite/centre (`Glucksmann −1,36 pt`).
+
+---
+
+## 24/11/2026 — Sondages de l'entre-deux-tours (P4, affichage seulement)
+
+Ajout purement descriptif prévu à la section 6 de `docs/plan-front-republicain.md` (décision 5 du 24/11/2026). **Aucun paramètre, aucun réglage par défaut, aucun calcul de 1er ou 2nd tour et aucune sortie Monte-Carlo ne sont modifiés** ; la version active du modèle reste la v2.2 (`STORAGE_VERSION = 17`).
+
+1. **Données présidentielles entre-deux-tours (`src/data/second-round-poll-bias.json`).**
+   - Ajout d'un champ obligatoire `phase` (`avantPremierTour` | `entreDeuxTours`) sur chaque sondage, validé par Zod et par contrôle croisé des dates (`avantPremierTour` : `end < electionDate` ; `entreDeuxTours` : `electionDate <= end < secondRoundDate`).
+   - Les 45 sondages 2022 et 18 sondages 2017 existants reçoivent `phase: "avantPremierTour"` sans aucune modification de leurs valeurs.
+   - Ajout de tous les sondages publiés entre les deux tours jusqu'à l'interdiction légale (reprises des listes Wikipédia `listSource` et notices de la Commission des sondages, 2002 exclu) :
+     - **2017** (23/04 au 05/05/2017) : **22 sondages** ; moyenne entre-deux-tours Macron `60,98 %` (écart résultat − moyenne `+5,12 pts`), derniers sondages du 05/05/2017 (`n = 3`) `62,67 %` (écart `+3,43 pts`), résultat réel `66,10 %`.
+     - **2022** (10/04 au 22/04/2022) : **42 sondages** (avec correction de la notice OpinionWay 16-19/04/2022 vers la notice CDS n° 9611) ; moyenne entre-deux-tours Macron `54,61 %` (écart `+3,94 pts`), derniers sondages du 22/04/2022 (`n = 5`) `56,20 %` (écart `+2,35 pts`), résultat réel `58,55 %`.
+   - `pollBiasGaps`, `directPollRmse` et `directPollGapAlert` filtrent strictement sur `phase === 'avantPremierTour'` et ignorent le fichier législatif : les mesures actuelles (`+3,3 pts` en 2022 / `+4,1 pts` en 2017, soit `−3,3` et `−4,1` pts pour les sondages ; RMSE historique `3,53 pts`) restent strictement inchangées.
+
+2. **Données législatives 2024 (`src/data/legislative-duel-polls-2024.json`) et règle d'identité stricte.**
+   - Inventaire effectué le 24/11/2026 (listes Wikipédia FR/EN, série complète des notices Commission des sondages n° 9865 à 9888 de juin-juillet 2024, publications Ifop de juillet 2024) : sur les 5 sondages de circonscription répertoriés, 4 ont été menés avant le 1er tour du 30/06/2024 (Nord 10e, Lot-et-Garonne 3e, Alpes-Maritimes 1re, Seine-Saint-Denis 7e) et sont exclus du périmètre.
+   - **1 seul sondage de circonscription d'entre-deux-tours (duel) identifié** : **6e circonscription du Calvados (1406)**, Ifop-Fiducial pour Sud Radio (`120979-Resultats.pdf`), terrain 02-03/07/2024, `n = 611` inscrits (issu de 711 personnes de 18 ans et plus) : Élisabeth Borne (`Renaissance`, fiche Assemblée nationale `PA717161`) `54 %` contre `56,36 %` au résultat officiel (écart `+2,36 pts`) ; Nicolas Calbrix (`RN`, rapport Ifop) `46 %` contre `43,64 %` (résultats définitifs data.gouv.fr, ministère de l'Intérieur).
+   - La table `candidateParties` inscrit explicitement le parti canonique de chacun des 19 candidats 2027 (jamais déduit d'une coalition ou d'une nuance). `matchingLegislativeDuelPolls` applique la règle d'identité stricte : le sondage du Calvados (`Renaissance` – `RN`) n'est affiché que sur le duel `attal` – `lepen` et est exclu sur tout parti voisin ou allié (ex. `philippe` `Horizons` – `lepen` `RN`). Pour toutes les autres paires de partis (notamment `LFI` – `RN`, `Horizons` – `RN`, `LR` – `RN`), aucun sondage n'existant, rien n'est affiché.
+
+3. **Interface et documentation.**
+   - Ajout dans `SecondRoundDuel.tsx` des deux tableaux distincts « Entre-deux-tours (pour mémoire, non utilisé dans le calcul) » et « Législatives 2024, même duel de partis » (uniquement lorsqu'une correspondance stricte existe). Mention ajoutée dans `src/ui/pages/Methodology.tsx` et `README.md`.
+
+## 24/11/2026 — v2.3 (non adoptée — P1 rejeté) — Audit du moteur du 2nd tour (P1)
+
+**Règles pré-enregistrées le 24/11/2026, avant tout calcul** (plan `docs/plan-front-republicain.md`, périmètre P1 + P2). Les sondages directs de 2nd tour 2027 ne servent jamais au calage. **Issue (décision du 24/11/2026) : P1 est rejeté** après échec des critères pré-enregistrés R1.2 et R1.4 ; aucun réglage par défaut n'est modifié, les valeurs Fillon/Jadot ne sont pas corrigées isolément (R1.12), et P2 n'est pas engagé.
+
+### Règles P1 (section 3.2)
+
+- **R1.1 Hiérarchie des sources.** On prend la moyenne d'Ipsos et d'Ifop quand les deux existent, sinon la seule disponible. On ne choisit jamais l'institut d'après le backtest.
+- **R1.2 Tolérance de reproduction.** ±1 point sur la part de l'opposant au RN et ±1 point d'inscrits sur le volume de chaque finaliste. Elle s'applique à la configuration de référence de l'étape 2, pas à la reproduction partielle de l'étape 1.
+- **R1.3 Seuil de correction.** Une simplification est corrigée si sa contribution atteint 0,5 point au moins une année. Une contribution de signe opposé selon l'année est signalée, mais pas corrigée.
+- **R1.4 Adoption.** Trois conditions, toutes requises :
+  - erreur en échantillon ≤ 1 point en 2017 **et** en 2022 ;
+  - erreur croisée moyenne, en valeur absolue, non dégradée ;
+  - résultats agrégés du backtest des législatives 2024 stables à ±0,5 point.
+- **R1.5 Effet sur 2027.** Il est relevé après la décision et publié dans le changelog quel que soit son sens.
+
+Les règles R1.6 à R1.10 et R1.12 traduisent la décision 8 de la section 9.1. Les règles R1.11, R1.13 et R1.14 ont été validées le 24/11/2026 (décision 9).
+
+- **R1.6 Format et variantes d'institut.**
+  - Toutes les lignes sont au format finaliste opposé au RN / RN / non-exprimé, en % des électeurs du candidat au 1er tour.
+  - R1.1 s'applique ligne par ligne.
+  - Les variantes « Ipsos seul » et « Ifop seul » sont publiées et jamais retenues. Quand une ligne manque dans une variante, elle est prise chez l'autre institut, et c'est signalé.
+- **R1.7 Incohérence Ifop.**
+  - Le tableau des reports est retenu tel que publié.
+  - Variante : pour les lignes où le tableau de participation donne un taux d'abstention, la colonne non-exprimé est remplacée par ce taux, et les deux autres colonnes sont remises à l'échelle en proportion. Elle est publiée et jamais retenue.
+- **R1.8 Résidu de la reproduction partielle.**
+  - Calcul en voix. L'écart d'inscrits entre les deux tours (−13 490 en 2017, +4 463 en 2022) est publié et non corrigé.
+  - Le résidu est réalisable si chacune de ses trois colonnes (voix vers l'opposant au RN, voix vers le RN, non-exprimé) est comprise entre 0 et la population résiduelle, à l'écart d'inscrits près.
+  - La part du résidu qui vote est comparée à titre indicatif aux chiffres de l'Insee : 24,6 % (2017) et 25,3 % (2022) des abstentionnistes du 1er tour votent au 2nd, votes de toute nature. Le résidu mêle les petits candidats et les non-exprimés du 1er tour : la comparaison est indirecte et n'a pas de seuil.
+  - Le contrôle est publié pour chaque variante. Seul le résidu de la version R1.1 peut déclencher l'arrêt.
+- **R1.9 Petits candidats.**
+  - Aucune ligne n'est inventée.
+  - Dans la configuration de référence, un candidat sans ligne reçoit la ligne de son bloc (`historicalBloc`) : moyenne des lignes R1.1 des candidats couverts du bloc, finaliste exclu, pondérée par leurs voix du 1er tour. Cheminade, seul petit candidat du centre, garde la ligne transposée (79/7/14).
+  - (c) n'est pas mesurée. On publie sa borne : les voix des candidats sans ligne rapportées aux exprimés du 2nd tour, soit l'effet maximal si tous ces électeurs changeaient de colonne.
+- **R1.10 Ligne du centre.** Retirée de la dégradation. En 2017 et 2022, le bloc centre est celui du finaliste (profil `ensemble_rn`, `transfers.ts:126`), et la ligne ne s'applique qu'à Cheminade en 2017. Elle reste une hypothèse documentée.
+- **R1.11 Fidélité des finalistes (validée le 24/11/2026, critère strict).**
+  - (f) est mesurée pour diagnostic et publiée. Elle n'est jamais corrigée dans P1, car les fidélités 2027 sont sourcées à part (enquêtes Harris de l'automne 2026).
+  - L'idée que la fidélité déclarée avant le scrutin surestime la fidélité mesurée après reste une hypothèse non vérifiée, notée comme telle.
+  - Critère strict : l'effet de (f) reste compris dans l'erreur évaluée par R1.4. Si cet effet est important, P1 peut échouer pour une cause qu'il ne corrige pas. Ce risque est accepté.
+- **R1.12 Fillon et Jadot.** Les valeurs R1.1 remplacent celles du dépôt, dans le nouveau fichier de matrices, seulement si P1 est adopté (R1.4). Il n'y a pas de correction isolée.
+- **R1.13 a et q de référence (validée le 24/11/2026).**
+  - Ils sont fixés par la réconciliation des définitions d'Ifop et de l'Insee (section 9.2), écrite et datée dans le changelog avant l'étape 2.
+  - Ifop ne mesure q qu'en 2022. Son application à 2017 est une transposition, documentée comme telle.
+  - Si la réconciliation n'aboutit pas, a et q gardent leurs valeurs par défaut dans la configuration de référence, et (d) n'est pas mesurée.
+- **R1.14 Ligne de l'extrême droite hors finaliste (validée le 24/11/2026).** Elle ne s'applique que si (b) passe le seuil R1.3.
+  - Valeur : moyenne simple des lignes R1.1 de Dupont-Aignan 2017 et de Zemmour 2022. Chaque élection compte pour une observation.
+  - Évaluation croisée : chaque année est évaluée avec la seule ligne de l'autre année.
+
+### Règles P2 (section 4.3)
+
+- **R2.1 Pas de nouveau réglage.**
+  - Aucun nouveau curseur.
+  - Les préréglages `pres2022` (0), `midpoint` (0,5) et `leg2024` (1) gardent leur position. Aucun préréglage `pres2017` n'est ajouté, sauf demande.
+  - Le mode `uncertain` tire désormais la position uniformément sur toute l'étendue des trois ancres, de min(0 ; s₂₀₁₇) à max(1 ; s₂₀₁₇).
+- **R2.2 Défaut (validé le 24/11/2026).**
+  - 2022 désigne `pres2022` par construction ; 2017 désigne le préréglage le plus proche de s₂₀₁₇.
+  - Si les deux désignent le même préréglage, c'est-à-dire si s₂₀₁₇ < 0,25, `pres2022` devient le défaut. Sinon, le défaut devient `uncertain`.
+  - Avant adoption, on vérifie que la règle R1.4 reste satisfaite avec ce défaut.
+- **R2.3 Ancre 2017 (décision 3).** 2017 est la troisième ancre, à la position s₂₀₁₇. Aucune extrapolation n'est faite au-delà des trois ancres.
+- **R2.4 Leave-one-out sur les ancres.** L'erreur publiée pour le front est calculée en retirant à chaque fois l'ancre de l'élection évaluée.
+- **R2.5 Fidélités utilisées pour mesurer le front (validée le 24/11/2026).**
+  - **Problème.** Le moteur corrigé garde les fidélités 2027 des finalistes (R1.11). Si s₂₀₁₇ est calculé avec elles, il absorbe l'écart (f) de 2017, qui ne relève pas du front. Ce serait une compensation sans fondement, du type décrit en section 2.1. L'erreur se propagerait au défaut (R2.2, qui dépend de s₂₀₁₇) et au leave-one-out de 2022 (R2.4, qui utilise l'ancre 2017). L'ampleur n'est pas connue : (f) sera mesurée à l'étape 2 de P1.
+  - **Règle.** s₂₀₁₇ est calculé avec les lignes R1.1 des deux finalistes de 2017. En 2017, ces lignes ne viennent que d'Ifop (section 3.3) : la variante R1.7 s'applique donc aussi à s₂₀₁₇ et est publiée.
+  - **Variante.** s₂₀₁₇ calculé avec les fidélités 2027 est publié pour comparaison et jamais retenu.
+  - **Inchangé.** La prévision 2027 garde les fidélités Harris. Les évaluations d'adoption (R1.4, et R2.2 qui y renvoie) gardent le critère strict (décision 9).
+
+### Réconciliation Ifop / Insee pour `a` et `q` (R1.13, rédigée le 24/11/2026 avant l'étape 2)
+
+1. **Définitions dans le moteur (`src/domain/secondRound.ts`).**
+   - `a` (`abstainerMobilization`, défaut actuel `0,20`, Monte-Carlo ±0,04 borné à `[0,05 ; 0,45]`) : part des **abstentionnistes du 1er tour** (`inscrits − votants`, France entière) qui **expriment un suffrage valide** pour l'un des deux finalistes au 2nd tour (hors blancs et nuls). Les votants blancs et nuls du 1er tour (`blankNull1`) sont isolés à part et ne sont pas remobilisés dans le moteur (comportement non mesuré).
+   - `q` (`abstainerAntiRnShare`, défaut actuel `0,55`, Monte-Carlo ±0,08 borné à `[0,30 ; 0,78]` ; `0,50` hors duel RN) : part de ces nouveaux votants exprimés qui votent pour l'adversaire du RN.
+
+2. **Sources et définitions mesurées pour `a`.**
+   - **Ifop-Fiducial 2022, données en composition** (PDF p. 27 / imprimée p. 26 ; `src/data/second-round-dropout.json`, `src/domain/newVoters.ts`) : parmi les suffrages exprimés au 2nd tour, `6 %` des électeurs de Macron et `5 %` des électeurs de Le Pen déclarent s'être abstenus au 1er tour (±0,5 pt d'arrondi entier). Appliqué aux voix officielles du 2nd tour (`18 768 639` et `13 288 686`) et rapporté aux abstentionnistes officiels du 1er tour 2022 (`48 747 876 − 35 923 707 = 12 824 169`), on obtient **`rAbs = 1 790 553 / 12 824 169 = 0,1396` (`14,0 %`)**, fourchette d'arrondi entier **`[0,127 ; 0,152]`** (`3,67 %` des inscrits du 2nd tour). Cette mesure correspond **exactement** au numérateur et au dénominateur de `a`, mais repose sur un seul scrutin déclaratif (souvenir du vote au 1er tour, risque de sous-déclaration de l'abstention du 1er tour, redressement sur le 1er tour non précisé).
+   - **Ifop-Fiducial 2022, tableau de participation** (PDF p. 11 / imprimée p. 10) : `32 %` des abstentionnistes déclarés du 1er tour déclarent voter au 2nd (tous votes). Mesure écartée : supérieure au taux administratif d'émargement Insee (`25,3 %`) et incohérente en interne avec les données en composition du même rapport (`14,0 %` d'exprimés, qui laisseraient environ `2,3 M` de blancs/nuls sur les seuls abstentionnistes du 1er tour).
+   - **Insee, listes d'émargement** (`src/data/second-round-dropout.json`, `src/domain/newVoters.ts`) :
+     - **2017** (Insee Première n° 1670, France hors Mayotte) : `4,8 %` d'inscrits votent au 2nd tour seulement sur `19,5 %` d'abstentionnistes du 1er tour (`100 − 72,7 − 7,8`), soit **`24,62 %`** (`24,74 %` sur `4,8 + 14,6`).
+     - **2022** (Insee Flash Normandie n° 124, France métropolitaine) : `5,6 %` d'inscrits votent au 2nd tour seulement sur `22,1 %` d'abstentionnistes du 1er tour (`100 − 70,2 − 7,7`), soit **`25,34 %`** (`25,00 %` sur `5,6 + 16,8`).
+     - Deux écarts de définition par rapport à `a` : (i) l'Insee compte **tous les émargements**, blancs et nuls compris (taux moyen national de blancs et nuls au 2nd tour : **`11,52 %`** en 2017, **`8,66 %`** en 2022 ; taux spécifique aux nouveaux votants non mesuré) ; (ii) le champ géographique exclut les Français de l'étranger (2017 et 2022), Mayotte (2017) et l'ensemble de l'outre-mer (2022, où l'abstention T1 France entière est de `26,31 %` contre `22,1 %` en métropole).
+
+3. **Résultat de la confrontation pour `a`.**
+   - En retranchant à titre indicatif le taux moyen national de blancs et nuls du 2nd tour (hypothèse non vérifiée), l'Insee donne **`0,218`** en 2017 (`24,62 % × (1 − 0,1152)`) et **`0,231`** en 2022 (`25,34 % × (1 − 0,0866)`), soit encore **`9,2` points au-dessus** d'Ifop `rAbs` (`0,140`) en 2022.
+   - Concilier `25,34 %` et `13,96 %` par le seul effet des blancs et nuls supposerait que **`44,9 %`** des abstentionnistes du 1er tour ayant émargé au 2nd tour ont voté blanc ou nul (plus de 5 fois le taux moyen de `8,66 %`), ce qu'aucune donnée n'étaye.
+   - **Constat.** Le seul alignement des définitions (votes exprimés vs émargements) ne réconcilie pas les deux chiffres : l'écart résiduel provient de facteurs non mesurés (sous-déclaration probable de l'abstention T1 dans le déclaratif Ifop, écart de champ géographique, taux propre de blancs et nuls inconnu).
+
+4. **Sources et définition pour `q`.**
+   - L'Insee ne mesure pas `q` (les listes d'émargement ne contiennent pas le choix de vote).
+   - **Ifop-Fiducial 2022** mesure `q` sur exprimés à **`0,59`** (`59 %` Macron / `41 %` Le Pen, PDF p. 25 / imprimée p. 24). Contrôle interne via les données en composition (PDF p. 27 / imprimée p. 26) : `0,06 × 18 768 639 / 1 790 553 = 62,9 %`, fourchette d'arrondi entier **`[58,6 % ; 67,1 %]`**, compatible avec `59 %`.
+   - Aucune mesure de `q` n'existe pour 2017 : l'application de `0,59` à 2017 est une **transposition** (R1.13).
+
+5. **Décision R1.13 (validée le 24/11/2026 avant l'étape 2 — Option A).**
+   - **`a` de référence** : **`0,14`** (`rAbs = 0,1396` calculé depuis Ifop 2022 en composition et les résultats officiels 2022, seule mesure correspondant exactement à la définition du moteur ; fourchette d'arrondi entier `[0,127 ; 0,152]`).
+   - **`q` de référence** : **`0,59`** (Ifop 2022, PDF p. 25 / imprimée p. 24 ; appliqué à 2017 par transposition, conformément à R1.13).
+   - **Étape 2 et plage Monte-Carlo** : la dégradation `(d)` (`a = 0,20`, `q = 0,55` contre `a = 0,14`, `q = 0,59`) est mesurée à l'étape 2. Si `(d)` passe le seuil R1.3 à l'étape 3, la plage Monte-Carlo de `a` sera recalée pour couvrir les deux sources (d'Ifop borne basse `0,127` jusqu'à Insee `0,231` ajusté / `0,253` brut).
+
+### Résultats de l'audit P1 (examinés après pré-enregistrement des règles — 24/11/2026)
+
+**Décision : P1 rejeté** (24/11/2026, application stricte des critères pré-enregistrés R1.2 et R1.4). Aucun paramètre ni réglage par défaut n'est modifié ; la version active du modèle reste la v2.2 (`STORAGE_VERSION = 17`). Les voix officielles du 2nd tour 2017 (Décision n° 2017-171 PDR du Conseil constitutionnel : Macron `20 743 128`, Le Pen `10 638 475`) ont été ajoutées à `src/data/reference-2017.json` (et le repli codé en dur à `66,1` supprimé dans `src/domain/backtest.ts`), et les matrices brutes des 4 enquêtes 2017–2022 sont archivées et validées dans `src/data/second-round-reference-matrices.json` (non branchées sur le moteur par défaut, R1.12). Scripts reproductibles : `scripts/reproduce-second-round.ts`, `scripts/step2-degradation.ts`, `scripts/step3-evaluation.ts`.
+
+1. **Étape 1 — Reproduction partielle en voix et contrôle du résidu (R1.6, R1.7, R1.8)** :
+   - **2017** : 6 candidats couverts = `34 594 071` voix (`95,95 %` des exprimés T1) ; petits candidats sans ligne = `1 460 323` (`4,05 %`) ; non-exprimés T1 = `11 527 789` (`24,23 %` des inscrits T1) ; population résiduelle T1 = `12 988 112` (`27,30 %`) ; écart inscrits T2 − T1 = `−13 490`. Repère indicatif Insee (abstentionnistes T1 votant T2, tous votes) : `24,6 %`.
+     - **R1.1 (principal)** : résidu Macron `+2 636 270` (`20,30 %`), Le Pen `+472 994` (`3,64 %`), non-exprimé `+9 865 358` (`75,96 %`) ; part exprimée `23,94 %` (`84,8 % / 15,2 %`) → **réalisable**.
+     - **R1.6 — Ipsos seul** *(repli Ifop sur `macron`, `lepen`)* : résidu `+2 898 241` / `+986 800` / `+9 089 581` ; part exprimée `29,91 %` (`74,6 % / 25,4 %`) → **réalisable**.
+     - **R1.6 — Ifop seul (publié)** : résidu `+2 374 299` / **`−40 812`** / `+10 641 135` → **non réalisable** (`−40 812 < −13 490` : les 6 grands candidats attribuent seuls `10 679 287` voix à Le Pen contre `10 638 475` au total officiel).
+     - **R1.7 sur R1.1** : résidu `+3 129 590` / `+867 592` / `+8 977 441` ; part exprimée `30,78 %` (`78,3 % / 21,7 %`) → **réalisable**.
+     - **R1.7 sur Ifop seul** : résidu `+3 009 427` / `+369 716` / `+9 595 478` ; part exprimée `26,02 %` (`89,1 % / 10,9 %`) → **réalisable**.
+   - **2022** : 6 candidats couverts = `31 421 486` voix (`89,44 %` des exprimés T1) ; petits candidats sans ligne = `3 711 461` (`10,56 %`) ; non-exprimés T1 = `13 614 929` (`27,93 %` des inscrits T1) ; population résiduelle T1 = `17 326 390` (`35,54 %`) ; écart inscrits T2 − T1 = `+4 463`. Repère indicatif Insee : `25,3 %`.
+     - **R1.1 (principal)** : résidu Macron `+3 668 931` (`21,18 %`), Le Pen `+2 225 810` (`12,85 %`), non-exprimé `+11 436 111` (`66,00 %`) ; part exprimée `34,02 %` (`62,2 % / 37,8 %`) → **réalisable**.
+     - **R1.6 — Ipsos seul** : `+3 501 471` / `+2 263 837` / `+11 565 544` (`33,27 %`, `60,7 % / 39,3 %`) → **réalisable**.
+     - **R1.6 — Ifop seul (publié)** : `+3 836 392` / `+2 187 783` / `+11 306 678` (`34,77 %`, `63,7 % / 36,3 %`) → **réalisable**.
+     - **R1.7 sur R1.1** : `+3 921 650` / `+2 604 619` / `+10 804 584` (`37,67 %`, `60,1 % / 39,9 %`) → **réalisable**.
+     - **R1.7 sur Ifop seul** : `+4 341 829` / `+2 945 400` / `+10 043 624` (`42,06 %`, `59,6 % / 40,4 %`) → **réalisable**.
+
+2. **Étape 2 — Configuration de référence (R1.2), dégradations et borne de `(c)`** :
+   - **Échec de la tolérance R1.2 (±1 pt part et ±1 pt d'inscrits par volume)** sur la configuration de référence (`r1_1`, `a = 0,14`, `q = 0,59`, lignes R1.1 par candidat, R1.9 petits candidats) ainsi que sur toutes les variantes R1.6 / R1.7 :
+     - **2017 (`r1_1`)** : Macron `64,06 %` (écart **`−2,04 pts`**), vol. Macron `41,41 %` (**`−2,20`**), vol. Le Pen `23,23 %` (`+0,86`), exprimés `64,63 %` vs `65,97 %`. Variantes (part / vol. M / vol. LP) : Ipsos seul `−1,16 / −2,78 / −0,33` ; Ifop seul `−2,87 / −1,62 / +2,05` ; R1.7 sur R1.1 `−1,79 / −3,26 / +0,03` ; R1.7 sur Ifop seul `−2,80 / −2,99 / +1,18`. L'écart provient principalement de l'asymétrie du résidu dans les enquêtes 2017 (`+5,55 %` Macron / `+1,00 %` Le Pen d'inscrits en résidu officiel contre `+3,35 % / +1,86 %` dans le moteur).
+     - **2022 (`r1_1`)** : Macron `57,99 %` (`−0,55 pt`, dans R1.2), vol. Macron `36,25 %` (**`−2,25`**), vol. Le Pen `26,26 %` (**`−1,001`**), exprimés `62,51 %` vs `65,76 %`. Variantes (part / vol. M / vol. LP) : Ipsos seul `−0,26 / −1,88 / −1,06` ; Ifop seul `−0,85 / −2,61 / −0,95` ; R1.7 sur R1.1 `−0,15 / −2,73 / −1,78` ; R1.7 sur Ifop seul `−0,03 / −3,57 / −2,50`. Le déficit de volume (`−3,25 pts` d'inscrits) tient à `a = 0,14` par rapport à l'Insee (`0,231` ajusté) et aux `1,62 %` de blancs/nuls du 1er tour non remobilisés.
+   - **Tableau des dégradations** (points d'exprimés sur la part de Macron — ordre 1 : ajouté à la configuration de référence / ordre 2 : retiré du moteur actuel) :
+     - `(a)` lignes de bloc du dépôt (gauche, droite) au lieu de R1.1 par candidat : **2017 `−0,489` / `+0,470`** ; **2022 `−0,129` / `+0,097`** *(sous le seuil R1.3 de 0,50 pt)*.
+     - `(b)` extrême droite hors finaliste alignée sur `0/96/4` : **2017 `−3,015` / `+2,916`** ; **2022 `−1,654` / `+1,581`** *(seule simplification corrigible passant R1.3)*.
+     - `(d)` `a = 0,20, q = 0,55` au lieu de `0,14 / 0,59` : **2017 `−0,372` / `+0,274`** ; **2022 `−0,304` / `+0,229`** *(sous le seuil R1.3)*.
+     - `(f)` fidélités 2027 des finalistes (`95/1,5/3,5` et `96/1/3`) *(diagnostic seul, R1.11)* : **2017 `−1,091` / `+1,046`** ; **2022 `−1,072` / `+1,023`**.
+     - `(c)` classement des petits candidats *(borne R1.9, voix sans ligne / exprimés T2)* : **2017 `4,65 pts`** (`1 460 323 / 31 381 603`) ; **2022 `11,58 pts`** (`3 711 461 / 32 057 325`). `(e)` (ligne du centre) retirée selon R1.10.
+
+3. **Étape 3 — Évaluation R1.4 (autorisée malgré l'échec R1.2 pour bilan complet)** :
+   - **Correction retenue par R1.3** : `(b)` seul, avec la ligne R1.14 moyenne simple de Dupont-Aignan 2017 (`26,5/38,0/35,5`) et Zemmour 2022 (`9,5/75,5/15,0`), soit **`18,00 / 56,75 / 25,25`**.
+   - **Référence moteur actuel** : en échantillon `−6,87` (2017) et `−3,60` (2022) ; croisé `−8,20` (2017) et `−1,17` (2022), moyenne `|err|` = **`4,687 pts`**.
+   - **Verdict R1.4 pour `(b)` seul (`r1_1`, critère strict R1.11)** : **ÉCHEC sur 2 conditions sur 3** :
+     1. *En échantillon ≤ 1 pt* : **échec** — `62,14 %` (`−3,96 pts`) en 2017 et `56,53 %` (`−2,01 pts`) en 2022 (avec ED poolée R1.14 : `−4,91` et `−0,55` ; contrôle diagnostique hors `(f)` : `−2,89` et `−0,98`).
+     2. *Erreur croisée moyenne `|err|` non dégradée* : **échec** — `−7,17` (2017) et `+3,38` (2022), moyenne **`5,276 pts > 4,687 pts`** (`+0,589 pt`). Projeter Dupont-Aignan 2017 (`38 %` RN) sur les `9,13 %` d'électeurs Zemmour+NDA de 2022 surestime Macron de `+3,38 pts` (levant la double compensation cachée dans le `−1,17 pt` actuel). Échec confirmé sur toutes les variantes : Ipsos seul `5,486`, Ifop seul `5,069`, R1.7 sur R1.1 `5,266`, R1.7 sur Ifop seul `5,051`, ainsi que sur `(a)+(b)` (`5,362`), `(a)+(b)+(d)` (`5,430`) et en diagnostic hors `(f)` (`5,261`).
+     3. *Législatives 2024 stables à ±0,5 pt* : **OK** — variation exacte **`0,000 pt`** sur les 4 profils (même avec `(a)+(b)+(d)` : max `+0,339 pt`).
+
+4. **Effet sur 2027 (R1.5, relevé après la décision de rejet)** :
+   - **Effet appliqué au simulateur** : **nul (`0,00 pt`)**, aucun réglage ni matrice par défaut n'étant modifié (duel affiché par défaut inchangé : Le Pen `52,27 %` / Mélenchon `47,73 %`, médiane Monte-Carlo `52,00 %` `[32,78 ; 71,06]`, victoire Le Pen `54,4 %`).
+   - **À titre informatif (non appliqué)** : si `(b)` seul (R1.14 `18,00 / 56,75 / 25,25`) avait été adopté, le duel par défaut Le Pen–Mélenchon serait passé à `50,81 %` (`−1,46 pt` sur Le Pen déterministe ; médiane MC `49,49 %`, `−2,51 pts`, `[31,49 ; 70,20]`, victoire Le Pen `48,8 %`), et le duel Le Pen–Philippe de `45,00 %` à `43,52 %` (`−1,49 pt`).
+
+---
+
 ## 23 novembre 2026 (v2.2) — Sources, backtest 2012, front « incertain », alertes et sensibilité
 
 **Règles arrêtées et consignées avant l’examen de leurs effets** (les résultats chiffrés sont ajoutés plus bas, à la section « Résultats v2.2 »). Les sondages directs de 2nd tour 2027 ne servent jamais à recalibrer le modèle.

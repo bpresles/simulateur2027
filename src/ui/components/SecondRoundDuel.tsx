@@ -1,10 +1,12 @@
 import { motion } from 'motion/react'
 import { useMemo, useState } from 'react'
-import { simulationData } from '../../data/schema'
+import { legislativeDuelPolls2024, simulationData } from '../../data/schema'
 import {
+  betweenRoundsSummaries,
   directPollGapAlert,
   directPollRmse,
   implicitNoIntention,
+  matchingLegislativeDuelPolls,
   noIntentionRange,
   secondRoundDropout,
 } from '../../domain/secondRound'
@@ -12,7 +14,7 @@ import { computeSensitivity } from '../../domain/sensitivity'
 import type { Entrant, SimulationResult } from '../../domain/types'
 import { useSettings } from '../../state/settingsStore'
 import { cand, colorVars, entrantLabel, profileLabel } from '../candidates'
-import { date, fieldwork, noIntentionLabel, num, pct, pts, range, shownScore } from '../format'
+import { date, fieldwork, integer, noIntentionLabel, num, pct, pts, range, shownScore } from '../format'
 import { Link } from '../Link'
 import { AnimatedNumber } from './AnimatedNumber'
 
@@ -21,6 +23,7 @@ const MAX_DIRECT_POLLS = 4
 const pct1 = (v: number) => pct(v)
 const NO_INTENTION = noIntentionRange(simulationData.polls.secondRoundPolls)
 const POLL_RMSE = directPollRmse(simulationData.secondRoundPollBias, simulationData.polls)?.rmse
+const BETWEEN_ROUNDS = betweenRoundsSummaries(simulationData.secondRoundPollBias)
 
 export function SecondRoundDuel({ result }: { result: SimulationResult }) {
   const sr = result.secondRound
@@ -79,6 +82,8 @@ export function SecondRoundDuel({ result }: { result: SimulationResult }) {
         </p>
         <MethodLine result={result} />
         <PollBiasLine result={result} />
+        <BetweenRoundsTable />
+        <LegislativeDuelTable aId={sr.a} bId={sr.b} />
         <SensitivityTable result={result} />
       </div>
     </section>
@@ -133,6 +138,174 @@ function PollBiasLine({ result }: { result: SimulationResult }) {
       {gaps.map((g, i) => `${i > 0 ? ' ; ' : `${g.duel.split(' – ')[0]} `}${one(g)}`).join('')}. Mesuré sur
       des duels {gaps[0]!.duel} ; non appliqué au calcul.
     </p>
+  )
+}
+
+function BetweenRoundsTable() {
+  if (BETWEEN_ROUNDS.length === 0) return null
+  return (
+    <div className="mt-4 rounded-lg border border-rule px-3.5 py-3 text-sm text-ink-2">
+      <h3 className="font-medium text-ink">Entre-deux-tours (pour mémoire, non utilisé dans le calcul)</h3>
+      <p className="mt-1 text-xs text-ink-3">
+        Sondages publiés entre le soir du 1er tour et le dernier jour avant l’interdiction légale en 2017 et
+        2022 (Macron – Le Pen), comparés au résultat officiel. Écart = résultat − sondages (points sur le score
+        de Macron). 2002 exclu.
+      </p>
+      <div className="mt-2 overflow-x-auto">
+        <table className="w-full text-left text-xs">
+          <thead>
+            <tr className="border-b border-rule text-ink-3">
+              <th className="py-1.5 pr-3 font-medium">Scrutin</th>
+              <th className="py-1.5 pr-3 font-medium">Sondages</th>
+              <th className="py-1.5 pr-3 text-right font-medium">Moy. entre-deux-tours</th>
+              <th className="py-1.5 pr-3 text-right font-medium">Derniers sondages</th>
+              <th className="py-1.5 pr-3 text-right font-medium">Résultat réel</th>
+              <th className="py-1.5 text-right font-medium">Écart (derniers / moy.)</th>
+            </tr>
+          </thead>
+          <tbody>
+            {BETWEEN_ROUNDS.map((s) => (
+              <tr key={s.year} className="border-b border-rule/60 align-top">
+                <td className="py-1.5 pr-3 font-medium text-ink">
+                  {s.year} ({s.duel})
+                </td>
+                <td className="num py-1.5 pr-3">
+                  {s.pollCount} ({date(s.electionDate)} – {date(s.lastDayDate)})
+                </td>
+                <td className="num py-1.5 pr-3 text-right">{pct(s.meanAntiRn)}</td>
+                <td className="num py-1.5 pr-3 text-right">
+                  {pct(s.lastDayMeanAntiRn)} ({s.lastDayCount} au {date(s.lastDayDate)})
+                </td>
+                <td className="num py-1.5 pr-3 text-right font-medium text-ink">
+                  <a href={s.result.source.url} target="_blank" rel="noreferrer" className="link">
+                    {pct(s.result.antiRn, 2)}
+                  </a>
+                </td>
+                <td className="num py-1.5 text-right">
+                  {pts(s.lastDayGap)} / {pts(s.meanGap)}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <details className="mt-2 text-xs text-ink-3">
+        <summary className="cursor-pointer font-medium text-ink-2">
+          Détail des sondages d’entre-deux-tours (
+          {BETWEEN_ROUNDS.reduce((t, s) => t + s.pollCount, 0)} sondages sourcés)
+        </summary>
+        <div className="mt-2 space-y-3">
+          {BETWEEN_ROUNDS.map((s) => (
+            <div key={s.year} className="overflow-x-auto">
+              <p className="font-medium text-ink">
+                {s.year} — {s.duel} (2nd tour du {date(s.secondRoundDate)} :{' '}
+                {pct(s.result.antiRn, 2)} / {pct(s.result.rn, 2)} ·{' '}
+                <a href={s.listSource.url} target="_blank" rel="noreferrer" className="link">
+                  liste source
+                </a>
+                )
+              </p>
+              <table className="mt-1 w-full text-left text-xs">
+                <thead>
+                  <tr className="border-b border-rule text-ink-3">
+                    <th className="py-1 pr-3 font-medium">Fin de terrain</th>
+                    <th className="py-1 pr-3 font-medium">Institut</th>
+                    <th className="py-1 pr-3 text-right font-medium">Macron</th>
+                    <th className="py-1 pr-3 text-right font-medium">Le Pen</th>
+                    <th className="py-1 text-right font-medium">Écart Macron</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {s.polls.map((p, idx) => (
+                    <tr key={`${s.year}-${p.end}-${p.institute}-${idx}`} className="border-b border-rule/40">
+                      <td className="num py-1 pr-3">{date(p.end)}</td>
+                      <td className="py-1 pr-3">
+                        <a href={p.url} target="_blank" rel="noreferrer" className="link">
+                          {p.institute}
+                        </a>
+                      </td>
+                      <td className="num py-1 pr-3 text-right">{pct(p.antiRn)}</td>
+                      <td className="num py-1 pr-3 text-right">{pct(p.rn)}</td>
+                      <td className="num py-1 text-right">{pts(s.result.antiRn - p.antiRn)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          ))}
+        </div>
+      </details>
+    </div>
+  )
+}
+
+function LegislativeDuelTable({ aId, bId }: { aId: string; bId: string }) {
+  const matches = useMemo(() => matchingLegislativeDuelPolls(legislativeDuelPolls2024, aId, bId), [aId, bId])
+  if (matches.length === 0) return null
+  const partyA = legislativeDuelPolls2024.candidateParties[aId]!
+  const partyB = legislativeDuelPolls2024.candidateParties[bId]!
+  return (
+    <div className="mt-4 rounded-lg border border-rule px-3.5 py-3 text-sm text-ink-2">
+      <h3 className="font-medium text-ink">Législatives 2024, même duel de partis</h3>
+      <p className="mt-1 text-xs text-ink-3">
+        Sondages de circonscription publiés entre les deux tours (duels uniquement, triangulaires exclues) pour
+        la paire exacte de partis <strong className="text-ink">{partyA} – {partyB}</strong>. Petits échantillons
+        locaux affichés à titre d’illustration uniquement, jamais agrégés ni utilisés dans le calcul.
+      </p>
+      <div className="mt-2 overflow-x-auto">
+        <table className="w-full text-left text-xs">
+          <thead>
+            <tr className="border-b border-rule text-ink-3">
+              <th className="py-1.5 pr-3 font-medium">Circonscription</th>
+              <th className="py-1.5 pr-3 font-medium">Sondage</th>
+              <th className="py-1.5 pr-3 text-right font-medium">Effectif</th>
+              <th className="py-1.5 pr-3 text-right font-medium">
+                Sondage ({partyA} / {partyB})
+              </th>
+              <th className="py-1.5 pr-3 text-right font-medium">
+                Résultat ({partyA} / {partyB})
+              </th>
+              <th className="py-1.5 text-right font-medium">Écart {partyA}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {matches.map(({ poll, candidateA, candidateB, gapA }) => (
+              <tr key={poll.id} className="border-b border-rule/60 align-top">
+                <td className="py-1.5 pr-3">
+                  <div className="font-medium text-ink">{poll.constituencyLabel}</div>
+                  <div className="text-[0.7rem] text-ink-3">
+                    <a href={candidateA.partySource.url} target="_blank" rel="noreferrer" className="link">
+                      {candidateA.name} ({candidateA.party})
+                    </a>{' '}
+                    c.{' '}
+                    <a href={candidateB.partySource.url} target="_blank" rel="noreferrer" className="link">
+                      {candidateB.name} ({candidateB.party})
+                    </a>
+                  </div>
+                </td>
+                <td className="py-1.5 pr-3">
+                  <a href={poll.url} target="_blank" rel="noreferrer" className="link">
+                    {poll.institute} ({fieldwork(poll.fieldwork)})
+                  </a>
+                </td>
+                <td className="num py-1.5 pr-3 text-right" title={poll.sampleNote}>
+                  {integer(poll.sampleSize)}
+                </td>
+                <td className="num py-1.5 pr-3 text-right">
+                  {pct(candidateA.pollScore, 0)} / {pct(candidateB.pollScore, 0)}
+                </td>
+                <td className="num py-1.5 pr-3 text-right font-medium text-ink">
+                  <a href={poll.officialResultSource.url} target="_blank" rel="noreferrer" className="link">
+                    {pct(candidateA.officialScore, 2)} / {pct(candidateB.officialScore, 2)}
+                  </a>
+                </td>
+                <td className="num py-1.5 text-right">{pts(gapA, 2)}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
   )
 }
 

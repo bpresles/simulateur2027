@@ -2,15 +2,16 @@ import { defaultProjectionSettings, projectCampaign } from './campaignProjection
 import { runMonteCarlo } from './monteCarlo'
 import type { MonteCarloInput } from './monteCarlo'
 import { addDays, averageHypothesisPolls, daysBetween, normalize, pollWeight, weightedMeanByKey } from './pollAverage'
-import { calibrationDates } from './sigmaCalibration'
+import { calibrationDates, crpsFromSamples } from './sigmaCalibration'
 import type { CalibrationYear } from './sigmaCalibration'
 import { aggregatedProfileDropout, computeSecondRound, pollBiasGaps } from './secondRound'
 import {
   DEFAULT_LFI_LEFT_TRANSFER_RANGE,
   applyRepublicanFrontRow,
   defaultRepublicanFront,
-  effectiveAbstainerAntiRnShare,
   fidelityFor,
+  logitDelta,
+  shiftTransferLogit,
 } from './transfers'
 import type { ProfileTable } from './transfers'
 import { BLOCS } from './types'
@@ -76,6 +77,10 @@ export interface CoverageBacktestYear {
   secondRoundCovered: boolean | null
   secondRoundP10: number | null
   secondRoundP90: number | null
+  /** Largeur de l'intervalle [P10 ; P90] du 2nd tour (pts) ; null en 2012. */
+  secondRoundWidth80: number | null
+  /** CRPS empirique de la distribution simulée du 2nd tour face au résultat officiel (pts) ; null en 2012. */
+  secondRoundCrps: number | null
   secondRoundActual: number | null
 }
 
@@ -88,6 +93,10 @@ export interface SecondRoundBacktestYear {
   predCrossPresidential: number
   /** Prédiction avec l'ancre présidentielle 2022 (0 %) : hors échantillon sur 2017, contrôle interne sur 2022. */
   predPres2022: number
+  /** Leave-one-out R2.4 sur les ancres : ancres restantes hors année évaluée (`['2022','2024']` ou `['2017','2024']`). */
+  looAnchors: ('2022' | '2017' | '2024')[]
+  /** Prédiction hors échantillon R2.4 au milieu logit des deux ancres restantes (ancre de l'année retirée). */
+  predLooUncertainMidpoint: number
   /** Moyenne des sondages directs de 2nd tour à la même distance J−d (null si absent). */
   directPollsAtDistance: number | null
 }
@@ -170,7 +179,7 @@ function logit(p: number): number {
   return Math.log(c / (1 - c))
 }
 
-function historicalBloc(id: string): Bloc {
+export function historicalBloc(id: string): Bloc {
   if (LEFT_IDS.has(id)) return 'gauche'
   if (ED_IDS.has(id)) return 'extreme_droite'
   if (RIGHT_IDS.has(id)) return 'droite'
@@ -240,13 +249,12 @@ const historicalCandidatesMap = (ref: PastElectionReference, extraIds: Iterable<
   return map
 }
 
-function buildProfileTable(ensembleRows: Record<Bloc, TransferValues>, rnLoyalty: number): ProfileTable {
-  const rnRow: TransferValues = { finalist: 0, rn: rnLoyalty, abstention: 100 - rnLoyalty }
+function buildProfileTable(ensembleRows: Record<Bloc, TransferValues>): ProfileTable {
   const rows: Record<Bloc, TransferValues> = {
     gauche: ensembleRows.gauche,
     centre: ensembleRows.centre,
     droite: ensembleRows.droite,
-    extreme_droite: rnRow,
+    extreme_droite: ensembleRows.extreme_droite,
   }
   return {
     lfi_rn: rows,
@@ -260,7 +268,6 @@ function evaluatePresidentialT2(
   ref: PastElectionReference,
   data: SimulationData,
   ensembleRows: Record<Bloc, TransferValues>,
-  abstainerAntiRnShare = 0.55,
 ): number {
   const electorate = actualScores(ref)
   const candidatesById = historicalCandidatesMap(ref)
@@ -276,15 +283,15 @@ function evaluatePresidentialT2(
       rnId: 'lepen',
       profileWeights: [{ profileId: 'ensemble_rn', weight: 1 }],
     },
-    profiles: buildProfileTable(ensembleRows, fidLePen.loyal),
+    profiles: buildProfileTable(ensembleRows),
     nonRnPresidential: data.transfers.nonRnPresidential,
     fidelityA: fidMacron,
     fidelityB: fidLePen,
     candidatesById,
     firstRoundTurnout: (100 * ref.voters) / ref.registered,
     blankNullShare: (ref.voters - ref.expressed) / ref.voters,
-    abstainerMobilization: 0.2,
-    abstainerAntiRnShare,
+    abstainerMobilization: 0.225,
+    abstainerAntiRnShare: null,
     secondRoundPolls: [],
   })
   return sr.pct.a
@@ -305,8 +312,8 @@ function neutralBacktestSettings(): Settings {
     minorTransfers: {},
     fidelity: null,
     firstRoundTurnout: 74,
-    abstainerMobilization: 0.2,
-    abstainerAntiRnShare: 0.55,
+    abstainerMobilization: 0.225,
+    abstainerAntiRnShare: null,
     selectedDuel: null,
   }
 }
@@ -468,14 +475,9 @@ export function computeBacktest(
     })
 
     // Couverture empirique des intervalles Monte-Carlo à 80 % ([P10, P90])
-    const biasEntry = data.secondRoundPollBias.elections.find((e) => e.year === year)
+    const sr2 = year === 2022 ? data.reference2022.secondRound : year === 2017 ? data.reference2017.secondRound : null
     const actualAntiRn =
-      year === 2012
-        ? null
-        : year === 2022
-          ? (100 * data.reference2022.secondRound.candidates.find((c) => c.id === 'macron')!.votes) /
-            data.reference2022.secondRound.expressed
-          : (biasEntry?.result.antiRn ?? 66.1)
+      sr2 === null ? null : (100 * sr2.candidates.find((c) => c.id === 'macron')!.votes) / sr2.expressed
     const duel: [string, string] = year === 2012 ? ['hollande', 'sarkozy'] : ['macron', 'lepen']
 
     if (avg.institutesUsed > 0) {
@@ -493,6 +495,7 @@ export function computeBacktest(
         electionDateOverride: ref.electionDate,
         iterations: COVERAGE_MC_ITERATIONS,
         seed: COVERAGE_MC_SEED,
+        returnSamples: true,
       })
       const mcCross = runMonteCarlo({
         data,
@@ -521,6 +524,10 @@ export function computeBacktest(
       }).length
       const srP10 = mcRaw.displayedDuel.aScoreP10
       const srP90 = mcRaw.displayedDuel.aScoreP90
+      const srCrps =
+        actualAntiRn === null || !mcRaw.displayedDuelSamples
+          ? null
+          : crpsFromSamples(mcRaw.displayedDuelSamples, actualAntiRn)
       coverage80.push({
         year,
         effectiveDaysBefore,
@@ -533,6 +540,8 @@ export function computeBacktest(
         secondRoundCovered: actualAntiRn === null ? null : actualAntiRn >= srP10 && actualAntiRn <= srP90,
         secondRoundP10: actualAntiRn === null ? null : srP10,
         secondRoundP90: actualAntiRn === null ? null : srP90,
+        secondRoundWidth80: actualAntiRn === null ? null : srP90 - srP10,
+        secondRoundCrps: srCrps,
         secondRoundActual: actualAntiRn,
       })
     }
@@ -541,24 +550,37 @@ export function computeBacktest(
   // 3. Second tour présidentiel 2017 & 2022 (en connaissant le 1er tour réel)
   const leg2024Ensemble = data.transfers.profiles.find((p) => p.id === 'ensemble_rn')!.rows
   const pres2022Rows = Object.fromEntries(
-    BLOCS.map((b) => [b, applyRepublicanFrontRow('ensemble_rn', b, leg2024Ensemble[b], data.transfers, 0)]),
+    BLOCS.map((b) => [
+      b,
+      b === 'extreme_droite'
+        ? data.transfers.presidentialCenterRn.elections['2022'].extreme_droite
+        : applyRepublicanFrontRow('ensemble_rn', b, leg2024Ensemble[b], data.transfers, 0),
+    ]),
   ) as Record<Bloc, TransferValues>
   const gaps = pollBiasGaps(data.secondRoundPollBias, pollsRef)
   const secondRoundPresidential: SecondRoundBacktestYear[] = presidentialRefs.map(({ year, ref }) => {
-    const biasEntry = data.secondRoundPollBias.elections.find((e) => e.year === year)
-    const actualAntiRn =
-      year === 2022
-        ? (100 * data.reference2022.secondRound.candidates.find((c) => c.id === 'macron')!.votes) /
-          data.reference2022.secondRound.expressed
-        : (biasEntry?.result.antiRn ?? 66.1)
+    const sr2 = year === 2022 ? data.reference2022.secondRound : data.reference2017.secondRound
+    const actualAntiRn = (100 * sr2.candidates.find((c) => c.id === 'macron')!.votes) / sr2.expressed
     const otherPres = data.transfers.presidentialCenterRn.elections[year === 2017 ? '2022' : '2017']
-    const antiRnQ = effectiveAbstainerAntiRnShare(0.55, 0)
+    const looAnchors: ('2022' | '2017' | '2024')[] = year === 2017 ? ['2022', '2024'] : ['2017', '2024']
+    // Leave-one-out R2.4 : milieu logit entre les deux ancres restantes (sans l'ancre de l'élection évaluée)
+    const looMidRows: Record<Bloc, TransferValues> = Object.fromEntries(
+      BLOCS.map((b) => {
+        if (b === 'gauche' || b === 'droite') {
+          const { df, dr } = logitDelta(otherPres[b], leg2024Ensemble[b])
+          return [b, shiftTransferLogit(otherPres[b], df * 0.5, dr * 0.5)]
+        }
+        return [b, leg2024Ensemble[b]]
+      }),
+    ) as Record<Bloc, TransferValues>
     return {
       year,
       actualAntiRn,
-      predLeg2024: evaluatePresidentialT2(ref, data, leg2024Ensemble, antiRnQ),
-      predCrossPresidential: evaluatePresidentialT2(ref, data, otherPres, antiRnQ),
-      predPres2022: evaluatePresidentialT2(ref, data, pres2022Rows, antiRnQ),
+      predLeg2024: evaluatePresidentialT2(ref, data, leg2024Ensemble),
+      predCrossPresidential: evaluatePresidentialT2(ref, data, otherPres),
+      predPres2022: evaluatePresidentialT2(ref, data, pres2022Rows),
+      looAnchors,
+      predLooUncertainMidpoint: evaluatePresidentialT2(ref, data, looMidRows),
       directPollsAtDistance: gaps.find((g) => g.year === year)?.estimate ?? null,
     }
   })
@@ -618,8 +640,8 @@ export function computeBacktest(
       candidatesById: syntheticCandidates,
       firstRoundTurnout: legTurnout2024,
       blankNullShare: legBnShare2024,
-      abstainerMobilization: 0.2,
-      abstainerAntiRnShare: 0.55,
+      abstainerMobilization: 0.225,
+      abstainerAntiRnShare: null,
       secondRoundPolls: [],
     })
     const actualFinalistPct = (100 * agg.secondRoundVotes.finalist) / agg.secondRoundExpressed

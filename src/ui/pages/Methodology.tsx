@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react'
+import p3AuditJson from '../../data/second-round-p3-audit.json'
 import sigmaCalibrationJson from '../../data/sigma-calibration.json'
-import { simulationData } from '../../data/schema'
+import { secondRoundReferenceMatrices, simulationData } from '../../data/schema'
 import { availableAlliances, testedOptions } from '../../domain/alliances'
 import {
   CANDIDATE_FLOOR,
@@ -23,6 +24,11 @@ import {
   windowDaysOf,
 } from '../../domain/pollAverage'
 import { noIntentionRange, presidentialDropout, secondRoundDropout } from '../../domain/secondRound'
+import { computeStep2Report } from '../../domain/secondRoundDegradation'
+import { parseP3AuditJson } from '../../domain/secondRoundP3'
+import { ALL_REPRODUCTION_VARIANTS, reproduceReferenceElection } from '../../domain/secondRoundReproduction'
+import type { ReproductionVariant } from '../../domain/secondRoundReproduction'
+import { computeStep3Report } from '../../domain/secondRoundStep3'
 import {
   REPUBLICAN_FRONT_PRESETS,
   correctDeclaredRowLogit,
@@ -79,17 +85,17 @@ const RF_PRESET_ROWS = [
   {
     id: 'pres2022' as const,
     label: 'Présidentielle 2022 (0 %)',
-    desc: 'Ancre mesurée par les enquêtes « jour du vote » de la présidentielle 2022 (Macron – Le Pen : 58,55 %).',
+    desc: 'Ancre basse mesurée par les enquêtes « jour du vote » admissibles de la présidentielle 2022 (Macron – Le Pen : 58,55 %).',
   },
   {
     id: 'midpoint' as const,
     label: 'Mi-chemin (50 %)',
-    desc: 'Interpolation médiane en logit entre présidentielle 2022 et législatives 2024.',
+    desc: 'Interpolation logit sur 3 ancres : 2022 (0 %), présidentielle 2017 (55 %) et législatives 2024 (100 %).',
   },
   {
     id: 'leg2024' as const,
     label: 'Législatives 2024 (100 %)',
-    desc: 'Défaut provisoire : taux directs de l’enquête Ipsos-Talan du 7 juillet 2024, seule source mesurant les 4 duels.',
+    desc: 'Défaut maintenu par choix explicite : taux directs Ipsos-Talan du 7 juillet 2024, seule source mesurant les 4 duels.',
   },
 ]
 
@@ -233,6 +239,341 @@ function SigmaCalibrationBlock() {
           </li>
         </ul>
       </div>
+    </>
+  )
+}
+
+const P1_VARIANT_LABELS: Record<ReproductionVariant, string> = {
+  r1_1: 'R1.1 (moyenne Ipsos/Ifop)',
+  ipsos_only: 'R1.6 — Ipsos seul',
+  ifop_only: 'R1.6 — Ifop seul (publié)',
+  r1_7_r1_1: 'R1.7 sur R1.1',
+  r1_7_ifop_only: 'R1.7 sur Ifop seul',
+}
+
+const p1Step1 = {
+  '2017': Object.fromEntries(
+    ALL_REPRODUCTION_VARIANTS.map((v) => [
+      v,
+      reproduceReferenceElection('2017', reference2017, secondRoundReferenceMatrices, v),
+    ]),
+  ) as Record<ReproductionVariant, ReturnType<typeof reproduceReferenceElection>>,
+  '2022': Object.fromEntries(
+    ALL_REPRODUCTION_VARIANTS.map((v) => [
+      v,
+      reproduceReferenceElection('2022', reference2022, secondRoundReferenceMatrices, v),
+    ]),
+  ) as Record<ReproductionVariant, ReturnType<typeof reproduceReferenceElection>>,
+}
+
+const p1Step2 = {
+  '2017': computeStep2Report('2017', reference2017, secondRoundReferenceMatrices, transfers),
+  '2022': computeStep2Report('2022', reference2022, secondRoundReferenceMatrices, transfers),
+}
+
+const p1Step3 = computeStep3Report(simulationData, secondRoundReferenceMatrices, backtestReport)
+const p3Audit = parseP3AuditJson(p3AuditJson)
+
+const P3_SHOCK_ROLES: { shock: string; role: string; overlap: string }[] = [
+  {
+    shock: 'rfShock (front républicain)',
+    role: 'Déplacement corrélé le long de l’axe mesuré 2022 ↔ 2017 ↔ 2024 (borné à [0 ; 1]).',
+    overlap: 'Partiel avec η, mais strictement borné à l’enveloppe des ancres.',
+  },
+  {
+    shock: 'dirichlet (κ = 40)',
+    role: 'Aléa indépendant par électorat éliminé (erreur d’enquête + spécificité d’un bloc).',
+    overlap: 'Non : erreurs indépendantes par bloc, à la différence du choc commun national η.',
+  },
+  {
+    shock: 'edU (ED 2017 ↔ 2022)',
+    role: 'Hétérogénéité structurelle de l’extrême droite hors RN (Dupont-Aignan vs Zemmour).',
+    overlap: 'Non : propre à un seul électorat.',
+  },
+  {
+    shock: 'lfiLeftU (35–75 %)',
+    role: 'Report non mesuré gauche hors LFI → Mélenchon (profil lfi_rn uniquement).',
+    overlap: 'Non : propre à lfi_rn (amortit même la corrélation avec rfShock en mode incertain).',
+  },
+  {
+    shock: 'fidelity, qDelta, mob, turnout',
+    role: 'Tolérances mécaniques mineures (< 2 % de variance chacun ; mob et turnout ≈ 0 % sous S2).',
+    overlap: 'Négligeable.',
+  },
+  {
+    shock: 'η (σ = 3,0 pts RN / 2,0 hors RN)',
+    role: 'Choc national commun d’entre-deux-tours et erreur structurelle hors enveloppe des ancres.',
+    overlap: 'À σ_η = 0, la largeur (5,7–6,5 pts) ne couvre pas 2022 en LOO R2.4.',
+  },
+]
+
+/** Audit P3 du budget d'incertitude du 2nd tour et courbe CRPS conditionnelle de σ_η (26/11/2026). */
+function SecondRoundP3BudgetBlock() {
+  const prim = p3Audit.curves.primary_leg2024_r25
+  const para = p3Audit.curves.parallel_uncertain_r25
+  const compS3 = p3Audit.curves.comparison_leg2024_s3
+  const fixedCases = p3Audit.varianceFixedR1.filter((c) =>
+    [
+      '2017_leg2024_loo',
+      '2022_leg2024_loo',
+      '2012_non_rn',
+      '2027_lepen_melenchon_leg2024',
+      '2027_lepen_philippe_leg2024',
+    ].includes(c.id),
+  )
+  const shockPct = (c: (typeof fixedCases)[number], key: string) =>
+    c.shocks.find((s) => s.cut === key)?.deltaVarPct ?? null
+
+  return (
+    <>
+      <div className="prose-method">
+        <p>
+          <strong>
+            Audit P3 — Budget d’incertitude du 2nd tour et calage de σ_η (26/11/2026 — σ_η inchangé) :
+          </strong>{' '}
+          l’évaluation conditionnelle à 1er tour réel fixé en leave-one-out R2.4 (finalistes mesurés R2.5,{' '}
+          {integer(p3Audit.iterations)} tirages, graine {p3Audit.seed}) a balayé σ_η de 0 à 5 points (pas 0,25).
+          Contrairement à l’hypothèse initiale d’un surdimensionnement, σ_η = 3,0 pts ne couvre pas 2022 en LOO
+          (2022 à 58,55 % se situe hors de l’enveloppe des ancres restantes [2017, 2024]) et toute baisse sous 3,0 pts
+          dégrade strictement le CRPS. La règle CRPS + couverture 2/2 désigne{' '}
+          <strong>σ_η = {num(prim.selected?.sigmaEta ?? 0, 2)} pts</strong> en primaire (
+          {num(para.selected?.sigmaEta ?? 0, 2)} pts en mode <em>Incertain</em> LOO ;{' '}
+          {num(compS3.selected?.sigmaEta ?? 0, 2)} pts en comparaison S3 neutre ; contrôles à 10 000 tirages :{' '}
+          {num(p3Audit.control10k.leg2024_r25_selected ?? 0, 2)} et{' '}
+          {num(p3Audit.control10k.uncertain_r25_selected ?? 0, 2)} pts), ce qui améliore le CRPS (
+          {pts(prim.selected?.crpsDeltaVs3Pct ?? 0, 2)} %) mais <strong>augmente la largeur moyenne</strong> de{' '}
+          {num(prim.currentAt3.meanWidth80, 2)} à {num(prim.selected?.meanWidth80 ?? 0, 2)} pts. Le critère
+          pré-enregistré de baisse de largeur (§5.3) n’étant pas satisfait, la modification de σ_η est{' '}
+          <strong>rejetée</strong> : σ_η reste fixé à <strong>3,0 pts face au RN</strong> et{' '}
+          <strong>2,0 pts hors RN</strong> (non recalé sur 2012 car les matrices hors RN proviennent de 2007–2012).
+        </p>
+      </div>
+
+      <Table caption="Audit P3 — Décomposition de variance du 2nd tour à 1er tour fixé (% de variance T2 perdue en coupant chaque aléa, N = 2 000)">
+        <thead>
+          <tr className="border-b border-rule">
+            <th className={th}>Scénario (1er tour fixé)</th>
+            <th className={`${th} text-right`}>Larg. [P10 ; P90]</th>
+            <th className={`${th} text-right`}>η</th>
+            <th className={`${th} text-right`}>Dirichlet</th>
+            <th className={`${th} text-right`}>rfShock</th>
+            <th className={`${th} text-right`}>edU</th>
+            <th className={`${th} text-right`}>q / fid. / mob</th>
+          </tr>
+        </thead>
+        <tbody>
+          {fixedCases.map((c) => {
+            const eta = shockPct(c, 'eta')
+            const dir = shockPct(c, 'dirichlet')
+            const rf = shockPct(c, 'rfShock')
+            const ed = shockPct(c, 'edU')
+            const small = (shockPct(c, 'qDelta') ?? 0) + (shockPct(c, 'fidelity') ?? 0) + (shockPct(c, 'mob') ?? 0)
+            return (
+              <tr key={c.id} className="border-b border-rule/60">
+                <td className={td}>{c.label}</td>
+                <td className={`${td} num text-right font-medium`}>{num(c.width80, 2)} pts</td>
+                <td className={`${td} num text-right font-medium`}>{eta !== null ? pct(eta, 1) : '—'}</td>
+                <td className={`${td} num text-right`}>{dir !== null ? pct(dir, 1) : '—'}</td>
+                <td className={`${td} num text-right`}>{rf !== null ? pct(rf, 1) : '—'}</td>
+                <td className={`${td} num text-right`}>{ed !== null ? pct(ed, 1) : '—'}</td>
+                <td className={`${td} num text-right text-ink-3`}>{pct(small, 1)}</td>
+              </tr>
+            )
+          })}
+        </tbody>
+      </Table>
+
+      <Table caption="Audit P3 — Source d’incertitude distincte de chaque aléa du 2nd tour et contrôle de double emploi">
+        <thead>
+          <tr className="border-b border-rule">
+            <th className={th}>Aléa</th>
+            <th className={th}>Source représentée</th>
+            <th className={th}>Chevauchement avec η</th>
+          </tr>
+        </thead>
+        <tbody>
+          {P3_SHOCK_ROLES.map((r) => (
+            <tr key={r.shock} className="border-b border-rule/60">
+              <td className={`${td} font-medium`}>{r.shock}</td>
+              <td className={td}>{r.role}</td>
+              <td className={`${td} text-ink-2`}>{r.overlap}</td>
+            </tr>
+          ))}
+        </tbody>
+      </Table>
+
+      <Table
+        caption={`Audit P3 — Courbe CRPS conditionnelle complète en fonction de σ_η (1er tour réel fixé, LOO R2.4, relevé du ${date(p3Audit.generatedOn)}) ; σ_η conservé à 3,00 pts`}
+      >
+        <thead>
+          <tr className="border-b border-rule">
+            <th className={th}>σ_η</th>
+            <th className={`${th} text-right`}>Primaire `leg2024` + R2.5 : 2017 / 2022</th>
+            <th className={`${th} text-right`}>Larg. moy.</th>
+            <th className={`${th} text-right`}>CRPS moy. (prim.)</th>
+            <th className={`${th} text-right`}>CRPS moy. (Incert. R2.5)</th>
+            <th className={`${th} text-right`}>CRPS moy. (comp. S3)</th>
+          </tr>
+        </thead>
+        <tbody>
+          {prim.grid.map((g, i) => {
+            const pRow = para.grid[i]!
+            const s3Row = compS3.grid[i]!
+            const isCurrent = Math.abs(g.sigmaEta - p3Audit.sigmaEtaRnRetained) < 1e-6
+            const isArgmin = prim.selected?.sigmaEta === g.sigmaEta
+            return (
+              <tr
+                key={g.sigmaEta}
+                className={`border-b border-rule/60 ${isCurrent ? 'bg-ballpoint-soft/30 font-medium' : ''}`}
+              >
+                <td className={`${td} num`}>
+                  {num(g.sigmaEta, 2)}
+                  {isCurrent ? ' (actuel)' : isArgmin ? ' (min R2.5)' : ''}
+                </td>
+                <td className={`${td} num text-right`}>
+                  {g.y2017.covered ? 'OK' : 'KO'} / {g.y2022.covered ? 'OK' : 'KO'}
+                  <span className="ml-1.5 text-xs font-normal text-ink-3">
+                    (2022 : [{num(g.y2022.p10, 1)} ; {num(g.y2022.p90, 1)}])
+                  </span>
+                </td>
+                <td className={`${td} num text-right`}>{num(g.meanWidth80, 2)} pts</td>
+                <td className={`${td} num text-right`}>{num(g.meanCrps, 3)}</td>
+                <td className={`${td} num text-right text-ink-2`}>{num(pRow.meanCrps, 3)}</td>
+                <td className={`${td} num text-right text-ink-3`}>{num(s3Row.meanCrps, 3)}</td>
+              </tr>
+            )
+          })}
+        </tbody>
+      </Table>
+    </>
+  )
+}
+
+/** Audit P1 du moteur du 2nd tour (24/11/2026) : résultats publiés quel que soit le verdict (P1 rejeté). */
+function SecondRoundP1AuditBlock() {
+  const ed = p1Step3.r13ByVariant.r1_1.r114PooledExtremeDroiteRow
+  return (
+    <>
+      <div className="prose-method">
+        <p>
+          <strong>Audit du moteur du 2nd tour (P1, 24/11/2026 — rejeté ; puis v2.3 P1-bis + P2, 26/11/2026) :</strong> afin
+          d’examiner l’écart en échantillon du moteur v2.2 sur 2017 et 2022, les matrices brutes des quatre enquêtes
+          Ipsos Sopra Steria et Ifop-Fiducial ont été archivées et éprouvées selon des règles pré-enregistrées dans le
+          journal méthodologique. Le premier essai P1 a échoué aux critères R1.2 et R1.4 (tableaux archivés ci-dessous)
+          et a été rejeté. Le diagnostic des 5 causes structurelles a conduit à la refonte <strong>P1-bis (S1–S5)</strong>{' '}
+          et à l’ajout de l’ancre 2017 (<strong>P2</strong>, <em>s</em>₂₀₁₇ = 0,5502 sous R2.5 + ED mesurée 2017),
+          adoptés en <strong>v2.3 le 26/11/2026 par décision explicite du propriétaire du projet</strong> (en maintenant{' '}
+          <code>leg2024</code> par défaut ; détail complet et écarts par rapport aux critères stricts dans{' '}
+          <code>docs/changelog-methode.md</code>).
+        </p>
+        <p>
+          <strong>Classement historique des petits candidats dans le backtest</strong> (hypothèse documentée,
+          faute de mesure publiée pour ces candidats) : <em>gauche</em> (Arthaud, Poutou, Roussel, Hidalgo,
+          Mélenchon, Hamon, Jadot, Joly, Hollande, Montebourg, Taubira, Valls, Duflot, Peillon, Pinel),{' '}
+          <em>droite</em> (Fillon, Pécresse, Lassalle, Bertrand, Juppé, Sarkozy), <em>extrême droite</em>{' '}
+          (Le Pen, Zemmour, Dupont-Aignan, Asselineau, Philippot) et <em>centre</em> par défaut (Macron,
+          Bayrou, Cheminade). Borne maximale d’effet des candidats sans ligne (voix / exprimés du 2nd tour) :{' '}
+          <strong>{num(p1Step2['2017'].boundC.maxEffectPts, 2)} pts</strong> en 2017 et{' '}
+          <strong>{num(p1Step2['2022'].boundC.maxEffectPts, 2)} pts</strong> en 2022.
+        </p>
+      </div>
+
+      <Table caption="Audit P1, étape 1 — Reproduction partielle en voix, variantes et contrôle du résidu (R1.8) sur 2017 et 2022">
+        <thead>
+          <tr className="border-b border-rule">
+            <th className={th}>Scrutin · variante</th>
+            <th className={`${th} text-right`}>Résidu Macron</th>
+            <th className={`${th} text-right`}>Résidu Le Pen</th>
+            <th className={`${th} text-right`}>Part expr. du résidu</th>
+            <th className={th}>Contrôle R1.8</th>
+          </tr>
+        </thead>
+        <tbody>
+          {(['2017', '2022'] as const).flatMap((year) =>
+            ALL_REPRODUCTION_VARIANTS.map((variant) => {
+              const r = p1Step1[year][variant]
+              return (
+                <tr key={`${year}-${variant}`} className="border-b border-rule/60">
+                  <td className={`${td} ${variant === 'r1_1' ? 'font-medium' : 'text-ink-3'}`}>
+                    <span className="num">{year}</span> · {P1_VARIANT_LABELS[variant]}
+                    {r.fallbackCandidates.length > 0 && (
+                      <span className="block text-xs font-normal text-ink-3">
+                        repli Ifop : {r.fallbackCandidates.join(', ')}
+                      </span>
+                    )}
+                  </td>
+                  <td className={`${td} num text-right`}>{integer(Math.round(r.residual.antiRn))}</td>
+                  <td className={`${td} num text-right`}>{integer(Math.round(r.residual.rn))}</td>
+                  <td className={`${td} num text-right`}>{pct(r.residualExpressedSharePct, 2)}</td>
+                  <td className={`${td} ${r.feasibility.feasible ? 'text-ballpoint' : 'font-medium text-hypo'}`}>
+                    {r.feasibility.feasible ? 'Réalisable' : 'Non réalisable'}
+                  </td>
+                </tr>
+              )
+            }),
+          )}
+        </tbody>
+      </Table>
+
+      <Table caption="Audit P1, étape 2 — Décomposition des simplifications (pts d’exprimés sur Macron) ; référence R1.1 hors tolérance R1.2 (−2,04 pts en 2017 ; volumes −2,25 / −1,00 pt en 2022)">
+        <thead>
+          <tr className="border-b border-rule">
+            <th className={th}>Simplification</th>
+            <th className={`${th} text-right`}>2017 ajouté à réf.</th>
+            <th className={`${th} text-right`}>2017 retiré de l’actuel</th>
+            <th className={`${th} text-right`}>2022 ajouté à réf.</th>
+            <th className={`${th} text-right`}>2022 retiré de l’actuel</th>
+          </tr>
+        </thead>
+        <tbody>
+          {p1Step2['2017'].degradations.map((d17) => {
+            const d22 = p1Step2['2022'].degradations.find((x) => x.key === d17.key)!
+            return (
+              <tr key={d17.key} className="border-b border-rule/60">
+                <td className={`${td} ${d17.key === 'b' ? 'font-medium' : ''}`}>{d17.label}</td>
+                <td className={`${td} num text-right`}>{pts(d17.addedToReferencePts, 2)}</td>
+                <td className={`${td} num text-right text-ink-3`}>{pts(d17.removedFromCurrentGainPts, 2)}</td>
+                <td className={`${td} num text-right`}>{pts(d22.addedToReferencePts, 2)}</td>
+                <td className={`${td} num text-right text-ink-3`}>{pts(d22.removedFromCurrentGainPts, 2)}</td>
+              </tr>
+            )
+          })}
+        </tbody>
+      </Table>
+
+      <Table
+        caption={`Audit P1, étape 3 — Évaluation R1.4 pour la seule correction passant R1.3 : (b) extrême droite hors finaliste (ligne R1.14 : ${num(ed.finalist, 1)} / ${num(ed.rn, 2)} / ${num(ed.abstention, 2)}) ; référence croisée actuelle : ${num(p1Step3.baseline.crossMeanAbsErrorPts, 3)} pts`}
+      >
+        <thead>
+          <tr className="border-b border-rule">
+            <th className={th}>Variante</th>
+            <th className={`${th} text-right`}>Éch. 2017</th>
+            <th className={`${th} text-right`}>Éch. 2022</th>
+            <th className={`${th} text-right`}>Croisé 2017</th>
+            <th className={`${th} text-right`}>Croisé 2022</th>
+            <th className={`${th} text-right`}>Moy. |err| croisée</th>
+            <th className={th}>Verdict R1.4</th>
+          </tr>
+        </thead>
+        <tbody>
+          {ALL_REPRODUCTION_VARIANTS.map((variant) => {
+            const r = p1Step3.r13ByVariant[variant]
+            return (
+              <tr key={variant} className="border-b border-rule/60">
+                <td className={`${td} ${variant === 'r1_1' ? 'font-medium' : 'text-ink-3'}`}>
+                  {P1_VARIANT_LABELS[variant]}
+                </td>
+                <td className={`${td} num text-right`}>{pts(r.inSample['2017'].errorPts, 2)}</td>
+                <td className={`${td} num text-right`}>{pts(r.inSample['2022'].errorPts, 2)}</td>
+                <td className={`${td} num text-right`}>{pts(r.cross['2017'].errorPts, 2)}</td>
+                <td className={`${td} num text-right`}>{pts(r.cross['2022'].errorPts, 2)}</td>
+                <td className={`${td} num text-right font-medium`}>{num(r.crossMeanAbsErrorPts, 3)}</td>
+                <td className={`${td} font-medium text-hypo`}>Rejeté (éch. &amp; croisé)</td>
+              </tr>
+            )
+          })}
+        </tbody>
+      </Table>
     </>
   )
 }
@@ -497,18 +838,24 @@ export function Methodology({ result }: { result: SimulationResult }) {
                 <code>ensemble_rn</code>, <code>lr_rn</code>).
               </li>
               <li>
-                <strong>Repère 0 % — Présidentielle 2022 :</strong> pour <code>ensemble_rn</code>, le modèle
-                rejoint exactement les taux mesurés « jour du vote » en 2022 (gauche : 47 / 15 / 38 ; droite :
-                53 / 18 / 29). Pour les autres profils, il applique proportionnellement le même déplacement
-                logit 2024 → 2022 mesuré sur
-                <code>ensemble_rn</code> (bloc opposé ou bloc voisin ; sur les lignes déjà à ≥ 10 % de vote RN
-                en 2024, seul le recul du vote barrage vers l’abstention est appliqué afin de ne pas gonfler
-                artificiellement le vote RN).
+                <strong>Repère 0 % — Présidentielle 2022 (admissible R1.8) :</strong> pour <code>ensemble_rn</code>,
+                le modèle rejoint exactement les taux mesurés « jour du vote » admissibles en 2022 (gauche :
+                45,9 / 13,5 / 40,6 ; droite : 52,5 / 18,0 / 29,5).
               </li>
               <li>
-                <strong>Réglage global et par électorat qui se reporte :</strong> 3 préréglages sourcés
-                (Présidentielle 2022, Mi-chemin, Législatives 2024 par paire exacte de finalistes), un curseur
-                global et 3 curseurs par électorat éliminé du 1er tour. Réglage actif :{' '}
+                <strong>Repère 55 % — Présidentielle 2017 (P2, <em>s</em>₂₀₁₇ = 0,5502) :</strong> les lignes
+                admissibles 2017 (Ipsos : gauche 56,7 / 5,8 / 37,6 ; droite 48,0 / 20,0 / 32,0) forment une
+                troisième ancre placée à la position reproduisant le résultat 2017 sous R2.5 (finalistes et
+                extrême droite mesurés en 2017). L’interpolation logit est linéaire par morceaux sur{' '}
+                <code>2022 (0 %) → 2017 (55 %) → 2024 (100 %)</code>, sans extrapolation hors [0 % ; 100 %]. Pour
+                les autres profils, le déplacement logit 2024 → position active de <code>ensemble_rn</code> est
+                appliqué (sur les lignes déjà à ≥ 10 % de vote RN en 2024, seul le décalage <em>df</em> vers
+                l’abstention est appliqué afin de ne pas gonfler artificiellement le vote RN).
+              </li>
+              <li>
+                <strong>Réglage global et par électorat qui se reporte :</strong> 4 préréglages (Présidentielle 2022,
+                Mi-chemin, Législatives 2024 maintenu par défaut, Incertain tirant uniformément sur [0 % ; 100 %]), un
+                curseur global et 3 curseurs par électorat éliminé du 1er tour. Réglage actif :{' '}
                 <strong>Électeurs de gauche {pct(settings.republicanFront.gauche * 100, 0)}</strong>,{' '}
                 <strong>Électeurs du centre {pct(settings.republicanFront.centre * 100, 0)}</strong>,{' '}
                 <strong>Électeurs de droite {pct(settings.republicanFront.droite * 100, 0)}</strong>.
@@ -521,8 +868,9 @@ export function Methodology({ result }: { result: SimulationResult }) {
                 Roussel) vers Jean-Luc Mélenchon face au RN n’a jamais été mesuré à une présidentielle (le
                 taux de 72 % des législatives 2024 portait sur des candidatures uniques NFP, alors que les
                 déclarations 2027 corrigées en logit donnent 36 %). Ce report est piloté directement par le
-                curseur <strong>Électeurs de gauche (hors LFI)</strong> selon la même règle 2022 ↔ 2024
-                (100 % = 72 % repère NFP 2024, 0 % = 47 % niveau Prés. 2022 ; taux actif :{' '}
+                curseur <strong>Électeurs de gauche (hors LFI)</strong> selon la même règle à 3 ancres
+                (100 % = 72 % repère NFP 2024, 55 % = 56,7 % repère Prés. 2017, 0 % = 45,9 % niveau Prés. 2022 ; taux
+                actif :{' '}
                 <strong className="num">{num(activeProfiles.lfi_rn.gauche.finalist, 0)} %</strong>), complété
                 par une <strong>analyse de sensibilité affichée</strong> sur les duels LFI – RN et un{' '}
                 <strong>tirage triangulaire dans Monte-Carlo</strong> couvrant la plage{' '}
@@ -530,6 +878,13 @@ export function Methodology({ result }: { result: SimulationResult }) {
                   [{settings.lfiLeftTransferRange[0]} % ; {settings.lfiLeftTransferRange[1]} %]
                 </strong>{' '}
                 autour du taux actif (plage configurable dans les réglages).
+              </li>
+              <li>
+                <strong>Extrême droite hors finaliste RN (S4) :</strong> le rattachement forcé à la fidélité RN
+                (0 / 96 / 4) est supprimé ; la ligne unique mesurée est la moyenne simple des observations
+                présidentielles admissibles R1.8 de Dupont-Aignan 2017 (27 / 30 / 43) et Zemmour 2022
+                (9,5 / 75,5 / 15), soit <strong>18,25 / 52,75 / 29 %</strong>, avec tirage uniforme entre ces deux
+                bornes dans Monte-Carlo.
               </li>
             </ul>
             <p>
@@ -678,10 +1033,10 @@ export function Methodology({ result }: { result: SimulationResult }) {
                     <tr key={b} className="border-b border-rule/60">
                       <td className={td}>{BLOC_VOTERS[b]}</td>
                       <td className={`${td} num text-right`}>
-                        {num(r17.finalist, 0)} / {num(r17.rn, 0)} / {num(r17.abstention, 0)}
+                        {num(r17.finalist, 1)} / {num(r17.rn, 1)} / {num(r17.abstention, 1)}
                       </td>
                       <td className={`${td} num text-right`}>
-                        {num(r22.finalist, 0)} / {num(r22.rn, 0)} / {num(r22.abstention, 0)}
+                        {num(r22.finalist, 1)} / {num(r22.rn, 1)} / {num(r22.abstention, 1)}
                       </td>
                     </tr>
                   )
@@ -756,24 +1111,42 @@ export function Methodology({ result }: { result: SimulationResult }) {
               blancs et nuls de {pct(rates.bnShare * 100, 1)} des votants ({pct(sr.blankNull1, 1)} des
               inscrits) et <em>E</em>₁ = {pct(sr.expressed1, 1)} d’exprimés au 1er tour :
             </p>
-            <p className="font-mono text-sm">V_A = E₁ · Σ x_c · π(c → A) + (100 − P) · a · q_A</p>
+            <p className="font-mono text-sm">V_A = E₁ · Σ x_c · π(c → A) + (100 − E₁) · a · q_A</p>
             <p>
-              Les finalistes bénéficient d’une fidélité différenciée (
-              {transfers.fidelity.byCandidate.lepen?.loyal} % pour Marine Le Pen,{' '}
-              {transfers.fidelity.byCandidate.melenchon?.loyal} % pour Jean-Luc Mélenchon,{' '}
-              {transfers.fidelity.default.loyal} % par défaut, ajustable en mode uniforme dans les réglages),
-              incluant une faible part de reports croisés (1 à 2 %). Les électeurs des petits candidats non
-              qualifiés suivent les électorats de référence documentés et ajustables dans les réglages.
+              <strong>Fidélité des finalistes (S3) :</strong> en base historique (par défaut), la fidélité est
+              symétrique et issue des enquêtes « jour du vote » admissibles de 2022 (
+              {num(transfers.fidelity.default.loyal, 2)} % de fidélité, {num(transfers.fidelity.default.cross, 2)} %
+              de report croisé, {num(transfers.fidelity.default.abstention, 2)} % de non-exprimés), sans biais
+              nominal entre finalistes. Les fidélités déclarées d’automne 2026 (Harris : Le Pen{' '}
+              {declaredTransfers.fidelity.byCandidate.lepen?.loyal} %, Mélenchon{' '}
+              {declaredTransfers.fidelity.byCandidate.melenchon?.loyal} %, autres{' '}
+              {declaredTransfers.fidelity.default.loyal} % bruts) ne s’appliquent qu’en mode « Déclarations 2027 » ou
+              « Mélange », avec la même correction logit pré-campagne → jour du vote. Un réglage uniforme manuel reste
+              disponible. Les électeurs des petits candidats non qualifiés suivent les électorats de référence
+              documentés et ajustables dans les réglages.
             </p>
             <p>
-              <strong>Abstentionnistes du 1er tour :</strong> les abstentionnistes du 1er tour (
-              {pct(sr.abstention1, 1)} des inscrits) reviennent voter valablement à hauteur de <em>a</em> ={' '}
-              {pct(settings.abstainerMobilization * 100, 0)} (repères : Ifop 2022 {pct(rates.rAbs * 100, 1)},
-              Insee 2017–2022 {rates.insee.map((y) => `${y.year} : ${pct(y.share, 1)}`).join(', ')}). Dans un
-              duel face au RN, ils s’orientent vers l’adversaire du RN à hauteur de{' '}
-              <strong className="num">{pct(settings.abstainerAntiRnShare * 100, 0)}</strong> (repère Ifop 2022
-              : 59 % ; 50 / 50 dans un duel hors RN). L’abandon net équivalent ({pct(sr.netDropout, 1)})
-              résulte naturellement du bilan comptable.
+              <strong>Non-exprimés du 1er tour (S1 + S2) :</strong> les abstentionnistes ({pct(sr.abstention1, 1)} des
+              inscrits) et les blancs/nuls ({pct(sr.blankNull1, 1)} des inscrits, non mesurés séparément) forment un
+              réservoir unique de {pct(100 - sr.expressed1, 1)} des inscrits, qui revient voter valablement à hauteur de{' '}
+              <em>a</em> = {pct(settings.abstainerMobilization * 100, 1)} (repères : Ifop 2022 déclaratif{' '}
+              {pct(rates.rAbs * 100, 1)}, Insee 2017–2022 brut{' '}
+              {rates.insee.map((y) => `${y.year} : ${pct(y.share, 1)}`).join(', ')}, soit 21,8 % à 23,2 % en suffrages
+              exprimés, défaut 22,5 %). Par défaut, leur orientation est{' '}
+              {settings.abstainerAntiRnShare === null ? (
+                <>
+                  <strong>endogène neutre</strong> (miroir exact des électeurs du 1er tour exprimés au 2nd tour, soit{' '}
+                  <strong className="num">{pct(sr.effectiveAbstainerAntiRnShare * 100, 1)}</strong> dans ce scénario,
+                  sans bonus de camp)
+                </>
+              ) : (
+                <>
+                  réglée manuellement à{' '}
+                  <strong className="num">{pct(settings.abstainerAntiRnShare * 100, 0)}</strong> vers l’adversaire du
+                  RN (repère Ifop 2022 : 59 %)
+                </>
+              )}
+              . L’abandon net équivalent ({pct(sr.netDropout, 1)}) résulte naturellement du bilan comptable.
             </p>
           </div>
 
@@ -836,8 +1209,11 @@ export function Methodology({ result }: { result: SimulationResult }) {
                   tirage uniforme explicite du report gauche hors LFI → Mélenchon sur [
                   {settings.lfiLeftTransferRange[0]} % ; {settings.lfiLeftTransferRange[1]} %]
                 </strong>
-                , participation (±5 pts), mobilisation (±4 pts) et orientation (±8 pts) des abstentionnistes,
-                fidélité (±2,5 pts) et choc commun national (σ = 3,0 pts face au RN, 2,0 pts hors RN).
+                , tirage uniforme du report de l’extrême droite hors finaliste entre les deux bornes admissibles
+                2017 (27 / 30 / 43 %) et 2022 (9,5 / 75,5 / 15 %), participation (±5 pts), mobilisation des
+                non-exprimés (±8,5 pts, couvrant Ifop 14 % et Insee 25,3 %) et orientation (±8 pts centrée sur le
+                partage neutre ou manuel), fidélité (±2,5 pts) et choc commun national (σ = 3,0 pts face au RN, 2,0 pts
+                hors RN).
               </li>
               <li>
                 <strong>Échelles fixes 0–100 % :</strong> toutes les barres de probabilités de victoire («
@@ -865,6 +1241,23 @@ export function Methodology({ result }: { result: SimulationResult }) {
               sensibilité repliable donne, sans Monte-Carlo, l’effet des réglages non mesurés (front républicain,
               projection de campagne, fuite inter-blocs, concentration du centre, nouveaux votants,
               mobilisation des abstentionnistes, fidélité des finalistes, report gauche hors LFI).
+            </p>
+            <p>
+              <strong>Sondages de l’entre-deux-tours (P4, affichage seulement) :</strong> le bloc du 2nd tour
+              affiche pour mémoire deux tableaux distincts, sans jamais les intégrer dans aucun calcul ni dans les
+              mesures d’écart historique avant 1er tour (<code>pollBiasGaps</code>, <code>directPollRmse</code>) :
+              (i) l’ensemble des sondages publiés entre les deux tours jusqu’à l’interdiction légale en 2017
+              (22 sondages, 23/04 au 05/05/2017) et 2022 (42 sondages, 10/04 au 22/04/2022) pour Macron – Le Pen
+              (2002 exclu) ; (ii) les sondages de circonscription d’entre-deux-tours des législatives 2024 (duels
+              uniquement, triangulaires exclues, stockés dans <code>legislative-duel-polls-2024.json</code>) selon
+              une règle d’identité stricte des partis écrite candidat par candidat (un allié ou une coalition ne
+              compte pas). Après inventaire (Wikipédia FR/EN, notices de la Commission des sondages n° 9865 à
+              9888 et publications d’instituts de juillet 2024), seul un duel de circonscription d’entre-deux-tours
+              a été identifié : la 6e circonscription du Calvados (Ifop-Fiducial pour Sud Radio, 02-03/07/2024,
+              n = 611 inscrits, Renaissance – RN : Élisabeth Borne 54 % contre 56,36 % au résultat officiel),
+              affiché uniquement sur le duel Attal – Le Pen. Aucun sondage de circonscription d’entre-deux-tours
+              n’ayant été identifié pour les autres paires de partis (notamment LFI – RN, Horizons – RN, LR – RN,
+              Place publique – RN), rien n’est affiché pour ces duels.
             </p>
           </div>
 
@@ -933,7 +1326,7 @@ export function Methodology({ result }: { result: SimulationResult }) {
                 <th className={`${th} text-right`}>σ_logit</th>
                 <th className={`${th} text-right`}>1er tour (brut)</th>
                 <th className={`${th} text-right`}>1er tour (croisé)</th>
-                <th className={`${th} text-right`}>2nd tour (IC 80 % vs réel)</th>
+                <th className={`${th} text-right`}>2nd tour (IC 80 %, largeur et CRPS vs réel)</th>
               </tr>
             </thead>
             <tbody>
@@ -964,6 +1357,11 @@ export function Methodology({ result }: { result: SimulationResult }) {
                         <span className={r.secondRoundCovered ? 'font-medium text-ballpoint' : 'text-hypo'}>
                           ({r.secondRoundCovered ? 'couvert' : 'hors IC'})
                         </span>
+                        {r.secondRoundWidth80 !== null && r.secondRoundCrps !== null && (
+                          <span className="block text-xs font-normal text-ink-3">
+                            larg. {num(r.secondRoundWidth80, 1)} pts · CRPS {num(r.secondRoundCrps, 2)}
+                          </span>
+                        )}
                       </>
                     )}
                   </td>
@@ -974,12 +1372,13 @@ export function Methodology({ result }: { result: SimulationResult }) {
 
           <SigmaCalibrationBlock />
 
-          <Table caption="2nd tour présidentiel (en connaissant le 1er tour réel) : score Macron (% exprimés) — Lég. 2024 et Prés. croisée sont hors échantillon ; l’ancre 2022 est un contrôle en échantillon sur 2022">
+          <Table caption="2nd tour présidentiel (en connaissant le 1er tour réel) : score Macron (% exprimés, moteur P1-bis) — Lég. 2024, Prés. croisée et LOO R2.4 sont hors échantillon ; l’ancre 2022 est en échantillon sur 2022">
             <thead>
               <tr className="border-b border-rule">
                 <th className={th}>Année</th>
                 <th className={`${th} text-right`}>Résultat réel</th>
                 <th className={`${th} text-right`}>Ancre Lég. 2024 (100 %, hors éch.)</th>
+                <th className={`${th} text-right`}>LOO R2.4 (milieu hors ancre)</th>
                 <th className={`${th} text-right`}>Prés. croisée (hors éch.)</th>
                 <th className={`${th} text-right`}>Ancre Prés. 2022 (0 %)</th>
                 <th className={`${th} text-right`}>Sondages T2 à J−{bt.daysBefore}</th>
@@ -993,10 +1392,16 @@ export function Methodology({ result }: { result: SimulationResult }) {
                   <td className={`${td} num text-right`}>
                     {pct(r.predLeg2024, 2)} ({pts(r.predLeg2024 - r.actualAntiRn, 1)})
                   </td>
+                  <td className={`${td} num text-right font-medium`}>
+                    {pct(r.predLooUncertainMidpoint, 2)} ({pts(r.predLooUncertainMidpoint - r.actualAntiRn, 1)})
+                    <span className="block text-xs font-normal text-ink-3">
+                      ancres {r.looAnchors.join(' ↔ ')}
+                    </span>
+                  </td>
                   <td className={`${td} num text-right`}>
                     {pct(r.predCrossPresidential, 2)} ({pts(r.predCrossPresidential - r.actualAntiRn, 1)})
                   </td>
-                  <td className={`${td} num text-right font-medium`}>
+                  <td className={`${td} num text-right`}>
                     {pct(r.predPres2022, 2)} ({pts(r.predPres2022 - r.actualAntiRn, 1)})
                     {r.year === 2022 && (
                       <span className="block text-xs font-normal text-ink-3">(en échantillon)</span>
@@ -1009,6 +1414,9 @@ export function Methodology({ result }: { result: SimulationResult }) {
               ))}
             </tbody>
           </Table>
+
+          <SecondRoundP1AuditBlock />
+          <SecondRoundP3BudgetBlock />
 
           <Table caption="Contrôle interne (en échantillon) sur les 342 duels agrégés des législatives 2024 (Ipsos-Talan brute vs urnes)">
             <thead>

@@ -76,7 +76,7 @@ describe('reports vers le second tour', () => {
     expect(screen.getByRole('table').textContent).toContain(pct(firstRoundA))
   })
 
-  it('le tableau ajoute l’abstention et les blancs et nuls du 1er tour, dont le vote n’est pas mesuré', () => {
+  it('le tableau ajoute l’abstention et les blancs et nuls du 1er tour (hypothèse S1 unifiée, non mesurés séparément)', () => {
     renderFlow()
     act(() => fireEvent.click(screen.getByRole('radio', { name: 'Tableau' })))
     const table = screen.getByRole('table')
@@ -84,30 +84,31 @@ describe('reports vers le second tour', () => {
     const abstention = rows.find((r) => r.textContent?.startsWith('Abstention au 1er tour'))!
     const blankNull = rows.find((r) => r.textContent?.startsWith('Blancs et nuls au 1er tour'))!
     expect(abstention).toBeTruthy()
-    expect(blankNull.textContent).toContain('non mesuré')
-    const shares = within(abstention)
-      .getAllByRole('cell')
-      .slice(2)
-      .map((c) => Number.parseFloat((c.textContent ?? '').replace(',', '.')))
-    expect(shares).toHaveLength(3)
-    expect(shares.reduce((t, v) => t + v, 0)).toBeCloseTo(100, 0)
+    expect(blankNull.textContent).toContain('non mesuré séparément')
+    for (const row of [abstention, blankNull]) {
+      const shares = within(row)
+        .getAllByRole('cell')
+        .slice(2)
+        .map((c) => Number.parseFloat((c.textContent ?? '').replace(',', '.')))
+      expect(shares).toHaveLength(3)
+      expect(shares.reduce((t, v) => t + v, 0)).toBeCloseTo(100, 0)
+    }
     expect(within(table).getByRole('columnheader', { name: 'Ne s’expriment pas' })).toBeTruthy()
     expect(document.querySelectorAll('div.bg-ink-3\\/60, span.bg-ink-3\\/60').length).toBeGreaterThanOrEqual(2)
   })
 
-  it('le graphique a des nœuds « Abstention au 1er tour » et « Non mesuré », ce dernier hachuré', () => {
+  it('le graphique a les nœuds « Abstention au 1er tour », « Blancs et nuls au 1er tour » et 3 sorties unifiées', () => {
     renderFlow()
-    for (const name of ['Abstention au 1er tour', 'Blancs et nuls au 1er tour', 'Non mesuré', 'Ne s’expriment pas']) {
+    for (const name of ['Abstention au 1er tour', 'Blancs et nuls au 1er tour', 'Ne s’expriment pas']) {
       expect(screen.getAllByRole('button', { name: new RegExp(name) }).length).toBeGreaterThan(0)
     }
+    expect(screen.queryByRole('button', { name: /^Non mesuré/ })).toBeNull()
     const chart = screen.getByRole('img')
-    expect(chart.querySelector('pattern')).toBeTruthy()
-    expect(chart.querySelector('rect[fill^="url(#hatch-"]')).toBeTruthy()
     expect(chart.getAttribute('aria-label')).toContain('% des inscrits')
-    const unmeasured = screen.getByRole('button', { name: /^Non mesuré/ })
-    act(() => fireEvent.click(unmeasured))
+    const bnButton = screen.getByRole('button', { name: /^Blancs et nuls au 1er tour/ })
+    act(() => fireEvent.click(bnButton))
     expect(document.querySelector('p[aria-live]')?.textContent).toMatch(
-      /^Non mesuré : .* Aucune source publique ne mesure le vote au 2nd tour des votants blancs ou nuls/,
+      /^Blancs et nuls au 1er tour : .* Aucune source publique ne mesure séparément le vote au 2nd tour/,
     )
   })
 

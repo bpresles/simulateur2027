@@ -3,10 +3,13 @@ import { blendProfiles, blocRow, nonRnSplit } from './transfers'
 import type { ProfileTable } from './transfers'
 import type {
   Aggregated2024Profile,
+  BetweenRoundsElectionSummary,
   Bloc,
   Candidate,
   CandidateId,
   FidelitySplit,
+  LegislativeDuelMatch,
+  LegislativeDuelPolls2024Data,
   NoIntention,
   PollBiasGap,
   PresidentialDuel,
@@ -56,7 +59,9 @@ export function pollBiasGaps(
 ): PollBiasGap[] {
   const distance = daysBetween(polls.asOf, polls.electionDate)
   return data.elections.flatMap((e) => {
-    const dated = e.polls.map((p) => ({ p, gap: Math.abs(daysBetween(p.end, e.electionDate) - distance) }))
+    const dated = e.polls
+      .filter((p) => p.phase === 'avantPremierTour')
+      .map((p) => ({ p, gap: Math.abs(daysBetween(p.end, e.electionDate) - distance) }))
     if (dated.length === 0) return []
     const inWindow = dated.filter((d) => d.gap <= POLL_BIAS_WINDOW_DAYS)
     const nearest = inWindow.length > 0 ? null : dated.reduce((best, d) => (d.gap < best.gap ? d : best))
@@ -81,7 +86,7 @@ export function pollBiasGaps(
 
 /**
  * RMSE historique (en points) des sondages directs de 2nd tour : écart quadratique moyen entre le score
- * publié du candidat opposé au RN et le résultat, sur tous les sondages des élections de
+ * publié du candidat opposé au RN et le résultat, sur tous les sondages `avantPremierTour` des élections de
  * `second-round-poll-bias.json` dont la fin de terrain est à la même distance du 1er tour que la base 2027
  * (± `POLL_BIAS_WINDOW_DAYS`) ; faute de sondage dans la fenêtre pour une élection, le plus proche.
  * Calculé depuis les données, sans constante. Undefined si aucune donnée.
@@ -93,7 +98,9 @@ export function directPollRmse(
   const distance = daysBetween(polls.asOf, polls.electionDate)
   const errors: number[] = []
   for (const e of data.elections) {
-    const dated = e.polls.map((p) => ({ p, gap: Math.abs(daysBetween(p.end, e.electionDate) - distance) }))
+    const dated = e.polls
+      .filter((p) => p.phase === 'avantPremierTour')
+      .map((p) => ({ p, gap: Math.abs(daysBetween(p.end, e.electionDate) - distance) }))
     if (dated.length === 0) continue
     const inWindow = dated.filter((d) => d.gap <= POLL_BIAS_WINDOW_DAYS)
     const used = inWindow.length > 0 ? inWindow : [dated.reduce((best, d) => (d.gap < best.gap ? d : best))]
@@ -101,6 +108,72 @@ export function directPollRmse(
   }
   if (errors.length === 0) return undefined
   return { rmse: Math.sqrt(errors.reduce((t, x) => t + x * x, 0) / errors.length), count: errors.length }
+}
+
+/**
+ * Synthèse descriptive des sondages publiés entre les deux tours (phase `entreDeuxTours`) en 2017 et 2022,
+ * jusqu'aux derniers sondages avant l'interdiction légale. Affichage pour mémoire uniquement : jamais utilisé
+ * dans un calcul, ni dans `pollBiasGaps` ni dans `directPollRmse`.
+ */
+export function betweenRoundsSummaries(data: SecondRoundPollBiasData): BetweenRoundsElectionSummary[] {
+  return data.elections.flatMap((e) => {
+    const polls = e.polls
+      .filter((p) => p.phase === 'entreDeuxTours')
+      .slice()
+      .sort((x, y) => y.end.localeCompare(x.end))
+    if (polls.length === 0) return []
+    const meanAntiRn = polls.reduce((t, p) => t + p.antiRn, 0) / polls.length
+    const lastDayDate = polls[0]!.end
+    const lastDay = polls.filter((p) => p.end === lastDayDate)
+    const lastDayMeanAntiRn = lastDay.reduce((t, p) => t + p.antiRn, 0) / lastDay.length
+    return [
+      {
+        year: e.year,
+        duel: e.duel,
+        electionDate: e.electionDate,
+        secondRoundDate: e.secondRoundDate,
+        result: e.result,
+        listSource: e.listSource,
+        polls,
+        pollCount: polls.length,
+        meanAntiRn,
+        meanGap: e.result.antiRn - meanAntiRn,
+        lastDayDate,
+        lastDayCount: lastDay.length,
+        lastDayMeanAntiRn,
+        lastDayGap: e.result.antiRn - lastDayMeanAntiRn,
+      },
+    ]
+  })
+}
+
+/**
+ * Règle d'identité stricte (P4) : retourne les sondages de circonscription d'entre-deux-tours des
+ * législatives 2024 (duels uniquement) dont la paire non ordonnée de partis est strictement identique
+ * à celle du duel affiché `(a, b)`. La correspondance candidat 2027 → parti est lue exclusivement dans
+ * `data.candidateParties` (jamais déduite d'une coalition, d'une nuance officielle ou d'un profil de reports).
+ * Un parti allié ou voisin (ex. Horizons vs Renaissance, ou allié RN vs RN) est strictement exclu.
+ */
+export function matchingLegislativeDuelPolls(
+  data: LegislativeDuelPolls2024Data,
+  a: CandidateId,
+  b: CandidateId,
+): LegislativeDuelMatch[] {
+  const partyA = data.candidateParties[a] ?? null
+  const partyB = data.candidateParties[b] ?? null
+  if (!partyA || !partyB || partyA === partyB) return []
+
+  const matches: LegislativeDuelMatch[] = []
+  for (const poll of data.polls) {
+    if (poll.candidates.length !== 2) continue
+    const [c1, c2] = poll.candidates
+    if (c1.party === partyA && c2.party === partyB) {
+      matches.push({ poll, candidateA: c1, candidateB: c2, gapA: c1.officialScore - c1.pollScore })
+    } else if (c1.party === partyB && c2.party === partyA) {
+      matches.push({ poll, candidateA: c2, candidateB: c1, gapA: c2.officialScore - c2.pollScore })
+    }
+  }
+  return matches.sort((x, y) => y.poll.fieldwork.end.localeCompare(x.poll.fieldwork.end))
 }
 
 export interface DirectPollGapAlert {
@@ -184,10 +257,10 @@ export interface SecondRoundInput {
   firstRoundTurnout: number
   /** Part des blancs et nuls parmi les votants du 1er tour (0 à 1, ex. ~0,022). */
   blankNullShare: number
-  /** Part des abstentionnistes du 1er tour qui votent valablement au 2nd tour (0 à 1, ex. 0,20). */
+  /** Part des non-exprimés du 1er tour (abstention + blancs/nuls) qui votent valablement au 2nd tour (0 à 1, ex. 0,225). */
   abstainerMobilization: number
-  /** Part des nouveaux votants allant à l'adversaire du RN (0 à 1, ex. 0,55 ; 0,50 hors duel RN). */
-  abstainerAntiRnShare: number
+  /** Part manuelle des nouveaux votants allant à l'adversaire du RN (0 à 1), ou null = mode endogène neutre (S2). */
+  abstainerAntiRnShare: number | null
   /** Force du front républicain appliquée à ce duel (0 à 1), ou null hors duel RN (informatif). */
   republicanFrontStrength?: number | null
   secondRoundPolls: SecondRoundPoll[]
@@ -196,13 +269,14 @@ export interface SecondRoundInput {
 }
 
 /**
- * Moteur unifié du 2nd tour en flux bruts (% des inscrits) :
+ * Moteur unifié du 2nd tour en flux bruts (% des inscrits, refonte P1-bis S1–S4) :
  * - Chaque électorat exprimé du 1er tour (taille `x_c × E1 / 100`) applique directement ses taux de report
- *   individuels (fidélité différenciée pour les finalistes, enquête 2024 / mélange présidentiel / déclarations
+ *   individuels (fidélité symétrique neutre en mode historique, enquête 2024 / mélange présidentiel / déclarations
  *   logit pour les éliminés). Aucun recalibrage post-hoc par camp ni soustraction uniforme `u = N / X`.
- * - Les abstentionnistes du 1er tour (`100 − P`) se mobilisent à hauteur de `abstainerMobilization` et se
- *   répartissent selon `abstainerAntiRnShare` (duel face au RN) ou 50/50 (duel hors RN).
- * - Identité comptable exacte : `totals.a + totals.b + totals.nonExpressed + blankNull1 = 100 %` des inscrits.
+ * - Les non-exprimés du 1er tour (`abstention1 + blankNull1 = 100 − E1`) se mobilisent à hauteur de
+ *   `abstainerMobilization` (S1) et suivent par défaut (`abstainerAntiRnShare = null`) le partage T2 des
+ *   électeurs exprimés du 1er tour (mode endogène neutre S2), sauf surcharge manuelle face au RN.
+ * - Identité comptable exacte : `totals.a + totals.b + totals.nonExpressed = 100 %` des inscrits.
  * - Score final en % des suffrages exprimés : `V_A / (V_A + V_B)`.
  */
 export function computeSecondRound(input: SecondRoundInput): SecondRoundResult {
@@ -280,22 +354,39 @@ export function computeSecondRound(input: SecondRoundInput): SecondRoundResult {
     return { ...base, toA: sum('toA'), toB: sum('toB'), abstention: sum('abstention'), like }
   })
 
+  const sumFlows = (key: 'toA' | 'toB' | 'abstention') => flows.reduce((t, f) => t + f[key], 0)
+  const r1ToA = sumFlows('toA')
+  const r1ToB = sumFlows('toB')
+  const r1Expr2 = r1ToA + r1ToB
+  const qNeutralA = r1Expr2 > 0 ? r1ToA / r1Expr2 : 0.5
+
   const mob = clamp(abstainerMobilization, 0, 1)
-  const newVoters = abstention1 * mob
-  const qAntiRn = clamp(abstainerAntiRnShare, 0, 1)
-  const qA = duel.kind === 'rn-sourced' ? (challengerIsA ? qAntiRn : 1 - qAntiRn) : 0.5
+  const manualAntiRn =
+    duel.kind === 'rn-sourced' && abstainerAntiRnShare !== null ? clamp(abstainerAntiRnShare, 0, 1) : null
+  const qA = manualAntiRn !== null ? (challengerIsA ? manualAntiRn : 1 - manualAntiRn) : qNeutralA
+  const effectiveAntiRnShare = duel.kind === 'rn-sourced' ? (challengerIsA ? qA : 1 - qA) : qA
+
+  const absNewVoters = abstention1 * mob
+  const bnNewVoters = blankNull1 * mob
+  const newVoters = absNewVoters + bnNewVoters
+
   const abstainers = {
     volume: abstention1,
-    toA: newVoters * qA,
-    toB: newVoters * (1 - qA),
-    nonExpressed: abstention1 - newVoters,
+    toA: absNewVoters * qA,
+    toB: absNewVoters * (1 - qA),
+    nonExpressed: abstention1 - absNewVoters,
+  }
+  const blankNull = {
+    volume: blankNull1,
+    toA: bnNewVoters * qA,
+    toB: bnNewVoters * (1 - qA),
+    nonExpressed: blankNull1 - bnNewVoters,
   }
 
-  const sumFlows = (key: 'toA' | 'toB' | 'abstention') => flows.reduce((t, f) => t + f[key], 0)
   const totals = {
-    a: sumFlows('toA') + abstainers.toA,
-    b: sumFlows('toB') + abstainers.toB,
-    nonExpressed: sumFlows('abstention') + abstainers.nonExpressed,
+    a: r1ToA + abstainers.toA + blankNull.toA,
+    b: r1ToB + abstainers.toB + blankNull.toB,
+    nonExpressed: sumFlows('abstention') + abstainers.nonExpressed + blankNull.nonExpressed,
   }
   const expressed2 = totals.a + totals.b
   const pct =
@@ -324,10 +415,10 @@ export function computeSecondRound(input: SecondRoundInput): SecondRoundResult {
     newVoters,
     flows,
     abstainers,
-    blankNull: { volume: blankNull1 },
+    blankNull,
     totals,
     fidelity: { a: fidelityA, b: fidelityB },
-    effectiveAbstainerAntiRnShare: duel.kind === 'rn-sourced' ? qAntiRn : 0.5,
+    effectiveAbstainerAntiRnShare: effectiveAntiRnShare,
     republicanFrontStrength: duel.kind === 'rn-sourced' ? (input.republicanFrontStrength ?? null) : null,
     netDropout,
     directPolls,

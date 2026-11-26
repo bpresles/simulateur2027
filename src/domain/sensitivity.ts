@@ -1,16 +1,17 @@
 import { CROSS_BLOC_LEAK, TARGET_CONCENTRATION } from './campaignProjection'
 import { simulate } from './simulate'
 import type { SimulateOptions } from './simulate'
-import { REPUBLICAN_FRONT_PRESETS } from './transfers'
+import { REPUBLICAN_FRONT_PRESETS, correctDeclaredFidelityLogit } from './transfers'
 import type { Settings, SimulationData } from './types'
 
 /**
- * Bornes de la fourchette de repères de la mobilisation des abstentionnistes (« ~14–22 % », Ifop 2022 /
- * Insee 2017–2022), telle que documentée dans `SettingsSheet.tsx` (aide du curseur de mobilisation).
+ * Bornes de la fourchette de repères de la mobilisation des non-exprimés du 1er tour (Ifop 2022 : 14 %,
+ * Insee 2022 brut : 25,3 %), couvrant le défaut Insee ajusté (22,5 %, P1-bis S1).
  */
-const MOBILIZATION_REFERENCE_RANGE = [0.14, 0.22] as const
+const MOBILIZATION_REFERENCE_RANGE = [0.14, 0.253] as const
 
 const fmtPct = (v: number) => `${String(Math.round(v * 1000) / 10).replace('.', ',')}\u202f%`
+const fmtDec = (v: number) => String(v).replace('.', ',')
 
 export interface SensitivityVariant {
   label: string
@@ -92,40 +93,76 @@ export function computeSensitivity(data: SimulationData, settings: Settings): Se
     inactive,
     variants: projOn ? [0.65, 0.85].map((v) => variant(String(v).replace('.', ','), projSettings, { projectionTargets: { centre: v } })) : [],
   })
+  const qIsNeutral = settings.abstainerAntiRnShare === null
   rows.push({
     id: 'abstainers',
     label: 'Nouveaux votants allant à l’adversaire du RN',
-    active: `${Math.round(settings.abstainerAntiRnShare * 100)} %`,
-    variants: [0.5].filter((v) => v !== settings.abstainerAntiRnShare).map((v) =>
-      variant('50 % (valeur hors duel RN)', { ...pinned, abstainerAntiRnShare: v }),
-    ),
+    active: qIsNeutral
+      ? `miroir des exprimés (${fmtPct(base.secondRound.effectiveAbstainerAntiRnShare)}, défaut neutre)`
+      : `${Math.round(settings.abstainerAntiRnShare! * 100)} %`,
+    variants: qIsNeutral
+      ? [
+          variant('59 % (repère Ifop 2022)', { ...pinned, abstainerAntiRnShare: 0.59 }),
+          variant('50 % (partage égal)', { ...pinned, abstainerAntiRnShare: 0.5 }),
+        ]
+      : [
+          variant('Miroir des exprimés (défaut neutre)', { ...pinned, abstainerAntiRnShare: null }),
+          ...[0.5]
+            .filter((v) => v !== settings.abstainerAntiRnShare)
+            .map((v) => variant('50 % (partage égal)', { ...pinned, abstainerAntiRnShare: v })),
+        ],
   })
   const mobRange = MOBILIZATION_REFERENCE_RANGE
   rows.push({
     id: 'mobilization',
-    label: 'Mobilisation des abstentionnistes du 1er tour',
+    label: 'Mobilisation des non-exprimés du 1er tour',
     active: fmtPct(settings.abstainerMobilization),
     variants: mobRange
       .filter((v) => Math.abs(v - settings.abstainerMobilization) > 1e-9)
-      .map((v) => variant(`${fmtPct(v)} (repère ${v === mobRange[0] ? 'bas' : 'haut'})`, { ...pinned, abstainerMobilization: v })),
+      .map((v) => variant(`${fmtPct(v)} (repère ${v === mobRange[0] ? 'bas Ifop' : 'haut Insee'})`, { ...pinned, abstainerMobilization: v })),
   })
   const uniformFid = settings.fidelity !== null
   const df = data.transfers.fidelity.default
+  const isHistoricalSource = settings.transferSource === 'legislatives2024'
+  const rnId = base.secondRound.duel.rnId
+  const isRnDuel = base.secondRound.duel.kind === 'rn-sourced'
+  const declByCand = Object.fromEntries(
+    [a, b].map((id) => {
+      const raw = data.declaredTransfers.fidelity.byCandidate[id] ?? data.declaredTransfers.fidelity.default
+      return [id, correctDeclaredFidelityLogit(raw, id === rnId, isRnDuel, data.declaredTransfers.logitCorrection)]
+    }),
+  )
   rows.push({
     id: 'fidelity',
     label: 'Fidélité des électorats finalistes',
     active: uniformFid
       ? `uniforme ${fmtPct(settings.fidelity!)}`
-      : `différenciée (Le Pen ${data.transfers.fidelity.byCandidate.lepen?.loyal ?? df.loyal}\u202f%, Mélenchon ${data.transfers.fidelity.byCandidate.melenchon?.loyal ?? df.loyal}\u202f%)`,
+      : isHistoricalSource
+        ? `symétrique ${fmtDec(df.loyal)} / ${fmtDec(df.cross)} / ${fmtDec(df.abstention)}\u202f% (neutre)`
+        : 'déclarations Harris 2026 corrigées en logit',
     variants: [
       uniformFid
-        ? variant('Différenciée par finaliste (données)', { ...pinned, fidelity: null })
-        : variant(
-            `Uniforme ${df.loyal} / ${String(df.cross).replace('.', ',')} / ${String(df.abstention).replace('.', ',')}\u202f% pour tous`,
-            pinned,
-            undefined,
-            { ...data, transfers: { ...data.transfers, fidelity: { ...data.transfers.fidelity, byCandidate: {} } } },
-          ),
+        ? variant(
+            `Symétrique neutre ${fmtDec(df.loyal)} / ${fmtDec(df.cross)} / ${fmtDec(df.abstention)}\u202f%`,
+            { ...pinned, fidelity: null },
+          )
+        : isHistoricalSource
+          ? variant('Déclarations Harris 2026 corrigées en logit', pinned, undefined, {
+              ...data,
+              transfers: { ...data.transfers, fidelity: { ...data.transfers.fidelity, byCandidate: declByCand } },
+            })
+          : variant(
+              `Symétrique neutre ${fmtDec(df.loyal)} / ${fmtDec(df.cross)} / ${fmtDec(df.abstention)}\u202f%`,
+              pinned,
+              undefined,
+              {
+                ...data,
+                declaredTransfers: {
+                  ...data.declaredTransfers,
+                  fidelity: { ...data.declaredTransfers.fidelity, default: df, byCandidate: {} },
+                },
+              },
+            ),
     ],
   })
   const lfi = base.secondRound.lfiLeftSensitivity
