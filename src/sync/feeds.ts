@@ -43,7 +43,7 @@ const INSTITUTES: [RegExp, string][] = [
   [/ipsos|bva/i, 'Ipsos BVA'],
   [/elabe/i, 'Elabe'],
   [/odoxa/i, 'Odoxa'],
-  [/opinion\s*way/i, 'OpinionWay'],
+  [/opini?on\s*way/i, 'OpinionWay'],
   [/yougov/i, 'YouGov'],
   [/cluster\s*17/i, 'Cluster17'],
   [/verian|kantar/i, 'Verian'],

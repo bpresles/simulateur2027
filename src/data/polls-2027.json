@@ -1106,6 +1106,56 @@
   ],
   "polls": [
     {
+      "id": "opinionway-20261126",
+      "origin": "wikipedia",
+      "institute": "OpinionWay",
+      "sponsor": "Non indiqué",
+      "fieldwork": {
+        "start": "2026-11-25",
+        "end": "2026-11-26"
+      },
+      "sampleSize": 912,
+      "sources": [
+        {
+          "label": "Synthèse de l’institut",
+          "url": "https://www.opinion-way.com/fr/publications/les-intentions-de-vote-a-lelection-presidentielle-de-2027-5-2026-24860/",
+          "kind": "synthese"
+        },
+        {
+          "label": "Notice (Commission des sondages)",
+          "url": "https://www.commission-des-sondages.fr/notices/files/notices/2026/novembre/10400-pres-iv-vague-5-opinionway-26-novembre.pdf",
+          "kind": "notice"
+        },
+        {
+          "label": "Wikipedia – liste des sondages",
+          "url": "https://fr.wikipedia.org/wiki/Liste_de_sondages_sur_l%27%C3%A9lection_pr%C3%A9sidentielle_fran%C3%A7aise_de_2027"
+        }
+      ],
+      "note": "Repris de Wikipedia : chiffres non revérifiés.",
+      "hypotheses": [
+        {
+          "id": "H1",
+          "scores": {
+            "arthaud": 1,
+            "melenchon": 16,
+            "roussel": 2,
+            "tondelier": 1,
+            "glucksmann": 10,
+            "attal": 4,
+            "philippe": 8,
+            "villepin": 2,
+            "retailleau": 4,
+            "lisnard": 12,
+            "dupont-aignan": 2,
+            "lepen": 33,
+            "zemmour": 3,
+            "bouamrane": 0.5,
+            "riner": 2
+          }
+        }
+      ]
+    },
+    {
       "id": "harris-interactive-toluna-20261119",
       "origin": "wikipedia",
       "institute": "Harris Interactive (Toluna)",
@@ -1579,69 +1629,6 @@
       ]
     },
     {
-      "id": "opinionway-20261112",
-      "origin": "wikipedia",
-      "institute": "OpinionWay",
-      "sponsor": "CNews",
-      "fieldwork": {
-        "start": "2026-11-10",
-        "end": "2026-11-12"
-      },
-      "sampleSize": 964,
-      "sources": [
-        {
-          "label": "Notice (Commission des sondages)",
-          "url": "http://www.commission-des-sondages.fr/notices/files/notices/2026/novembre/10371-pres-iv-opinionway-cnews-12-novembre.pdf",
-          "kind": "notice"
-        },
-        {
-          "label": "Wikipedia – liste des sondages",
-          "url": "https://fr.wikipedia.org/wiki/Liste_de_sondages_sur_l%27%C3%A9lection_pr%C3%A9sidentielle_fran%C3%A7aise_de_2027"
-        }
-      ],
-      "note": "Repris de Wikipedia : chiffres non revérifiés.",
-      "hypotheses": [
-        {
-          "id": "H1",
-          "label": "Riner",
-          "scores": {
-            "arthaud": 1,
-            "melenchon": 16,
-            "roussel": 2,
-            "tondelier": 3,
-            "glucksmann": 10,
-            "attal": 3,
-            "philippe": 12,
-            "retailleau": 4,
-            "lisnard": 9,
-            "dupont-aignan": 2,
-            "lepen": 31,
-            "zemmour": 3,
-            "bouamrane": 0.5,
-            "riner": 4
-          }
-        },
-        {
-          "id": "H2",
-          "scores": {
-            "arthaud": 1,
-            "melenchon": 16,
-            "roussel": 1,
-            "tondelier": 3,
-            "glucksmann": 11,
-            "attal": 4,
-            "philippe": 12,
-            "retailleau": 5,
-            "lisnard": 10,
-            "dupont-aignan": 2,
-            "lepen": 32,
-            "zemmour": 2,
-            "bouamrane": 1
-          }
-        }
-      ]
-    },
-    {
       "id": "cluster17-20261110",
       "origin": "wikipedia",
       "institute": "Cluster17",
@@ -1903,6 +1890,66 @@
   "secondRoundPolls": [
     {
       "origin": "wikipedia",
+      "institute": "OpinionWay",
+      "sponsor": "Non indiqué",
+      "fieldwork": {
+        "start": "2026-11-25",
+        "end": "2026-11-26"
+      },
+      "sampleSize": 912,
+      "url": "https://www.commission-des-sondages.fr/notices/files/notices/2026/novembre/10400-pres-iv-vague-5-opinionway-26-novembre.pdf",
+      "scores": {
+        "glucksmann": 42,
+        "lepen": 58
+      }
+    },
+    {
+      "origin": "wikipedia",
+      "institute": "OpinionWay",
+      "sponsor": "Non indiqué",
+      "fieldwork": {
+        "start": "2026-11-25",
+        "end": "2026-11-26"
+      },
+      "sampleSize": 912,
+      "url": "https://www.commission-des-sondages.fr/notices/files/notices/2026/novembre/10400-pres-iv-vague-5-opinionway-26-novembre.pdf",
+      "scores": {
+        "lisnard": 45,
+        "lepen": 55
+      }
+    },
+    {
+      "origin": "wikipedia",
+      "institute": "OpinionWay",
+      "sponsor": "Non indiqué",
+      "fieldwork": {
+        "start": "2026-11-25",
+        "end": "2026-11-26"
+      },
+      "sampleSize": 912,
+      "url": "https://www.commission-des-sondages.fr/notices/files/notices/2026/novembre/10400-pres-iv-vague-5-opinionway-26-novembre.pdf",
+      "scores": {
+        "melenchon": 31,
+        "lepen": 69
+      }
+    },
+    {
+      "origin": "wikipedia",
+      "institute": "OpinionWay",
+      "sponsor": "Non indiqué",
+      "fieldwork": {
+        "start": "2026-11-25",
+        "end": "2026-11-26"
+      },
+      "sampleSize": 912,
+      "url": "https://www.commission-des-sondages.fr/notices/files/notices/2026/novembre/10400-pres-iv-vague-5-opinionway-26-novembre.pdf",
+      "scores": {
+        "philippe": 41,
+        "lepen": 59
+      }
+    },
+    {
+      "origin": "wikipedia",
       "institute": "Harris Interactive (Toluna)",
       "sponsor": "Non indiqué",
       "fieldwork": {
@@ -2034,51 +2081,6 @@
       "scores": {
         "philippe": 45,
         "lepen": 55
-      }
-    },
-    {
-      "origin": "wikipedia",
-      "institute": "OpinionWay",
-      "sponsor": "CNews",
-      "fieldwork": {
-        "start": "2026-11-10",
-        "end": "2026-11-12"
-      },
-      "sampleSize": 964,
-      "url": "https://www.commission-des-sondages.fr/notices/files/notices/2026/novembre/10371-pres-iv-opinionway-cnews-12-novembre.pdf",
-      "scores": {
-        "glucksmann": 42,
-        "lepen": 58
-      }
-    },
-    {
-      "origin": "wikipedia",
-      "institute": "OpinionWay",
-      "sponsor": "CNews",
-      "fieldwork": {
-        "start": "2026-11-10",
-        "end": "2026-11-12"
-      },
-      "sampleSize": 964,
-      "url": "https://www.commission-des-sondages.fr/notices/files/notices/2026/novembre/10371-pres-iv-opinionway-cnews-12-novembre.pdf",
-      "scores": {
-        "melenchon": 32,
-        "lepen": 68
-      }
-    },
-    {
-      "origin": "wikipedia",
-      "institute": "OpinionWay",
-      "sponsor": "CNews",
-      "fieldwork": {
-        "start": "2026-11-10",
-        "end": "2026-11-12"
-      },
-      "sampleSize": 964,
-      "url": "https://www.commission-des-sondages.fr/notices/files/notices/2026/novembre/10371-pres-iv-opinionway-cnews-12-novembre.pdf",
-      "scores": {
-        "philippe": 44,
-        "lepen": 56
       }
     },
     {
@@ -2299,10 +2301,25 @@
         "attal": 43,
         "lepen": 57
       }
+    },
+    {
+      "origin": "wikipedia",
+      "institute": "Ifop-Fiducial",
+      "sponsor": "Non indiqué",
+      "fieldwork": {
+        "start": "2026-08-24",
+        "end": "2026-08-25"
+      },
+      "sampleSize": 1598,
+      "url": "https://www.commission-des-sondages.fr/notices/files/notices/2026/aout/10242-pres-barometre-election-pres-iv-v5-ifop-26-aout.pdf",
+      "scores": {
+        "retailleau": 42,
+        "lepen": 58
+      }
     }
   ],
   "period": {
     "label": "Octobre-décembre 2026",
-    "start": "2026-08-28"
+    "start": "2026-08-25"
   }
 }

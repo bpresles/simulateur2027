@@ -215,4 +215,20 @@ ${preOfficial}
   it('page méconnaissable : aucun résultat', () => {
     expect(fromWikipedia('== Autre chose ==', resolver(), simulated)).toBeUndefined()
   })
+
+  it('reconnaît la variante typographique « OpinonWay » comme OpinionWay', () => {
+    const withTypo = `
+== Sondages concernant le premier tour ==
+=== Année 2026 ===
+==== Octobre-décembre 2026 ====
+{| class="wikitable"
+${HEADER}
+${row('[https://example.org OpinonWay]', '25-26 novembre', '1 000', ['20', 'colspan=2 |15', '25', '40', '—'])}
+|}
+`
+    const parsed = fromWikipedia(withTypo, resolver(), simulated)!
+    expect(parsed.skipped).toEqual([])
+    expect(parsed.polls.map((p) => p.id)).toEqual(['opinionway-20261126'])
+    expect(parsed.polls[0]?.institute).toBe('OpinionWay')
+  })
 })

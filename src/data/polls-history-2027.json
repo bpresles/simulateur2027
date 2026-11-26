@@ -2,6 +2,32 @@
   "description": "Historique des vagues de sondages de 1er tour 2025–2027 (une seule hypothèse cohérente retenue par vague depuis la page Wikipedia « Liste de sondages sur l’élection présidentielle française de 2027 », exigeant la présence simultanée de Marine Le Pen et Jean-Luc Mélenchon et ≥ 75 % de masse simulée).",
   "polls": [
     {
+      "id": "opinionway-20261126",
+      "institute": "OpinionWay",
+      "fieldwork": {
+        "start": "2026-11-25",
+        "end": "2026-11-26"
+      },
+      "sampleSize": 912,
+      "scores": {
+        "arthaud": 1,
+        "melenchon": 15.9,
+        "roussel": 2,
+        "tondelier": 1,
+        "glucksmann": 10,
+        "attal": 4,
+        "philippe": 8,
+        "villepin": 2,
+        "retailleau": 4,
+        "lisnard": 11.9,
+        "dupont-aignan": 2,
+        "lepen": 32.8,
+        "zemmour": 3,
+        "bouamrane": 0.5,
+        "riner": 2
+      }
+    },
+    {
       "id": "harris-interactive-toluna-20261119",
       "institute": "Harris Interactive (Toluna)",
       "fieldwork": {
@@ -17,13 +43,13 @@
         "glucksmann": 11,
         "attal": 4,
         "philippe": 9,
+        "villepin": 1,
         "retailleau": 4,
         "lisnard": 11,
         "dupont-aignan": 1,
         "lepen": 31,
         "zemmour": 3,
-        "riner": 4,
-        "villepin": 1
+        "riner": 4
       }
     },
     {
@@ -42,13 +68,13 @@
         "glucksmann": 8.8,
         "attal": 3.9,
         "philippe": 6.9,
+        "villepin": 2,
         "retailleau": 5.9,
         "lisnard": 8.8,
         "dupont-aignan": 2,
         "lepen": 31.4,
         "zemmour": 2.9,
-        "riner": 2.9,
-        "villepin": 2
+        "riner": 2.9
       }
     },
     {
@@ -67,6 +93,7 @@
         "glucksmann": 8,
         "attal": 4.5,
         "philippe": 10,
+        "villepin": 1.5,
         "retailleau": 4,
         "lisnard": 8,
         "dupont-aignan": 1.5,
@@ -74,8 +101,7 @@
         "zemmour": 3,
         "polony": 1,
         "riner": 4,
-        "ruffin": 2,
-        "villepin": 1.5
+        "ruffin": 2
       }
     },
     {
@@ -144,6 +170,7 @@
         "glucksmann": 8,
         "attal": 2,
         "philippe": 8,
+        "villepin": 1,
         "retailleau": 5,
         "lisnard": 8,
         "dupont-aignan": 2,
@@ -153,8 +180,7 @@
         "lagarde": 8,
         "polony": 2.5,
         "riner": 2,
-        "ruffin": 1.5,
-        "villepin": 1
+        "ruffin": 1.5
       }
     },
     {
@@ -195,12 +221,12 @@
         "tondelier": 2,
         "glucksmann": 11,
         "philippe": 12,
+        "villepin": 2,
         "retailleau": 5,
         "lisnard": 9,
         "dupont-aignan": 1,
         "lepen": 34,
-        "zemmour": 3,
-        "villepin": 2
+        "zemmour": 3
       }
     },
     {
@@ -328,12 +354,12 @@
         "tondelier": 2,
         "glucksmann": 12,
         "philippe": 15,
+        "villepin": 1,
         "retailleau": 4,
         "lisnard": 7,
         "dupont-aignan": 1,
         "lepen": 33,
-        "zemmour": 5,
-        "villepin": 1
+        "zemmour": 5
       }
     },
     {
@@ -352,13 +378,13 @@
         "glucksmann": 12,
         "attal": 4,
         "philippe": 12,
+        "villepin": 1.5,
         "retailleau": 5.5,
         "lisnard": 5.5,
         "dupont-aignan": 1.5,
         "lepen": 34,
         "zemmour": 3,
-        "ruffin": 1.5,
-        "villepin": 1.5
+        "ruffin": 1.5
       }
     },
     {
@@ -376,11 +402,11 @@
         "tondelier": 3,
         "glucksmann": 15.5,
         "philippe": 16.5,
+        "villepin": 2,
         "retailleau": 7,
         "dupont-aignan": 2.5,
         "lepen": 32.5,
-        "zemmour": 3.5,
-        "villepin": 2
+        "zemmour": 3.5
       }
     },
     {
@@ -421,13 +447,13 @@
         "glucksmann": 12.1,
         "attal": 6.1,
         "philippe": 8.1,
+        "villepin": 1,
         "retailleau": 5.1,
         "lisnard": 4,
         "dupont-aignan": 2,
         "lepen": 35.4,
         "zemmour": 4,
-        "ruffin": 2,
-        "villepin": 1
+        "ruffin": 2
       }
     },
     {
@@ -446,13 +472,13 @@
         "glucksmann": 11.5,
         "attal": 5,
         "philippe": 13,
+        "villepin": 1.5,
         "retailleau": 5,
         "lisnard": 6,
         "dupont-aignan": 1,
         "lepen": 32,
         "zemmour": 3,
-        "ruffin": 2,
-        "villepin": 1.5
+        "ruffin": 2
       }
     },
     {
