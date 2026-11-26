@@ -44,8 +44,16 @@ describe('backtest (validation historique 2012, 2017, 2022 et 2024)', () => {
       expect(row.coveredRaw).toBeLessThanOrEqual(row.evaluatedCount)
       expect(row.coveredCrossProjected).toBeGreaterThanOrEqual(0)
       expect(row.coveredCrossProjected).toBeLessThanOrEqual(row.evaluatedCount)
-      if (row.year === 2012) expect(row.secondRoundCovered).toBeNull()
-      else expect(row.secondRoundP10!).toBeLessThan(row.secondRoundP90!)
+      if (row.year === 2012) {
+        expect(row.secondRoundCovered).toBeNull()
+        expect(row.secondRoundWidth80).toBeNull()
+        expect(row.secondRoundCrps).toBeNull()
+      } else {
+        expect(row.secondRoundP10!).toBeLessThan(row.secondRoundP90!)
+        expect(row.secondRoundWidth80!).toBeCloseTo(row.secondRoundP90! - row.secondRoundP10!, 8)
+        expect(row.secondRoundCrps!).toBeGreaterThan(0)
+        expect(row.secondRoundCrps!).toBeLessThan(15)
+      }
     }
   })
 

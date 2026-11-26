@@ -887,6 +887,8 @@ export interface MonteCarloSummary {
   candidates: Record<CandidateId, CandidateUncertainty>
   /** Tirages bruts du score de 1er tour par candidat (uniquement si `returnSamples` est demandé ; non triés). */
   firstRoundSamples?: Record<CandidateId, Float64Array>
+  /** Tirages bruts du score du candidat A sur le duel affiché (uniquement si `returnSamples` est demandé ; non triés). */
+  displayedDuelSamples?: Float64Array
   /** Duels triés par fréquence décroissante (au moins 2 % des simulations). */
   topDuels: DuelUncertainty[]
   /** Distribution conditionnelle du duel actuellement affiché (calculée sur toutes les itérations). */
