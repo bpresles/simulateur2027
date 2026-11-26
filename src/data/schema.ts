@@ -247,6 +247,7 @@ const transfersSchema: z.ZodType<TransfersData> = z.object({
   presidentialCenterRn: z.object({
     description: z.string(),
     defaultWeight: z.number().min(0).max(1),
+    anchor2017Position: z.number(),
     elections: z.object({
       '2017': blocRecord(transferValuesSchema),
       '2022': blocRecord(transferValuesSchema),
@@ -275,11 +276,17 @@ const declaredTransfersSchema: z.ZodType<DeclaredTransfersData> = z.object({
     deltaFinalist: z.number(),
     deltaRn: z.number(),
   }),
+  fidelity: z.object({
+    default: fidelitySplitSchema,
+    byCandidate: z.record(z.string(), fidelitySplitSchema),
+    note: z.string(),
+  }),
   profiles: z.record(
     profileId,
     blocRecord(
       transferValuesSchema.extend({
         camp: z.enum(['finalist', 'rn']).optional(),
+        historicalFallback: z.boolean().optional(),
         note: z.string().optional(),
       }),
     ),
@@ -529,6 +536,11 @@ export function validateData(data: SimulationData): string[] {
   for (const [id, f] of Object.entries(transfers.fidelity.byCandidate)) {
     if (!simulated.has(id)) errors.push(`Fidélité : candidat inconnu « ${id} »`)
     checkFid(id, f)
+  }
+  checkFid('déclarée défaut', declaredTransfers.fidelity.default)
+  for (const [id, f] of Object.entries(declaredTransfers.fidelity.byCandidate)) {
+    if (!simulated.has(id)) errors.push(`Fidélité déclarée : candidat inconnu « ${id} »`)
+    checkFid(`déclarée ${id}`, f)
   }
 
   // Vérification des profils de reports (total 100 %)

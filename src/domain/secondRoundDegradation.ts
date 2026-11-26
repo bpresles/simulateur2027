@@ -41,6 +41,24 @@ export const R113_REF_ANTI_RN_SHARE = 0.59
 export const CURRENT_MOBILIZATION = 0.2
 export const CURRENT_ANTI_RN_SHARE = 0.55
 
+/** Valeurs archivées du moteur v2.2 (audit P1 du 24/11/2026, conservées pour reproductibilité). */
+export const V22_PRESIDENTIAL_ELECTIONS: Record<ReferenceMatrixYear, Record<Bloc, { finalist: number; rn: number; abstention: number }>> = {
+  '2017': {
+    gauche: { finalist: 58, rn: 9, abstention: 33 },
+    centre: { finalist: 79, rn: 7, abstention: 14 },
+    droite: { finalist: 48, rn: 23, abstention: 29 },
+    extreme_droite: { finalist: 0, rn: 96, abstention: 4 },
+  },
+  '2022': {
+    gauche: { finalist: 47, rn: 15, abstention: 38 },
+    centre: { finalist: 79, rn: 7, abstention: 14 },
+    droite: { finalist: 53, rn: 18, abstention: 29 },
+    extreme_droite: { finalist: 0, rn: 96, abstention: 4 },
+  },
+}
+export const V22_FIDELITY_DEFAULT = { loyal: 95, cross: 1.5, abstention: 3.5 } as const
+export const V22_FIDELITY_LEPEN = { loyal: 96, cross: 1, abstention: 3 } as const
+
 /** Ligne transposée du centre (Cheminade en 2017, R1.9 et R1.10). */
 export const TRANSPOSED_CENTER_ROW: ReferenceTransferTriplet = { antiRn: 79, rn: 7, nonExpressed: 14 }
 
@@ -212,14 +230,15 @@ export function evaluateSecondRoundConfig(
   const resolvedById = new Map(resolvedList.map((r) => [r.candidateId, r.row]))
   const r19Rows = computeR19BlocRows(ref, resolvedById)
 
-  const repoRows = transfers.presidentialCenterRn.elections[year]
-  const fidMacron2027 = transfers.fidelity.byCandidate.macron ?? transfers.fidelity.default
-  const fidLePen2027 = transfers.fidelity.byCandidate.lepen ?? transfers.fidelity.default
+  const repoRows = V22_PRESIDENTIAL_ELECTIONS[year]
+  const fidMacron2027 = V22_FIDELITY_DEFAULT
+  const fidLePen2027 = V22_FIDELITY_LEPEN
   const rnCampRow: ReferenceTransferTriplet = {
     antiRn: 0,
     rn: fidLePen2027.loyal,
     nonExpressed: 100 - fidLePen2027.loyal,
   }
+  void transfers
 
   const participation = (100 * ref.voters) / ref.registered
   const abstention1 = 100 - participation

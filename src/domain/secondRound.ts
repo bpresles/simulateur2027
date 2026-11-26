@@ -257,10 +257,10 @@ export interface SecondRoundInput {
   firstRoundTurnout: number
   /** Part des blancs et nuls parmi les votants du 1er tour (0 à 1, ex. ~0,022). */
   blankNullShare: number
-  /** Part des abstentionnistes du 1er tour qui votent valablement au 2nd tour (0 à 1, ex. 0,20). */
+  /** Part des non-exprimés du 1er tour (abstention + blancs/nuls) qui votent valablement au 2nd tour (0 à 1, ex. 0,225). */
   abstainerMobilization: number
-  /** Part des nouveaux votants allant à l'adversaire du RN (0 à 1, ex. 0,55 ; 0,50 hors duel RN). */
-  abstainerAntiRnShare: number
+  /** Part manuelle des nouveaux votants allant à l'adversaire du RN (0 à 1), ou null = mode endogène neutre (S2). */
+  abstainerAntiRnShare: number | null
   /** Force du front républicain appliquée à ce duel (0 à 1), ou null hors duel RN (informatif). */
   republicanFrontStrength?: number | null
   secondRoundPolls: SecondRoundPoll[]
@@ -269,13 +269,14 @@ export interface SecondRoundInput {
 }
 
 /**
- * Moteur unifié du 2nd tour en flux bruts (% des inscrits) :
+ * Moteur unifié du 2nd tour en flux bruts (% des inscrits, refonte P1-bis S1–S4) :
  * - Chaque électorat exprimé du 1er tour (taille `x_c × E1 / 100`) applique directement ses taux de report
- *   individuels (fidélité différenciée pour les finalistes, enquête 2024 / mélange présidentiel / déclarations
+ *   individuels (fidélité symétrique neutre en mode historique, enquête 2024 / mélange présidentiel / déclarations
  *   logit pour les éliminés). Aucun recalibrage post-hoc par camp ni soustraction uniforme `u = N / X`.
- * - Les abstentionnistes du 1er tour (`100 − P`) se mobilisent à hauteur de `abstainerMobilization` et se
- *   répartissent selon `abstainerAntiRnShare` (duel face au RN) ou 50/50 (duel hors RN).
- * - Identité comptable exacte : `totals.a + totals.b + totals.nonExpressed + blankNull1 = 100 %` des inscrits.
+ * - Les non-exprimés du 1er tour (`abstention1 + blankNull1 = 100 − E1`) se mobilisent à hauteur de
+ *   `abstainerMobilization` (S1) et suivent par défaut (`abstainerAntiRnShare = null`) le partage T2 des
+ *   électeurs exprimés du 1er tour (mode endogène neutre S2), sauf surcharge manuelle face au RN.
+ * - Identité comptable exacte : `totals.a + totals.b + totals.nonExpressed = 100 %` des inscrits.
  * - Score final en % des suffrages exprimés : `V_A / (V_A + V_B)`.
  */
 export function computeSecondRound(input: SecondRoundInput): SecondRoundResult {
@@ -353,22 +354,39 @@ export function computeSecondRound(input: SecondRoundInput): SecondRoundResult {
     return { ...base, toA: sum('toA'), toB: sum('toB'), abstention: sum('abstention'), like }
   })
 
+  const sumFlows = (key: 'toA' | 'toB' | 'abstention') => flows.reduce((t, f) => t + f[key], 0)
+  const r1ToA = sumFlows('toA')
+  const r1ToB = sumFlows('toB')
+  const r1Expr2 = r1ToA + r1ToB
+  const qNeutralA = r1Expr2 > 0 ? r1ToA / r1Expr2 : 0.5
+
   const mob = clamp(abstainerMobilization, 0, 1)
-  const newVoters = abstention1 * mob
-  const qAntiRn = clamp(abstainerAntiRnShare, 0, 1)
-  const qA = duel.kind === 'rn-sourced' ? (challengerIsA ? qAntiRn : 1 - qAntiRn) : 0.5
+  const manualAntiRn =
+    duel.kind === 'rn-sourced' && abstainerAntiRnShare !== null ? clamp(abstainerAntiRnShare, 0, 1) : null
+  const qA = manualAntiRn !== null ? (challengerIsA ? manualAntiRn : 1 - manualAntiRn) : qNeutralA
+  const effectiveAntiRnShare = duel.kind === 'rn-sourced' ? (challengerIsA ? qA : 1 - qA) : qA
+
+  const absNewVoters = abstention1 * mob
+  const bnNewVoters = blankNull1 * mob
+  const newVoters = absNewVoters + bnNewVoters
+
   const abstainers = {
     volume: abstention1,
-    toA: newVoters * qA,
-    toB: newVoters * (1 - qA),
-    nonExpressed: abstention1 - newVoters,
+    toA: absNewVoters * qA,
+    toB: absNewVoters * (1 - qA),
+    nonExpressed: abstention1 - absNewVoters,
+  }
+  const blankNull = {
+    volume: blankNull1,
+    toA: bnNewVoters * qA,
+    toB: bnNewVoters * (1 - qA),
+    nonExpressed: blankNull1 - bnNewVoters,
   }
 
-  const sumFlows = (key: 'toA' | 'toB' | 'abstention') => flows.reduce((t, f) => t + f[key], 0)
   const totals = {
-    a: sumFlows('toA') + abstainers.toA,
-    b: sumFlows('toB') + abstainers.toB,
-    nonExpressed: sumFlows('abstention') + abstainers.nonExpressed,
+    a: r1ToA + abstainers.toA + blankNull.toA,
+    b: r1ToB + abstainers.toB + blankNull.toB,
+    nonExpressed: sumFlows('abstention') + abstainers.nonExpressed + blankNull.nonExpressed,
   }
   const expressed2 = totals.a + totals.b
   const pct =
@@ -397,10 +415,10 @@ export function computeSecondRound(input: SecondRoundInput): SecondRoundResult {
     newVoters,
     flows,
     abstainers,
-    blankNull: { volume: blankNull1 },
+    blankNull,
     totals,
     fidelity: { a: fidelityA, b: fidelityB },
-    effectiveAbstainerAntiRnShare: duel.kind === 'rn-sourced' ? qAntiRn : 0.5,
+    effectiveAbstainerAntiRnShare: effectiveAntiRnShare,
     republicanFrontStrength: duel.kind === 'rn-sourced' ? (input.republicanFrontStrength ?? null) : null,
     netDropout,
     directPolls,

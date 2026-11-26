@@ -28,7 +28,7 @@ const PRESET_OPTIONS: { id: RepublicanFrontPreset; label: string; hint: string }
   {
     id: 'midpoint',
     label: 'Mi-chemin',
-    hint: '50 % : position intermédiaire entre présidentielle 2022 et législatives 2024',
+    hint: '50 % : position intermédiaire entre présidentielle 2022 (0 %), présidentielle 2017 (55 %) et législatives 2024 (100 %)',
   },
   {
     id: 'leg2024',
@@ -38,7 +38,7 @@ const PRESET_OPTIONS: { id: RepublicanFrontPreset; label: string; hint: string }
   {
     id: 'uncertain',
     label: 'Incertain',
-    hint: '50 % à l’affichage ; dans Monte-Carlo, position tirée uniformément entre 0 % et 100 %, commune aux 3 électorats',
+    hint: '50 % à l’affichage ; dans Monte-Carlo, position tirée uniformément sur l’étendue des 3 ancres (2022, 2017 à 55 %, 2024), commune aux 3 électorats',
   },
 ]
 
@@ -128,7 +128,7 @@ export function RepublicanFrontControls({
     ? 'Sans effet sur un duel hors RN.'
     : isDeclaredOnly
       ? 'Inactif en mode « Déclarations 2027 » seul (ce réglage s’applique à la base historique et au mélange).'
-      : 'Chaque curseur règle la tenue du barrage anti-RN des électeurs éliminés de ce camp (0 % = présidentielle 2022, 100 % = législatives 2024 sur la paire exacte de finalistes).'
+      : 'Chaque curseur règle la tenue du barrage anti-RN des électeurs éliminés de ce camp sur 3 ancres mesurées : 0 % = présidentielle 2022, 55 % = présidentielle 2017, 100 % = législatives 2024.'
 
   return (
     <div className={compact ? 'space-y-4' : 'space-y-4 rounded-lg border border-rule bg-paper/60 p-3.5'}>
@@ -166,7 +166,7 @@ export function RepublicanFrontControls({
           {!isNonRnDuel && (
             <p className="text-xs text-ink-3">
               {transferSource === 'legislatives2024' &&
-                'Interpolation directe en logit entre les législatives 2024 (Ipsos-Talan par paire exacte de finalistes, 100 %) et la présidentielle 2022 (0 %), réglée ci-dessous.'}
+                'Interpolation logit linéaire par morceaux sur 3 ancres mesurées : présidentielle 2022 (0 %), présidentielle 2017 (55 %) et législatives 2024 (Ipsos-Talan par paire exacte de finalistes, 100 %), réglée ci-dessous.'}
               {transferSource === 'blend' &&
                 'Combine la base historique 2022 ↔ 2024 (réglée ci-dessous) avec les déclarations d’intention 2027 corrigées sur échelle logit.'}
               {transferSource === 'declared2027' &&
@@ -298,8 +298,8 @@ export function RepublicanFrontControls({
           {isDisplayedLfiRn && !rfDisabled && (
             <p className="text-[0.72rem] leading-snug text-ink-3">
               Sur un duel LFI – RN, <strong>Électeurs de gauche (hors LFI)</strong> pilote les reports de Glucksmann,
-              Tondelier et Roussel (100&#8239;% = 72&#8239;% repère NFP 2024, 0&#8239;% = 47&#8239;% niveau Prés. 2022 ;
-              incertitude tirée dans Monte-Carlo sur{' '}
+              Tondelier et Roussel (100&#8239;% = 72&#8239;% repère NFP 2024, 55&#8239;% = 56,6&#8239;% repère Prés.
+              2017, 0&#8239;% = 45,9&#8239;% niveau Prés. 2022 ; incertitude tirée dans Monte-Carlo sur{' '}
               <span className="num font-medium">
                 {lfiLeftRange[0]}–{lfiLeftRange[1]}&#8239;%
               </span>

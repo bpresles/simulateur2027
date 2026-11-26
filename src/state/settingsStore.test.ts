@@ -147,8 +147,28 @@ describe('migration des réglages (→ v17), front républicain par électorat e
     expect(useSettings.getState().candidacyUncertaintyEnabled).toBe(false)
   })
 
-  it('version trop récente (> 16) : réglages par défaut', async () => {
+  it('v17 → v18 : migre les anciens défauts (a = 0,20 → 0,225 ; q = 0,55 → null) et conserve les choix explicites', async () => {
+    const defMigrated = await rehydrate(17, {
+      abstainerMobilization: 0.2,
+      abstainerAntiRnShare: 0.55,
+      republicanFront: { gauche: 0.5, centre: 0.5, droite: 0.5 },
+    })
+    expect(defMigrated.abstainerMobilization).toBeCloseTo(0.225, 9)
+    expect(defMigrated.abstainerAntiRnShare).toBeNull()
+    expect(defMigrated.republicanFront).toMatchObject({ gauche: 0.5, centre: 0.5, droite: 0.5 })
+
+    const customKept = await rehydrate(17, {
+      abstainerMobilization: 0.15,
+      abstainerAntiRnShare: 0.62,
+    })
+    expect(customKept.abstainerMobilization).toBeCloseTo(0.15, 9)
+    expect(customKept.abstainerAntiRnShare).toBeCloseTo(0.62, 9)
+  })
+
+  it('version trop récente (> 17) : réglages par défaut', async () => {
     const s = await rehydrate(99, { firstRoundTurnout: 85 })
     expect(s.firstRoundTurnout).toBe(74)
+    expect(s.abstainerMobilization).toBeCloseTo(0.225, 9)
+    expect(s.abstainerAntiRnShare).toBeNull()
   })
 })

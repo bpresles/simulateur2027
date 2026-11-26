@@ -65,11 +65,37 @@ describe('resolveDuel & nonRnSplit', () => {
 })
 
 describe('effectiveProfiles, interpolation 2022↔2024, report gauche hors LFI & correction logit', () => {
-  it('différencie la fidélité par finaliste (Le Pen 96 %, Mélenchon 92 %, autres 95 %)', () => {
-    expect(fidelityFor('lepen', transfers, null)).toEqual({ loyal: 96, cross: 1, abstention: 3 })
-    expect(fidelityFor('melenchon', transfers, null)).toEqual({ loyal: 92, cross: 2, abstention: 6 })
-    expect(fidelityFor('ens', transfers, null)).toEqual({ loyal: 95, cross: 1.5, abstention: 3.5 })
+  it('applique la fidélité symétrique neutre par défaut (S3), la fidélité déclarée corrigée en mode declared2027 et le mode uniforme manuel', () => {
+    expect(fidelityFor('lepen', transfers, null)).toEqual({ loyal: 94.75, cross: 1.75, abstention: 3.5 })
+    expect(fidelityFor('melenchon', transfers, null)).toEqual({ loyal: 94.75, cross: 1.75, abstention: 3.5 })
+    expect(fidelityFor('ens', transfers, null)).toEqual({ loyal: 94.75, cross: 1.75, abstention: 3.5 })
     expect(fidelityFor('melenchon', transfers, 0.9)).toEqual({ loyal: 90, cross: 0, abstention: 10 })
+
+    const declLePen = fidelityFor('lepen', transfers, null, {
+      declaredTransfers,
+      transferSource: 'declared2027',
+      isRnDuel: true,
+      isRnFinalist: true,
+    })
+    const declMel = fidelityFor('melenchon', transfers, null, {
+      declaredTransfers,
+      transferSource: 'declared2027',
+      isRnDuel: true,
+      isRnFinalist: false,
+    })
+    expect(declLePen.loyal + declLePen.cross + declLePen.abstention).toBeCloseTo(100, 8)
+    expect(declMel.loyal + declMel.cross + declMel.abstention).toBeCloseTo(100, 8)
+    expect(declLePen.loyal).toBeLessThan(96)
+    expect(declMel.loyal).toBeGreaterThan(92)
+
+    const blendMel = fidelityFor('melenchon', transfers, null, {
+      declaredTransfers,
+      transferSource: 'blend',
+      declaredWeight: 0.5,
+      isRnDuel: true,
+      isRnFinalist: false,
+    })
+    expect(blendMel.loyal).toBeCloseTo((94.75 + declMel.loyal) / 2, 8)
   })
 
   it('interpole proprement en logit entre Présidentielle 2022 (0 %) et Législatives 2024 (100 %) sur les 4 profils', () => {
@@ -99,12 +125,43 @@ describe('effectiveProfiles, interpolation 2022↔2024, report gauche hors LFI &
       }
     }
 
-    // Extrémités exactes sur ensemble_rn : 100 % = Ipsos-Talan 2024 (72 %), 0 % = Présidentielle 2022 (47 % gauche, 53 % droite)
+    // Extrémités et ancre 2017 exactes sur ensemble_rn (P2 : 0 = 2022, 0,5502 = 2017, 1 = 2024)
+    const pos2017 = transfers.presidentialCenterRn.anchor2017Position
+    const prof2017 = effectiveProfiles(transfers, declaredTransfers, {
+      ...defaultSettings(),
+      republicanFront: { gauche: pos2017, centre: pos2017, droite: pos2017 },
+    })
     expect(prof2024.ensemble_rn.gauche.finalist).toBeCloseTo(72, 6)
-    expect(prof2022.ensemble_rn.gauche.finalist).toBeCloseTo(47, 4)
-    expect(prof2022.ensemble_rn.gauche.rn).toBeCloseTo(15, 4)
-    expect(prof2022.ensemble_rn.droite.finalist).toBeCloseTo(53, 4)
+    expect(prof2017.ensemble_rn.gauche.finalist).toBeCloseTo(56.65, 4)
+    expect(prof2017.ensemble_rn.gauche.rn).toBeCloseTo(5.78, 4)
+    expect(prof2017.ensemble_rn.droite.finalist).toBeCloseTo(48, 4)
+    expect(prof2017.ensemble_rn.droite.rn).toBeCloseTo(20, 4)
+    expect(prof2022.ensemble_rn.gauche.finalist).toBeCloseTo(45.92, 4)
+    expect(prof2022.ensemble_rn.gauche.rn).toBeCloseTo(13.52, 4)
+    expect(prof2022.ensemble_rn.droite.finalist).toBeCloseTo(52.5, 4)
     expect(prof2022.ensemble_rn.droite.rn).toBeCloseTo(18, 4)
+    // Aucune extrapolation hors des 3 ancres [0 ; 1] (R2.3)
+    expect(
+      applyRepublicanFrontRow(
+        'ensemble_rn',
+        'gauche',
+        transfers.profiles.find((p) => p.id === 'ensemble_rn')!.rows.gauche,
+        transfers,
+        -0.5,
+      ),
+    ).toEqual(prof2022.ensemble_rn.gauche)
+    expect(
+      applyRepublicanFrontRow(
+        'ensemble_rn',
+        'gauche',
+        transfers.profiles.find((p) => p.id === 'ensemble_rn')!.rows.gauche,
+        transfers,
+        1.5,
+      ),
+    ).toEqual(prof2024.ensemble_rn.gauche)
+    // Extrême droite hors finaliste : moyenne mesurée admissible S4 (18,25 / 52,75 / 29 %)
+    expect(prof2024.ensemble_rn.extreme_droite).toEqual({ finalist: 18.25, rn: 52.75, abstention: 29 })
+    expect(prof2022.ensemble_rn.extreme_droite).toEqual({ finalist: 18.25, rn: 52.75, abstention: 29 })
 
     // Monotonie stricte entre 2022 (0 %) et 2024 (100 %) sur les 4 profils
     expect(prof2024.ensemble_rn.gauche.finalist).toBeGreaterThan(profMid.ensemble_rn.gauche.finalist)
@@ -132,20 +189,22 @@ describe('effectiveProfiles, interpolation 2022↔2024, report gauche hors LFI &
     expect(lowCentre.lfi_rn.gauche.finalist).toBeCloseTo(prof2024.lfi_rn.gauche.finalist, 8)
     expect(lowCentre.ensemble_rn.gauche.finalist).toBeCloseTo(prof2024.ensemble_rn.gauche.finalist, 8)
 
-    // Abaisser uniquement la gauche impacte gauche hors LFI sur lfi_rn (72 % → 47 %) et ecolo_ps_pcf_rn, sans toucher centre ni droite
+    // Abaisser uniquement la gauche impacte gauche hors LFI sur lfi_rn (72 % → 45,92 %) et ecolo_ps_pcf_rn, sans toucher centre ni droite
     const lowGauche = effectiveProfiles(transfers, declaredTransfers, {
       ...defaultSettings(),
       republicanFront: { gauche: 0, centre: 1, droite: 1 },
     })
     expect(prof2024.lfi_rn.gauche.finalist).toBeCloseTo(72, 6)
-    expect(lowGauche.lfi_rn.gauche.finalist).toBeCloseTo(47, 4)
-    expect(lowGauche.lfi_rn.gauche.rn).toBeCloseTo(15, 4)
-    expect(lowGauche.ecolo_ps_pcf_rn.gauche.finalist).toBeCloseTo(47, 4)
+    expect(lowGauche.lfi_rn.gauche.finalist).toBeCloseTo(45.92, 4)
+    expect(lowGauche.lfi_rn.gauche.rn).toBeCloseTo(13.52, 4)
+    expect(lowGauche.ecolo_ps_pcf_rn.gauche.finalist).toBeCloseTo(45.92, 4)
     expect(lowGauche.lfi_rn.centre.finalist).toBeCloseTo(prof2024.lfi_rn.centre.finalist, 8)
     expect(lowGauche.lfi_rn.droite.finalist).toBeCloseTo(prof2024.lfi_rn.droite.finalist, 8)
 
-    // Nouveaux votants : 50 % hors RN, baseShare conservé face au RN (sans règle inventée)
-    expect(effectiveAbstainerAntiRnShare(0.55, null)).toBe(0.5)
+    // Nouveaux votants : null en mode neutre (S2) ou hors RN, baseShare conservé face au RN en mode manuel
+    expect(effectiveAbstainerAntiRnShare(null, null)).toBeNull()
+    expect(effectiveAbstainerAntiRnShare(null, 1)).toBeNull()
+    expect(effectiveAbstainerAntiRnShare(0.55, null)).toBeNull()
     expect(effectiveAbstainerAntiRnShare(0.55, 0)).toBeCloseTo(0.55, 8)
     expect(effectiveAbstainerAntiRnShare(0.55, 1)).toBeCloseTo(0.55, 8)
   })
@@ -164,12 +223,16 @@ describe('effectiveProfiles, interpolation 2022↔2024, report gauche hors LFI &
     expect(at54.finalist).toBeCloseTo(54, 6)
   })
 
-  it('corrige les déclarations 2027 sur échelle logit multinomial (dans [0 ; 100], somme 100)', () => {
+  it('corrige les déclarations 2027 sur échelle logit multinomial et conserve les replis historiques (S4)', () => {
     const raw = declaredTransfers.profiles.lfi_rn.centre
     const corr = correctDeclaredRowLogit(raw, declaredTransfers.logitCorrection)
     expect(corr.finalist + corr.rn + corr.abstention).toBeCloseTo(100, 8)
     expect(corr.finalist).toBeGreaterThan(raw.finalist)
     expect(corr.rn).toBeLessThan(raw.rn)
+
+    const edRaw = declaredTransfers.profiles.lfi_rn.extreme_droite
+    const edCorr = correctDeclaredRowLogit(edRaw, declaredTransfers.logitCorrection)
+    expect(edCorr).toEqual({ finalist: edRaw.finalist, rn: edRaw.rn, abstention: edRaw.abstention })
   })
 })
 
@@ -177,7 +240,7 @@ describe('computeSecondRound (moteur unifié en flux bruts)', () => {
   const electorate = { lepen: 40, melenchon: 20, ens: 20, eco: 10, lr: 5, rec: 5 }
   const profiles = effectiveProfiles(transfers, declaredTransfers, defaultSettings())
 
-  it('reproduit exactement un calcul à la main en % des inscrits (somme = 100 %)', () => {
+  it('reproduit exactement un calcul à la main en % des inscrits (S1 unifié, somme = 100 %)', () => {
     const res = computeSecondRound({
       electorate,
       a: 'lepen',
@@ -195,25 +258,68 @@ describe('computeSecondRound (moteur unifié en flux bruts)', () => {
       republicanFrontStrength: 1,
       secondRoundPolls: [],
     })
-    // P = 80, BN1 = 4, E1 = 76, scale = 0.76, abst1 = 20, newVoters = 4 (2.2 Mélenchon, 1.8 Le Pen)
+    // P = 80, BN1 = 4, E1 = 76, scale = 0.76, nonExpressed1 = abst1 (20) + BN1 (4) = 24, newVoters = 4.8
     expect(res.blankNull1).toBeCloseTo(4, 10)
     expect(res.expressed1).toBeCloseTo(76, 10)
-    expect(res.newVoters).toBeCloseTo(4, 10)
+    expect(res.newVoters).toBeCloseTo(4.8, 10)
     const lfi = profiles.lfi_rn
     const melPts =
-      20 + 20 * (lfi.centre.finalist / 100) + 10 * (lfi.gauche.finalist / 100) + 5 * (lfi.droite.finalist / 100)
+      20 +
+      20 * (lfi.centre.finalist / 100) +
+      10 * (lfi.gauche.finalist / 100) +
+      5 * (lfi.droite.finalist / 100) +
+      5 * (lfi.extreme_droite.finalist / 100)
     const rnPts =
       40 +
       20 * (lfi.centre.rn / 100) +
       10 * (lfi.gauche.rn / 100) +
       5 * (lfi.droite.rn / 100) +
       5 * (lfi.extreme_droite.rn / 100)
-    const totB = melPts * 0.76 + 4 * 0.55
-    const totA = rnPts * 0.76 + 4 * 0.45
+    const totB = melPts * 0.76 + 4.8 * 0.55
+    const totA = rnPts * 0.76 + 4.8 * 0.45
     expect(res.totals.a).toBeCloseTo(totA, 8)
     expect(res.totals.b).toBeCloseTo(totB, 8)
     expect(res.pct.a).toBeCloseTo((100 * totA) / (totA + totB), 8)
-    expect(res.totals.a + res.totals.b + res.totals.nonExpressed + res.blankNull1).toBeCloseTo(100, 10)
+    expect(res.totals.a + res.totals.b + res.totals.nonExpressed).toBeCloseTo(100, 10)
+    expect(res.blankNull.toA + res.blankNull.toB + res.blankNull.nonExpressed).toBeCloseTo(4, 10)
+
+    // Mode endogène neutre (S2) : abstainerAntiRnShare = null laisse pct.a invariant à la mobilisation
+    const neutral1 = computeSecondRound({
+      electorate,
+      a: 'lepen',
+      b: 'melenchon',
+      duel: resolveDuel('lepen', 'melenchon', byId),
+      profiles,
+      nonRnPresidential: transfers.nonRnPresidential,
+      fidelityA: { loyal: 100, cross: 0, abstention: 0 },
+      fidelityB: { loyal: 100, cross: 0, abstention: 0 },
+      candidatesById: byId,
+      firstRoundTurnout: 80,
+      blankNullShare: 0.05,
+      abstainerMobilization: 0.14,
+      abstainerAntiRnShare: null,
+      republicanFrontStrength: 1,
+      secondRoundPolls: [],
+    })
+    const neutral2 = computeSecondRound({
+      electorate,
+      a: 'lepen',
+      b: 'melenchon',
+      duel: resolveDuel('lepen', 'melenchon', byId),
+      profiles,
+      nonRnPresidential: transfers.nonRnPresidential,
+      fidelityA: { loyal: 100, cross: 0, abstention: 0 },
+      fidelityB: { loyal: 100, cross: 0, abstention: 0 },
+      candidatesById: byId,
+      firstRoundTurnout: 80,
+      blankNullShare: 0.05,
+      abstainerMobilization: 0.3,
+      abstainerAntiRnShare: null,
+      republicanFrontStrength: 1,
+      secondRoundPolls: [],
+    })
+    expect(neutral1.pct.a).toBeCloseTo(neutral2.pct.a, 10)
+    expect(neutral1.effectiveAbstainerAntiRnShare).toBeCloseTo(melPts / (melPts + rnPts), 10)
   })
 
   it('électeurs d’un petit candidat : chaque part suit l’électorat principal indiqué', () => {

@@ -1,22 +1,21 @@
-import { computeBacktest, historicalBloc } from './backtest'
+import { historicalBloc } from './backtest'
 import type { BacktestReport } from './backtest'
-import { computeSecondRound } from './secondRound'
 import {
   CURRENT_ANTI_RN_SHARE,
   CURRENT_MOBILIZATION,
   R113_REF_ANTI_RN_SHARE,
   R113_REF_MOBILIZATION,
   TRANSPOSED_CENTER_ROW,
+  V22_FIDELITY_DEFAULT,
+  V22_FIDELITY_LEPEN,
+  V22_PRESIDENTIAL_ELECTIONS,
   computeR19BlocRows,
   computeStep2Report,
 } from './secondRoundDegradation'
 import { ALL_REPRODUCTION_VARIANTS, resolveReferenceRows } from './secondRoundReproduction'
 import type { ReproductionVariant } from './secondRoundReproduction'
-import { fidelityFor } from './transfers'
-import type { ProfileTable } from './transfers'
 import type {
   Bloc,
-  Candidate,
   ProfileId,
   Reference2017,
   Reference2022,
@@ -129,10 +128,14 @@ function buildR11BlocRows(
   }
 }
 
+/**
+ * Évalue une présidentielle selon la formule v2.2 archivée (`abstention1` seul, `blankNull1` à 0 %, `q` exogène)
+ * pour garantir l'immutabilité de l'audit P1 du 24/11/2026.
+ */
 function evalPresidentialWithBlocRows(
   year: ReferenceMatrixYear,
   ref: Reference2017 | Reference2022,
-  data: SimulationData,
+  _data: SimulationData,
   rows: Record<Bloc, TransferValues>,
   options: {
     mobilization?: number
@@ -141,130 +144,85 @@ function evalPresidentialWithBlocRows(
     fidLePen?: { loyal: number; cross: number; abstention: number }
   } = {},
 ): ElectionEvalMetrics {
-  const electorate = Object.fromEntries(ref.candidates.map((c) => [c.id, (100 * c.votes) / ref.expressed]))
-  const candidatesById = new Map<string, Candidate>(
-    ref.candidates.map((c) => [
-      c.id,
-      {
-        id: c.id,
-        name: c.name,
-        shortName: c.name,
-        party: '',
-        bloc: historicalBloc(c.id),
-        color: '#000000',
-        colorDark: '#ffffff',
-        duelProfile: c.id === 'macron' ? 'ensemble_rn' : null,
-        isRN: c.id === 'lepen',
-      },
-    ]),
-  )
-  const fidMacron = options.fidMacron ?? fidelityFor('macron', data.transfers, null)
-  const fidLePen = options.fidLePen ?? fidelityFor('lepen', data.transfers, null)
-  const profiles: ProfileTable = {
-    lfi_rn: rows,
-    ecolo_ps_pcf_rn: rows,
-    ensemble_rn: rows,
-    lr_rn: rows,
+  const fidMacron = options.fidMacron ?? V22_FIDELITY_DEFAULT
+  const fidLePen = options.fidLePen ?? V22_FIDELITY_LEPEN
+  const mob = options.mobilization ?? CURRENT_MOBILIZATION
+  const q = options.antiRnShare ?? CURRENT_ANTI_RN_SHARE
+  const abstention1 = (100 * (ref.registered - ref.voters)) / ref.registered
+  let totA = 0
+  let totB = 0
+  for (const c of ref.candidates) {
+    const share = (100 * c.votes) / ref.registered
+    if (c.id === 'macron') {
+      totA += (share * fidMacron.loyal) / 100
+      totB += (share * fidMacron.cross) / 100
+    } else if (c.id === 'lepen') {
+      totA += (share * fidLePen.cross) / 100
+      totB += (share * fidLePen.loyal) / 100
+    } else {
+      const row = rows[historicalBloc(c.id)]
+      totA += (share * row.finalist) / 100
+      totB += (share * row.rn) / 100
+    }
   }
-  const sr = computeSecondRound({
-    electorate,
-    a: 'macron',
-    b: 'lepen',
-    duel: {
-      kind: 'rn-sourced',
-      challengerId: 'macron',
-      rnId: 'lepen',
-      profileWeights: [{ profileId: 'ensemble_rn', weight: 1 }],
-    },
-    profiles,
-    nonRnPresidential: data.transfers.nonRnPresidential,
-    fidelityA: fidMacron,
-    fidelityB: fidLePen,
-    candidatesById,
-    firstRoundTurnout: (100 * ref.voters) / ref.registered,
-    blankNullShare: (ref.voters - ref.expressed) / ref.voters,
-    abstainerMobilization: options.mobilization ?? CURRENT_MOBILIZATION,
-    abstainerAntiRnShare: options.antiRnShare ?? CURRENT_ANTI_RN_SHARE,
-    secondRoundPolls: [],
-  })
+  const nv = abstention1 * mob
+  totA += nv * q
+  totB += nv * (1 - q)
+  const expressed2 = totA + totB
+  const predictedAntiRnPct = expressed2 > 0 ? (100 * totA) / expressed2 : 50
   const actualMacron = ref.secondRound.candidates.find((c) => c.id === 'macron')!.votes
   const actualAntiRnPct = (100 * actualMacron) / ref.secondRound.expressed
   return {
     year,
-    predictedAntiRnPct: sr.pct.a,
+    predictedAntiRnPct,
     actualAntiRnPct,
-    errorPts: sr.pct.a - actualAntiRnPct,
-    volumeAntiRnPct: sr.totals.a,
-    volumeRnPct: sr.totals.b,
-    expressed2Pct: sr.expressed2,
+    errorPts: predictedAntiRnPct - actualAntiRnPct,
+    volumeAntiRnPct: totA,
+    volumeRnPct: totB,
+    expressed2Pct: expressed2,
   }
 }
 
-function evalLeg2024WithAbstainers(
+export function evalLeg2024WithAbstainersV22(
   data: SimulationData,
   mobilization: number,
   antiRnShare: number,
 ): Record<ProfileId, number> {
-  const fidDefault = data.transfers.fidelity.default
-  const fidRn = fidelityFor('lepen', data.transfers, null)
+  const fidDefault = V22_FIDELITY_DEFAULT
+  const fidRn = V22_FIDELITY_LEPEN
   const legTurnout2024 = 66.7
   const legBnShare2024 =
     (data.secondRoundDropout.newVoters.legislatives2024.votersFirstRound -
       data.secondRoundDropout.newVoters.legislatives2024.expressedFirstRound) /
     data.secondRoundDropout.newVoters.legislatives2024.votersFirstRound
+  const abstention1 = 100 - legTurnout2024
+  const expr1 = legTurnout2024 * (1 - legBnShare2024)
 
   return Object.fromEntries(
     data.transfers.profiles.map((profile) => {
       const agg = data.secondRoundDropout.legislatives2024.profiles[profile.id]
       const total1 = Object.values(agg.firstRoundVotesByBloc).reduce((s, v) => s + v, 0)
       const finalistBloc = agg.finalistBlocs.find((b) => b !== 'extreme_droite')!
-      const electorate = Object.fromEntries(
-        Object.entries(agg.firstRoundVotesByBloc).map(([b, v]) => [b, total1 > 0 ? (100 * v) / total1 : 0]),
-      )
-      const syntheticCandidates = new Map<string, Candidate>(
-        (['gauche', 'centre', 'droite', 'extreme_droite'] as const).map((b) => [
-          b,
-          {
-            id: b,
-            name: b,
-            shortName: b,
-            party: '',
-            bloc: b,
-            color: '#000000',
-            colorDark: '#ffffff',
-            duelProfile: b === finalistBloc ? profile.id : null,
-            isRN: b === 'extreme_droite',
-          },
-        ]),
-      )
-      const table: ProfileTable = {
-        lfi_rn: profile.rows,
-        ecolo_ps_pcf_rn: profile.rows,
-        ensemble_rn: profile.rows,
-        lr_rn: profile.rows,
+      let totA = 0
+      let totB = 0
+      for (const [b, v] of Object.entries(agg.firstRoundVotesByBloc) as [Bloc, number][]) {
+        const share = total1 > 0 ? (v / total1) * expr1 : 0
+        if (b === finalistBloc) {
+          totA += (share * fidDefault.loyal) / 100
+          totB += (share * fidDefault.cross) / 100
+        } else if (b === 'extreme_droite') {
+          totA += (share * fidRn.cross) / 100
+          totB += (share * fidRn.loyal) / 100
+        } else {
+          const row = profile.rows[b]
+          totA += (share * row.finalist) / 100
+          totB += (share * row.rn) / 100
+        }
       }
-      const pred = computeSecondRound({
-        electorate,
-        a: finalistBloc,
-        b: 'extreme_droite',
-        duel: {
-          kind: 'rn-sourced',
-          challengerId: finalistBloc,
-          rnId: 'extreme_droite',
-          profileWeights: [{ profileId: profile.id, weight: 1 }],
-        },
-        profiles: table,
-        nonRnPresidential: data.transfers.nonRnPresidential,
-        fidelityA: fidDefault,
-        fidelityB: fidRn,
-        candidatesById: syntheticCandidates,
-        firstRoundTurnout: legTurnout2024,
-        blankNullShare: legBnShare2024,
-        abstainerMobilization: mobilization,
-        abstainerAntiRnShare: antiRnShare,
-        secondRoundPolls: [],
-      })
-      return [profile.id, pred.pct.a]
+      const nv = abstention1 * mobilization
+      totA += nv * antiRnShare
+      totB += nv * (1 - antiRnShare)
+      return [profile.id, totA + totB > 0 ? (100 * totA) / (totA + totB) : 50]
     }),
   ) as Record<ProfileId, number>
 }
@@ -310,8 +268,8 @@ function evaluateModeVariant(
   baselineCrossMeanAbsErrorPts: number,
   baselineLeg2024: Record<ProfileId, number>,
 ): R14EvaluationResult {
-  const repo17 = data.transfers.presidentialCenterRn.elections['2017']
-  const repo22 = data.transfers.presidentialCenterRn.elections['2022']
+  const repo17 = V22_PRESIDENTIAL_ELECTIONS['2017']
+  const repo22 = V22_PRESIDENTIAL_ELECTIONS['2022']
   const r11Rows17 = buildR11BlocRows('2017', data.reference2017, matrices, variant)
   const r11Rows22 = buildR11BlocRows('2022', data.reference2022, matrices, variant)
   const { pooled: r114PooledExtremeDroiteRow } = computeR114ExtremeDroiteRow(matrices, variant)
@@ -383,7 +341,7 @@ function evaluateModeVariant(
     ...f22,
   })
 
-  const candLeg2024 = evalLeg2024WithAbstainers(data, mob, q)
+  const candLeg2024 = evalLeg2024WithAbstainersV22(data, mob, q)
   const legRows: Leg2024StabilityRow[] = (Object.keys(baselineLeg2024) as ProfileId[]).map((profileId) => ({
     profileId,
     baselinePct: baselineLeg2024[profileId],
@@ -449,18 +407,16 @@ export function computeStep3Report(
     else r13ExcludedByThreshold.push(key)
   }
 
-  const repo17 = data.transfers.presidentialCenterRn.elections['2017']
-  const repo22 = data.transfers.presidentialCenterRn.elections['2022']
+  const repo17 = V22_PRESIDENTIAL_ELECTIONS['2017']
+  const repo22 = V22_PRESIDENTIAL_ELECTIONS['2022']
   const baseIn17 = evalPresidentialWithBlocRows('2017', data.reference2017, data, repo17)
   const baseIn22 = evalPresidentialWithBlocRows('2022', data.reference2022, data, repo22)
   const baseCr17 = evalPresidentialWithBlocRows('2017', data.reference2017, data, repo22)
   const baseCr22 = evalPresidentialWithBlocRows('2022', data.reference2022, data, repo17)
   const baselineCrossMeanAbsErrorPts = (Math.abs(baseCr17.errorPts) + Math.abs(baseCr22.errorPts)) / 2
 
-  const bt = existingBacktest ?? computeBacktest(data, data.polls)
-  const baselineLeg2024 = Object.fromEntries(
-    bt.legislatives2024Coherence.map((row) => [row.profileId, row.predictedFinalistPct]),
-  ) as Record<ProfileId, number>
+  void existingBacktest
+  const baselineLeg2024 = evalLeg2024WithAbstainersV22(data, CURRENT_MOBILIZATION, CURRENT_ANTI_RN_SHARE)
 
   const r13ByVariant = Object.fromEntries(
     ALL_REPRODUCTION_VARIANTS.map((v) => [

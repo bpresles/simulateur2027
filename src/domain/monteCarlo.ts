@@ -1,10 +1,10 @@
 import { daysBetween } from './pollAverage'
 import {
   applyRepublicanFrontRow,
-  effectiveAbstainerAntiRnShare,
   effectiveProfiles,
   fidelityFor,
   frontStrengthForBloc,
+  interpolateExtremeDroite,
   lfiLeftTransferRow,
   nonRnSplit,
   resolveDuel,
@@ -243,7 +243,9 @@ export function runMonteCarlo(input: MonteCarloInput): MonteCarloSummary {
   const baseLog = new Float64Array(n)
   const basePresent = new Uint8Array(n)
   const blocIdx = new Int8Array(n)
-  const baseFid: FidelitySplit[] = new Array(n)
+  const baseFidHist: FidelitySplit[] = new Array(n)
+  const baseFidDeclRn: FidelitySplit[] = new Array(n)
+  const baseFidDeclNonRn: FidelitySplit[] = new Array(n)
   const minorIdx: (readonly { idx: number; weight: number }[] | null)[] = new Array(n)
   const blocMembers: number[][] = [[], [], [], []]
 
@@ -256,7 +258,19 @@ export function runMonteCarlo(input: MonteCarloInput): MonteCarloSummary {
     const bi = c?.bloc ? BLOC_INDEX[c.bloc] : -1
     blocIdx[i] = bi
     if (bi >= 0) blocMembers[bi]!.push(i)
-    baseFid[i] = fidelityFor(id, data.transfers, settings.fidelity)
+    baseFidHist[i] = fidelityFor(id, data.transfers, settings.fidelity)
+    baseFidDeclRn[i] = fidelityFor(id, data.transfers, settings.fidelity, {
+      declaredTransfers: data.declaredTransfers,
+      transferSource: 'declared2027',
+      isRnDuel: true,
+      isRnFinalist: Boolean(c?.isRN),
+    })
+    baseFidDeclNonRn[i] = fidelityFor(id, data.transfers, settings.fidelity, {
+      declaredTransfers: data.declaredTransfers,
+      transferSource: 'declared2027',
+      isRnDuel: false,
+      isRnFinalist: false,
+    })
     const parts = minorTransfers[id]
     minorIdx[i] = parts ? parts.filter((p) => indexOf.has(p.id)).map((p) => ({ idx: indexOf.get(p.id)!, weight: p.weight })) : null
   }
@@ -292,7 +306,6 @@ export function runMonteCarlo(input: MonteCarloInput): MonteCarloSummary {
     ProfileId,
     (typeof data.transfers.profiles)[number]
   >
-  const rnLoyalty = fidelityFor(rnId, data.transfers, settings.fidelity).loyal
 
   const duelCache = new Map<number, { kind: 0 | 1 | 2; challengerIsA: boolean; prof: number }>()
   const resolveFast = (ai: number, bi: number) => {
@@ -351,7 +364,7 @@ export function runMonteCarlo(input: MonteCarloInput): MonteCarloSummary {
   let nrSampledAt = -1
   const bnClamped = clamp(blankNullShare, 0, 0.5)
 
-  const ensureProfile = (p: number, iter: number, rfShock: number, wDecl: number, lfiLeftU: number) => {
+  const ensureProfile = (p: number, iter: number, rfShock: number, wDecl: number, lfiLeftU: number, edU: number) => {
     if (profSampledAt[p] === iter) return
     profSampledAt[p] = iter
     const pid = PROFILE_IDS[p]!
@@ -364,8 +377,9 @@ export function runMonteCarlo(input: MonteCarloInput): MonteCarloSummary {
       let row: TransferValues
       if (override) {
         row = override
-      } else if (rawRow.camp === 'rn') {
-        row = { finalist: 0, rn: rnLoyalty, abstention: 100 - rnLoyalty }
+      } else if (bloc === 'extreme_droite') {
+        // S4 : tirage uniforme entre les deux bornes présidentielles admissibles R1.8 (2017 NDA et 2022 Zemmour).
+        row = interpolateExtremeDroite(data.transfers, edU)
       } else if (settings.transferSource === 'declared2027') {
         row = baseDeclProfiles[pid][bloc]
       } else {
@@ -402,6 +416,18 @@ export function runMonteCarlo(input: MonteCarloInput): MonteCarloSummary {
     }
   }
 
+  const pickFidelity = (idx: number, isRnDuel: boolean, wDecl: number): FidelitySplit => {
+    if (settings.transferSource === 'legislatives2024' || settings.fidelity !== null) return baseFidHist[idx]!
+    const decl = isRnDuel ? baseFidDeclRn[idx]! : baseFidDeclNonRn[idx]!
+    if (settings.transferSource === 'declared2027') return decl
+    const hist = baseFidHist[idx]!
+    return {
+      loyal: hist.loyal * (1 - wDecl) + decl.loyal * wDecl,
+      cross: hist.cross * (1 - wDecl) + decl.cross * wDecl,
+      abstention: hist.abstention * (1 - wDecl) + decl.abstention * wDecl,
+    }
+  }
+
   const evalPairFast = (
     ai: number,
     bi: number,
@@ -409,21 +435,23 @@ export function runMonteCarlo(input: MonteCarloInput): MonteCarloSummary {
     rfShock: number,
     wDecl: number,
     lfiLeftU: number,
+    edU: number,
     scale: number,
-    abstention1: number,
+    nonExpressed1: number,
     mob: number,
-    antiRnQBase: number,
+    qDelta: number,
     fidDeltaA: number,
     fidDeltaB: number,
     commonShockRn: number,
     commonShockNonRn: number,
   ): number => {
     const d = resolveFast(ai, bi)
-    if (d.kind === 0) ensureProfile(d.prof, iter, rfShock, wDecl, lfiLeftU)
+    if (d.kind === 0) ensureProfile(d.prof, iter, rfShock, wDecl, lfiLeftU, edU)
     else if (d.kind === 1) ensureNonRn(iter)
 
-    const fidA0 = baseFid[ai]!
-    const fidB0 = baseFid[bi]!
+    const isRnDuel = d.kind === 0
+    const fidA0 = pickFidelity(ai, isRnDuel, wDecl)
+    const fidB0 = pickFidelity(bi, isRnDuel, wDecl)
     const loyalA = clamp(fidA0.loyal + fidDeltaA, 80, 99)
     const restA = 100 - loyalA
     const baseRestA = fidA0.cross + fidA0.abstention
@@ -499,9 +527,16 @@ export function runMonteCarlo(input: MonteCarloInput): MonteCarloSummary {
       }
     }
 
-    const newVoters = abstention1 * mob
-    const antiRnQ = d.kind === 0 ? effectiveAbstainerAntiRnShare(antiRnQBase, 1) : 0.5
-    const qA = d.kind === 0 ? (d.challengerIsA ? antiRnQ : 1 - antiRnQ) : 0.5
+    const r1Expr2 = totA + totB
+    const qNeutralA = r1Expr2 > 0 ? totA / r1Expr2 : 0.5
+    const newVoters = nonExpressed1 * mob
+    let qA: number
+    if (d.kind === 0 && settings.abstainerAntiRnShare !== null) {
+      const antiRnQ = clamp(settings.abstainerAntiRnShare + qDelta, 0.2, 0.85)
+      qA = d.challengerIsA ? antiRnQ : 1 - antiRnQ
+    } else {
+      qA = clamp(qNeutralA + qDelta, 0.2, 0.8)
+    }
     totA += newVoters * qA
     totB += newVoters * (1 - qA)
 
@@ -598,12 +633,13 @@ export function runMonteCarlo(input: MonteCarloInput): MonteCarloSummary {
     const rfShock = settings.republicanFront.uncertain ? rng() - 0.5 : normalRfShock
     const wDecl = clamp(settings.declaredWeight + (rng() - 0.5), 0, 1)
     const lfiLeftU = rng()
+    const edU = rng()
     const turnout = clamp(settings.firstRoundTurnout + (rng() * 10 - 5), 55, 88)
-    const abstention1 = 100 - turnout
     const expressed1 = turnout * (1 - bnClamped)
+    const nonExpressed1 = 100 - expressed1
     const scale = expressed1 / 100
-    const mob = clamp(settings.abstainerMobilization + (rng() * 0.08 - 0.04), 0.05, 0.45)
-    const antiRnQBase = clamp(settings.abstainerAntiRnShare + (rng() * 0.16 - 0.08), 0.3, 0.78)
+    const mob = clamp(settings.abstainerMobilization + (rng() * 0.17 - 0.085), 0.05, 0.45)
+    const qDelta = rng() * 0.16 - 0.08
     const fidDeltaA = rng() * 5 - 2.5
     const fidDeltaB = rng() * 5 - 2.5
     const commonShockRn = nextNormal() * 3.0
@@ -618,10 +654,11 @@ export function runMonteCarlo(input: MonteCarloInput): MonteCarloSummary {
       rfShock,
       wDecl,
       lfiLeftU,
+      edU,
       scale,
-      abstention1,
+      nonExpressed1,
       mob,
-      antiRnQBase,
+      qDelta,
       fidDeltaA,
       fidDeltaB,
       commonShockRn,
@@ -650,10 +687,11 @@ export function runMonteCarlo(input: MonteCarloInput): MonteCarloSummary {
               rfShock,
               wDecl,
               lfiLeftU,
+              edU,
               scale,
-              abstention1,
+              nonExpressed1,
               mob,
-              antiRnQBase,
+              qDelta,
               fidDeltaA,
               fidDeltaB,
               commonShockRn,

@@ -395,49 +395,62 @@ function SecondRoundParamsPanel({ result }: { result: SimulationResult }) {
 
       <div>
         <p className="text-sm font-medium">
-          Abstentionnistes du 1er tour votant valablement au 2nd :{' '}
-          <span className="num">{pct(s.abstainerMobilization * 100, 0)}</span>
+          Non-exprimés du 1er tour votant valablement au 2nd :{' '}
+          <span className="num">{pct(s.abstainerMobilization * 100, 1)}</span>
         </p>
         <p className="mb-2 mt-0.5 text-xs text-ink-3">
-          Repères : ~14–22 % (Ifop 2022 / Insee 2017–2022). Défaut : 20 %.
+          Appliqué à l’ensemble des non-exprimés du 1er tour (abstention + blancs/nuls). Repères : ~14 % (Ifop 2022
+          déclaratif) à 21,8–23,2 % (Insee 2017–2022 ajusté blancs/nuls). Défaut : 22,5 %.
         </p>
         <Slider
-          label="Part des abstentionnistes mobilisés au 2nd tour"
+          label="Part des non-exprimés du 1er tour mobilisés au 2nd tour"
           value={s.abstainerMobilization * 100}
           onValueChange={(v) => s.setAbstainerMobilization(v / 100)}
           min={5}
           max={40}
-          step={1}
+          step={0.5}
         />
       </div>
 
       <div>
         <p className="text-sm font-medium">
           Orientation des nouveaux votants (adversaire du RN) :{' '}
-          <span className="num">{pct(s.abstainerAntiRnShare * 100, 0)}</span>
+          <span className="num">
+            {s.abstainerAntiRnShare === null ? 'miroir des exprimés (neutre)' : pct(s.abstainerAntiRnShare * 100, 0)}
+          </span>
         </p>
         <p className="mb-2 mt-0.5 text-xs text-ink-3">
-          Part des abstentionnistes du 1er tour qui votent pour l’adversaire du RN au 2nd tour (repère Ifop 2022 : 59 % ;
-          50 % dans les duels hors RN). Défaut : 55 %.
+          Par défaut, les nouveaux votants suivent exactement le partage au 2nd tour des électeurs déjà exprimés au
+          1er tour (neutre, sans bonus de camp). Un réglage manuel ne s’applique qu’aux duels face au RN (repère Ifop
+          2022 : 59 %).
         </p>
         <Slider
           label="Orientation des nouveaux votants face au RN"
-          value={s.abstainerAntiRnShare * 100}
+          value={(s.abstainerAntiRnShare ?? 0.5) * 100}
           onValueChange={(v) => s.setAbstainerAntiRnShare(v / 100)}
           min={30}
           max={75}
           step={1}
         />
+        {s.abstainerAntiRnShare !== null && (
+          <TextButton className="mt-2" onClick={() => s.setAbstainerAntiRnShare(null)}>
+            Revenir au mode neutre (miroir des exprimés)
+          </TextButton>
+        )}
       </div>
 
       <div>
         <p className="text-sm font-medium">
           Fidélité des finalistes :{' '}
           {s.fidelity === null
-            ? `différenciée (Le Pen ${transfers.fidelity.byCandidate.lepen?.loyal} %, Mélenchon ${transfers.fidelity.byCandidate.melenchon?.loyal} %, autres ${transfers.fidelity.default.loyal} %)`
+            ? s.transferSource === 'legislatives2024'
+              ? `symétrique neutre (${num(transfers.fidelity.default.loyal, 2)} %, croisé ${num(transfers.fidelity.default.cross, 2)} %)`
+              : `déclarée 2027 corrigée en logit (Le Pen ${declaredTransfers.fidelity.byCandidate.lepen?.loyal} %, Mélenchon ${declaredTransfers.fidelity.byCandidate.melenchon?.loyal} %, autres ${declaredTransfers.fidelity.default.loyal} % bruts)`
             : `uniforme à ${pct(s.fidelity * 100, 0)}`}
         </p>
-        <p className="mb-2 mt-0.5 text-xs text-ink-3">{transfers.fidelity.note}</p>
+        <p className="mb-2 mt-0.5 text-xs text-ink-3">
+          {s.transferSource === 'legislatives2024' ? transfers.fidelity.note : declaredTransfers.fidelity.note}
+        </p>
         <Slider
           label="Fidélité uniforme des finalistes"
           value={(s.fidelity ?? transfers.fidelity.default.loyal / 100) * 100}
@@ -448,7 +461,7 @@ function SecondRoundParamsPanel({ result }: { result: SimulationResult }) {
         />
         {s.fidelity !== null && (
           <TextButton className="mt-2" onClick={() => s.setFidelity(null)}>
-            Revenir à la fidélité différenciée par finaliste
+            Revenir à la fidélité par défaut
           </TextButton>
         )}
       </div>
@@ -570,8 +583,9 @@ function TransfersEditor({ result }: { result: SimulationResult }) {
             const current = overrides[bloc] ?? def
             const modified = overrides[bloc] !== undefined
             const isLfiLeft = profileId === 'lfi_rn' && bloc === 'gauche'
+            const isEd = bloc === 'extreme_droite'
             const provList =
-              s.transferSource === 'declared2027' && !row.camp
+              s.transferSource === 'declared2027' && !isEd
                 ? (['declare2027'] as const)
                 : [...new Set(Object.values(row.provenance))]
             return (
@@ -586,9 +600,10 @@ function TransfersEditor({ result }: { result: SimulationResult }) {
                           <span className={provenanceClass(p)}>{transfers.sources[p].label}</span>
                         </span>
                       ))}
-                      {!row.camp && s.transferSource !== 'declared2027' && (
+                      {isEd && <span> · MC 2017 ↔ 2022</span>}
+                      {!isEd && s.transferSource !== 'declared2027' && (
                         <span>
-                          {` · 2022 ↔ 2024 (${pct(frontStrengthForBloc(bloc, s.republicanFront) * 100, 0)}${
+                          {` · 2022 ↔ 2017 ↔ 2024 (${pct(frontStrengthForBloc(bloc, s.republicanFront) * 100, 0)}${
                             isLfiLeft ? `, MC ${s.lfiLeftTransferRange[0]}–${s.lfiLeftTransferRange[1]} %` : ''
                           })`}
                         </span>

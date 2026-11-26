@@ -88,8 +88,19 @@ describe('simulate (données figées)', () => {
   it('surcharge manuelle des reports prioritaire sur la source choisie', () => {
     const override = { finalist: 40, rn: 20, abstention: 40 }
     const overrides = { lfi_rn: { centre: override, droite: override, gauche: override } }
-    const a = run({ selectedDuel: 'lepen|melenchon', transferSource: 'legislatives2024', transferOverrides: overrides })
-    const b = run({ selectedDuel: 'lepen|melenchon', transferSource: 'declared2027', transferOverrides: overrides })
+    // Fidélité fixée uniformément afin d'isoler la priorité de transferOverrides sur transferSource (S3 différencie la fidélité par source).
+    const a = run({
+      selectedDuel: 'lepen|melenchon',
+      transferSource: 'legislatives2024',
+      transferOverrides: overrides,
+      fidelity: 0.95,
+    })
+    const b = run({
+      selectedDuel: 'lepen|melenchon',
+      transferSource: 'declared2027',
+      transferOverrides: overrides,
+      fidelity: 0.95,
+    })
     expect(a.secondRound.pct.b).toBeCloseTo(b.secondRound.pct.b, 10)
   })
 
