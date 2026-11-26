@@ -1,5 +1,5 @@
 {
-  "asOf": "2026-11-24",
+  "asOf": "2026-11-26",
   "electionDate": "2027-04-18",
   "windowDays": 21,
   "collection": {
@@ -2258,6 +2258,6 @@
   ],
   "period": {
     "label": "Octobre-décembre 2026",
-    "start": "2026-09-21"
+    "start": "2026-09-16"
   }
 }
