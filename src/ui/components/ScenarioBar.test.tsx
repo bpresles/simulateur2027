@@ -174,33 +174,30 @@ describe('ScenarioBar : projection d’offre, front républicain 2022↔2024 et 
       offerProjectionEnabled: true,
       transferSource: 'legislatives2024',
       republicanFront: { gauche: 1, centre: 1, droite: 1 },
-      betweenRoundsBias: 'none',
+      betweenRoundsBias: 'mean',
     })
   })
 
-  it('propose l’option facultative sur les écarts entre-deux-tours (désactivée par défaut) dans ScenarioBar et SettingsSheet', () => {
+  it('active l’option sur les écarts entre-deux-tours (moyenne 2017–2022 par défaut) dans ScenarioBar et SettingsSheet', () => {
     render(<Harness />)
     const sw = screen.getByRole('switch', {
       name: /Tenir compte des écarts entre les derniers sondages avant le 2nd tour et les résultats réels/,
     })
-    expect(sw.getAttribute('aria-checked')).toBe('false')
-    expect(useSettings.getState().betweenRoundsBias).toBe('none')
-    expect(screen.queryByRole('radio', { name: /2022/ })).toBeNull()
-
-    // Activation : 2022 par défaut
-    act(() => fireEvent.click(sw))
     expect(sw.getAttribute('aria-checked')).toBe('true')
-    expect(useSettings.getState().betweenRoundsBias).toBe('2022')
-    expect(screen.getByRole('radio', { name: /2022/ })).toBeTruthy()
-    expect(screen.getByRole('radio', { name: /2017/ })).toBeTruthy()
+    expect(useSettings.getState().betweenRoundsBias).toBe('mean')
+    expect(screen.getByRole('radio', { name: /Moy\. 2017–2022/ })).toBeTruthy()
+    expect(screen.getByRole('radio', { name: /^2022/ })).toBeTruthy()
+    expect(screen.getByRole('radio', { name: /^2017/ })).toBeTruthy()
 
     // Passage sur 2017
-    act(() => fireEvent.click(screen.getByRole('radio', { name: /2017/ })))
+    act(() => fireEvent.click(screen.getByRole('radio', { name: /^2017/ })))
     expect(useSettings.getState().betweenRoundsBias).toBe('2017')
 
     // Désactivation puis réactivation : mémorise 2017
     act(() => fireEvent.click(sw))
+    expect(sw.getAttribute('aria-checked')).toBe('false')
     expect(useSettings.getState().betweenRoundsBias).toBe('none')
+    expect(screen.queryByRole('radio', { name: /Moy\. 2017–2022/ })).toBeNull()
     act(() => fireEvent.click(sw))
     expect(useSettings.getState().betweenRoundsBias).toBe('2017')
 

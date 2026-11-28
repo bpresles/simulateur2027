@@ -150,15 +150,23 @@ export function betweenRoundsSummaries(data: SecondRoundPollBiasData): BetweenRo
 
 /**
  * Écart (résultat réel − moyenne des derniers sondages avant le 2nd tour, en points sur le score de l'adversaire du RN)
- * calculé dynamiquement depuis `second-round-poll-bias.json` pour le mode choisi (`'none'` → `0`, `'2022'` → `+2,35`, `'2017'` → `+3,43`).
+ * calculé dynamiquement depuis `second-round-poll-bias.json` pour le mode choisi :
+ * `'none'` → `0`, `'mean'` → moyenne des écarts 2017 et 2022 (`+2,89`), `'2022'` → `+2,35`, `'2017'` → `+3,43`.
  */
 export function betweenRoundsLastDayGap(
   data: SecondRoundPollBiasData,
   mode: BetweenRoundsBiasMode,
 ): number {
   if (mode === 'none') return 0
+  const summaries = betweenRoundsSummaries(data)
+  if (mode === 'mean') {
+    const gaps = [2022, 2017]
+      .map((y) => summaries.find((s) => s.year === y)?.lastDayGap)
+      .filter((g): g is number => g !== undefined)
+    return gaps.length > 0 ? gaps.reduce((t, g) => t + g, 0) / gaps.length : 0
+  }
   const year = mode === '2017' ? 2017 : 2022
-  return betweenRoundsSummaries(data).find((s) => s.year === year)?.lastDayGap ?? 0
+  return summaries.find((s) => s.year === year)?.lastDayGap ?? 0
 }
 
 /**

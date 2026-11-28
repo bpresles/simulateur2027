@@ -498,7 +498,7 @@ describe('P4 — sondages de l’entre-deux-tours (affichage seulement) et règl
     expect(s2017.polls.every((p) => p.phase === 'entreDeuxTours')).toBe(true)
   })
 
-  it('la sortie de runMonteCarlo à graine fixe (2027) est strictement inchangée par l’ajout des sondages entreDeuxTours', () => {
+  it('la sortie de runMonteCarlo à graine fixe (2027) est strictement inchangée par l’ajout des sondages entreDeuxTours lorsque betweenRoundsBias = "none"', () => {
     const onlyBeforeData = {
       ...simulationData,
       secondRoundPollBias: {
@@ -509,7 +509,7 @@ describe('P4 — sondages de l’entre-deux-tours (affichage seulement) et règl
         })),
       },
     }
-    const settings = defaultSettings()
+    const settings = { ...defaultSettings(), betweenRoundsBias: 'none' as const }
     const withBetween = simulate(simulationData, settings)
     const withoutBetween = simulate(onlyBeforeData, settings)
     expect(withBetween.monteCarlo).toEqual(withoutBetween.monteCarlo)
@@ -603,11 +603,13 @@ describe('P4 — sondages de l’entre-deux-tours (affichage seulement) et règl
   it('option facultative betweenRoundsBias : calcule dynamiquement les écarts 2022/2017 et décale uniquement les duels face au RN', () => {
     const summaries = betweenRoundsSummaries(liveSimulationData.secondRoundPollBias)
     const gapNone = betweenRoundsLastDayGap(liveSimulationData.secondRoundPollBias, 'none')
+    const gapMean = betweenRoundsLastDayGap(liveSimulationData.secondRoundPollBias, 'mean')
     const gap2022 = betweenRoundsLastDayGap(liveSimulationData.secondRoundPollBias, '2022')
     const gap2017 = betweenRoundsLastDayGap(liveSimulationData.secondRoundPollBias, '2017')
     expect(gapNone).toBe(0)
     expect(gap2022).toBeCloseTo(summaries.find((s) => s.year === 2022)!.lastDayGap, 10)
     expect(gap2017).toBeCloseTo(summaries.find((s) => s.year === 2017)!.lastDayGap, 10)
+    expect(gapMean).toBeCloseTo((gap2022 + gap2017) / 2, 10)
     expect(gap2022).toBeCloseTo(2.35, 4)
     expect(gap2017).toBeCloseTo(3.4333, 3)
 
@@ -709,11 +711,19 @@ describe('P4 — sondages de l’entre-deux-tours (affichage seulement) et règl
       { ...defaultSettings(), selectedDuel: 'lepen|philippe', betweenRoundsBias: '2017' },
       { monteCarloIterations: 200 },
     )
+    const simMean = simulate(
+      liveSimulationData,
+      { ...defaultSettings(), selectedDuel: 'lepen|philippe', betweenRoundsBias: 'mean' },
+      { monteCarloIterations: 200 },
+    )
+    expect(simMean.secondRound.pct.b - baseSim.secondRound.pct.b).toBeCloseTo(gapMean, 6)
     expect(sim2022.secondRound.pct.b - baseSim.secondRound.pct.b).toBeCloseTo(gap2022, 6)
     expect(sim2017.secondRound.pct.b - baseSim.secondRound.pct.b).toBeCloseTo(gap2017, 6)
     const mcBase = baseSim.monteCarlo.displayedDuel
+    const mcMean = simMean.monteCarlo.displayedDuel
     const mc2022 = sim2022.monteCarlo.displayedDuel
     const mc2017 = sim2017.monteCarlo.displayedDuel
+    expect(mcBase.aScoreMedian - mcMean.aScoreMedian).toBeCloseTo(gapMean, 4)
     expect(mcBase.aScoreMedian - mc2022.aScoreMedian).toBeCloseTo(gap2022, 4)
     expect(mcBase.aScoreMedian - mc2017.aScoreMedian).toBeCloseTo(gap2017, 4)
     expect(mc2017.aWinProb).toBeLessThanOrEqual(mc2022.aWinProb)

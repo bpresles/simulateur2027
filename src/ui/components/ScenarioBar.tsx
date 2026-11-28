@@ -121,7 +121,7 @@ export function ScenarioBar({
                 }
               />
 
-              {/* Option facultative (désactivée par défaut) : écart derniers sondages avant T2 → résultat réel */}
+              {/* Option activée par défaut (2022) : écart derniers sondages avant T2 → résultat réel */}
               <BetweenRoundsBiasControl idPrefix="scenario" result={result} />
             </div>
           </fieldset>

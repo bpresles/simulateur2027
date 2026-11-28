@@ -53,8 +53,8 @@ export function Simulator({
             <li>
               <strong>1er tour pondéré</strong> : dernier sondage de chaque institut pondéré par sa fraîcheur
               (demi-vie de {POLL_HALF_LIFE_DAYS} jours) et sa taille d’échantillon (plafonnée à{' '}
-              {integer(SAMPLE_SIZE_CAP)}), avec projection d’offre par paires propres intra-institut et aucune
-              correction déterministe fondée sur 2017–2022.
+              {integer(SAMPLE_SIZE_CAP)}), avec l’option de projection d’offre par paires propres intra-institut
+              (activée par défaut) et aucune correction déterministe fondée sur 2017–2022.
             </li>
             <li>
               <strong>Alliances testées uniquement</strong> : seules les configurations effectivement posées
@@ -64,20 +64,22 @@ export function Simulator({
               <strong>2nd tour en flux bruts (% des inscrits)</strong> : interpolation logit directe entre
               deux repères mesurés — présidentielle 2022 (0 %) et législatives 2024 (100 %) — sur les 4 types
               de duels face au RN, curseur dédié et analyse de sensibilité pour le report gauche hors LFI →
-              Mélenchon (non mesuré en présidentielle), présidentielles 2007–2012 pour les duels hors RN, et
-              option activable pour les déclarations 2027 corrigées en logit.
+              Mélenchon (non mesuré en présidentielle), présidentielles 2007–2012 pour les duels hors RN,
+              option activable pour les déclarations 2027 corrigées en logit, et option d’écart entre-deux-tours
+              (activée par défaut sur la moyenne 2017–2022 des derniers sondages avant le 2nd tour vs résultat
+              réel, désactivable ou réglable sur 2022 ou 2017).
             </li>
             <li>
-              <strong>Projection temporelle (activée par défaut)</strong> : projection vers avril 2027 centrée
-              sur le vote utile par bloc (réglable dans les réglages avancés ; amortissement et tendance
+              <strong>Projection temporelle (option activée par défaut)</strong> : projection vers avril 2027
+              centrée sur le vote utile par bloc (réglable dans les réglages avancés ; amortissement et tendance
               récente désactivés par défaut à 0 %), avec bascule en un clic vers la photographie actuelle («
               Aujourd’hui »).
             </li>
             <li>
               <strong>Incertitude explicite</strong> : {integer(result.monteCarlo.iterations)} simulations
               Monte-Carlo propageant la volatilité historique des campagnes (1995–2022), l’incertitude des
-              reports (dont la plage gauche hors LFI → Mélenchon) et, par défaut (hors alliance forcée),
-              l’incertitude sur les candidatures au centre et à droite.
+              reports (dont la plage gauche hors LFI → Mélenchon) et, en option activée par défaut (hors
+              alliance forcée), l’incertitude sur les candidatures au centre et à droite.
             </li>
           </ul>
           <p>

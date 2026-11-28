@@ -62,7 +62,7 @@ interface SettingsActions {
 export type SettingsStore = Settings & SettingsActions
 
 const STORAGE_KEY = 'simulateur2027:settings'
-const STORAGE_VERSION = 19
+const STORAGE_VERSION = 21
 
 export const useSettings = create<SettingsStore>()(
   persist(
@@ -199,19 +199,40 @@ export const useSettings = create<SettingsStore>()(
         selectedDuel: s.selectedDuel,
       }),
       migrate: (persisted, version) => {
-        if (version < 1 || version > 18 || !persisted || typeof persisted !== 'object')
+        if (version < 1 || version > 21 || !persisted || typeof persisted !== 'object')
           return defaultSettings()
         const old = persisted as Partial<Settings> & {
           hypothesisSetId?: string | null
           centerRnPresidentialWeight?: number
           lfiLeftTransfer?: number
         }
+        if (version === 20) {
+          const defProj = defaultProjectionSettings()
+          return {
+            ...defaultSettings(),
+            ...old,
+            betweenRoundsBias:
+              old.betweenRoundsBias === 'none' || old.betweenRoundsBias === '2022' || !old.betweenRoundsBias
+                ? 'mean'
+                : old.betweenRoundsBias,
+            projection: old.projection ? { ...defProj, ...old.projection } : defProj,
+          }
+        }
+        if (version === 19) {
+          const defProj = defaultProjectionSettings()
+          return {
+            ...defaultSettings(),
+            ...old,
+            betweenRoundsBias:
+              old.betweenRoundsBias === 'none' || !old.betweenRoundsBias ? 'mean' : old.betweenRoundsBias,
+            projection: old.projection ? { ...defProj, ...old.projection } : defProj,
+          }
+        }
         if (version === 18) {
           const defProj = defaultProjectionSettings()
           return {
             ...defaultSettings(),
             ...old,
-            betweenRoundsBias: 'none',
             projection: old.projection ? { ...defProj, ...old.projection } : defProj,
           }
         }

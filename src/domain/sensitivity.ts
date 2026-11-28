@@ -168,6 +168,7 @@ export function computeSensitivity(data: SimulationData, settings: Settings): Se
   })
   if (isRnDuel) {
     const mode = settings.betweenRoundsBias
+    const gMean = betweenRoundsLastDayGap(data.secondRoundPollBias, 'mean')
     const g22 = betweenRoundsLastDayGap(data.secondRoundPollBias, '2022')
     const g17 = betweenRoundsLastDayGap(data.secondRoundPollBias, '2017')
     const fmtGap = (g: number) => `+${fmtDec(Math.round(g * 10) / 10)} pts`
@@ -176,19 +177,23 @@ export function computeSensitivity(data: SimulationData, settings: Settings): Se
       label: 'Écart derniers sondages avant T2 → résultat',
       active:
         mode === 'none'
-          ? 'désactivé (défaut)'
-          : mode === '2022'
-            ? `2022 (${fmtGap(g22)})`
-            : `2017 (${fmtGap(g17)})`,
-      variants: (['none', '2022', '2017'] as const)
+          ? 'désactivé'
+          : mode === 'mean'
+            ? `moy. 2017–2022 (${fmtGap(gMean)}, défaut)`
+            : mode === '2022'
+              ? `2022 (${fmtGap(g22)})`
+              : `2017 (${fmtGap(g17)})`,
+      variants: (['none', 'mean', '2022', '2017'] as const)
         .filter((m) => m !== mode)
         .map((m) =>
           variant(
             m === 'none'
-              ? 'Désactivé (défaut)'
-              : m === '2022'
-                ? `Écart 2022 (${fmtGap(g22)})`
-                : `Écart 2017 (${fmtGap(g17)})`,
+              ? 'Désactivé'
+              : m === 'mean'
+                ? `Moy. 2017–2022 (${fmtGap(gMean)}, défaut)`
+                : m === '2022'
+                  ? `Écart 2022 (${fmtGap(g22)})`
+                  : `Écart 2017 (${fmtGap(g17)})`,
             { ...pinned, betweenRoundsBias: m },
           ),
         ),

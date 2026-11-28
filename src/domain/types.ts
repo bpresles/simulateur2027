@@ -657,8 +657,8 @@ export interface RepublicanFrontSettings {
   uncertain?: boolean
 }
 
-/** Option facultative (désactivée par défaut) : applique l'écart derniers sondages d'entre-deux-tours → résultat réel (2022 ou 2017) face au RN. */
-export type BetweenRoundsBiasMode = 'none' | '2022' | '2017'
+/** Option activée par défaut ('mean') : applique l'écart derniers sondages d'entre-deux-tours → résultat réel (moyenne 2017–2022, 2022 ou 2017) face au RN. */
+export type BetweenRoundsBiasMode = 'none' | 'mean' | '2022' | '2017'
 
 export interface Settings {
   /** Sondages décochés pour la base du 1er tour (identifiants). */
@@ -696,7 +696,7 @@ export interface Settings {
   abstainerMobilization: number
   /** Part manuelle des nouveaux votants allant à l'adversaire du RN (0 à 1), ou null = mode endogène neutre (miroir des exprimés T1). */
   abstainerAntiRnShare: number | null
-  /** Option facultative (désactivée par défaut : 'none') appliquant l'écart derniers sondages avant T2 → résultat réel (2022 ou 2017) sur les duels RN. */
+  /** Option activée par défaut ('mean') appliquant l'écart derniers sondages avant T2 → résultat réel (moyenne 2017–2022, 2022 ou 2017) sur les duels RN. */
   betweenRoundsBias: BetweenRoundsBiasMode
   /** Duel affiché parmi les duels plausibles (identifiant `idA|idB`), null = duel du top 2 déterministe. */
   selectedDuel: string | null
@@ -847,7 +847,7 @@ export interface SecondRoundResult {
   /** Position du front républicain (0 = Prés. 2022, 1 = Lég. 2024) appliquée à ce duel, ou null hors duel RN. */
   republicanFrontStrength: number | null
   /** Décalage optionnel entre-deux-tours appliqué au score de l'adversaire du RN (null si inactif ou hors duel RN). */
-  betweenRoundsBiasApplied?: { mode: '2022' | '2017'; shiftPts: number } | null
+  betweenRoundsBiasApplied?: { mode: 'mean' | '2022' | '2017'; shiftPts: number } | null
   /** Sensibilité du score RN au report gauche hors LFI → Mélenchon (uniquement pour un duel `lfi_rn`). */
   lfiLeftSensitivity?: {
     lowRate: number

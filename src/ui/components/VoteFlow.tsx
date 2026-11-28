@@ -122,7 +122,10 @@ export function VoteFlow({ result }: { result: SimulationResult }) {
           <>
             {' '}
             Les flux ci-dessus précèdent le décalage optionnel entre-deux-tours{' '}
-            {sr.betweenRoundsBiasApplied.mode} ({pts(sr.betweenRoundsBiasApplied.shiftPts)} ajoutés au score final de{' '}
+            {sr.betweenRoundsBiasApplied.mode === 'mean'
+              ? 'moy. 2017–2022'
+              : sr.betweenRoundsBiasApplied.mode}{' '}
+            ({pts(sr.betweenRoundsBiasApplied.shiftPts)} ajoutés au score final de{' '}
             {cand(sr.duel.challengerId).shortName}).
           </>
         )}

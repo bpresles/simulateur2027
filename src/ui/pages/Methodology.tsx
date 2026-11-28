@@ -1243,17 +1243,18 @@ export function Methodology({ result }: { result: SimulationResult }) {
               mobilisation des abstentionnistes, fidélité des finalistes, report gauche hors LFI).
             </p>
             <p>
-              <strong>Sondages de l’entre-deux-tours (P4, désactivés par défaut) :</strong> le bloc du 2nd tour
-              affiche deux tableaux distincts, jamais utilisés dans les réglages par défaut ni dans les mesures
-              d’écart historique avant 1er tour (<code>pollBiasGaps</code>, <code>directPollRmse</code>, backtest) :
-              (i) l’ensemble des sondages publiés entre les deux tours jusqu’à l’interdiction légale en 2017
-              (22 sondages, 23/04 au 05/05/2017) et 2022 (42 sondages, 10/04 au 22/04/2022) pour Macron – Le Pen
-              (2002 exclu) ; une option facultative (désactivée par défaut, accessible dans les paramètres de la
-              simulation et les réglages avancés) permet toutefois à l’utilisateur d’appliquer l’écart mesuré entre
-              les derniers sondages avant l’interdiction légale et le résultat officiel — 2022 (+2,3 pts) ou 2017
-              (+3,4 pts) — au score simulé de l’adversaire du RN sur les duels face au RN (score central et
-              Monte-Carlo, sans effet hors duel RN), avec avertissement explicite sur le risque de double compte
-              lorsque les matrices historiques « jour du vote » sont actives ; (ii) les sondages de circonscription
+              <strong>Sondages de l’entre-deux-tours (P4, moyenne 2017–2022 activée par défaut) :</strong> le bloc du 2nd tour
+              affiche deux tableaux distincts, jamais utilisés dans les mesures d’écart historique avant 1er tour
+              (<code>pollBiasGaps</code>, <code>directPollRmse</code>, backtest) : (i) l’ensemble des sondages
+              publiés entre les deux tours jusqu’à l’interdiction légale en 2017 (22 sondages, 23/04 au
+              05/05/2017) et 2022 (42 sondages, 10/04 au 22/04/2022) pour Macron – Le Pen (2002 exclu) ;
+              l’option (activée par défaut sur la moyenne des écarts « derniers » 2017 et 2022, soit +2,9 pts, et
+              modifiable vers 2022 à +2,4 pts, 2017 à +3,4 pts ou désactivable dans les paramètres de la
+              simulation et les réglages avancés) applique l’écart mesuré entre les derniers sondages avant
+              l’interdiction légale et le résultat officiel — 2022 (+2,3 pts) ou 2017 (+3,4 pts) — au score
+              simulé de l’adversaire du RN sur les duels face au RN (score central et Monte-Carlo, sans effet
+              hors duel RN), avec avertissement explicite sur le risque de double compte lorsque les matrices
+              historiques « jour du vote » sont actives ; (ii) les sondages de circonscription
               d’entre-deux-tours des législatives 2024 (duels uniquement, triangulaires exclues, stockés dans{' '}
               <code>legislative-duel-polls-2024.json</code>) selon une règle d’identité stricte des partis écrite
               candidat par candidat (un allié ou une coalition ne compte pas), jamais utilisés dans le calcul. Après

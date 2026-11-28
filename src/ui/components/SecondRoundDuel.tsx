@@ -2,6 +2,7 @@ import { motion } from 'motion/react'
 import { useMemo, useState } from 'react'
 import { legislativeDuelPolls2024, simulationData } from '../../data/schema'
 import {
+  betweenRoundsLastDayGap,
   betweenRoundsSummaries,
   directPollGapAlert,
   directPollRmse,
@@ -78,7 +79,9 @@ export function SecondRoundDuel({ result }: { result: SimulationResult }) {
           {sr.betweenRoundsBiasApplied && sr.duel.challengerId && (
             <>
               {' '}
-              Écart entre-deux-tours {sr.betweenRoundsBiasApplied.mode} appliqué (
+              Écart entre-deux-tours{' '}
+              {sr.betweenRoundsBiasApplied.mode === 'mean' ? '2017–2022' : sr.betweenRoundsBiasApplied.mode}{' '}
+              appliqué (
               <strong className="num font-medium text-ink-2">{pts(sr.betweenRoundsBiasApplied.shiftPts)}</strong>{' '}
               pour {cand(sr.duel.challengerId).shortName}).
             </>
@@ -155,12 +158,13 @@ function BetweenRoundsTable({ result }: { result: SimulationResult }) {
   if (BETWEEN_ROUNDS.length === 0) return null
   const enabled = mode !== 'none'
   const isRnDuel = result.secondRound.duel.kind === 'rn-sourced'
-  const activeSummary = enabled ? BETWEEN_ROUNDS.find((s) => String(s.year) === mode) : undefined
+  const appliedGap = enabled ? betweenRoundsLastDayGap(simulationData.secondRoundPollBias, mode) : 0
+  const modeLabel = mode === 'mean' ? 'moyenne 2017–2022' : mode
   const heading = !enabled
     ? 'Entre-deux-tours (pour mémoire, non utilisé dans le calcul)'
-    : isRnDuel && activeSummary
-      ? `Entre-deux-tours (écart ${mode} appliqué au calcul : ${pts(activeSummary.lastDayGap)})`
-      : `Entre-deux-tours (option ${mode} activée, sans effet hors duel RN)`
+    : isRnDuel
+      ? `Entre-deux-tours (${mode === 'mean' ? 'moyenne 2017–2022 appliquée' : `écart ${mode} appliqué`} au calcul : ${pts(appliedGap)})`
+      : `Entre-deux-tours (option ${modeLabel} activée, sans effet hors duel RN)`
 
   return (
     <div className="mt-4 rounded-lg border border-rule px-3.5 py-3 text-sm text-ink-2">
@@ -169,11 +173,11 @@ function BetweenRoundsTable({ result }: { result: SimulationResult }) {
         Sondages publiés entre le soir du 1er tour et le dernier jour avant l’interdiction légale en 2017 et
         2022 (Macron – Le Pen), comparés au résultat officiel. Écart = résultat − sondages (points sur le score
         de Macron). 2002 exclu.
-        {enabled && isRnDuel && activeSummary && (
+        {enabled && isRnDuel && (
           <>
             {' '}
             <strong className="font-medium text-ink">
-              Option active : {pts(activeSummary.lastDayGap)} ajoutés au score de l’adversaire du RN
+              Option active : {pts(appliedGap)} ({modeLabel}) ajoutés au score de l’adversaire du RN
             </strong>{' '}
             (attention au risque de double compte avec les matrices « jour du vote » en base historique).
           </>
@@ -193,7 +197,7 @@ function BetweenRoundsTable({ result }: { result: SimulationResult }) {
           </thead>
           <tbody>
             {BETWEEN_ROUNDS.map((s) => {
-              const isSelected = enabled && String(s.year) === mode
+              const isSelected = enabled && (mode === 'mean' || String(s.year) === mode)
               return (
                 <tr
                   key={s.year}
@@ -219,7 +223,9 @@ function BetweenRoundsTable({ result }: { result: SimulationResult }) {
                       {pts(s.lastDayGap)}
                     </span>
                     {isSelected && isRnDuel && (
-                      <span className="ml-1 text-[0.7rem] font-medium text-ballpoint">(appliqué)</span>
+                      <span className="ml-1 text-[0.7rem] font-medium text-ballpoint">
+                        ({mode === 'mean' ? 'dans la moy.' : 'appliqué'})
+                      </span>
                     )}{' '}
                     / {pts(s.meanGap)}
                   </td>

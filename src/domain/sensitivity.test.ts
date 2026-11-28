@@ -85,16 +85,18 @@ describe('tableau de sensibilité (sans Monte-Carlo)', () => {
     expect(JSON.stringify(s)).toBe(before)
   })
 
-  it('expose la ligne de sensibilité entre-deux-tours (2022 et 2017) sur un duel face au RN', () => {
+  it('expose la ligne de sensibilité entre-deux-tours (moy. 2017–2022 par défaut, désactivé, 2022 et 2017) sur un duel face au RN', () => {
     const rows = computeSensitivity(frozenData, { ...defaultSettings(), selectedDuel: 'lepen|philippe' })
     const br = rows.find((r) => r.id === 'between-rounds-bias')!
     expect(br).toBeTruthy()
-    expect(br.active).toContain('désactivé')
-    expect(br.variants).toHaveLength(2)
-    expect(br.variants[0]!.label).toContain('2022')
-    expect(br.variants[1]!.label).toContain('2017')
-    // Pour a = lepen, appliquer l'écart en faveur de l'adversaire réduit le score de lepen (delta négatif)
-    expect(br.variants[0]!.delta).toBeLessThan(0)
-    expect(br.variants[1]!.delta).toBeLessThan(br.variants[0]!.delta)
+    expect(br.active).toContain('2017–2022')
+    expect(br.variants).toHaveLength(3)
+    expect(br.variants[0]!.label).toContain('Désactivé')
+    expect(br.variants[1]!.label).toContain('2022')
+    expect(br.variants[2]!.label).toContain('2017')
+    // Pour a = lepen avec moy. 2017–2022 active : désactiver ou passer à 2022 augmente le score de lepen (delta > 0), passer à 2017 le réduit (delta < 0)
+    expect(br.variants[0]!.delta).toBeGreaterThan(0)
+    expect(br.variants[1]!.delta).toBeGreaterThan(0)
+    expect(br.variants[2]!.delta).toBeLessThan(0)
   })
 })

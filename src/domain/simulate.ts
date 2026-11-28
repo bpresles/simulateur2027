@@ -43,7 +43,7 @@ export function defaultSettings(): Settings {
     firstRoundTurnout: 74,
     abstainerMobilization: 0.225,
     abstainerAntiRnShare: null,
-    betweenRoundsBias: 'none',
+    betweenRoundsBias: 'mean',
     selectedDuel: null,
   }
 }
